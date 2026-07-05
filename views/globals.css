@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f7f8f3;
+  --foreground: #273633;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: #cfe5dc;
+  color: #1f302c;
+}
+
+@layer components {
+  .page-shell {
+    @apply min-h-screen bg-cream text-ink;
+  }
+
+  .section {
+    @apply px-5 py-16 sm:px-8 lg:px-12 lg:py-24;
+  }
+
+  .section-muted {
+    @apply bg-cream-deep/70;
+  }
+
+  .container {
+    @apply mx-auto max-w-6xl;
+  }
+
+  .eyebrow {
+    @apply text-sm font-bold text-sage;
+  }
+
+  .card {
+    @apply rounded-2xl border border-ink/10 bg-white/80 p-6 shadow-soft;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full bg-sage px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-sage-dark focus:outline-none focus:ring-4 focus:ring-sage/20;
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-sage/50 bg-white/70 px-6 py-3 text-sm font-bold text-sage-dark transition hover:border-sage hover:bg-white focus:outline-none focus:ring-4 focus:ring-sage/15;
+  }
+}
