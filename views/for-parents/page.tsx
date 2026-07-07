@@ -4,22 +4,74 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 
 const sweetObservations = [
-  ["Sleep 睡眠", "Sleep", "最近睡得是否稳定？比如入睡时间、夜里醒来、早晨疲惫感，是否和以前明显不同。"],
-  ["Wake up on time 起床", "Wake up on time", "早晨是否很难启动？起床、洗漱、出门或开始一天时，是否变得更吃力。"],
-  ["Eat healthily 饮食", "Eat healthily", "吃饭是否规律？精力是否有明显波动，是否常常没胃口、跳餐或靠零食撑过去。"],
-  ["Exercise 运动", "Exercise", "身体活动是否明显减少？孩子是否越来越少出门、运动或参与原本会做的活动。"],
-  ["Task engagement 任务参与", "Task engagement", "学习或生活任务是否很难开始？重点不是只看结果，而是看启动和维持是否变难。"],
+  {
+    letter: "S",
+    title: "Sleep 睡眠",
+    label: "Sleep",
+    question: "最近睡得是否稳定？",
+    text: "比如入睡时间、夜里醒来、早晨疲惫感，是否和以前明显不同。",
+  },
+  {
+    letter: "W",
+    title: "Wake up on time 起床",
+    label: "Wake up on time",
+    question: "早晨是否很难启动？",
+    text: "起床、洗漱、出门或开始一天时，是否变得更吃力。",
+  },
+  {
+    letter: "E",
+    title: "Eat healthily 饮食",
+    label: "Eat healthily",
+    question: "吃饭是否规律？",
+    text: "精力是否有明显波动，是否常常没胃口、跳餐或靠零食撑过去。",
+  },
+  {
+    letter: "E",
+    title: "Exercise 运动",
+    label: "Exercise",
+    question: "身体活动是否明显减少？",
+    text: "孩子是否越来越少出门、运动或参与原本会做的活动。",
+  },
+  {
+    letter: "T",
+    title: "Task engagement 任务参与",
+    label: "Task engagement",
+    question: "学习或生活任务是否很难开始？",
+    text: "重点不是只看结果，而是看启动和维持是否变难。",
+  },
 ];
 
 const aidetSteps = [
-  ["Acknowledge / 先看见孩子的感受", "我知道你最近可能真的很累，也不是故意拖延。"],
-  ["Introduce / 说明自己的来意", "我不是来骂你，我只是想了解你最近状态。"],
-  ["Duration / 说明只聊一小会儿", "我们先聊10分钟，不需要马上解决所有问题。"],
-  [
-    "Explanation / 解释为什么关心这些生活节律",
-    "睡眠、起床、吃饭、运动会影响情绪和注意力，我想看看有没有什么地方可以先帮你轻松一点。",
-  ],
-  ["Thank you / 感谢孩子愿意表达", "谢谢你愿意跟我说这些，我知道这不一定容易。"],
+  {
+    step: "01",
+    title: "Acknowledge",
+    label: "先看见孩子的感受",
+    example: "我知道你最近可能真的很累，也不是故意拖延。",
+  },
+  {
+    step: "02",
+    title: "Introduce",
+    label: "说明自己的来意",
+    example: "我不是来骂你，我只是想了解你最近状态。",
+  },
+  {
+    step: "03",
+    title: "Duration",
+    label: "说明只聊一小会儿",
+    example: "我们先聊10分钟，不需要马上解决所有问题。",
+  },
+  {
+    step: "04",
+    title: "Explanation",
+    label: "解释为什么关心这些生活节律",
+    example: "睡眠、起床、吃饭、运动会影响情绪和注意力，我想看看有没有什么地方可以先帮你轻松一点。",
+  },
+  {
+    step: "05",
+    title: "Thank you",
+    label: "感谢孩子愿意表达",
+    example: "谢谢你愿意跟我说这些，我知道这不一定容易。",
+  },
 ];
 
 const phrases = [
@@ -79,11 +131,25 @@ export default function ForParentsPage() {
             title="SWEET：家长可以观察什么"
             description="SWEET 是内容框架，帮助家长知道可以观察哪些生活节律。这些变化不一定意味着严重问题，但如果持续出现，就值得被温和、具体地看见。"
           />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            {sweetObservations.map(([title, label, text]) => (
-              <InfoCard key={title} title={title} label={label}>
-                {text}
-              </InfoCard>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {sweetObservations.map((item) => (
+              <article
+                key={item.title}
+                className="group flex min-h-[17rem] flex-col rounded-[1.35rem] border border-sage/15 bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white"
+              >
+                <div className="mb-5 flex items-start justify-between gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mist text-xl font-extrabold text-sage-dark">
+                    {item.letter}
+                  </div>
+                  <p className="rounded-full bg-cream-deep px-3 py-1 text-[0.7rem] font-bold text-sage-dark">
+                    SWEET
+                  </p>
+                </div>
+                <h3 className="text-[1.05rem] font-extrabold leading-snug text-ink">{item.title}</h3>
+                <p className="mt-2 text-xs font-bold text-sage">{item.label}</p>
+                <p className="mt-5 text-[1rem] font-bold leading-7 text-ink/85">{item.question}</p>
+                <p className="mt-3 text-[0.92rem] leading-7 text-muted">{item.text}</p>
+              </article>
             ))}
           </div>
         </div>
@@ -95,11 +161,23 @@ export default function ForParentsPage() {
             title="AIDET：家长可以怎么开口谈"
             description="AIDET 是亲子沟通框架，帮助家长围绕这些生活节律，用更不指责、更有安全感的方式开口。"
           />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-            {aidetSteps.map(([title, example]) => (
-              <InfoCard key={title} title={title} label="AIDET">
-                <p className="font-bold text-ink/80">“{example}”</p>
-              </InfoCard>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {aidetSteps.map((item) => (
+              <article
+                key={item.title}
+                className="flex min-h-[18rem] flex-col rounded-[1.35rem] border border-ink/10 bg-white/90 p-5 shadow-soft"
+              >
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <span className="text-sm font-extrabold text-sage">{item.step}</span>
+                  <span className="h-px flex-1 bg-sage/20" />
+                  <span className="text-[0.7rem] font-bold text-sage-dark">AIDET</span>
+                </div>
+                <h3 className="text-[1.08rem] font-extrabold leading-snug text-ink">{item.title}</h3>
+                <p className="mt-2 text-sm font-bold leading-6 text-sage-dark">{item.label}</p>
+                <div className="mt-6 rounded-2xl bg-cream-deep/70 p-4">
+                  <p className="text-[0.95rem] font-bold leading-7 text-ink/80">“{item.example}”</p>
+                </div>
+              </article>
             ))}
           </div>
         </div>
