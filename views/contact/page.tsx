@@ -52,7 +52,7 @@ export default function ContactPage() {
             <div className="mt-6 grid gap-3 text-sm font-bold text-ink/80">
               <p className="rounded-2xl bg-cream px-4 py-3">负责人：Irene</p>
               <p className="rounded-2xl bg-cream px-4 py-3">用途：试点合作、产品反馈、隐私与数据问题</p>
-              <p className="rounded-2xl bg-cream px-4 py-3">状态：原型阶段，联系入口可继续补充</p>
+              <p className="rounded-2xl bg-cream px-4 py-3">状态：原型阶段，联系入口会随试点继续补充</p>
             </div>
           </div>
 
