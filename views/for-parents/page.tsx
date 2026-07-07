@@ -125,7 +125,7 @@ export default function ForParentsPage() {
         </div>
       </section>
 
-      <section className="section section-muted">
+      <section className="section section-muted" data-section="sweet-observations">
         <div className="container">
           <SectionHeader
             title="SWEET：家长可以观察什么"
@@ -155,7 +155,7 @@ export default function ForParentsPage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" data-section="aidet-conversation">
         <div className="container">
           <SectionHeader
             title="AIDET：家长可以怎么开口谈"
