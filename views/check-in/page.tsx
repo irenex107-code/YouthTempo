@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
@@ -233,6 +233,8 @@ export default function CheckInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
+  const questionCardRef = useRef<HTMLElement | null>(null);
+  const shouldScrollToQuestionRef = useRef(false);
 
   const step = steps[currentStep];
   const currentAnswer = answers[step.id];
@@ -243,6 +245,17 @@ export default function CheckInPage() {
   ).length;
   const allRequiredDone = completedSteps === steps.length;
   const mainAffectedAreas = Array.isArray(aiResult?.mainAffectedAreas) ? aiResult.mainAffectedAreas.join("、") : "";
+
+  useEffect(() => {
+    if (!shouldScrollToQuestionRef.current) return;
+    shouldScrollToQuestionRef.current = false;
+    questionCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [currentStep]);
+
+  function goToStep(index: number) {
+    shouldScrollToQuestionRef.current = true;
+    setCurrentStep(Math.max(0, Math.min(index, steps.length - 1)));
+  }
 
   function setSingleValue(fieldId: string, value: string) {
     setAnswers((current) => ({
@@ -279,7 +292,7 @@ export default function CheckInPage() {
       return;
     }
     setValidation("");
-    setCurrentStep((current) => Math.min(current + 1, steps.length - 1));
+    goToStep(currentStep + 1);
   }
 
   function reset() {
@@ -363,7 +376,7 @@ export default function CheckInPage() {
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setCurrentStep(index)}
+                    onClick={() => goToStep(index)}
                     className={`rounded-2xl border px-2 py-3 text-center transition ${
                       active
                         ? "border-sage bg-mist text-sage-dark"
@@ -379,7 +392,7 @@ export default function CheckInPage() {
               })}
             </div>
 
-            <article className="card">
+            <article ref={questionCardRef} className="card scroll-mt-28">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="text-[1.8rem] font-bold leading-[1.25] text-ink">{step.label} {step.title}</h2>
@@ -481,7 +494,7 @@ export default function CheckInPage() {
                   type="button"
                   className="button-secondary"
                   disabled={currentStep === 0}
-                  onClick={() => setCurrentStep((current) => Math.max(current - 1, 0))}
+                  onClick={() => goToStep(currentStep - 1)}
                 >
                   上一步
                 </button>
