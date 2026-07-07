@@ -3,26 +3,37 @@ import { InfoCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 
-const observations = [
-  ["睡眠变化", "Sleep", "入睡变晚、醒来困难、周末补觉明显增多，可能说明孩子正在消耗更多精力。"],
-  ["醒来后的状态", "Wake", "早晨持续疲惫、烦躁或回避开始一天，可以作为理解状态的入口。"],
-  ["饮食和运动规律", "Eat / Exercise", "吃饭时间混乱、活动减少，不一定是“懒”，也可能是节律变得不稳定。"],
-  ["学习任务启动困难", "Task Engagement", "不是只看成绩，而是看孩子是否越来越难开始、维持或完成基本任务。"],
-  ["情绪表达变少或冲突变多", "Emotional Expression", "沉默、回避、易怒或冲突增加，都可以先理解为需要被看见的信号。"],
+const sweetObservations = [
+  ["Sleep 睡眠", "Sleep", "最近睡得是否稳定？比如入睡时间、夜里醒来、早晨疲惫感，是否和以前明显不同。"],
+  ["Wake up on time 起床", "Wake up on time", "早晨是否很难启动？起床、洗漱、出门或开始一天时，是否变得更吃力。"],
+  ["Eat healthily 饮食", "Eat healthily", "吃饭是否规律？精力是否有明显波动，是否常常没胃口、跳餐或靠零食撑过去。"],
+  ["Exercise 运动", "Exercise", "身体活动是否明显减少？孩子是否越来越少出门、运动或参与原本会做的活动。"],
+  ["Task engagement 任务参与", "Task engagement", "学习或生活任务是否很难开始？重点不是只看结果，而是看启动和维持是否变难。"],
 ];
-const rhythmObservations = observations.slice(0, 3);
-const expressionObservations = observations.slice(3);
+
+const aidetSteps = [
+  ["Acknowledge / 先看见孩子的感受", "我知道你最近可能真的很累，也不是故意拖延。"],
+  ["Introduce / 说明自己的来意", "我不是来骂你，我只是想了解你最近状态。"],
+  ["Duration / 说明只聊一小会儿", "我们先聊10分钟，不需要马上解决所有问题。"],
+  [
+    "Explanation / 解释为什么关心这些生活节律",
+    "睡眠、起床、吃饭、运动会影响情绪和注意力，我想看看有没有什么地方可以先帮你轻松一点。",
+  ],
+  ["Thank you / 感谢孩子愿意表达", "谢谢你愿意跟我说这些，我知道这不一定容易。"],
+];
 
 const phrases = [
   "我想先理解你最近的状态。",
   "我们可以一起看看哪一部分最累。",
   "你不用马上解释清楚，我们可以慢慢说。",
   "我不会马上评价你，我们先一起想一个小步骤。",
+  "我注意到你最近早上很难起来，我想先听听你自己的感觉。",
+  "我们先不讨论对错，只看看哪一个生活节律最需要被照顾。",
 ];
 const parentStarts = [
-  ["先观察节律", "从睡眠、醒来、饮食、运动和任务投入看见孩子最近的状态变化。"],
-  ["先减少冲突", "用更低压力的方式开启对话，而不是马上评价或催促。"],
-  ["先理解表达困难", "有些孩子不是不想说，而是不知道怎么说。"],
+  ["先观察 SWEET", "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。"],
+  ["先降低防御", "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。"],
+  ["用 AIDET 开口", "用看见感受、说明来意、约定时间、解释原因和表达感谢的方式，让沟通更安全。"],
   ["需要时连接支持", "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。"],
 ];
 
@@ -32,7 +43,7 @@ export default function ForParentsPage() {
       <PageHero
         label="For Parents"
         title="家长入口"
-        subtitle="更早理解孩子的节奏，比更晚处理危机更重要。青序计划帮助家长从睡眠、饮食、身体活动、任务投入和情绪表达中，看见孩子可能需要的支持。"
+        subtitle="更早理解孩子的节奏，比更晚处理危机更重要。SWEET 帮助家长看见孩子的生活节律，AIDET 帮助家长用更安全、不指责的方式开口沟通。SWEET shows what to notice. AIDET guides how to talk."
       />
 
       <section className="section section-muted">
@@ -41,7 +52,7 @@ export default function ForParentsPage() {
             平台不是为了判断孩子“有没有问题”，而是帮助家庭更早注意到日常节律、压力变化和支持需求。先看见状态，才更容易减少误解和冲突。
           </InfoCard>
           <InfoCard title="从节律开始理解，而不是立刻追问原因" label="Daily rhythm first">
-            对很多孩子来说，直接回答“你到底怎么了”很难。睡眠、醒来、吃饭节奏、身体活动和任务投入，常常是更低冲突、更容易开始的观察方式。
+            对很多孩子来说，直接回答“你到底怎么了”很难。SWEET 提供的是观察内容，AIDET 提供的是沟通方式，帮助家长先从更具体、更低压力的地方靠近孩子。
           </InfoCard>
         </div>
       </section>
@@ -65,30 +76,15 @@ export default function ForParentsPage() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader
-            title="家长可以观察什么？"
-            description="这些变化不一定意味着严重问题，但如果持续出现，就值得被温和、具体地看见。"
+            title="SWEET：家长可以观察什么"
+            description="SWEET 是内容框架，帮助家长知道可以观察哪些生活节律。这些变化不一定意味着严重问题，但如果持续出现，就值得被温和、具体地看见。"
           />
-          <div className="grid gap-8">
-            <div>
-              <h3 className="text-xl font-bold text-ink">日常节律变化</h3>
-              <div className="mt-5 grid gap-6 md:grid-cols-3">
-                {rhythmObservations.map(([title, label, text]) => (
-                  <InfoCard key={title} title={title} label={label}>
-                    {text}
-                  </InfoCard>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-ink">学习与表达变化</h3>
-              <div className="mt-5 grid gap-6 md:grid-cols-2">
-                {expressionObservations.map(([title, label, text]) => (
-                  <InfoCard key={title} title={title} label={label}>
-                    {text}
-                  </InfoCard>
-                ))}
-              </div>
-            </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+            {sweetObservations.map(([title, label, text]) => (
+              <InfoCard key={title} title={title} label={label}>
+                {text}
+              </InfoCard>
+            ))}
           </div>
         </div>
       </section>
@@ -96,10 +92,26 @@ export default function ForParentsPage() {
       <section className="section">
         <div className="container">
           <SectionHeader
-            title="可以先这样开口"
+            title="AIDET：家长可以怎么开口谈"
+            description="AIDET 是亲子沟通框架，帮助家长围绕这些生活节律，用更不指责、更有安全感的方式开口。"
+          />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+            {aidetSteps.map(([title, example]) => (
+              <InfoCard key={title} title={title} label="AIDET">
+                <p className="font-bold text-ink/80">“{example}”</p>
+              </InfoCard>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-muted">
+        <div className="container">
+          <SectionHeader
+            title="可以直接使用的低冲突句式"
             description="目标不是马上让孩子解释清楚，而是让对话可以继续。"
           />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {phrases.map((phrase) => (
               <InfoCard key={phrase} title={`“${phrase}”`} label="Conversation starter">
                 这类句式把重点放在理解状态，而不是立刻评价、纠正或要求改变。
@@ -117,7 +129,7 @@ export default function ForParentsPage() {
           <div className="card">
             <h3 className="text-xl font-bold text-ink">家长可以先做的一件事</h3>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              选择一个具体变化开始谈，比如睡眠、早晨状态或任务启动，而不是一次讨论所有问题。
+              选择一个 SWEET 里的具体变化开始谈，比如睡眠、起床或任务参与，再用 AIDET 的方式说明你只是想先理解孩子的状态。
             </p>
           </div>
           <div className="card lg:col-span-2">
