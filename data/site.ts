@@ -57,6 +57,6 @@ export const footerLinks = [
   { label: "睡前整理", href: "/worry-time" },
   { label: "家校资源", href: "/resources" },
   { label: "专业转介支持", href: "/referral" },
-  { label: "隐私与安全", href: "/referral" },
-  { label: "联系我们", href: "/resources" },
+  { label: "隐私与安全", href: "/privacy-safety" },
+  { label: "联系我们", href: "/contact" },
 ];
