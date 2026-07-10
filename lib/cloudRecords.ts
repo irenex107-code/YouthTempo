@@ -146,7 +146,7 @@ export async function createPermission(granteeEmail: string, permissionType: str
       owner_user_id: user.id,
       grantee_email: granteeEmail.trim().toLowerCase(),
       permission_type: permissionType,
-      status: "pending",
+      status: "active",
     })
     .select("*")
     .single();
