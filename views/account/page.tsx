@@ -4,9 +4,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { InfoCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
+import type { CloudSweetRecord, UserPermission } from "@/lib/cloudRecords";
 import {
-  CloudSweetRecord,
-  UserPermission,
   createPermission,
   deleteCloudSweetRecord,
   getCurrentUser,
@@ -176,10 +175,10 @@ export default function AccountPage() {
   return (
     <>
       <PageHero
-        eyebrow="我的账户"
+        label="我的账户"
         title="把 SWEET 记录保存下来，也把授权交还给用户自己。"
-        description="账户系统用于保存用户主动提交的节律记录、管理基础资料和查看授权关系。它不是诊断系统，也不会把孩子贴上标签。"
-        actions={<Link href="/check-in" className="button-primary">填写 SWEET 问卷</Link>}
+        subtitle="账户系统用于保存用户主动提交的节律记录、管理基础资料和查看授权关系。它不是诊断系统，也不会把孩子贴上标签。"
+        action={<Link href="/check-in" className="button-primary">填写 SWEET 问卷</Link>}
       />
 
       <section className="section bg-mist/45">
@@ -195,15 +194,7 @@ export default function AccountPage() {
             ) : (
               <form onSubmit={handleLogin} className="space-y-4">
                 <label className="block text-sm font-bold text-ink" htmlFor="email">邮箱</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage"
-                  required
-                />
+                <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage" required />
                 <button type="submit" className="button-primary" disabled={loading}>发送登录链接</button>
               </form>
             )}
@@ -215,22 +206,11 @@ export default function AccountPage() {
               <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div>
                   <label className="block text-sm font-bold text-ink" htmlFor="name">显示名称</label>
-                  <input
-                    id="name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage"
-                    placeholder="可以填写昵称或姓名"
-                  />
+                  <input id="name" value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage" placeholder="可以填写昵称或姓名" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-ink" htmlFor="role">身份</label>
-                  <select
-                    id="role"
-                    value={role}
-                    onChange={(event) => setRole(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage"
-                  >
+                  <select id="role" value={role} onChange={(event) => setRole(event.target.value)} className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage">
                     {roleOptions.map((item) => <option key={item}>{item}</option>)}
                   </select>
                 </div>
@@ -244,21 +224,15 @@ export default function AccountPage() {
       </section>
 
       {(status || error) ? (
-        <section className="section py-0">
-          <div className="container">
-            {status ? <p className="rounded-2xl bg-mist px-5 py-4 font-bold text-sage-dark">{status}</p> : null}
-            {error ? <p className="mt-3 rounded-2xl bg-white px-5 py-4 font-bold text-rose-700 shadow-soft">{error}</p> : null}
-          </div>
-        </section>
+        <section className="section py-0"><div className="container">
+          {status ? <p className="rounded-2xl bg-mist px-5 py-4 font-bold text-sage-dark">{status}</p> : null}
+          {error ? <p className="mt-3 rounded-2xl bg-white px-5 py-4 font-bold text-rose-700 shadow-soft">{error}</p> : null}
+        </div></section>
       ) : null}
 
       <section className="section">
         <div className="container">
-          <SectionHeader
-            eyebrow="历史记录"
-            title="已保存的 SWEET 记录"
-            description="这里只显示当前登录用户自己的记录。数据库规则会限制用户只能读取、删除属于自己的内容。"
-          />
+          <SectionHeader eyebrow="历史记录" title="已保存的 SWEET 记录" description="这里只显示当前登录用户自己的记录。数据库规则会限制用户只能读取、删除属于自己的内容。" />
           {user && cloudRecords.length ? (
             <div className="mt-8 grid gap-5 md:grid-cols-2">
               {cloudRecords.map((record) => (
@@ -272,36 +246,20 @@ export default function AccountPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-8 rounded-3xl border border-ink/10 bg-white/75 p-6 text-muted shadow-soft">
-              {user ? "还没有云端 SWEET 记录。填写问卷并点击“保存到我的记录”后会出现在这里。" : "登录后可以查看云端历史记录。"}
-            </div>
+            <div className="mt-8 rounded-3xl border border-ink/10 bg-white/75 p-6 text-muted shadow-soft">{user ? "还没有云端 SWEET 记录。填写问卷并点击“保存到我的记录”后会出现在这里。" : "登录后可以查看云端历史记录。"}</div>
           )}
         </div>
       </section>
 
       <section className="section bg-mist/45">
         <div className="container">
-          <SectionHeader
-            eyebrow="授权管理"
-            title="谁可以被你授权参与支持"
-            description="你可以先创建授权记录，也可以随时撤销。当前版本先记录授权关系，后续可扩展为家长端或学校端的精细查看权限。"
-          />
+          <SectionHeader eyebrow="授权管理" title="谁可以被你授权参与支持" description="你可以先创建授权记录，也可以随时撤销。当前版本先记录授权关系，后续可扩展为家长端或学校端的精细查看权限。" />
           <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <InfoCard title="新增授权" label="Permission">
               {user ? (
                 <form onSubmit={handleCreatePermission} className="space-y-4">
-                  <input
-                    type="email"
-                    value={granteeEmail}
-                    onChange={(event) => setGranteeEmail(event.target.value)}
-                    placeholder="被授权人的邮箱"
-                    className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage"
-                  />
-                  <select
-                    value={permissionType}
-                    onChange={(event) => setPermissionType(event.target.value)}
-                    className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage"
-                  >
+                  <input type="email" value={granteeEmail} onChange={(event) => setGranteeEmail(event.target.value)} placeholder="被授权人的邮箱" className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage" />
+                  <select value={permissionType} onChange={(event) => setPermissionType(event.target.value)} className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage">
                     {permissionOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
                   <button type="submit" className="button-primary" disabled={loading}>创建授权</button>
@@ -318,13 +276,9 @@ export default function AccountPage() {
                     <p className="font-bold text-ink">{permission.grantee_email}</p>
                     <p className="mt-1 text-sm text-muted">{permissionLabel(permission.permission_type)} · {permission.status === "revoked" ? "已撤销" : "有效/待确认"}</p>
                   </div>
-                  {permission.status !== "revoked" ? (
-                    <button type="button" className="button-secondary" onClick={() => handleRevokePermission(permission.id)} disabled={loading}>撤销</button>
-                  ) : null}
+                  {permission.status !== "revoked" ? <button type="button" className="button-secondary" onClick={() => handleRevokePermission(permission.id)} disabled={loading}>撤销</button> : null}
                 </article>
-              )) : (
-                <article className="card text-muted">还没有授权记录。</article>
-              )}
+              )) : <article className="card text-muted">还没有授权记录。</article>}
             </div>
           </div>
         </div>
