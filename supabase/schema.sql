@@ -24,7 +24,7 @@ create table if not exists public.user_permissions (
   owner_user_id uuid not null references auth.users(id) on delete cascade,
   grantee_email text not null,
   permission_type text not null check (permission_type in ('guardian_view', 'school_support', 'research_feedback')),
-  status text not null default 'pending' check (status in ('pending', 'active', 'revoked')),
+  status text not null default 'active' check (status in ('pending', 'active', 'revoked')),
   created_at timestamptz not null default now(),
   revoked_at timestamptz
 );
@@ -54,6 +54,20 @@ create policy "sweet_records_select_own"
 on public.sweet_records for select
 using (auth.uid() = user_id);
 
+drop policy if exists "sweet_records_select_authorized_grantee" on public.sweet_records;
+create policy "sweet_records_select_authorized_grantee"
+on public.sweet_records for select
+using (
+  exists (
+    select 1
+    from public.user_permissions permission
+    where permission.owner_user_id = sweet_records.user_id
+      and lower(permission.grantee_email) = lower(auth.jwt() ->> 'email')
+      and permission.status = 'active'
+      and permission.permission_type in ('guardian_view', 'school_support')
+  )
+);
+
 drop policy if exists "sweet_records_insert_own" on public.sweet_records;
 create policy "sweet_records_insert_own"
 on public.sweet_records for insert
@@ -68,6 +82,11 @@ drop policy if exists "permissions_select_own" on public.user_permissions;
 create policy "permissions_select_own"
 on public.user_permissions for select
 using (auth.uid() = owner_user_id);
+
+drop policy if exists "permissions_select_grantee" on public.user_permissions;
+create policy "permissions_select_grantee"
+on public.user_permissions for select
+using (lower(grantee_email) = lower(auth.jwt() ->> 'email'));
 
 drop policy if exists "permissions_insert_own" on public.user_permissions;
 create policy "permissions_insert_own"
@@ -85,3 +104,6 @@ on public.sweet_records(user_id, created_at desc);
 
 create index if not exists user_permissions_owner_created_idx
 on public.user_permissions(owner_user_id, created_at desc);
+
+create index if not exists user_permissions_grantee_status_idx
+on public.user_permissions(lower(grantee_email), status);
