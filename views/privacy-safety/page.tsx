@@ -11,8 +11,8 @@ const principles = [
 ];
 
 const accountPlan = [
-  ["用户登录", "正式版本将支持学生、家长和学校角色登录，用于保存个人记录、查看历史变化和管理授权。"],
-  ["数据保存", "SWEET 节律、情绪整理和支持路径可以在用户同意后保存，帮助用户回看趋势，而不是用于诊断或贴标签。"],
+  ["原型登录", "当前网站已提供“我的记录”原型入口，可在本机浏览器保存昵称、角色和 SWEET 记录，用于演示登录体验。"],
+  ["本地数据保存", "SWEET 节律记录可以由用户主动保存到当前浏览器，帮助回看最近变化，而不是用于诊断或贴标签。"],
   ["监护与学校授权", "面向未成年人时，重要数据使用会结合监护人、学校或项目试点规则，避免未经说明的共享。"],
   ["删除与退出", "正式版本应允许用户导出、删除个人记录，或退出试点项目。"],
 ];
@@ -30,7 +30,7 @@ export default function PrivacySafetyPage() {
       <PageHero
         label="Privacy & Safety"
         title="隐私与安全"
-        subtitle="青序计划关注的是更早支持，而不是给年轻人贴标签。我们会把数据收集、用户登录和记录保存设计得尽量清楚、克制、可解释。"
+        subtitle="青序计划关注的是更早支持，而不是给年轻人贴标签。当前原型支持本地保存记录；未来正式版本会把数据收集、用户登录和授权流程设计得更清楚、克制、可解释。"
       />
 
       <section className="section section-muted">
@@ -53,7 +53,7 @@ export default function PrivacySafetyPage() {
         <div className="container">
           <SectionHeader
             title="用户登录与数据保存"
-            description="当前网站仍是原型阶段，页面中的部分记录只用于即时整理。正式版本会把登录、数据保存和授权机制做成清楚的产品流程。"
+            description="当前网站仍是原型阶段，“我的记录”只使用浏览器本地保存，不会把个人记录上传到服务器。正式版本会把登录、云端保存和授权机制做成清楚的产品流程。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {accountPlan.map(([title, text]) => (
@@ -73,7 +73,7 @@ export default function PrivacySafetyPage() {
               哪些数据可能被保存？
             </h2>
             <p className="mt-4 text-base leading-8 text-muted">
-              数据保存的目标是帮助用户和支持者更早看见节律变化，而不是建立标签、排名或判断。
+              数据保存的目标是帮助用户和支持者更早看见节律变化，而不是建立标签、排名或判断。当前原型保存的是用户主动点击保存后的本地记录。
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
