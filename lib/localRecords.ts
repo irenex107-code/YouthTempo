@@ -33,6 +33,21 @@ function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 }
 
+async function syncRecordToCloud(record: Omit<SavedSweetRecord, "id" | "createdAt">) {
+  try {
+    const [{ isSupabaseConfigured }, { getCurrentUser, saveCloudSweetRecord }] = await Promise.all([
+      import("@/lib/supabaseClient"),
+      import("@/lib/cloudRecords"),
+    ]);
+    if (!isSupabaseConfigured()) return;
+    const user = await getCurrentUser();
+    if (!user) return;
+    await saveCloudSweetRecord(record);
+  } catch {
+    // Local save should still succeed even when cloud sync is unavailable.
+  }
+}
+
 export function getDemoProfile(): DemoProfile | null {
   if (!canUseStorage()) return null;
   try {
@@ -68,6 +83,7 @@ export function saveSweetRecord(record: Omit<SavedSweetRecord, "id" | "createdAt
   };
   const records = [savedRecord, ...getSavedSweetRecords()].slice(0, 20);
   window.localStorage.setItem(recordsKey, JSON.stringify(records));
+  void syncRecordToCloud(record);
   return savedRecord;
 }
 
