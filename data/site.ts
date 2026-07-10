@@ -5,6 +5,7 @@ export const navItems = [
   { label: "情绪表达", href: "/mood-journal" },
   { label: "睡前整理", href: "/worry-time" },
   { label: "转介支持", href: "/referral" },
+  { label: "我的记录", href: "/account" },
 ];
 
 export const sweetModules = [
@@ -57,6 +58,7 @@ export const footerLinks = [
   { label: "睡前整理", href: "/worry-time" },
   { label: "家校资源", href: "/resources" },
   { label: "专业转介支持", href: "/referral" },
+  { label: "我的记录", href: "/account" },
   { label: "隐私与安全", href: "/privacy-safety" },
   { label: "联系我们", href: "/contact" },
 ];
