@@ -3,9 +3,7 @@ export const navItems = [
   { label: "家长入口", href: "/for-parents" },
   { label: "SWEET 节律", href: "/check-in" },
   { label: "情绪表达", href: "/mood-journal" },
-  { label: "睡前整理", href: "/worry-time" },
-  { label: "转介支持", href: "/referral" },
-  { label: "我的记录", href: "/account" },
+  { label: "支持路径", href: "/referral" },
 ];
 
 export const sweetModules = [
