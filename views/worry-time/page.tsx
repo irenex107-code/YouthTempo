@@ -153,30 +153,43 @@ export default function WorryTimePage() {
             </article>
           </div>
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-3">
-            {worries.map((_, index) => (
-              <article key={index} className="card">
-                <h3 className="text-xl font-bold text-ink">担心 {index + 1}：区分可控与不可控</h3>
+          <article className="card mt-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-ink">把担心分一分</h2>
                 <p className="mt-2 text-sm font-bold text-sage">Control check</p>
-                <div className="mt-5 grid gap-3">
-                  {controlOptions.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => updateControl(index, item)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
-                        controls[index] === item
-                          ? "border-sage bg-mist text-sage-dark"
-                          : "border-ink/10 bg-white/80 text-ink/75 hover:border-sage/50"
-                      }`}
-                    >
-                      {item}
-                    </button>
-                  ))}
+              </div>
+              <p className="max-w-xl text-sm leading-6 text-muted">
+                不需要判断对错，只是先看看：哪些可以做一点点，哪些今晚可以先放下。
+              </p>
+            </div>
+            <div className="mt-5 grid gap-3">
+              {worries.map((_, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl border border-ink/10 bg-white/75 p-3 sm:grid sm:grid-cols-[88px_1fr] sm:items-center sm:gap-3"
+                >
+                  <p className="mb-3 text-sm font-bold text-ink sm:mb-0">担心 {index + 1}</p>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {controlOptions.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => updateControl(index, item)}
+                        className={`rounded-full border px-4 py-2 text-center text-xs font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
+                          controls[index] === item
+                            ? "border-sage bg-mist text-sage-dark"
+                            : "border-ink/10 bg-white text-ink/70 hover:border-sage/50"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </article>
-            ))}
-          </div>
+              ))}
+            </div>
+          </article>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.55fr]">
             <article className="card">
