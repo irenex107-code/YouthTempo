@@ -1,17 +1,16 @@
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 
-const controlOptions = ["我可以做一点点", "我暂时控制不了", "我还不确定"];
-const initialSeconds = 15 * 60;
-
-type WorryAiResult = {
+type AiWorryResult = {
   controllableParts: string;
   canWaitUntilTomorrow: string;
   tomorrowSmallAction: string;
   bedtimeSentence: string;
   supportReminder: string;
 };
+
+const controlOptions = ["我可以做一点点", "我暂时控制不了", "我还不确定"];
 
 function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -20,76 +19,78 @@ function formatTime(seconds: number) {
 }
 
 export default function WorryTimePage() {
+  const [secondsLeft, setSecondsLeft] = useState(15 * 60);
+  const [timerRunning, setTimerRunning] = useState(false);
   const [worries, setWorries] = useState(["", "", ""]);
   const [controls, setControls] = useState(["", "", ""]);
   const [action, setAction] = useState("");
   const [done, setDone] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [aiResult, setAiResult] = useState<WorryAiResult | null>(null);
+  const [aiResult, setAiResult] = useState<AiWorryResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!timerRunning) return;
-    if (secondsLeft <= 0) {
-      setTimerRunning(false);
-      return;
-    }
+    if (!timerRunning || secondsLeft <= 0) return;
+    const timer = window.setInterval(() => setSecondsLeft((current) => Math.max(current - 1, 0)), 1000);
+    return () => window.clearInterval(timer);
+  }, [timerRunning, secondsLeft]);
 
-    const timer = window.setTimeout(() => {
-      setSecondsLeft((current) => Math.max(current - 1, 0));
-    }, 1000);
-
-    return () => window.clearTimeout(timer);
-  }, [secondsLeft, timerRunning]);
+  useEffect(() => {
+    if (secondsLeft === 0) setTimerRunning(false);
+  }, [secondsLeft]);
 
   function updateWorry(index: number, value: string) {
-    setWorries((current) => current.map((item, i) => (i === index ? value : item)));
+    setWorries((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
     setDone(false);
+    setValidation("");
+    setAiResult(null);
   }
 
   function updateControl(index: number, value: string) {
-    setControls((current) => current.map((item, i) => (i === index ? value : item)));
+    setControls((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
     setDone(false);
+    setValidation("");
+    setAiResult(null);
+  }
+
+  function resetTimer() {
+    setSecondsLeft(15 * 60);
+    setTimerRunning(false);
   }
 
   function reset() {
+    setSecondsLeft(15 * 60);
+    setTimerRunning(false);
     setWorries(["", "", ""]);
     setControls(["", "", ""]);
     setAction("");
     setDone(false);
     setAiResult(null);
-    setError("");
     setValidation("");
-  }
-
-  function resetTimer() {
-    setTimerRunning(false);
-    setSecondsLeft(initialSeconds);
+    setError("");
   }
 
   async function generateAiResponse() {
-    if (worries.every((item) => !item.trim())) {
-      setValidation("请先完成必要问题，再生成回应。");
+    const filledWorries = worries.filter((item) => item.trim().length > 0);
+    if (filledWorries.length === 0) {
+      setValidation("可以先写下至少一个担心，再生成整理。");
       return;
     }
-
     setLoading(true);
-    setError("");
     setValidation("");
+    setError("");
     try {
       const response = await fetch("/api/ai/worry-time", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ worries, controls, tomorrowAction: action }),
+        body: JSON.stringify({ worries, controls, action }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "AI request failed");
       setAiResult(data);
     } catch {
-      setError("暂时无法生成回应，请稍后再试。");
+      setError("暂时无法生成 AI 整理，请稍后再试。");
     } finally {
       setLoading(false);
     }
@@ -195,10 +196,10 @@ export default function WorryTimePage() {
               <button type="button" className="button-primary w-full" onClick={generateAiResponse} disabled={loading}>
                 {loading ? "正在生成……" : "生成 AI 睡前整理"}
               </button>
-              <button type="button" className="button-primary mt-3 w-full" onClick={() => setDone(true)}>
+              <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
                 完成整理
               </button>
-              <button type="button" className="button-secondary mt-3 w-full" onClick={reset}>
+              <button type="button" className="mt-3 w-full text-sm font-bold text-muted transition hover:text-sage-dark" onClick={reset}>
                 重新填写
               </button>
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
@@ -230,24 +231,21 @@ export default function WorryTimePage() {
               <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">
                 {aiResult.supportReminder}
               </p>
-              <p className="mt-4 text-xs leading-6 text-muted">
-                这里的回应不能替代专业支持，但可以帮助你先整理当前状态和下一步选择。
-              </p>
             </div>
           ) : null}
 
           {done ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今天的担心已经被看见</h2>
-              <p className="mt-4 max-w-3xl text-base leading-8 text-muted">
-                今天的担心已经被看见。你已经把它们从脑子里放到了这里，剩下的可以留给明天慢慢处理。
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今天先到这里</h2>
+              <p className="mt-4 text-base leading-8 text-muted">
+                你已经把担心放到了纸面上，也给明天留了一个小行动。现在可以允许自己慢慢收尾。
               </p>
-              <div className="mt-7 flex flex-wrap gap-3">
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/check-in" className="button-primary">
                   回到 SWEET 节律
                 </Link>
                 <Link href="/mood-journal" className="button-secondary">
-                  做情绪表达
+                  进入情绪表达
                 </Link>
               </div>
             </div>
