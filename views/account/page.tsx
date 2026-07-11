@@ -175,8 +175,8 @@ export default function AccountPage() {
     <>
       <PageHero
         label="Account & Records"
-        title="我的记录"
-        subtitle="登录后，SWEET 节律记录会保存到云端数据库。你可以回看历史记录，管理个人资料，并决定是否授权家长或学校支持者查看。"
+        title="登录与我的记录"
+        subtitle="用邮箱登录后，可以保存 SWEET 节律记录、回看历史，并管理是否授权家长或学校支持者参与支持。"
       />
 
       {!isSupabaseConfigured() ? (
@@ -252,7 +252,7 @@ export default function AccountPage() {
 
       <section className="section">
         <div className="container">
-          <SectionHeader title="云端 SWEET 历史记录" description="登录后，在 SWEET 结果页点击保存，记录会进入 Supabase 数据库。" />
+          <SectionHeader title="我的 SWEET 历史记录" description="完成 SWEET 后点击保存，记录会出现在这里。先看变化，不给自己贴标签。" />
           {loading ? <div className="card text-sm font-bold text-muted">正在加载记录……</div> : null}
           {!loading && records.length > 0 ? (
             <div className="grid gap-5">
@@ -285,7 +285,7 @@ export default function AccountPage() {
 
       <section className="section section-muted">
         <div className="container">
-          <SectionHeader title="用户授权管理" description="你可以创建、查看和撤销授权。当前版本先记录授权关系，后续可扩展为家长或学校端查看权限。" />
+          <SectionHeader title="授权管理" description="需要别人一起支持时，再授权；不需要时，可以撤销。默认只显示你自己的记录。" />
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
             <form className="card grid gap-4" onSubmit={handlePermissionSubmit}>
               <label className="grid gap-2 text-sm font-bold text-ink">
