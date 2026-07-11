@@ -16,9 +16,14 @@ export function Navbar() {
               </Link>
             ))}
           </nav>
-          <Link href="/check-in" className="button-primary shrink-0 px-4 py-2 text-xs sm:px-5">
-            开始 SWEET 节律
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/account" className="button-secondary px-4 py-2 text-xs sm:px-5">
+              登录 / 我的记录
+            </Link>
+            <Link href="/check-in" className="button-primary px-4 py-2 text-xs sm:px-5">
+              开始 SWEET 节律
+            </Link>
+          </div>
         </div>
       </div>
     </header>
