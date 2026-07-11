@@ -1,11 +1,13 @@
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
 import { FormEvent, useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { InfoCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
-import type { CloudSweetRecord, UserPermission } from "@/lib/cloudRecords";
 import {
+  CloudProfile,
+  CloudSweetRecord,
+  UserPermission,
   createPermission,
   deleteCloudSweetRecord,
   getCurrentUser,
@@ -20,13 +22,6 @@ import {
 import { getSavedSweetRecords } from "@/lib/localRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
-const roleOptions = ["学生", "家长", "老师", "学校合作方"];
-const permissionOptions = [
-  { value: "guardian_view", label: "家长查看支持" },
-  { value: "school_support", label: "学校支持协作" },
-  { value: "research_feedback", label: "试点反馈使用" },
-];
-
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
     month: "long",
@@ -36,249 +31,291 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function recordPreview(record: CloudSweetRecord) {
+  return record.records
+    .map((step) => {
+      const filled = step.fields.filter((field) =>
+        Array.isArray(field.value) ? field.value.length > 0 : String(field.value || "").trim().length > 0,
+      );
+      return `${step.label} ${filled.length}/${step.fields.length}`;
+    })
+    .join(" / ");
+}
+
 function permissionLabel(value: string) {
-  return permissionOptions.find((item) => item.value === value)?.label || value;
+  if (value === "guardian_view") return "家长查看支持";
+  if (value === "school_support") return "学校支持协作";
+  return "试点反馈研究";
 }
 
 export default function AccountPage() {
-  const configured = isSupabaseConfigured();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<CloudProfile | null>(null);
+  const [records, setRecords] = useState<CloudSweetRecord[]>([]);
+  const [permissions, setPermissions] = useState<UserPermission[]>([]);
+  const [localCount, setLocalCount] = useState(0);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState(roleOptions[0]);
-  const [cloudRecords, setCloudRecords] = useState<CloudSweetRecord[]>([]);
-  const [localRecordCount, setLocalRecordCount] = useState(0);
-  const [permissions, setPermissions] = useState<UserPermission[]>([]);
+  const [role, setRole] = useState("学生");
   const [granteeEmail, setGranteeEmail] = useState("");
-  const [permissionType, setPermissionType] = useState(permissionOptions[0].value);
-  const [status, setStatus] = useState("");
+  const [permissionType, setPermissionType] = useState("guardian_view");
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setLocalRecordCount(getSavedSweetRecords().length);
-    if (!configured) return;
-    refreshAccount();
-  }, [configured]);
 
   async function refreshAccount() {
+    setLoading(true);
+    setError("");
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-      if (!currentUser) return;
-      setEmail(currentUser.email || "");
-      const [profile, records, grants] = await Promise.all([
+      setLocalCount(getSavedSweetRecords().length);
+      if (!currentUser) {
+        setProfile(null);
+        setRecords([]);
+        setPermissions([]);
+        return;
+      }
+      const [nextProfile, nextRecords, nextPermissions] = await Promise.all([
         getProfile(currentUser),
         listCloudSweetRecords(),
         listPermissions(),
       ]);
-      setName(profile?.display_name || "");
-      setRole(profile?.role || roleOptions[0]);
-      setCloudRecords(records);
-      setPermissions(grants);
+      setProfile(nextProfile);
+      setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
+      setRole(nextProfile?.role || "学生");
+      setRecords(nextRecords);
+      setPermissions(nextPermissions);
     } catch (accountError) {
-      setError(accountError instanceof Error ? accountError.message : "账户信息读取失败，请稍后再试。");
+      setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
+    } finally {
+      setLoading(false);
     }
   }
+
+  useEffect(() => {
+    refreshAccount();
+  }, []);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!configured) {
-      setError("还没有连接 Supabase。请先在 Vercel 设置数据库环境变量。");
-      return;
-    }
-    setLoading(true);
+    setNotice("");
     setError("");
-    setStatus("");
     try {
       await sendMagicLink(email);
-      setStatus("登录链接已发送到邮箱。打开邮件后回到这个页面即可进入账户。");
+      setNotice("登录链接已发送到邮箱。请打开邮件完成登录，然后回到这个页面。");
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "登录链接发送失败。");
-    } finally {
-      setLoading(false);
+      setError(loginError instanceof Error ? loginError.message : "登录邮件发送失败。");
     }
   }
 
-  async function handleSaveProfile(event: FormEvent<HTMLFormElement>) {
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user) return;
-    setLoading(true);
+    setNotice("");
     setError("");
     try {
-      await saveProfile(user, name, role);
-      setStatus("账户资料已保存。");
-      await refreshAccount();
+      const nextProfile = await saveProfile(user, name.trim(), role);
+      setProfile(nextProfile);
+      setNotice("账户资料已保存。");
     } catch (profileError) {
-      setError(profileError instanceof Error ? profileError.message : "账户资料保存失败。");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleCreatePermission(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!granteeEmail.trim()) {
-      setError("请填写被授权人的邮箱。");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      await createPermission(granteeEmail, permissionType);
-      setGranteeEmail("");
-      setStatus("授权记录已创建。你可以随时撤销它。");
-      await refreshAccount();
-    } catch (permissionError) {
-      setError(permissionError instanceof Error ? permissionError.message : "授权记录创建失败。");
-    } finally {
-      setLoading(false);
+      setError(profileError instanceof Error ? profileError.message : "资料保存失败。");
     }
   }
 
   async function handleDeleteRecord(recordId: string) {
-    setLoading(true);
+    setNotice("");
     setError("");
     try {
       await deleteCloudSweetRecord(recordId);
-      setStatus("这条历史记录已删除。");
-      await refreshAccount();
-    } catch (recordError) {
-      setError(recordError instanceof Error ? recordError.message : "记录删除失败。");
-    } finally {
-      setLoading(false);
+      setRecords(await listCloudSweetRecords());
+      setNotice("记录已删除。");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "删除记录失败。");
+    }
+  }
+
+  async function handlePermissionSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setNotice("");
+    setError("");
+    if (!granteeEmail.trim()) {
+      setError("请填写被授权人的邮箱。");
+      return;
+    }
+    try {
+      await createPermission(granteeEmail, permissionType);
+      setGranteeEmail("");
+      setPermissions(await listPermissions());
+      setNotice("授权已创建，可在下方随时撤销。");
+    } catch (permissionError) {
+      setError(permissionError instanceof Error ? permissionError.message : "创建授权失败。");
     }
   }
 
   async function handleRevokePermission(permissionId: string) {
-    setLoading(true);
+    setNotice("");
     setError("");
     try {
       await revokePermission(permissionId);
-      setStatus("授权已撤销。");
-      await refreshAccount();
+      setPermissions(await listPermissions());
+      setNotice("授权已撤销。");
     } catch (permissionError) {
-      setError(permissionError instanceof Error ? permissionError.message : "授权撤销失败。");
-    } finally {
-      setLoading(false);
+      setError(permissionError instanceof Error ? permissionError.message : "撤销授权失败。");
     }
   }
 
   async function handleSignOut() {
     await signOut();
-    setUser(null);
-    setCloudRecords([]);
-    setPermissions([]);
-    setStatus("已退出登录。");
+    setNotice("已退出登录。");
+    await refreshAccount();
   }
 
   return (
     <>
       <PageHero
-        label="我的账户"
-        title="把 SWEET 记录保存下来，也把授权交还给用户自己。"
-        subtitle="账户系统用于保存用户主动提交的节律记录、管理基础资料和查看授权关系。它不是诊断系统，也不会把孩子贴上标签。"
-        action={<Link href="/check-in" className="button-primary">填写 SWEET 问卷</Link>}
+        label="Account & Records"
+        title="我的记录"
+        subtitle="登录后，SWEET 节律记录会保存到云端数据库。你可以回看历史记录，管理个人资料，并决定是否授权家长或学校支持者查看。"
       />
 
-      <section className="section bg-mist/45">
-        <div className="container grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <InfoCard title="账户状态" label="Account">
-            {!configured ? (
-              <p>当前还没有连接 Supabase。页面会保留本地记录提示；连接数据库后即可启用邮箱登录、云端历史记录和授权管理。</p>
-            ) : user ? (
-              <div className="space-y-4">
-                <p>已登录：<span className="font-bold text-ink">{user.email}</span></p>
-                <button type="button" className="button-secondary" onClick={handleSignOut}>退出登录</button>
-              </div>
-            ) : (
-              <form onSubmit={handleLogin} className="space-y-4">
-                <label className="block text-sm font-bold text-ink" htmlFor="email">邮箱</label>
-                <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage" required />
-                <button type="submit" className="button-primary" disabled={loading}>发送登录链接</button>
-              </form>
-            )}
-            {localRecordCount > 0 ? <p className="mt-5 text-sm text-muted">当前浏览器里还有 {localRecordCount} 条本地 SWEET 记录。</p> : null}
-          </InfoCard>
+      {!isSupabaseConfigured() ? (
+        <section className="section section-muted">
+          <div className="container">
+            <div className="card">
+              <h2 className="text-[1.7rem] font-bold text-ink">需要先连接 Supabase</h2>
+              <p className="mt-4 text-[0.95rem] leading-7 text-muted">
+                账号、数据库和授权管理已经写入代码。请在 Vercel 环境变量里添加 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY，并在 Supabase 执行 supabase/schema.sql。
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
-          <InfoCard title="用户资料" label="Profile">
+      <section className="section section-muted">
+        <div className="container grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="card">
+            <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
+            <h2 className="mt-3 text-[1.7rem] font-bold leading-[1.25] text-ink">
+              {user ? "账户资料" : "邮箱登录"}
+            </h2>
             {user ? (
-              <form onSubmit={handleSaveProfile} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-ink" htmlFor="name">显示名称</label>
-                  <input id="name" value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage" placeholder="可以填写昵称或姓名" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-ink" htmlFor="role">身份</label>
-                  <select id="role" value={role} onChange={(event) => setRole(event.target.value)} className="mt-2 w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage">
-                    {roleOptions.map((item) => <option key={item}>{item}</option>)}
+              <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
+                <p className="rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
+                <label className="grid gap-2 text-sm font-bold text-ink">
+                  昵称
+                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-ink">
+                  角色
+                  <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={role} onChange={(event) => setRole(event.target.value)}>
+                    <option>学生</option>
+                    <option>家长</option>
+                    <option>老师</option>
+                    <option>学校合作方</option>
                   </select>
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  <button type="submit" className="button-primary">保存资料</button>
+                  <button type="button" className="button-secondary" onClick={handleSignOut}>退出登录</button>
                 </div>
-                <button type="submit" className="button-primary" disabled={loading}>保存资料</button>
               </form>
             ) : (
-              <p>登录后可以保存你的身份和显示名称，便于之后查看历史记录与管理授权。</p>
+              <form className="mt-6 grid gap-4" onSubmit={handleLogin}>
+                <p className="text-[0.95rem] leading-7 text-muted">
+                  输入邮箱后会收到登录链接。这个版本不需要密码，适合试点阶段快速使用。
+                </p>
+                <label className="grid gap-2 text-sm font-bold text-ink">
+                  邮箱
+                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" type="email" />
+                </label>
+                <button type="submit" className="button-primary w-fit">发送登录链接</button>
+              </form>
             )}
-          </InfoCard>
+            {notice ? <p className="mt-4 text-sm font-bold text-sage-dark">{notice}</p> : null}
+            {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <InfoCard title={profile?.display_name || user?.email || "未登录"} label="Current profile">
+              {user ? `当前角色：${profile?.role || role}。` : "登录后可保存云端记录和授权设置。"}
+            </InfoCard>
+            <InfoCard title={`${records.length} 条`} label="Cloud records">
+              云端保存的 SWEET 记录会出现在下方，并受数据库权限规则保护。
+            </InfoCard>
+            <InfoCard title={`${localCount} 条`} label="Local fallback">
+              旧的本地记录仍留在当前浏览器，可作为过渡备份。
+            </InfoCard>
+          </div>
         </div>
       </section>
-
-      {(status || error) ? (
-        <section className="section py-0"><div className="container">
-          {status ? <p className="rounded-2xl bg-mist px-5 py-4 font-bold text-sage-dark">{status}</p> : null}
-          {error ? <p className="mt-3 rounded-2xl bg-white px-5 py-4 font-bold text-rose-700 shadow-soft">{error}</p> : null}
-        </div></section>
-      ) : null}
 
       <section className="section">
         <div className="container">
-          <SectionHeader eyebrow="历史记录" title="已保存的 SWEET 记录" description="这里只显示当前登录用户自己的记录。数据库规则会限制用户只能读取、删除属于自己的内容。" />
-          {user && cloudRecords.length ? (
-            <div className="mt-8 grid gap-5 md:grid-cols-2">
-              {cloudRecords.map((record) => (
+          <SectionHeader title="云端 SWEET 历史记录" description="登录后，在 SWEET 结果页点击保存，记录会进入 Supabase 数据库。" />
+          {loading ? <div className="card text-sm font-bold text-muted">正在加载记录……</div> : null}
+          {!loading && records.length > 0 ? (
+            <div className="grid gap-5">
+              {records.map((record) => (
                 <article key={record.id} className="card">
-                  <p className="text-xs font-bold text-sage">{formatDate(record.created_at)}</p>
-                  <h3 className="mt-3 text-xl font-bold text-ink">SWEET 节律记录</h3>
-                  {record.summary ? <p className="mt-3 leading-7 text-muted">{record.summary}</p> : null}
-                  {record.small_step ? <p className="mt-3 rounded-2xl bg-mist px-4 py-3 text-sm font-bold text-sage-dark">下一小步：{record.small_step}</p> : null}
-                  <button type="button" className="button-secondary mt-5" onClick={() => handleDeleteRecord(record.id)} disabled={loading}>删除记录</button>
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-sage">{formatDate(record.created_at)}</p>
+                      <h3 className="mt-2 text-xl font-bold text-ink">SWEET 节律记录</h3>
+                    </div>
+                    <button type="button" className="button-secondary px-4 py-2 text-xs" onClick={() => handleDeleteRecord(record.id)}>删除</button>
+                  </div>
+                  <p className="mt-4 text-sm leading-7 text-muted">{recordPreview(record)}</p>
+                  {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
+                  {record.small_step ? <p className="mt-4 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">可以先做的一件小事：{record.small_step}</p> : null}
+                  {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">推荐下一步：{record.recommended_next_tool}</p> : null}
                 </article>
               ))}
             </div>
-          ) : (
-            <div className="mt-8 rounded-3xl border border-ink/10 bg-white/75 p-6 text-muted shadow-soft">{user ? "还没有云端 SWEET 记录。填写问卷并点击“保存到我的记录”后会出现在这里。" : "登录后可以查看云端历史记录。"}</div>
-          )}
+          ) : null}
+          {!loading && records.length === 0 ? (
+            <div className="card">
+              <h3 className="text-xl font-bold text-ink">还没有云端记录</h3>
+              <p className="mt-4 text-[0.95rem] leading-7 text-muted">登录后完成一次 SWEET 节律记录，并在结果页保存。</p>
+              <Link href="/check-in" className="button-primary mt-6">开始 SWEET 节律记录</Link>
+            </div>
+          ) : null}
         </div>
       </section>
 
-      <section className="section bg-mist/45">
+      <section className="section section-muted">
         <div className="container">
-          <SectionHeader eyebrow="授权管理" title="谁可以被你授权参与支持" description="你可以先创建授权记录，也可以随时撤销。当前版本先记录授权关系，后续可扩展为家长端或学校端的精细查看权限。" />
-          <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-            <InfoCard title="新增授权" label="Permission">
-              {user ? (
-                <form onSubmit={handleCreatePermission} className="space-y-4">
-                  <input type="email" value={granteeEmail} onChange={(event) => setGranteeEmail(event.target.value)} placeholder="被授权人的邮箱" className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage" />
-                  <select value={permissionType} onChange={(event) => setPermissionType(event.target.value)} className="w-full rounded-2xl border border-ink/10 bg-white px-4 py-3 text-base text-ink outline-none focus:border-sage">
-                    {permissionOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                  </select>
-                  <button type="submit" className="button-primary" disabled={loading}>创建授权</button>
-                </form>
-              ) : (
-                <p>登录后可以管理授权关系。</p>
-              )}
-            </InfoCard>
-
+          <SectionHeader title="用户授权管理" description="你可以创建、查看和撤销授权。当前版本先记录授权关系，后续可扩展为家长或学校端查看权限。" />
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+            <form className="card grid gap-4" onSubmit={handlePermissionSubmit}>
+              <label className="grid gap-2 text-sm font-bold text-ink">
+                被授权人邮箱
+                <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={granteeEmail} onChange={(event) => setGranteeEmail(event.target.value)} placeholder="parent@example.com" type="email" />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-ink">
+                授权类型
+                <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={permissionType} onChange={(event) => setPermissionType(event.target.value)}>
+                  <option value="guardian_view">家长查看支持</option>
+                  <option value="school_support">学校支持协作</option>
+                  <option value="research_feedback">试点反馈研究</option>
+                </select>
+              </label>
+              <button type="submit" className="button-primary w-fit" disabled={!user}>创建授权</button>
+            </form>
             <div className="grid gap-4">
-              {permissions.length ? permissions.map((permission) => (
-                <article key={permission.id} className="card flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-bold text-ink">{permission.grantee_email}</p>
-                    <p className="mt-1 text-sm text-muted">{permissionLabel(permission.permission_type)} · {permission.status === "revoked" ? "已撤销" : "有效/待确认"}</p>
+              {permissions.length > 0 ? permissions.map((permission) => (
+                <article key={permission.id} className="card">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-ink">{permission.grantee_email}</h3>
+                      <p className="mt-2 text-sm leading-7 text-muted">{permissionLabel(permission.permission_type)} / 状态：{permission.status}</p>
+                    </div>
+                    {permission.status !== "revoked" ? (
+                      <button type="button" className="button-secondary px-4 py-2 text-xs" onClick={() => handleRevokePermission(permission.id)}>撤销</button>
+                    ) : null}
                   </div>
-                  {permission.status !== "revoked" ? <button type="button" className="button-secondary" onClick={() => handleRevokePermission(permission.id)} disabled={loading}>撤销</button> : null}
                 </article>
-              )) : <article className="card text-muted">还没有授权记录。</article>}
+              )) : <div className="card text-sm font-bold text-muted">还没有创建授权。</div>}
             </div>
           </div>
         </div>
