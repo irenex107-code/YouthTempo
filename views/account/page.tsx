@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { InfoCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import {
@@ -19,6 +18,7 @@ import {
   saveProfile,
   sendMagicLink,
   signOut,
+  verifyEmailOtp,
 } from "@/lib/cloudRecords";
 import { getSavedSweetRecords } from "@/lib/localRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
@@ -56,6 +56,9 @@ export default function AccountPage() {
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
   const [localCount, setLocalCount] = useState(0);
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState("学生");
   const [granteeEmail, setGranteeEmail] = useState("");
@@ -100,7 +103,7 @@ export default function AccountPage() {
         const handledRedirect = await handleAuthRedirect();
         if (handledRedirect) setNotice("登录成功，已进入你的账户。");
       } catch (redirectError) {
-        setError(redirectError instanceof Error ? redirectError.message : "登录链接处理失败，请重新发送登录链接。");
+        setError(redirectError instanceof Error ? redirectError.message : "登录链接处理失败，请重新发送验证码。");
       } finally {
         await refreshAccount();
       }
@@ -113,11 +116,48 @@ export default function AccountPage() {
     event.preventDefault();
     setNotice("");
     setError("");
+    setAuthLoading(true);
     try {
-      await sendMagicLink(email);
-      setNotice("登录链接已发送到邮箱。请打开邮件完成登录，然后回到这个页面。");
+      await sendMagicLink(email.trim());
+      setOtpSent(true);
+      setNotice("验证码已发送到邮箱。请输入邮件里的 6 位验证码；如果邮件里只有登录按钮，也可以点击按钮完成登录。");
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "登录邮件发送失败。");
+      setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function handleOtpSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setNotice("");
+    setError("");
+    setAuthLoading(true);
+    try {
+      await verifyEmailOtp(email.trim(), otp);
+      setOtp("");
+      setOtpSent(false);
+      setNotice("登录成功。");
+      await refreshAccount();
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "验证码验证失败，请检查后重试。");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function resendOtp() {
+    setNotice("");
+    setError("");
+    setAuthLoading(true);
+    try {
+      await sendMagicLink(email.trim());
+      setOtp("");
+      setNotice("新的验证码已发送。");
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
+    } finally {
+      setAuthLoading(false);
     }
   }
 
@@ -205,11 +245,11 @@ export default function AccountPage() {
       ) : null}
 
       <section className="section section-muted">
-        <div className="container grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="container grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="card">
             <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
             <h2 className="mt-3 text-[1.7rem] font-bold leading-[1.25] text-ink">
-              {user ? "账户资料" : "邮箱登录"}
+              {user ? "账户资料" : otpSent ? "输入邮箱验证码" : "邮箱验证码登录"}
             </h2>
             {user ? (
               <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
@@ -233,31 +273,65 @@ export default function AccountPage() {
                 </div>
               </form>
             ) : (
-              <form className="mt-6 grid gap-4" onSubmit={handleLogin}>
+              <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
-                  输入邮箱后会收到登录链接。这个版本不需要密码，适合试点阶段快速使用。
+                  输入邮箱后会收到验证码，不需要记密码。邮件里的登录按钮也会保留，方便不同邮箱客户端使用。
                 </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   邮箱
-                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" type="email" />
+                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage disabled:bg-cream disabled:text-ink/60" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" type="email" disabled={otpSent || authLoading} />
                 </label>
-                <button type="submit" className="button-primary w-fit">发送登录链接</button>
+                {otpSent ? (
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    6 位验证码
+                    <input
+                      className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-center text-lg font-bold outline-none focus:border-sage"
+                      value={otp}
+                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="000000"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                    />
+                  </label>
+                ) : null}
+                <div className="flex flex-wrap gap-3">
+                  <button type="submit" className="button-primary disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={authLoading || !email.trim() || (otpSent && otp.length < 6)}>
+                    {authLoading ? "请稍等..." : otpSent ? "验证并登录" : "发送验证码"}
+                  </button>
+                  {otpSent ? (
+                    <button type="button" className="button-secondary" onClick={resendOtp} disabled={authLoading}>
+                      重新发送
+                    </button>
+                  ) : null}
+                </div>
               </form>
             )}
             {notice ? <p className="mt-4 text-sm font-bold text-sage-dark">{notice}</p> : null}
             {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            <InfoCard title={profile?.display_name || user?.email || "未登录"} label="Current profile">
-              {user ? `当前角色：${profile?.role || role}。` : "登录后可保存云端记录和授权设置。"}
-            </InfoCard>
-            <InfoCard title={`${records.length} 条`} label="Cloud records">
-              云端保存的 SWEET 记录会出现在下方，并受数据库权限规则保护。
-            </InfoCard>
-            <InfoCard title={`${localCount} 条`} label="Local fallback">
-              旧的本地记录仍留在当前浏览器，可作为过渡备份。
-            </InfoCard>
+          <div className="card">
+            <p className="eyebrow">Account overview</p>
+            <h2 className="mt-3 text-[1.7rem] font-bold leading-[1.25] text-ink">账户概览</h2>
+            <div className="mt-6 grid gap-3">
+              <div className="rounded-2xl bg-cream px-4 py-4">
+                <p className="text-xs font-bold text-sage">当前身份</p>
+                <p className="mt-2 text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{user ? `角色：${profile?.role || role}` : "登录后可保存云端记录和授权设置。"}</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
+                  <p className="text-xs font-bold text-sage">云端记录</p>
+                  <p className="mt-2 text-2xl font-bold text-ink">{records.length} 条</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">登录后保存的 SWEET 历史。</p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
+                  <p className="text-xs font-bold text-sage">本地备份</p>
+                  <p className="mt-2 text-2xl font-bold text-ink">{localCount} 条</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">保留在当前浏览器。</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
