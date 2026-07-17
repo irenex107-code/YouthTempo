@@ -12,6 +12,7 @@ import {
   deleteCloudSweetRecord,
   getCurrentUser,
   getProfile,
+  handleAuthRedirect,
   listCloudSweetRecords,
   listPermissions,
   revokePermission,
@@ -94,7 +95,18 @@ export default function AccountPage() {
   }
 
   useEffect(() => {
-    refreshAccount();
+    async function loadAccount() {
+      try {
+        const handledRedirect = await handleAuthRedirect();
+        if (handledRedirect) setNotice("登录成功，已进入你的账户。");
+      } catch (redirectError) {
+        setError(redirectError instanceof Error ? redirectError.message : "登录链接处理失败，请重新发送登录链接。");
+      } finally {
+        await refreshAccount();
+      }
+    }
+
+    loadAccount();
   }, []);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
