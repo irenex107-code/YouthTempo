@@ -66,6 +66,18 @@ export async function sendMagicLink(email: string) {
   if (error) throw error;
 }
 
+export async function verifyEmailOtp(email: string, token: string) {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: email.trim(),
+    token: token.trim(),
+    type: "email",
+  });
+  if (error) throw error;
+  return data.user;
+}
+
 export async function signOut() {
   const supabase = getSupabase();
   if (!supabase) return;
