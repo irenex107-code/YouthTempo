@@ -33,6 +33,21 @@ export type UserPermission = {
   revoked_at: string | null;
 };
 
+export async function handleAuthRedirect() {
+  const supabase = getSupabase();
+  if (!supabase || typeof window === "undefined") return false;
+
+  const url = new URL(window.location.href);
+  const code = url.searchParams.get("code");
+  if (!code) return false;
+
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) throw error;
+
+  window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
+  return true;
+}
+
 export async function getCurrentUser() {
   const supabase = getSupabase();
   if (!supabase) return null;
