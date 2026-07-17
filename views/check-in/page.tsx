@@ -128,6 +128,8 @@ export default function CheckInPage() {
   const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedRecordKey, setSavedRecordKey] = useState("");
   const questionCardRef = useRef<HTMLElement | null>(null);
   const shouldScrollToQuestionRef = useRef(false);
 
@@ -156,6 +158,7 @@ export default function CheckInPage() {
     setAnswers((current) => ({ ...current, [step.id]: { ...current[step.id], [fieldId]: value } }));
     setValidation("");
     setSaveStatus("");
+    setSavedRecordKey("");
     setAiResult(null);
   }
 
@@ -168,6 +171,7 @@ export default function CheckInPage() {
     });
     setValidation("");
     setSaveStatus("");
+    setSavedRecordKey("");
     setAiResult(null);
   }
 
@@ -175,6 +179,7 @@ export default function CheckInPage() {
     setAnswers((current) => ({ ...current, [step.id]: { ...current[step.id], [fieldId]: value } }));
     setValidation("");
     setSaveStatus("");
+    setSavedRecordKey("");
     setAiResult(null);
   }
 
@@ -194,6 +199,7 @@ export default function CheckInPage() {
     setError("");
     setValidation("");
     setSaveStatus("");
+    setSavedRecordKey("");
   }
 
   function getRecordPayload() {
@@ -206,6 +212,7 @@ export default function CheckInPage() {
   }
 
   async function saveCurrentRecord() {
+    if (saving) return;
     if (!allRequiredDone) {
       setValidation("请先完成五个 SWEET 维度的必要记录，再保存。");
       return;
@@ -216,26 +223,38 @@ export default function CheckInPage() {
       smallStep: aiResult?.smallStep,
       recommendedNextTool: aiResult?.recommendedNextTool,
     };
-    if (isSupabaseConfigured()) {
-      try {
-        const user = await getCurrentUser();
-        if (user) {
-          await saveCloudSweetRecord(recordPayload);
-          setSaveStatus("已保存到云端“我的记录”。你可以在账户页回看历史记录。");
-          return;
-        }
-        setSaveStatus("还没有登录，已先保存到当前浏览器。登录后可保存到云端历史记录。");
-      } catch (saveError) {
-        const message = saveError instanceof Error ? saveError.message : "云端保存暂时失败。";
-        setSaveStatus(`${message} 已尝试保存到当前浏览器作为备份。`);
-      }
-    }
-    const saved = saveSweetRecord(recordPayload);
-    if (!isSupabaseConfigured()) {
-      setSaveStatus(saved ? "已保存到本地“我的记录”。连接 Supabase 后可保存到云端数据库。" : "当前浏览器暂时无法保存记录。");
+    const recordKey = JSON.stringify(recordPayload);
+    if (recordKey === savedRecordKey) {
+      setSaveStatus("这次 SWEET 记录已经保存过了。");
       return;
     }
-    if (!saved) setSaveStatus("当前浏览器暂时无法保存记录。");
+    setSaving(true);
+    try {
+      if (isSupabaseConfigured()) {
+        try {
+          const user = await getCurrentUser();
+          if (user) {
+            await saveCloudSweetRecord(recordPayload);
+            setSavedRecordKey(recordKey);
+            setSaveStatus("已保存到云端“我的记录”。你可以在账户页回看历史记录。");
+            return;
+          }
+          setSaveStatus("还没有登录，已先保存到当前浏览器。登录后可保存到云端历史记录。");
+        } catch (saveError) {
+          const message = saveError instanceof Error ? saveError.message : "云端保存暂时失败。";
+          setSaveStatus(`${message} 已尝试保存到当前浏览器作为备份。`);
+        }
+      }
+      const saved = saveSweetRecord(recordPayload);
+      if (saved) setSavedRecordKey(recordKey);
+      if (!isSupabaseConfigured()) {
+        setSaveStatus(saved ? "已保存到本地“我的记录”。连接 Supabase 后可保存到云端数据库。" : "当前浏览器暂时无法保存记录。");
+        return;
+      }
+      if (!saved) setSaveStatus("当前浏览器暂时无法保存记录。");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function generateSummary() {
@@ -247,6 +266,8 @@ export default function CheckInPage() {
     setLoading(true);
     setError("");
     setValidation("");
+    setSaveStatus("");
+    setSavedRecordKey("");
     try {
       const payload = {
         currentDate: new Date().toISOString(),
@@ -434,7 +455,9 @@ export default function CheckInPage() {
                   <Link href="/mood-journal" className="button-primary">进入情绪表达</Link>
                   <Link href="/worry-time" className="button-secondary">做睡前整理</Link>
                   <Link href="/referral" className="button-secondary">查看支持路径</Link>
-                  <button type="button" className="button-secondary" onClick={saveCurrentRecord}>保存到我的记录</button>
+                  <button type="button" className="button-secondary disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" onClick={saveCurrentRecord} disabled={saving}>
+                    {saving ? "正在保存..." : "保存到我的记录"}
+                  </button>
                   <button type="button" className="button-secondary" onClick={reset}>重新填写</button>
                 </div>
                 {saveStatus ? <p className="mt-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
