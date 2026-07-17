@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
 import { saveSweetRecord } from "@/lib/localRecords";
+import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
 type FieldType = "single" | "multi" | "text";
@@ -203,18 +205,37 @@ export default function CheckInPage() {
     }));
   }
 
-  function saveCurrentRecord() {
+  async function saveCurrentRecord() {
     if (!allRequiredDone) {
       setValidation("请先完成五个 SWEET 维度的必要记录，再保存。");
       return;
     }
-    const saved = saveSweetRecord({
+    const recordPayload = {
       records: getRecordPayload(),
       summary: aiResult?.summary,
       smallStep: aiResult?.smallStep,
       recommendedNextTool: aiResult?.recommendedNextTool,
-    });
-    setSaveStatus(saved ? "已保存到“我的记录”。当前原型只保存在这台设备的浏览器中。" : "当前浏览器暂时无法保存记录。");
+    };
+    if (isSupabaseConfigured()) {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          await saveCloudSweetRecord(recordPayload);
+          setSaveStatus("已保存到云端“我的记录”。你可以在账户页回看历史记录。");
+          return;
+        }
+        setSaveStatus("还没有登录，已先保存到当前浏览器。登录后可保存到云端历史记录。");
+      } catch (saveError) {
+        const message = saveError instanceof Error ? saveError.message : "云端保存暂时失败。";
+        setSaveStatus(`${message} 已尝试保存到当前浏览器作为备份。`);
+      }
+    }
+    const saved = saveSweetRecord(recordPayload);
+    if (!isSupabaseConfigured()) {
+      setSaveStatus(saved ? "已保存到本地“我的记录”。连接 Supabase 后可保存到云端数据库。" : "当前浏览器暂时无法保存记录。");
+      return;
+    }
+    if (!saved) setSaveStatus("当前浏览器暂时无法保存记录。");
   }
 
   async function generateSummary() {
