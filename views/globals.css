@@ -20,6 +20,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  overflow-x: hidden;
 }
 
 a {
@@ -44,7 +45,7 @@ textarea {
   }
 
   .section {
-    @apply px-5 py-16 sm:px-8 lg:px-12 lg:py-24;
+    @apply px-4 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-24;
   }
 
   .section-muted {
@@ -60,14 +61,22 @@ textarea {
   }
 
   .card {
-    @apply rounded-2xl border border-ink/10 bg-white/80 p-6 shadow-soft;
+    @apply rounded-2xl border border-ink/10 bg-white/80 p-5 shadow-soft sm:p-6;
   }
 
   .button-primary {
-    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full bg-sage px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-sage-dark focus:outline-none focus:ring-4 focus:ring-sage/20;
+    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full bg-sage px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-sage-dark focus:outline-none focus:ring-4 focus:ring-sage/20 sm:px-6;
   }
 
   .button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-sage/50 bg-white/70 px-6 py-3 text-sm font-bold text-sage-dark transition hover:border-sage hover:bg-white focus:outline-none focus:ring-4 focus:ring-sage/15;
+    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-sage/50 bg-white/70 px-5 py-3 text-sm font-bold text-sage-dark transition hover:border-sage hover:bg-white focus:outline-none focus:ring-4 focus:ring-sage/15 sm:px-6;
+  }
+}
+
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
