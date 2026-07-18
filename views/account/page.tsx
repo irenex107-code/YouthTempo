@@ -7,13 +7,18 @@ import {
   CloudProfile,
   CloudSweetRecord,
   UserPermission,
+  WechatBindSession,
+  WechatIdentity,
+  checkWechatBindSession,
   createPermission,
+  createWechatBindSession,
   deleteCloudSweetRecord,
   getCurrentUser,
   getProfile,
   handleAuthRedirect,
   listCloudSweetRecords,
   listPermissions,
+  listWechatIdentities,
   revokePermission,
   saveProfile,
   sendMagicLink,
@@ -54,6 +59,10 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<CloudProfile | null>(null);
   const [records, setRecords] = useState<CloudSweetRecord[]>([]);
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
+  const [wechatIdentities, setWechatIdentities] = useState<WechatIdentity[]>([]);
+  const [wechatBindSession, setWechatBindSession] = useState<WechatBindSession | null>(null);
+  const [wechatStatus, setWechatStatus] = useState("");
+  const [wechatLoading, setWechatLoading] = useState(false);
   const [localCount, setLocalCount] = useState(0);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -78,18 +87,21 @@ export default function AccountPage() {
         setProfile(null);
         setRecords([]);
         setPermissions([]);
+        setWechatIdentities([]);
         return;
       }
-      const [nextProfile, nextRecords, nextPermissions] = await Promise.all([
+      const [nextProfile, nextRecords, nextPermissions, nextWechatIdentities] = await Promise.all([
         getProfile(currentUser),
         listCloudSweetRecords(),
         listPermissions(),
+        listWechatIdentities(),
       ]);
       setProfile(nextProfile);
       setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
       setRole(nextProfile?.role || "学生");
       setRecords(nextRecords);
       setPermissions(nextPermissions);
+      setWechatIdentities(nextWechatIdentities);
     } catch (accountError) {
       setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
     } finally {
@@ -111,6 +123,32 @@ export default function AccountPage() {
 
     loadAccount();
   }, []);
+
+  useEffect(() => {
+    if (!wechatBindSession) return;
+
+    const interval = window.setInterval(async () => {
+      try {
+        const result = await checkWechatBindSession(wechatBindSession.scene);
+        if (result.bound) {
+          window.clearInterval(interval);
+          setWechatStatus("微信绑定成功。");
+          setWechatBindSession(null);
+          await refreshAccount();
+        } else if (result.status === "expired") {
+          window.clearInterval(interval);
+          setWechatStatus("二维码已过期，请重新生成。");
+          setWechatBindSession(null);
+        }
+      } catch (bindError) {
+        window.clearInterval(interval);
+        setWechatStatus(bindError instanceof Error ? bindError.message : "微信绑定状态检查失败。");
+        setWechatBindSession(null);
+      }
+    }, 2200);
+
+    return () => window.clearInterval(interval);
+  }, [wechatBindSession]);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -220,7 +258,24 @@ export default function AccountPage() {
   async function handleSignOut() {
     await signOut();
     setNotice("已退出登录。");
+    setWechatBindSession(null);
+    setWechatStatus("");
     await refreshAccount();
+  }
+
+  async function handleCreateWechatBindSession() {
+    setWechatLoading(true);
+    setWechatStatus("");
+    setError("");
+    try {
+      const bindSession = await createWechatBindSession();
+      setWechatBindSession(bindSession);
+      setWechatStatus("请用微信扫描小程序码，完成后此页面会自动更新。");
+    } catch (bindError) {
+      setWechatStatus(bindError instanceof Error ? bindError.message : "微信绑定二维码生成失败。");
+    } finally {
+      setWechatLoading(false);
+    }
   }
 
   return (
@@ -331,6 +386,56 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">保留在当前浏览器。</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <SectionHeader title="微信绑定" description="试点阶段先把微信和当前账户绑定，之后可以升级为微信扫码登录。绑定不会影响邮箱登录，也不会改变已有记录。" />
+          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:gap-8">
+            <div className="card">
+              <p className="eyebrow">WeChat Mini Program</p>
+              <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
+                {wechatIdentities.length > 0 ? "已绑定微信" : "绑定微信"}
+              </h2>
+              <p className="mt-4 text-[0.95rem] leading-7 text-muted">
+                已登录后生成绑定码，用你的微信扫描进入小程序。绑定成功后，这个微信身份会关联到当前账户。
+              </p>
+              <button
+                type="button"
+                className="button-primary mt-6 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
+                onClick={handleCreateWechatBindSession}
+                disabled={!user || wechatLoading}
+              >
+                {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
+              </button>
+              {!user ? <p className="mt-4 text-sm font-bold text-sage-dark">请先登录邮箱账户，再绑定微信。</p> : null}
+              {wechatStatus ? <p className="mt-4 text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
+            </div>
+
+            <div className="card">
+              {wechatBindSession ? (
+                <div className="grid gap-4 sm:grid-cols-[180px_1fr] sm:items-center">
+                  <div className="rounded-3xl border border-ink/10 bg-white p-3">
+                    <img src={wechatBindSession.qrCodeDataUrl} alt="微信小程序绑定码" className="aspect-square w-full rounded-2xl object-contain" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-ink">请用微信扫码</p>
+                    <p className="mt-3 text-sm leading-7 text-muted">
+                      二维码 10 分钟内有效。扫码后小程序会完成绑定，网页会自动刷新状态。
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl bg-cream p-5">
+                  <p className="text-sm font-bold text-sage">绑定状态</p>
+                  <p className="mt-3 text-[0.95rem] leading-7 text-muted">
+                    {wechatIdentities.length > 0 ? "当前账户已经绑定微信，可继续使用邮箱登录和云端记录。" : "还没有绑定微信。生成绑定码后，二维码会显示在这里。"}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
