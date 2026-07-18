@@ -29,9 +29,32 @@ create table if not exists public.user_permissions (
   revoked_at timestamptz
 );
 
+create table if not exists public.wechat_identities (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  openid text not null unique,
+  unionid text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.wechat_bind_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  scene text not null unique,
+  status text not null default 'pending' check (status in ('pending', 'confirmed', 'expired')),
+  openid text,
+  unionid text,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  confirmed_at timestamptz
+);
+
 alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
 alter table public.user_permissions enable row level security;
+alter table public.wechat_identities enable row level security;
+alter table public.wechat_bind_sessions enable row level security;
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -99,6 +122,18 @@ on public.user_permissions for update
 using (auth.uid() = owner_user_id)
 with check (auth.uid() = owner_user_id);
 
+drop policy if exists "wechat_identities_select_own" on public.wechat_identities;
+create policy "wechat_identities_select_own"
+on public.wechat_identities for select
+to authenticated
+using ((select auth.uid()) = user_id);
+
+drop policy if exists "wechat_bind_sessions_select_own" on public.wechat_bind_sessions;
+create policy "wechat_bind_sessions_select_own"
+on public.wechat_bind_sessions for select
+to authenticated
+using ((select auth.uid()) = user_id);
+
 create index if not exists sweet_records_user_created_idx
 on public.sweet_records(user_id, created_at desc);
 
@@ -107,3 +142,9 @@ on public.user_permissions(owner_user_id, created_at desc);
 
 create index if not exists user_permissions_grantee_status_idx
 on public.user_permissions(lower(grantee_email), status);
+
+create index if not exists wechat_identities_user_created_idx
+on public.wechat_identities(user_id, created_at desc);
+
+create index if not exists wechat_bind_sessions_user_created_idx
+on public.wechat_bind_sessions(user_id, created_at desc);
