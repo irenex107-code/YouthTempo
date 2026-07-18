@@ -33,6 +33,29 @@ export type UserPermission = {
   revoked_at: string | null;
 };
 
+export type WechatIdentity = {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WechatBindSession = {
+  scene: string;
+  expiresAt: string;
+  qrCodeDataUrl: string;
+};
+
+async function getAccessToken() {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("Supabase is not configured.");
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  const token = data.session?.access_token;
+  if (!token) throw new Error("请先登录，再继续。");
+  return token;
+}
+
 export async function handleAuthRedirect() {
   const supabase = getSupabase();
   if (!supabase || typeof window === "undefined") return false;
@@ -189,4 +212,39 @@ export async function revokePermission(permissionId: string) {
     .update({ status: "revoked", revoked_at: new Date().toISOString() })
     .eq("id", permissionId);
   if (error) throw error;
+}
+
+export async function listWechatIdentities() {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("wechat_identities")
+    .select("id,user_id,created_at,updated_at")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data || []) as WechatIdentity[];
+}
+
+export async function createWechatBindSession() {
+  const token = await getAccessToken();
+  const response = await fetch("/api/wechat/create-bind-session", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "微信绑定二维码生成失败。");
+  return data as WechatBindSession;
+}
+
+export async function checkWechatBindSession(scene: string) {
+  const token = await getAccessToken();
+  const response = await fetch(`/api/wechat/check-bind-session?scene=${encodeURIComponent(scene)}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "微信绑定状态检查失败。");
+  return data as { status: "pending" | "confirmed" | "expired"; bound: boolean; confirmedAt?: string | null };
 }
