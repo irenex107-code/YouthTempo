@@ -312,36 +312,38 @@ export default function CheckInPage() {
               <span>已完成 {completedSteps} / {steps.length} 个维度</span>
             </div>
 
-            <div className="mb-5 grid grid-cols-5 gap-2">
-              {steps.map((item, index) => {
-                const active = index === currentStep;
-                const done = item.fields.filter((field) => field.required !== false).every((field) => isFieldComplete(answers[item.id][field.id]));
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => goToStep(index)}
-                    className={`rounded-2xl border px-2 py-3 text-center transition ${
-                      active ? "border-sage bg-mist text-sage-dark" : done ? "border-sage/35 bg-white/85 text-ink/70" : "border-ink/10 bg-white/60 text-muted"
-                    }`}
-                  >
-                    <span className="block text-xs font-bold">{item.label}</span>
-                    <span className="mt-1 block text-[0.7rem] font-bold">{item.title}</span>
-                  </button>
-                );
-              })}
+            <div className="-mx-4 mb-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
+              <div className="grid min-w-[560px] grid-cols-5 gap-2 sm:min-w-0">
+                {steps.map((item, index) => {
+                  const active = index === currentStep;
+                  const done = item.fields.filter((field) => field.required !== false).every((field) => isFieldComplete(answers[item.id][field.id]));
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => goToStep(index)}
+                      className={`rounded-2xl border px-2 py-3 text-center transition ${
+                        active ? "border-sage bg-mist text-sage-dark" : done ? "border-sage/35 bg-white/85 text-ink/70" : "border-ink/10 bg-white/60 text-muted"
+                      }`}
+                    >
+                      <span className="block text-xs font-bold">{item.label}</span>
+                      <span className="mt-1 block text-[0.7rem] font-bold">{item.title}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <article ref={questionCardRef} className="card scroll-mt-28">
+            <article ref={questionCardRef} className="card scroll-mt-24 sm:scroll-mt-28">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-[1.8rem] font-bold leading-[1.25] text-ink">{step.label} {step.title}</h2>
+                  <h2 className="text-[1.55rem] font-bold leading-[1.25] text-ink sm:text-[1.8rem]">{step.label} {step.title}</h2>
                   <p className="mt-2 text-sm font-bold text-sage">SWEET daily record</p>
                 </div>
                 <p className="max-w-md text-sm leading-7 text-muted">{step.description}</p>
               </div>
 
-              <div className="mt-8 grid gap-7">
+              <div className="mt-7 grid gap-7 sm:mt-8">
                 {step.fields.map((field) => {
                   const value = currentAnswer[field.id];
                   if (field.type === "text") {
@@ -365,7 +367,7 @@ export default function CheckInPage() {
                     return (
                       <div key={field.id}>
                         <p className="text-base font-bold text-ink">{field.title}</p>
-                        <div className="mt-4 flex flex-wrap gap-2">
+                        <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
                           {field.options?.map((option) => {
                             const selected = selectedValues.includes(option);
                             return (
@@ -373,7 +375,7 @@ export default function CheckInPage() {
                                 key={option}
                                 type="button"
                                 onClick={() => toggleMultiValue(field.id, option)}
-                                className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
+                                className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition sm:rounded-full sm:py-2 sm:text-center ${
                                   selected ? "border-sage bg-mist text-sage-dark" : "border-ink/10 bg-white/80 text-muted hover:border-sage/50"
                                 }`}
                               >
@@ -419,16 +421,16 @@ export default function CheckInPage() {
 
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <button type="button" className="button-secondary" disabled={currentStep === 0} onClick={() => goToStep(currentStep - 1)}>
+              <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
+                <button type="button" className="button-secondary w-full sm:w-auto" disabled={currentStep === 0} onClick={() => goToStep(currentStep - 1)}>
                   上一步
                 </button>
                 {currentStep < steps.length - 1 ? (
-                  <button type="button" className="button-primary disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={!canGoNext} onClick={goNext}>
+                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!canGoNext} onClick={goNext}>
                     下一步
                   </button>
                 ) : (
-                  <button type="button" className="button-primary disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={!allRequiredDone || loading} onClick={generateSummary}>
+                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading} onClick={generateSummary}>
                     {loading ? "正在生成 AI 节律小结……" : "生成 AI SWEET 节律小结"}
                   </button>
                 )}
@@ -451,14 +453,14 @@ export default function CheckInPage() {
                 </div>
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
                 <p className="mt-4 text-xs leading-6 text-muted">这里的回应不能替代专业支持，但可以帮助你先整理当前状态和下一步选择。</p>
-                <div className="mt-7 flex flex-wrap gap-3">
-                  <Link href="/mood-journal" className="button-primary">进入情绪表达</Link>
-                  <Link href="/worry-time" className="button-secondary">做睡前整理</Link>
-                  <Link href="/referral" className="button-secondary">查看支持路径</Link>
-                  <button type="button" className="button-secondary disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" onClick={saveCurrentRecord} disabled={saving}>
+                <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
+                  <Link href="/mood-journal" className="button-primary w-full sm:w-auto">进入情绪表达</Link>
+                  <Link href="/worry-time" className="button-secondary w-full sm:w-auto">做睡前整理</Link>
+                  <Link href="/referral" className="button-secondary w-full sm:w-auto">查看支持路径</Link>
+                  <button type="button" className="button-secondary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" onClick={saveCurrentRecord} disabled={saving}>
                     {saving ? "正在保存..." : "保存到我的记录"}
                   </button>
-                  <button type="button" className="button-secondary" onClick={reset}>重新填写</button>
+                  <button type="button" className="button-secondary w-full sm:w-auto" onClick={reset}>重新填写</button>
                 </div>
                 {saveStatus ? <p className="mt-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
               </section>
