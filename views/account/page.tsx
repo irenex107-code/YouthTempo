@@ -245,15 +245,15 @@ export default function AccountPage() {
       ) : null}
 
       <section className="section section-muted">
-        <div className="container grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="container grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
           <div className="card">
             <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
-            <h2 className="mt-3 text-[1.7rem] font-bold leading-[1.25] text-ink">
+            <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
               {user ? "账户资料" : otpSent ? "输入邮箱验证码" : "邮箱验证码登录"}
             </h2>
             {user ? (
               <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
-                <p className="rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
+                <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   昵称
                   <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
@@ -267,9 +267,9 @@ export default function AccountPage() {
                     <option>学校合作方</option>
                   </select>
                 </label>
-                <div className="flex flex-wrap gap-3">
-                  <button type="submit" className="button-primary">保存资料</button>
-                  <button type="button" className="button-secondary" onClick={handleSignOut}>退出登录</button>
+                <div className="grid gap-3 sm:flex sm:flex-wrap">
+                  <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
+                  <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
                 </div>
               </form>
             ) : (
@@ -294,12 +294,12 @@ export default function AccountPage() {
                     />
                   </label>
                 ) : null}
-                <div className="flex flex-wrap gap-3">
-                  <button type="submit" className="button-primary disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={authLoading || !email.trim() || (otpSent && otp.length < 6)}>
+                <div className="grid gap-3 sm:flex sm:flex-wrap">
+                  <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={authLoading || !email.trim() || (otpSent && otp.length < 6)}>
                     {authLoading ? "请稍等..." : otpSent ? "验证并登录" : "发送验证码"}
                   </button>
                   {otpSent ? (
-                    <button type="button" className="button-secondary" onClick={resendOtp} disabled={authLoading}>
+                    <button type="button" className="button-secondary w-full sm:w-auto" onClick={resendOtp} disabled={authLoading}>
                       重新发送
                     </button>
                   ) : null}
@@ -312,11 +312,11 @@ export default function AccountPage() {
 
           <div className="card">
             <p className="eyebrow">Account overview</p>
-            <h2 className="mt-3 text-[1.7rem] font-bold leading-[1.25] text-ink">账户概览</h2>
+            <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账户概览</h2>
             <div className="mt-6 grid gap-3">
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
-                <p className="mt-2 text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
+                <p className="mt-2 overflow-hidden text-ellipsis text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
                 <p className="mt-2 text-sm leading-6 text-muted">{user ? `角色：${profile?.role || role}` : "登录后可保存云端记录和授权设置。"}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -347,9 +347,9 @@ export default function AccountPage() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-bold text-sage">{formatDate(record.created_at)}</p>
-                      <h3 className="mt-2 text-xl font-bold text-ink">SWEET 节律记录</h3>
+                      <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">SWEET 节律记录</h3>
                     </div>
-                    <button type="button" className="button-secondary px-4 py-2 text-xs" onClick={() => handleDeleteRecord(record.id)}>删除</button>
+                    <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>删除</button>
                   </div>
                   <p className="mt-4 text-sm leading-7 text-muted">{recordPreview(record)}</p>
                   {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
@@ -363,7 +363,7 @@ export default function AccountPage() {
             <div className="card">
               <h3 className="text-xl font-bold text-ink">还没有云端记录</h3>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">登录后完成一次 SWEET 节律记录，并在结果页保存。</p>
-              <Link href="/check-in" className="button-primary mt-6">开始 SWEET 节律记录</Link>
+              <Link href="/check-in" className="button-primary mt-6 w-full sm:w-auto">开始 SWEET 节律记录</Link>
             </div>
           ) : null}
         </div>
@@ -372,7 +372,7 @@ export default function AccountPage() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader title="授权管理" description="需要别人一起支持时，再授权；不需要时，可以撤销。默认只显示你自己的记录。" />
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:gap-8">
             <form className="card grid gap-4" onSubmit={handlePermissionSubmit}>
               <label className="grid gap-2 text-sm font-bold text-ink">
                 被授权人邮箱
@@ -386,18 +386,18 @@ export default function AccountPage() {
                   <option value="research_feedback">试点反馈研究</option>
                 </select>
               </label>
-              <button type="submit" className="button-primary w-fit" disabled={!user}>创建授权</button>
+              <button type="submit" className="button-primary w-full sm:w-fit" disabled={!user}>创建授权</button>
             </form>
             <div className="grid gap-4">
               {permissions.length > 0 ? permissions.map((permission) => (
                 <article key={permission.id} className="card">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-bold text-ink">{permission.grantee_email}</h3>
+                      <h3 className="overflow-hidden text-ellipsis text-lg font-bold text-ink">{permission.grantee_email}</h3>
                       <p className="mt-2 text-sm leading-7 text-muted">{permissionLabel(permission.permission_type)} / 状态：{permission.status}</p>
                     </div>
                     {permission.status !== "revoked" ? (
-                      <button type="button" className="button-secondary px-4 py-2 text-xs" onClick={() => handleRevokePermission(permission.id)}>撤销</button>
+                      <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleRevokePermission(permission.id)}>撤销</button>
                     ) : null}
                   </div>
                 </article>
