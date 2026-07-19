@@ -21,7 +21,7 @@ import {
   listWechatIdentities,
   revokePermission,
   saveProfile,
-  sendMagicLink,
+  sendEmailOtp,
   signOut,
   verifyEmailOtp,
 } from "@/lib/cloudRecords";
@@ -156,9 +156,9 @@ export default function AccountPage() {
     setError("");
     setAuthLoading(true);
     try {
-      await sendMagicLink(email.trim());
+      await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("验证码已发送到邮箱。请输入邮件里的 6 位验证码；如果邮件里只有登录按钮，也可以点击按钮完成登录。");
+      setNotice("验证码已发送到邮箱，请查收邮件里的 6 位验证码并在下方输入。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -189,7 +189,7 @@ export default function AccountPage() {
     setError("");
     setAuthLoading(true);
     try {
-      await sendMagicLink(email.trim());
+      await sendEmailOtp(email.trim());
       setOtp("");
       setNotice("新的验证码已发送。");
     } catch (loginError) {
@@ -330,7 +330,7 @@ export default function AccountPage() {
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
-                  输入邮箱后会收到验证码，不需要记密码。邮件里的登录按钮也会保留，方便不同邮箱客户端使用。
+                  输入邮箱后会收到一封含 6 位验证码的邮件，不需要记密码。手机和电脑都请直接输入验证码登录。
                 </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   邮箱

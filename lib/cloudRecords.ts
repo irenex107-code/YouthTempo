@@ -78,13 +78,12 @@ export async function getCurrentUser() {
   return data.user;
 }
 
-export async function sendMagicLink(email: string) {
+export async function sendEmailOtp(email: string) {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase is not configured.");
-  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/account` : undefined;
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: redirectTo },
+    options: { shouldCreateUser: true },
   });
   if (error) throw error;
 }
