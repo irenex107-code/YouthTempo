@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/localRecords";
 
-export type UserRole = "普通用户" | "支持者";
+export type UserRole = "学生" | "家长" | "学校支持人员";
 
 export type CloudProfile = {
   id: string;
@@ -47,8 +47,9 @@ export type WechatBindSession = {
 };
 
 function normalizeRole(role?: string | null): UserRole {
-  if (role === "支持者" || role === "家长" || role === "老师" || role === "学校合作方") return "支持者";
-  return "普通用户";
+  if (role === "家长" || role === "支持者") return "家长";
+  if (role === "学校支持人员" || role === "老师" || role === "学校合作方") return "学校支持人员";
+  return "学生";
 }
 
 async function getAccessToken() {
