@@ -9,6 +9,7 @@ export type CloudProfile = {
   email: string | null;
   display_name: string | null;
   role: UserRole | string | null;
+  school_id: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -16,6 +17,7 @@ export type CloudProfile = {
 export type CloudSweetRecord = {
   id: string;
   user_id: string;
+  school_id: string | null;
   records: SavedSweetRecordStep[];
   summary: string | null;
   small_step: string | null;
@@ -124,11 +126,13 @@ export async function getProfile(user: User) {
 export async function saveProfile(user: User, displayName: string, role: string) {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase is not configured.");
+  const existingProfile = await getProfile(user);
   const payload = {
     id: user.id,
     email: user.email || null,
     display_name: displayName,
     role: normalizeRole(role),
+    school_id: existingProfile?.school_id || null,
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await supabase.from("profiles").upsert(payload).select("*").single();
@@ -158,10 +162,12 @@ export async function saveCloudSweetRecord(record: {
   if (!supabase) throw new Error("Supabase is not configured.");
   const user = await getCurrentUser();
   if (!user) throw new Error("请先登录，再保存到云端记录。");
+  const profile = await getProfile(user);
   const { data, error } = await supabase
     .from("sweet_records")
     .insert({
       user_id: user.id,
+      school_id: profile?.school_id || null,
       records: record.records,
       summary: record.summary || null,
       small_step: record.smallStep || null,
