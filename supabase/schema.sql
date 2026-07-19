@@ -9,15 +9,6 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
-alter table public.profiles alter column role set default '普通用户';
-
-update public.profiles
-set role = case
-  when role in ('家长', '老师', '学校合作方', '支持者') then '支持者'
-  else '普通用户'
-end
-where role is null or role not in ('普通用户', '支持者');
-
 do $$
 declare
   constraint_name text;
@@ -35,6 +26,15 @@ begin
     execute format('alter table public.profiles drop constraint if exists %I', constraint_name);
   end loop;
 end $$;
+
+alter table public.profiles alter column role set default '普通用户';
+
+update public.profiles
+set role = case
+  when role in ('家长', '老师', '学校合作方', '支持者') then '支持者'
+  else '普通用户'
+end
+where role is null or role not in ('普通用户', '支持者');
 
 alter table public.profiles
 add constraint profiles_role_check check (role in ('普通用户', '支持者'));
