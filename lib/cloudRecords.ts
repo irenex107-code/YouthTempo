@@ -48,6 +48,15 @@ export type WechatBindSession = {
   qrCodeDataUrl: string;
 };
 
+export type AccountStatus = {
+  profile: CloudProfile | null;
+  displayRole: "学生" | "家长" | "支持老师" | "学校负责人" | "平台管理员" | string;
+  adminAccess: { role: string; scope: "platform" | "school" } | null;
+  schoolMemberships: Array<{ school_id: string; member_role: string; status: string }>;
+  hasSchool: boolean;
+  inviteSyncError?: string | null;
+};
+
 function normalizeRole(role?: string | null): UserRole {
   if (role === "家长" || role === "支持者") return "家长";
   if (role === "学校支持人员" || role === "老师" || role === "学校合作方") return "学校支持人员";
@@ -147,6 +156,16 @@ export async function applySchoolInvites() {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "学校空间同步失败。");
   return data as { applied: number; roles: string[] };
+}
+
+export async function getAccountStatus() {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/status", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "账户身份加载失败。");
+  return data as AccountStatus;
 }
 
 export async function signOut() {
