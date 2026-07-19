@@ -4,7 +4,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   display_name text,
-  role text default '普通用户',
+  role text default '学生',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -27,17 +27,17 @@ begin
   end loop;
 end $$;
 
-alter table public.profiles alter column role set default '普通用户';
+alter table public.profiles alter column role set default '学生';
 
 update public.profiles
 set role = case
-  when role in ('家长', '老师', '学校合作方', '支持者') then '支持者'
-  else '普通用户'
-end
-where role is null or role not in ('普通用户', '支持者');
+  when role in ('家长', '支持者') then '家长'
+  when role in ('老师', '学校合作方', '学校支持人员') then '学校支持人员'
+  else '学生'
+end;
 
 alter table public.profiles
-add constraint profiles_role_check check (role in ('普通用户', '支持者'));
+add constraint profiles_role_check check (role in ('学生', '家长', '学校支持人员'));
 
 create table if not exists public.sweet_records (
   id uuid primary key default gen_random_uuid(),
