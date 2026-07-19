@@ -4,10 +4,40 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   display_name text,
-  role text check (role in ('学生', '家长', '老师', '学校合作方')),
+  role text default '普通用户',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.profiles alter column role set default '普通用户';
+
+update public.profiles
+set role = case
+  when role in ('家长', '老师', '学校合作方', '支持者') then '支持者'
+  else '普通用户'
+end
+where role is null or role not in ('普通用户', '支持者');
+
+do $$
+declare
+  constraint_name text;
+begin
+  for constraint_name in
+    select con.conname
+    from pg_constraint con
+    join pg_class rel on rel.oid = con.conrelid
+    join pg_namespace nsp on nsp.oid = rel.relnamespace
+    where nsp.nspname = 'public'
+      and rel.relname = 'profiles'
+      and con.contype = 'c'
+      and pg_get_constraintdef(con.oid) like '%role%'
+  loop
+    execute format('alter table public.profiles drop constraint if exists %I', constraint_name);
+  end loop;
+end $$;
+
+alter table public.profiles
+add constraint profiles_role_check check (role in ('普通用户', '支持者'));
 
 create table if not exists public.sweet_records (
   id uuid primary key default gen_random_uuid(),
@@ -50,11 +80,27 @@ create table if not exists public.wechat_bind_sessions (
   confirmed_at timestamptz
 );
 
+create table if not exists public.admin_roles (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  role text not null default '管理员' check (role in ('管理员')),
+  status text not null default 'active' check (status in ('active', 'revoked')),
+  created_at timestamptz not null default now(),
+  revoked_at timestamptz
+);
+
+insert into public.admin_roles (email, role, status)
+values
+  ('irenexiao107@outlook.com', '管理员', 'active'),
+  ('irenex107@gmail.com', '管理员', 'active')
+on conflict (email) do nothing;
+
 alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
 alter table public.user_permissions enable row level security;
 alter table public.wechat_identities enable row level security;
 alter table public.wechat_bind_sessions enable row level security;
+alter table public.admin_roles enable row level security;
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -134,6 +180,12 @@ on public.wechat_bind_sessions for select
 to authenticated
 using ((select auth.uid()) = user_id);
 
+drop policy if exists "admin_roles_select_own" on public.admin_roles;
+create policy "admin_roles_select_own"
+on public.admin_roles for select
+to authenticated
+using (lower(email) = lower(auth.jwt() ->> 'email'));
+
 create index if not exists sweet_records_user_created_idx
 on public.sweet_records(user_id, created_at desc);
 
@@ -148,3 +200,6 @@ on public.wechat_identities(user_id, created_at desc);
 
 create index if not exists wechat_bind_sessions_user_created_idx
 on public.wechat_bind_sessions(user_id, created_at desc);
+
+create index if not exists admin_roles_email_status_idx
+on public.admin_roles(lower(email), status);
