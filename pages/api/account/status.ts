@@ -19,7 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!user?.email) return res.status(401).json({ error: "请先登录。" });
 
     const supabase = getSupabaseAdmin();
-    await applySchoolInvitesForUser(supabase, user);
+    let inviteSyncError: string | null = null;
+
+    try {
+      await applySchoolInvitesForUser(supabase, user);
+    } catch (error) {
+      inviteSyncError = error instanceof Error ? error.message : "学校邀请同步失败。";
+    }
 
     const email = user.email.trim().toLowerCase();
     const [{ data: profile, error: profileError }, { data: platformAdmin, error: platformError }, { data: memberships, error: membershipError }] = await Promise.all([
@@ -47,6 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           : null,
       schoolMemberships: activeMemberships,
       hasSchool: Boolean(profile?.school_id || activeMemberships.length),
+      inviteSyncError,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "账户状态加载失败。";
