@@ -1,19 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { canManageSchool, findAuthUserByEmail, getAdminContext } from "@/lib/adminAccess";
+import { inviteRoleFromLabel, memberRoleFromInvite } from "@/lib/schoolInvites";
 
-const roleLabels = ["学生", "学校支持人员", "学校管理员"] as const;
+const roleLabels = ["学生", "支持老师", "学校负责人"] as const;
 type AssignmentRole = (typeof roleLabels)[number];
 
 function normalizeRole(value: unknown): AssignmentRole {
-  if (value === "学校管理员") return "学校管理员";
-  if (value === "学校支持人员") return "学校支持人员";
+  if (value === "学校负责人" || value === "学校管理员") return "学校负责人";
+  if (value === "支持老师" || value === "学校支持人员") return "支持老师";
   return "学生";
-}
-
-function memberRoleForAssignment(role: AssignmentRole) {
-  if (role === "学校管理员") return "school_admin";
-  if (role === "学校支持人员") return "school_support";
-  return null;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -28,12 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const schoolId = typeof req.body?.schoolId === "string" ? req.body.schoolId.trim() : "";
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);
+    const inviteRole = inviteRoleFromLabel(assignmentRole);
 
     if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
     if (!email) return res.status(400).json({ error: "请输入对方登录 YouthTempo 使用的邮箱。" });
     if (!canManageSchool(context, schoolId)) return res.status(403).json({ error: "你只能管理自己学校空间里的成员。" });
-    if (context.kind === "school" && assignmentRole === "学校管理员") {
-      return res.status(403).json({ error: "学校管理员不能新增其他学校管理员。如需新增，请联系平台管理员。" });
+    if (context.kind === "school" && assignmentRole === "学校负责人") {
+      return res.status(403).json({ error: "学校负责人不能新增其他学校负责人。如需新增，请联系平台管理员。" });
     }
 
     const { data: school, error: schoolError } = await supabase
@@ -46,9 +42,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!school) return res.status(404).json({ error: "找不到这个学校空间。" });
 
     const authUser = await findAuthUserByEmail(supabase, email);
-    if (!authUser) return res.status(404).json({ error: "这个邮箱还没有登录过 YouthTempo。请让对方先用邮箱登录一次，再加入学校空间。" });
+    if (!authUser) {
+      const { data: invite, error: inviteError } = await supabase
+        .from("school_invites")
+        .upsert({
+          school_id: schoolId,
+          email,
+          assignment_role: inviteRole,
+          status: "active",
+          invited_by: context.user.id,
+          updated_at: new Date().toISOString(),
+          applied_user_id: null,
+          applied_at: null,
+          revoked_at: null,
+        }, { onConflict: "email,school_id,assignment_role" })
+        .select("id,email,assignment_role,status")
+        .single();
+      if (inviteError) throw inviteError;
+      return res.status(200).json({ school, invite, assignmentRole, status: "invited" });
+    }
 
-    const memberRole = memberRoleForAssignment(assignmentRole);
+    const memberRole = memberRoleFromInvite(inviteRole);
     if (memberRole) {
       const { error: memberError } = await supabase.from("school_members").upsert({
         school_id: schoolId,
@@ -84,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (recordsError) throw recordsError;
     }
 
-    return res.status(200).json({ profile, school, assignmentRole });
+    return res.status(200).json({ profile, school, assignmentRole, status: "active" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "学校空间分配失败。";
     const status = message.includes("没有") || message.includes("只能") || message.includes("不能") ? 403 : message.includes("请先登录") ? 401 : 500;
