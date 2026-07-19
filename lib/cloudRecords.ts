@@ -1,4 +1,4 @@
-import type { User } from "@supabase/supabase-js";
+import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/localRecords";
 
@@ -54,6 +54,11 @@ function normalizeRole(role?: string | null): UserRole {
   return "学生";
 }
 
+function authRedirectTo() {
+  if (typeof window === "undefined") return undefined;
+  return `${window.location.origin}/account`;
+}
+
 async function getAccessToken() {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase is not configured.");
@@ -70,13 +75,32 @@ export async function handleAuthRedirect() {
 
   const url = new URL(window.location.href);
   const code = url.searchParams.get("code");
-  if (!code) return false;
+  const tokenHash = url.searchParams.get("token_hash");
+  const authType = (url.searchParams.get("type") || "email") as EmailOtpType;
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) throw error;
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
+    return true;
+  }
 
-  window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
-  return true;
+  if (tokenHash) {
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: authType });
+    if (error) throw error;
+    window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
+    return true;
+  }
+
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  if (hash.get("access_token") || hash.get("refresh_token")) {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    window.history.replaceState({}, document.title, `${window.location.origin}${window.location.pathname}`);
+    return Boolean(data.session);
+  }
+
+  return false;
 }
 
 export async function getCurrentUser() {
@@ -91,7 +115,10 @@ export async function sendEmailOtp(email: string) {
   if (!supabase) throw new Error("Supabase is not configured.");
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: {
+      emailRedirectTo: authRedirectTo(),
+      shouldCreateUser: true,
+    },
   });
   if (error) throw error;
 }
