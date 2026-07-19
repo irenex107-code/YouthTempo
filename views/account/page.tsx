@@ -67,6 +67,15 @@ function recordsDescription(role: string, hasSchool: boolean) {
   return "完成 SWEET 后点击保存，记录会出现在这里。当前账号还没有加入学校试点空间。";
 }
 
+function otpErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "验证码验证失败。";
+  const lower = message.toLowerCase();
+  if (lower.includes("token") || lower.includes("otp") || lower.includes("invalid") || lower.includes("expired")) {
+    return "验证码不正确或已过期，请重新输入，或重新发送。";
+  }
+  return message || "验证码验证失败，请稍后重试。";
+}
+
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
@@ -209,7 +218,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("邮件已发送。请查看邮件里的 8 位验证码并输入；如果邮件显示的是确认链接，请直接点击链接完成登录。");
+      setNotice("验证码已发送。请查看邮箱。 ");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -221,6 +230,10 @@ export default function AccountPage() {
     event.preventDefault();
     setNotice("");
     setError("");
+    if (otp.trim().length < 8) {
+      setError("请输入完整的 8 位验证码。");
+      return;
+    }
     setAuthLoading(true);
     try {
       await verifyEmailOtp(email.trim(), otp);
@@ -229,7 +242,7 @@ export default function AccountPage() {
       setNotice("登录成功。");
       await refreshAccount();
     } catch (loginError) {
-      setError(loginError instanceof Error ? loginError.message : "验证码验证失败，请检查后重试。");
+      setError(otpErrorMessage(loginError));
     } finally {
       setAuthLoading(false);
     }
@@ -242,7 +255,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
-      setNotice("新的邮件已发送。请查看 8 位验证码；如果看到的是确认链接，请直接点击链接。");
+      setNotice("新的验证码已发送。 ");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
@@ -335,8 +348,8 @@ export default function AccountPage() {
                     ? "试点身份"
                     : "账户资料"
                 : otpSent
-                  ? "输入邮箱验证码"
-                  : "邮箱验证码登录"}
+                  ? "输入验证码"
+                  : "邮箱登录"}
             </h2>
             {user ? (
               <>
@@ -431,30 +444,29 @@ export default function AccountPage() {
               </>
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
-                <p className="text-[0.95rem] leading-7 text-muted">
-                  输入邮箱后会收到登录邮件。如果邮件里显示数字验证码，请输入下方；如果只显示确认链接，请直接点击链接完成登录。
-                </p>
+                {!otpSent ? (
+                  <p className="text-[0.95rem] leading-7 text-muted">输入邮箱，获取 8 位验证码。</p>
+                ) : null}
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   邮箱
                   <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage disabled:bg-cream disabled:text-ink/60" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" type="email" disabled={otpSent || authLoading} />
                 </label>
                 {otpSent ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
-                    邮件中的 8 位数字验证码
+                    8 位验证码
                     <input
                       className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-center text-lg font-bold outline-none focus:border-sage"
                       value={otp}
                       onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                      placeholder="例如 12345678"
+                      placeholder="12345678"
                       inputMode="numeric"
                       autoComplete="one-time-code"
                     />
-                    <span className="text-xs leading-6 text-muted">如果这封邮件没有验证码、只有确认链接，请点邮件里的链接，不需要在这里输入。</span>
                   </label>
                 ) : null}
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}>
-                    {authLoading ? "请稍等..." : otpSent ? "验证并登录" : "发送登录邮件"}
+                    {authLoading ? "请稍等..." : otpSent ? "登录" : "发送验证码"}
                   </button>
                   {otpSent ? (
                     <button type="button" className="button-secondary w-full sm:w-auto" onClick={resendOtp} disabled={authLoading}>
