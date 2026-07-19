@@ -74,6 +74,20 @@ create table if not exists public.school_members (
   unique (school_id, user_id)
 );
 
+create table if not exists public.school_invites (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references public.schools(id) on delete cascade,
+  email text not null,
+  assignment_role text not null check (assignment_role in ('student', 'support_teacher', 'school_lead')),
+  status text not null default 'active' check (status in ('active', 'applied', 'revoked')),
+  invited_by uuid references auth.users(id) on delete set null,
+  applied_user_id uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  applied_at timestamptz,
+  revoked_at timestamptz
+);
+
 create table if not exists public.user_permissions (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references auth.users(id) on delete cascade,
@@ -131,6 +145,7 @@ alter table public.schools enable row level security;
 alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
 alter table public.school_members enable row level security;
+alter table public.school_invites enable row level security;
 alter table public.user_permissions enable row level security;
 alter table public.wechat_identities enable row level security;
 alter table public.wechat_bind_sessions enable row level security;
@@ -228,6 +243,26 @@ using (
   )
 );
 
+drop policy if exists "school_invites_select_relevant" on public.school_invites;
+create policy "school_invites_select_relevant"
+on public.school_invites for select
+to authenticated
+using (
+  lower(email) = lower(auth.jwt() ->> 'email')
+  or exists (
+    select 1 from public.school_members member
+    where member.school_id = school_invites.school_id
+      and member.user_id = (select auth.uid())
+      and member.status = 'active'
+      and member.member_role = 'school_admin'
+  )
+  or exists (
+    select 1 from public.admin_roles admin
+    where lower(admin.email) = lower(auth.jwt() ->> 'email')
+      and admin.status = 'active'
+  )
+);
+
 drop policy if exists "permissions_select_own" on public.user_permissions;
 create policy "permissions_select_own"
 on public.user_permissions for select
@@ -281,6 +316,16 @@ on public.school_members(user_id, status);
 
 create index if not exists school_members_school_status_idx
 on public.school_members(school_id, status);
+
+create unique index if not exists school_invites_active_email_school_role_idx
+on public.school_invites (lower(email), school_id, assignment_role)
+where status = 'active';
+
+create index if not exists school_invites_email_status_idx
+on public.school_invites(lower(email), status);
+
+create index if not exists school_invites_school_status_idx
+on public.school_invites(school_id, status);
 
 create index if not exists user_permissions_owner_created_idx
 on public.user_permissions(owner_user_id, created_at desc);
