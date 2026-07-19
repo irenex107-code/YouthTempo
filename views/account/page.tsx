@@ -158,7 +158,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("验证码已发送到邮箱，请查收邮件里的 6 位验证码并在下方输入。");
+      setNotice("验证码已发送到邮箱，请查收邮件里的验证码并在下方输入。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -330,7 +330,7 @@ export default function AccountPage() {
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
-                  输入邮箱后会收到一封含 6 位验证码的邮件，不需要记密码。手机和电脑都请直接输入验证码登录。
+                  输入邮箱后会收到一封含验证码的邮件，不需要记密码。手机和电脑都请直接输入验证码登录。
                 </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   邮箱
