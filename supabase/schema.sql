@@ -1,10 +1,19 @@
 create extension if not exists "pgcrypto";
 
+create table if not exists public.schools (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  status text not null default 'active' check (status in ('active', 'paused', 'archived')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   display_name text,
   role text default '学生',
+  school_id uuid references public.schools(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -28,6 +37,7 @@ begin
 end $$;
 
 alter table public.profiles alter column role set default '学生';
+alter table public.profiles add column if not exists school_id uuid references public.schools(id) on delete set null;
 
 update public.profiles
 set role = case
@@ -42,11 +52,26 @@ add constraint profiles_role_check check (role in ('学生', '家长', '学校�
 create table if not exists public.sweet_records (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
+  school_id uuid references public.schools(id) on delete set null,
   records jsonb not null,
   summary text,
   small_step text,
   recommended_next_tool text,
   created_at timestamptz not null default now()
+);
+
+alter table public.sweet_records add column if not exists school_id uuid references public.schools(id) on delete set null;
+
+create table if not exists public.school_members (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references public.schools(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  email text,
+  member_role text not null default 'school_support' check (member_role in ('school_support', 'school_admin')),
+  status text not null default 'active' check (status in ('active', 'revoked')),
+  created_at timestamptz not null default now(),
+  revoked_at timestamptz,
+  unique (school_id, user_id)
 );
 
 create table if not exists public.user_permissions (
@@ -95,12 +120,39 @@ values
   ('irenex107@gmail.com', '管理员', 'active')
 on conflict (email) do nothing;
 
+update public.sweet_records record
+set school_id = profile.school_id
+from public.profiles profile
+where record.user_id = profile.id
+  and record.school_id is null
+  and profile.school_id is not null;
+
+alter table public.schools enable row level security;
 alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
+alter table public.school_members enable row level security;
 alter table public.user_permissions enable row level security;
 alter table public.wechat_identities enable row level security;
 alter table public.wechat_bind_sessions enable row level security;
 alter table public.admin_roles enable row level security;
+
+drop policy if exists "schools_select_member" on public.schools;
+create policy "schools_select_member"
+on public.schools for select
+to authenticated
+using (
+  exists (
+    select 1 from public.school_members member
+    where member.school_id = schools.id
+      and member.user_id = (select auth.uid())
+      and member.status = 'active'
+  )
+  or exists (
+    select 1 from public.profiles profile
+    where profile.id = (select auth.uid())
+      and profile.school_id = schools.id
+  )
+);
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -124,28 +176,57 @@ on public.sweet_records for select
 using (auth.uid() = user_id);
 
 drop policy if exists "sweet_records_select_authorized_grantee" on public.sweet_records;
-create policy "sweet_records_select_authorized_grantee"
+
+drop policy if exists "sweet_records_select_school_members" on public.sweet_records;
+create policy "sweet_records_select_school_members"
 on public.sweet_records for select
+to authenticated
 using (
-  exists (
-    select 1
-    from public.user_permissions permission
-    where permission.owner_user_id = sweet_records.user_id
-      and lower(permission.grantee_email) = lower(auth.jwt() ->> 'email')
-      and permission.status = 'active'
-      and permission.permission_type in ('guardian_view', 'school_support')
+  school_id is not null
+  and exists (
+    select 1 from public.school_members member
+    where member.school_id = sweet_records.school_id
+      and member.user_id = (select auth.uid())
+      and member.status = 'active'
+      and member.member_role in ('school_support', 'school_admin')
   )
 );
 
 drop policy if exists "sweet_records_insert_own" on public.sweet_records;
 create policy "sweet_records_insert_own"
 on public.sweet_records for insert
-with check (auth.uid() = user_id);
+to authenticated
+with check (
+  (select auth.uid()) = user_id
+  and (
+    school_id is null
+    or school_id = (
+      select profile.school_id
+      from public.profiles profile
+      where profile.id = (select auth.uid())
+    )
+  )
+);
 
 drop policy if exists "sweet_records_delete_own" on public.sweet_records;
 create policy "sweet_records_delete_own"
 on public.sweet_records for delete
 using (auth.uid() = user_id);
+
+drop policy if exists "school_members_select_own_school" on public.school_members;
+create policy "school_members_select_own_school"
+on public.school_members for select
+to authenticated
+using (
+  user_id = (select auth.uid())
+  or exists (
+    select 1 from public.school_members viewer
+    where viewer.school_id = school_members.school_id
+      and viewer.user_id = (select auth.uid())
+      and viewer.status = 'active'
+      and viewer.member_role in ('school_support', 'school_admin')
+  )
+);
 
 drop policy if exists "permissions_select_own" on public.user_permissions;
 create policy "permissions_select_own"
@@ -186,8 +267,20 @@ on public.admin_roles for select
 to authenticated
 using (lower(email) = lower(auth.jwt() ->> 'email'));
 
+create index if not exists profiles_school_idx
+on public.profiles(school_id);
+
 create index if not exists sweet_records_user_created_idx
 on public.sweet_records(user_id, created_at desc);
+
+create index if not exists sweet_records_school_created_idx
+on public.sweet_records(school_id, created_at desc);
+
+create index if not exists school_members_user_status_idx
+on public.school_members(user_id, status);
+
+create index if not exists school_members_school_status_idx
+on public.school_members(school_id, status);
 
 create index if not exists user_permissions_owner_created_idx
 on public.user_permissions(owner_user_id, created_at desc);
