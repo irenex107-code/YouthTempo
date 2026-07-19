@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { requireAdmin } from "@/lib/adminAccess";
 
 async function getCount(table: string) {
-  const supabase = getSupabaseAdmin();
+  const { supabase } = await import("@/lib/supabaseServer").then(({ getSupabaseAdmin }) => ({ supabase: getSupabaseAdmin() }));
   const { count, error } = await supabase.from(table).select("id", { count: "exact", head: true });
   if (error) throw error;
   return count || 0;
@@ -15,19 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user?.email) return res.status(401).json({ error: "请先登录管理员账号。" });
-
-    const supabase = getSupabaseAdmin();
-    const email = user.email.trim().toLowerCase();
-    const { data: adminRole, error: roleError } = await supabase
-      .from("admin_roles")
-      .select("email,role,status")
-      .eq("email", email)
-      .eq("status", "active")
-      .maybeSingle();
-    if (roleError) throw roleError;
-    if (!adminRole) return res.status(403).json({ error: "当前账号没有管理员权限。" });
+    const { supabase, adminRole } = await requireAdmin(req);
 
     const [profileCount, sweetRecordCount, schoolCount, schoolMemberCount, wechatIdentityCount] = await Promise.all([
       getCount("profiles"),
@@ -44,6 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .limit(6);
     if (recordsError) throw recordsError;
 
+    const { data: schools, error: schoolsError } = await supabase
+      .from("schools")
+      .select("id,name,status,created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (schoolsError) throw schoolsError;
+
     return res.status(200).json({
       admin: adminRole,
       counts: {
@@ -53,10 +48,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         schoolMembers: schoolMemberCount,
         wechatBindings: wechatIdentityCount,
       },
+      schools: schools || [],
       recentRecords: recentRecords || [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "管理员概览加载失败。";
-    return res.status(500).json({ error: message });
+    const status = message.includes("没有管理员权限") ? 403 : message.includes("请先登录") ? 401 : 500;
+    return res.status(status).json({ error: message });
   }
 }
