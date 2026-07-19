@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/localRecords";
 
-export type UserRole = "学生" | "家长" | "老师" | "学校合作方";
+export type UserRole = "普通用户" | "支持者";
 
 export type CloudProfile = {
   id: string;
@@ -45,6 +45,11 @@ export type WechatBindSession = {
   expiresAt: string;
   qrCodeDataUrl: string;
 };
+
+function normalizeRole(role?: string | null): UserRole {
+  if (role === "支持者" || role === "家长" || role === "老师" || role === "学校合作方") return "支持者";
+  return "普通用户";
+}
 
 async function getAccessToken() {
   const supabase = getSupabase();
@@ -111,7 +116,8 @@ export async function getProfile(user: User) {
   if (!supabase) return null;
   const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   if (error) throw error;
-  return data as CloudProfile | null;
+  if (!data) return null;
+  return { ...data, role: normalizeRole(data.role) } as CloudProfile;
 }
 
 export async function saveProfile(user: User, displayName: string, role: string) {
@@ -121,12 +127,12 @@ export async function saveProfile(user: User, displayName: string, role: string)
     id: user.id,
     email: user.email || null,
     display_name: displayName,
-    role,
+    role: normalizeRole(role),
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await supabase.from("profiles").upsert(payload).select("*").single();
   if (error) throw error;
-  return data as CloudProfile;
+  return { ...data, role: normalizeRole(data.role) } as CloudProfile;
 }
 
 export async function listCloudSweetRecords() {
