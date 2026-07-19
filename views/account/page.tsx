@@ -70,6 +70,7 @@ export default function AccountPage() {
   const [authLoading, setAuthLoading] = useState(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState("学生");
+  const [accountTab, setAccountTab] = useState<"profile" | "wechat">("profile");
   const [granteeEmail, setGranteeEmail] = useState("");
   const [permissionType, setPermissionType] = useState("guardian_view");
   const [loading, setLoading] = useState(true);
@@ -260,6 +261,7 @@ export default function AccountPage() {
     setNotice("已退出登录。");
     setWechatBindSession(null);
     setWechatStatus("");
+    setAccountTab("profile");
     await refreshAccount();
   }
 
@@ -304,29 +306,80 @@ export default function AccountPage() {
           <div className="card">
             <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
             <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
-              {user ? "账户资料" : otpSent ? "输入邮箱验证码" : "邮箱验证码登录"}
+              {user
+                ? accountTab === "wechat"
+                  ? "微信绑定"
+                  : "账户资料"
+                : otpSent
+                  ? "输入邮箱验证码"
+                  : "邮箱验证码登录"}
             </h2>
             {user ? (
-              <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
-                <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
-                <label className="grid gap-2 text-sm font-bold text-ink">
-                  昵称
-                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
-                </label>
-                <label className="grid gap-2 text-sm font-bold text-ink">
-                  角色
-                  <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={role} onChange={(event) => setRole(event.target.value)}>
-                    <option>学生</option>
-                    <option>家长</option>
-                    <option>老师</option>
-                    <option>学校合作方</option>
-                  </select>
-                </label>
-                <div className="grid gap-3 sm:flex sm:flex-wrap">
-                  <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
-                  <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+              <>
+                <div className="mt-5 inline-flex rounded-2xl bg-cream p-1 text-sm font-bold">
+                  <button
+                    type="button"
+                    className={`rounded-xl px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
+                    onClick={() => setAccountTab("profile")}
+                  >
+                    账户资料
+                  </button>
+                  <button
+                    type="button"
+                    className={`rounded-xl px-4 py-2 transition ${accountTab === "wechat" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
+                    onClick={() => setAccountTab("wechat")}
+                  >
+                    微信绑定
+                  </button>
                 </div>
-              </form>
+                {accountTab === "profile" ? (
+                  <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
+                    <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      昵称
+                      <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
+                    </label>
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      角色
+                      <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={role} onChange={(event) => setRole(event.target.value)}>
+                        <option>学生</option>
+                        <option>家长</option>
+                        <option>老师</option>
+                        <option>学校合作方</option>
+                      </select>
+                    </label>
+                    <div className="grid gap-3 sm:flex sm:flex-wrap">
+                      <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
+                      <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="mt-6 grid gap-4">
+                    <p className="text-[0.95rem] leading-7 text-muted">
+                      生成绑定码后用微信扫描进入小程序，绑定成功后这个微信身份会关联到当前账户。绑定不影响邮箱登录，也不会改变已有记录。
+                    </p>
+                    {wechatBindSession ? (
+                      <div className="rounded-3xl border border-ink/10 bg-white p-3">
+                        <img src={wechatBindSession.qrCodeDataUrl} alt="微信小程序绑定码" className="mx-auto aspect-square w-44 rounded-2xl object-contain" />
+                        <p className="mt-3 text-center text-sm leading-7 text-muted">二维码 10 分钟内有效。扫码后小程序会完成绑定，网页会自动刷新状态。</p>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
+                        {wechatIdentities.length > 0 ? "当前账户已经绑定微信，可继续使用邮箱登录和云端记录。" : "还没有绑定微信。生成绑定码后，二维码会显示在这里。"}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
+                      onClick={handleCreateWechatBindSession}
+                      disabled={wechatLoading}
+                    >
+                      {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
+                    </button>
+                    {wechatStatus ? <p className="text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
+                  </div>
+                )}
+              </>
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
@@ -386,56 +439,6 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">保留在当前浏览器。</p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <SectionHeader title="微信绑定" description="试点阶段先把微信和当前账户绑定，之后可以升级为微信扫码登录。绑定不会影响邮箱登录，也不会改变已有记录。" />
-          <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:gap-8">
-            <div className="card">
-              <p className="eyebrow">WeChat Mini Program</p>
-              <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
-                {wechatIdentities.length > 0 ? "已绑定微信" : "绑定微信"}
-              </h2>
-              <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                已登录后生成绑定码，用你的微信扫描进入小程序。绑定成功后，这个微信身份会关联到当前账户。
-              </p>
-              <button
-                type="button"
-                className="button-primary mt-6 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
-                onClick={handleCreateWechatBindSession}
-                disabled={!user || wechatLoading}
-              >
-                {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
-              </button>
-              {!user ? <p className="mt-4 text-sm font-bold text-sage-dark">请先登录邮箱账户，再绑定微信。</p> : null}
-              {wechatStatus ? <p className="mt-4 text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
-            </div>
-
-            <div className="card">
-              {wechatBindSession ? (
-                <div className="grid gap-4 sm:grid-cols-[180px_1fr] sm:items-center">
-                  <div className="rounded-3xl border border-ink/10 bg-white p-3">
-                    <img src={wechatBindSession.qrCodeDataUrl} alt="微信小程序绑定码" className="aspect-square w-full rounded-2xl object-contain" />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-ink">请用微信扫码</p>
-                    <p className="mt-3 text-sm leading-7 text-muted">
-                      二维码 10 分钟内有效。扫码后小程序会完成绑定，网页会自动刷新状态。
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-2xl bg-cream p-5">
-                  <p className="text-sm font-bold text-sage">绑定状态</p>
-                  <p className="mt-3 text-[0.95rem] leading-7 text-muted">
-                    {wechatIdentities.length > 0 ? "当前账户已经绑定微信，可继续使用邮箱登录和云端记录。" : "还没有绑定微信。生成绑定码后，二维码会显示在这里。"}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
