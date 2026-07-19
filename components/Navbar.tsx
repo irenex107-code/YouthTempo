@@ -10,7 +10,7 @@ export function Navbar() {
       <div className="px-4 sm:px-8 lg:px-12">
         <div className="container flex min-h-[64px] items-center justify-between gap-3 lg:min-h-[68px]">
           <Link href="/" className="shrink-0 text-[1.05rem] font-extrabold text-ink">
-            青序计划 <span className="text-sm text-muted">YouthTempo</span>
+            YouthTempo
           </Link>
           <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 lg:flex xl:gap-5">
             {navItems.map((item) => (
