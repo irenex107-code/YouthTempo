@@ -11,9 +11,9 @@ const principles = [
 ];
 
 const accountPlan = [
-  ["邮箱登录", "用户可以通过邮箱登录账户。试点阶段使用无密码登录链接，降低记忆密码和账户管理压力。"],
+  ["邮箱登录", "用户可以通过邮箱登录账户。试点阶段使用无密码验证码，降低记忆密码和账户管理压力。"],
   ["云端数据保存", "用户主动保存的 SWEET 节律记录会进入数据库，帮助用户回看趋势，而不是用于诊断或贴标签。"],
-  ["授权管理", "用户可以创建和撤销家长、学校支持者或试点反馈相关授权，授权关系会被单独记录。"],
+  ["授权管理", "用户可以创建和撤销家长、学校支持人员或试点反馈相关授权，授权关系会被单独记录。"],
   ["删除与退出", "用户可以删除自己的 SWEET 历史记录；正式试点时还应补充导出和退出流程。"],
 ];
 
@@ -30,7 +30,7 @@ export default function PrivacySafetyPage() {
       <PageHero
         label="Privacy & Safety"
         title="隐私与安全"
-        subtitle="青序计划关注的是更早支持，而不是给年轻人贴标签。当前版本开始接入账户系统、云端数据库和授权管理；数据权限会遵循最少必要和用户可控原则。"
+        subtitle="YouthTempo 关注的是更早支持，而不是给年轻人贴标签。当前版本开始接入账户系统、云端数据库和授权管理；数据权限会遵循最少必要和用户可控原则。"
       />
 
       <section className="section section-muted">
@@ -81,7 +81,7 @@ export default function PrivacySafetyPage() {
       <section className="section">
         <div className="container grid gap-6 lg:grid-cols-[1fr_0.7fr]">
           <InfoCard title="危机与紧急情况" label="Safety first">
-            青序计划不能替代紧急救助或专业诊疗。如果用户处在即时危险中，应尽快联系可信任的大人、学校负责人、当地医疗或紧急服务。
+            YouthTempo 不能替代紧急救助或专业诊疗。如果用户处在即时危险中，应尽快联系可信任的大人、学校负责人、当地医疗或紧急服务。
           </InfoCard>
           <div className="card">
             <h3 className="text-xl font-bold text-ink">有隐私或安全问题？</h3>
