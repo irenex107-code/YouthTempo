@@ -318,14 +318,19 @@ export default function AccountPage() {
                     </label>
                     <label className="grid gap-2 text-sm font-bold text-ink">
                       账号类型
-                      <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={role} onChange={(event) => setRole(event.target.value)}>
+                      <select
+                        className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage disabled:bg-cream disabled:text-ink/60"
+                        value={role}
+                        onChange={(event) => setRole(event.target.value)}
+                        disabled={currentRole === "学校支持人员"}
+                      >
                         <option>学生</option>
                         <option>家长</option>
-                        <option>学校支持人员</option>
+                        {currentRole === "学校支持人员" ? <option>学校支持人员</option> : null}
                       </select>
                     </label>
                     <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
-                      学校试点中，学生加入学校空间后，学校支持人员可查看本校学生记录。学校归属由试点管理方统一配置，不在这里手动选择。
+                      学校试点中，学生加入学校空间后，学校支持人员可查看本校学生记录。学校支持人员身份和学校归属由管理员统一配置，不在这里手动选择。
                     </p>
                     <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
