@@ -2,13 +2,13 @@
 
 ## V1 Prototype Freeze - 2026-06-28
 
-Project: 青序计划 YouthTempo
+Project: YouthTempo
 
 Status: pre-commercial interactive prototype
 
 ### Main Completed Features
 
-- Homepage project introduction for 青序计划 YouthTempo.
+- Homepage project introduction for YouthTempo.
 - Independent pages for teens, parents, SWEET model, check-in, mood journal, worry time, referral support, and resources.
 - SWEET rhythm check-in covering Sleep, Wake, Eat, Exercise, and Task.
 - Emotion expression flow with emotion word cards, guided reflection, low-conflict expression starters, and AI response support.
