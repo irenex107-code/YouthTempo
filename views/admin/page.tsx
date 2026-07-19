@@ -12,8 +12,10 @@ type School = {
   created_at: string;
 };
 
+type AssignmentRole = "学生" | "学校支持人员" | "学校管理员";
+
 type AdminOverview = {
-  admin: { email: string; role: string; status: string };
+  admin: { email: string; role: string; status: string; scope: "platform" | "school" };
   counts: {
     profiles: number;
     sweetRecords: number;
@@ -46,11 +48,14 @@ export default function AdminPage() {
   const [schoolName, setSchoolName] = useState("");
   const [selectedSchoolId, setSelectedSchoolId] = useState("");
   const [assignmentEmail, setAssignmentEmail] = useState("");
-  const [assignmentRole, setAssignmentRole] = useState<"学生" | "学校支持人员">("学生");
+  const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学生");
   const [actionNotice, setActionNotice] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const isPlatformAdmin = overview?.admin.scope === "platform";
+  const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学生", "学校支持人员", "学校管理员"] : ["学生", "学校支持人员"];
 
   async function loadAdminOverview() {
     setLoading(true);
@@ -73,6 +78,7 @@ export default function AdminPage() {
       const nextOverview = payload as AdminOverview;
       setOverview(nextOverview);
       setSelectedSchoolId((current) => current || nextOverview.schools[0]?.id || "");
+      if (nextOverview.admin.scope === "school" && assignmentRole === "学校管理员") setAssignmentRole("学生");
     } catch (adminError) {
       setError(adminError instanceof Error ? adminError.message : "管理员概览加载失败。");
     } finally {
@@ -103,7 +109,7 @@ export default function AdminPage() {
       if (!response.ok) throw new Error(payload.error || "学校空间创建失败。");
       setSchoolName("");
       setSelectedSchoolId(payload.school.id);
-      setActionNotice("学校空间已创建。");
+      setActionNotice("学校空间已创建。下一步请添加该校的学校管理员。");
       await loadAdminOverview();
     } catch (schoolError) {
       setError(schoolError instanceof Error ? schoolError.message : "学校空间创建失败。");
@@ -144,16 +150,16 @@ export default function AdminPage() {
       <PageHero
         label="Pilot Admin"
         title="试点管理台"
-        subtitle="以学校空间管理 B2B2C 试点：学生属于学校，学校支持人员查看本校学生记录，用于更早支持和跟进。"
+        subtitle="平台管理员负责开通学校；学校管理员负责管理本校学生。学生属于学校空间后，学校支持人员可查看本校 SWEET 记录。"
       />
 
       <section className="section section-muted">
         <div className="container">
-          {loading ? <div className="card text-sm font-bold text-muted">正在检查管理员权限……</div> : null}
+          {loading ? <div className="card text-sm font-bold text-muted">正在检查管理权限……</div> : null}
           {!loading && error && !overview ? (
             <div className="card max-w-3xl">
               <p className="eyebrow">Access</p>
-              <h2 className="mt-3 text-[1.6rem] font-bold text-ink">需要管理员权限</h2>
+              <h2 className="mt-3 text-[1.6rem] font-bold text-ink">需要管理权限</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">{error}</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/account" className="button-primary">去登录 / 我的记录</Link>
@@ -165,16 +171,19 @@ export default function AdminPage() {
           {overview ? (
             <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
               <div className="card">
-                <p className="eyebrow">Signed in as admin</p>
+                <p className="eyebrow">Signed in</p>
                 <h2 className="mt-3 text-[1.6rem] font-bold leading-tight text-ink">{overview.admin.email}</h2>
+                <p className="mt-2 text-sm font-bold text-sage-dark">当前权限：{overview.admin.role}</p>
                 <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                  当前权限模型是“学校空间”：学生账号归属某个学校，学校支持人员查看本校学生记录。学生不需要逐个授权，试点边界由管理员统一配置。
+                  {isPlatformAdmin
+                    ? "你负责创建试点学校，并指定每个学校的学校管理员。后续学生添加主要交给学校自己完成。"
+                    : "你只管理自己学校空间里的学生和支持人员；看不到其他学校的数据。"}
                 </p>
                 <div className="mt-6 grid gap-3">
                   {[
-                    ["学生", "填写 SWEET、保存自己的记录；加入学校空间后，记录可被本校支持人员查看。"],
-                    ["学校支持人员", "老师、心理老师或项目负责人，查看本校学生记录并用于支持跟进。"],
-                    ["管理员", "创建学校空间、添加学校支持人员、把学生分配到学校。"],
+                    ["平台管理员", "创建学校空间，指定学校管理员，查看试点整体概览。"],
+                    ["学校管理员", "管理本校学生和学校支持人员，查看本校记录。"],
+                    ["学生", "填写 SWEET、保存自己的记录；加入学校空间后记录归属本校。"],
                   ].map(([title, text]) => (
                     <div key={title} className="rounded-2xl bg-cream px-4 py-4">
                       <p className="text-sm font-bold text-ink">{title}</p>
@@ -188,22 +197,22 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="text-xs font-bold text-sage">用户资料</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.profiles}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">已创建账户资料数。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "全平台账户资料数。" : "本校账户资料数。"}</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">SWEET 记录</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.sweetRecords}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">云端保存的节律记录。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "全平台云端记录。" : "本校学生记录。"}</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校空间</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schools}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">已创建试点学校数。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "已创建试点学校数。" : "你可管理的学校数。"}</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校成员</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolMembers}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">已配置学校支持人员数。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">已配置的学校管理员和支持人员。</p>
                 </div>
               </div>
             </div>
@@ -217,33 +226,41 @@ export default function AdminPage() {
             <div className="card">
               <p className="eyebrow">School setup</p>
               <h2 className="mt-3 text-[1.5rem] font-bold text-ink">学校空间配置</h2>
-              <form className="mt-6 grid gap-4" onSubmit={handleCreateSchool}>
-                <label className="grid gap-2 text-sm font-bold text-ink">
-                  新学校名称
-                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder="例如：YouthTempo 试点学校" />
-                </label>
-                <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={actionLoading || !schoolName.trim()}>
-                  创建学校
-                </button>
-              </form>
+              {isPlatformAdmin ? (
+                <form className="mt-6 grid gap-4" onSubmit={handleCreateSchool}>
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    新学校名称
+                    <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder="例如：Special A" />
+                  </label>
+                  <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={actionLoading || !schoolName.trim()}>
+                    创建学校
+                  </button>
+                </form>
+              ) : (
+                <p className="mt-6 rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
+                  学校空间由平台管理员创建。你可以在下方把学生和本校支持人员加入你负责的学校。
+                </p>
+              )}
 
               <form className="mt-8 grid gap-4 border-t border-ink/10 pt-6" onSubmit={handleAssignUser}>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   选择学校
                   <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={selectedSchoolId} onChange={(event) => setSelectedSchoolId(event.target.value)}>
-                    <option value="">先创建或选择学校</option>
+                    <option value="">先选择学校</option>
                     {overview.schools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
                   </select>
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  已注册用户邮箱
+                  对方登录邮箱
                   <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentEmail} onChange={(event) => setAssignmentEmail(event.target.value)} placeholder="student@example.com" type="email" />
                 </label>
+                <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
+                  这里填写对方登录 YouthTempo 用的邮箱。对方需要先用邮箱登录一次，系统里才有账户；之后学校管理员就可以把他们加入本校。
+                </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   加入身份
-                  <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentRole} onChange={(event) => setAssignmentRole(event.target.value as "学生" | "学校支持人员")}>
-                    <option>学生</option>
-                    <option>学校支持人员</option>
+                  <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentRole} onChange={(event) => setAssignmentRole(event.target.value as AssignmentRole)}>
+                    {roleOptions.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </label>
                 <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={actionLoading || !selectedSchoolId || !assignmentEmail.trim()}>
@@ -256,7 +273,7 @@ export default function AdminPage() {
 
             <div className="card">
               <p className="eyebrow">Schools</p>
-              <h2 className="mt-3 text-[1.5rem] font-bold text-ink">已创建学校</h2>
+              <h2 className="mt-3 text-[1.5rem] font-bold text-ink">{isPlatformAdmin ? "已创建学校" : "我的学校"}</h2>
               <div className="mt-6 grid gap-3">
                 {overview.schools.length > 0 ? overview.schools.map((school) => (
                   <button
@@ -268,7 +285,7 @@ export default function AdminPage() {
                     <p className="font-bold text-ink">{school.name}</p>
                     <p className="mt-2 text-xs font-bold text-sage-dark">{school.status === "active" ? "Active" : school.status}</p>
                   </button>
-                )) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">还没有学校空间。先创建一个试点学校。</p>}
+                )) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">暂时没有可管理的学校空间。</p>}
               </div>
             </div>
           </div>
@@ -280,7 +297,7 @@ export default function AdminPage() {
           <div className="container">
             <SectionHeader
               title="最近 SWEET 记录"
-              description="这里先显示最近云端记录，帮助管理员确认学校空间数据链路是否正常。正式试点前可以继续补充按学校筛选、导出和反馈表。"
+              description={isPlatformAdmin ? "这里显示最近云端记录，帮助确认学校空间数据链路是否正常。" : "这里显示你负责学校里的最近学生记录。"}
             />
             <div className="grid gap-4">
               {overview.recentRecords.length > 0 ? overview.recentRecords.map((record) => (
