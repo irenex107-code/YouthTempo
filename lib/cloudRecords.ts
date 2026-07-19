@@ -46,6 +46,12 @@ export type WechatBindSession = {
   qrCodeDataUrl: string;
 };
 
+export type WechatLoginSession = {
+  scene: string;
+  expiresAt: string;
+  qrCodeDataUrl: string;
+};
+
 async function getAccessToken() {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase is not configured.");
@@ -246,4 +252,26 @@ export async function checkWechatBindSession(scene: string) {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "微信绑定状态检查失败。");
   return data as { status: "pending" | "confirmed" | "expired"; bound: boolean; confirmedAt?: string | null };
+}
+
+// 免登录扫码登录：无需 access token，任何访客都能发起。
+export async function createWechatLoginSession() {
+  const response = await fetch("/api/wechat/create-login-session", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "微信登录二维码生成失败。");
+  return data as WechatLoginSession;
+}
+
+export async function checkWechatLoginSession(scene: string) {
+  const response = await fetch(`/api/wechat/check-login-session?scene=${encodeURIComponent(scene)}`);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "微信登录状态检查失败。");
+  return data as {
+    status: "pending" | "confirmed" | "expired";
+    authenticated: boolean;
+    confirmedAt?: string | null;
+  };
 }
