@@ -542,7 +542,7 @@ export default function ReferralPage() {
           <SectionHeader
             label="Family-School-Professional Support Network"
             title="家校与专业支持网络"
-            description="青序计划把支持理解为一个协作网络，而不是让年轻人独自面对压力。"
+            description="YouthTempo 把支持理解为一个协作网络，而不是让年轻人独自面对压力。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {network.map(([title, role]) => (
