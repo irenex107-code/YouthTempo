@@ -4,7 +4,7 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 
 const contactReasons = [
-  ["学校试点合作", "如果你来自学校、社团或心理健康相关项目，可以联系青序计划讨论小范围试用。"],
+  ["学校试点合作", "如果你来自学校、社团或心理健康相关项目，可以联系 YouthTempo 讨论小范围试用。"],
   ["家长与学生反馈", "如果你在使用中发现内容不清楚、不够友好或有需要补充的地方，可以把具体页面和感受告诉我们。"],
   ["隐私与数据问题", "如果你想了解登录、数据保存、记录删除或试点授权方式，可以优先说明你的角色和问题。"],
   ["校园推广团队", "如果你希望参与校园推广、用户测试或反馈收集，可以留下学校、年级和可参与方式。"],
@@ -22,7 +22,7 @@ export default function ContactPage() {
       <PageHero
         label="Contact"
         title="联系我们"
-        subtitle="青序计划仍在原型和试点准备阶段。欢迎学校、家长、学生和合作伙伴提出反馈，让这个工具更清楚、更安全、更能解决真实问题。"
+        subtitle="YouthTempo 仍在原型和试点准备阶段。欢迎学校、家长、学生和合作伙伴提出反馈，让这个工具更清楚、更安全、更能解决真实问题。"
       />
 
       <section className="section section-muted">
