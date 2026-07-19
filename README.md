@@ -1,10 +1,10 @@
-# 青序计划 YouthTempo
+# YouthTempo
 
 Version: V1 Prototype
 
 Current status: pre-commercial interactive prototype
 
-青序计划 YouthTempo is an early-support website prototype for youth well-being. It uses daily rhythm, emotion expression, bedtime worry organization, and support-pathway guidance to help young people and their support systems find a lower-pressure starting point.
+YouthTempo is an early-support website prototype for youth well-being. It uses daily rhythm, emotion expression, bedtime worry organization, and support-pathway guidance to help young people and their support systems find a lower-pressure starting point.
 
 ## Main Routes
 
