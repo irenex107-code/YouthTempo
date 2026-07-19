@@ -22,7 +22,12 @@ import {
   verifyEmailOtp,
 } from "@/lib/cloudRecords";
 import { getSavedSweetRecords } from "@/lib/localRecords";
-import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+
+type AdminAccess = {
+  role: string;
+  scope: "platform" | "school";
+} | null;
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -63,6 +68,29 @@ function recordsDescription(role: string, hasSchool: boolean) {
   return "完成 SWEET 后点击保存，记录会出现在这里。当前账号还没有加入学校试点空间。";
 }
 
+async function loadAdminAccess(): Promise<AdminAccess> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return null;
+
+  try {
+    const response = await fetch("/api/admin/overview", {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    const payload = await response.json();
+    if (!response.ok) return null;
+    return {
+      role: payload.admin?.role || "管理员",
+      scope: payload.admin?.scope === "school" ? "school" : "platform",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
@@ -71,6 +99,7 @@ export default function AccountPage() {
   const [wechatBindSession, setWechatBindSession] = useState<WechatBindSession | null>(null);
   const [wechatStatus, setWechatStatus] = useState("");
   const [wechatLoading, setWechatLoading] = useState(false);
+  const [adminAccess, setAdminAccess] = useState<AdminAccess>(null);
   const [localCount, setLocalCount] = useState(0);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -97,18 +126,21 @@ export default function AccountPage() {
         setProfile(null);
         setRecords([]);
         setWechatIdentities([]);
+        setAdminAccess(null);
         return;
       }
-      const [nextProfile, nextRecords, nextWechatIdentities] = await Promise.all([
+      const [nextProfile, nextRecords, nextWechatIdentities, nextAdminAccess] = await Promise.all([
         getProfile(currentUser),
         listCloudSweetRecords(),
         listWechatIdentities(),
+        loadAdminAccess(),
       ]);
       setProfile(nextProfile);
       setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
       setRole(profileRoleLabel(nextProfile?.role));
       setRecords(nextRecords);
       setWechatIdentities(nextWechatIdentities);
+      setAdminAccess(nextAdminAccess);
     } catch (accountError) {
       setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
     } finally {
@@ -238,6 +270,7 @@ export default function AccountPage() {
     setNotice("已退出登录。");
     setWechatBindSession(null);
     setWechatStatus("");
+    setAdminAccess(null);
     setAccountTab("profile");
     await refreshAccount();
   }
@@ -430,7 +463,17 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">保留在当前浏览器。</p>
                 </div>
               ) : null}
-              <Link href="/admin" className="button-secondary w-full text-center sm:w-fit">试点管理台</Link>
+              {adminAccess ? (
+                <div className="rounded-2xl border border-sage/45 bg-mint px-4 py-4">
+                  <p className="text-xs font-bold text-sage-dark">管理权限</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    {adminAccess.scope === "platform"
+                      ? "你可以创建学校空间，并指定学校管理员。"
+                      : "你可以管理自己学校的学生和支持人员。"}
+                  </p>
+                  <Link href="/admin" className="button-secondary mt-4 w-full text-center sm:w-fit">进入试点管理台</Link>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
