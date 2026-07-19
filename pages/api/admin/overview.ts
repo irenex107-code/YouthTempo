@@ -29,29 +29,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (roleError) throw roleError;
     if (!adminRole) return res.status(403).json({ error: "当前账号没有管理员权限。" });
 
-    const [profileCount, sweetRecordCount, permissionCount, wechatIdentityCount] = await Promise.all([
+    const [profileCount, sweetRecordCount, schoolCount, schoolMemberCount, wechatIdentityCount] = await Promise.all([
       getCount("profiles"),
       getCount("sweet_records"),
-      getCount("user_permissions"),
+      getCount("schools"),
+      getCount("school_members"),
       getCount("wechat_identities"),
     ]);
 
-    const { data: recentPermissions, error: permissionsError } = await supabase
-      .from("user_permissions")
-      .select("id,grantee_email,permission_type,status,created_at")
+    const { data: recentRecords, error: recordsError } = await supabase
+      .from("sweet_records")
+      .select("id,user_id,school_id,summary,created_at")
       .order("created_at", { ascending: false })
       .limit(6);
-    if (permissionsError) throw permissionsError;
+    if (recordsError) throw recordsError;
 
     return res.status(200).json({
       admin: adminRole,
       counts: {
         profiles: profileCount,
         sweetRecords: sweetRecordCount,
-        permissions: permissionCount,
+        schools: schoolCount,
+        schoolMembers: schoolMemberCount,
         wechatBindings: wechatIdentityCount,
       },
-      recentPermissions: recentPermissions || [],
+      recentRecords: recentRecords || [],
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "管理员概览加载失败。";
