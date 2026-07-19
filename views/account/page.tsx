@@ -4,14 +4,15 @@ import type { User } from "@supabase/supabase-js";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import {
+  AccountStatus,
   CloudProfile,
   CloudSweetRecord,
   WechatBindSession,
   WechatIdentity,
-  applySchoolInvites,
   checkWechatBindSession,
   createWechatBindSession,
   deleteCloudSweetRecord,
+  getAccountStatus,
   getCurrentUser,
   getProfile,
   handleAuthRedirect,
@@ -23,12 +24,7 @@ import {
   verifyEmailOtp,
 } from "@/lib/cloudRecords";
 import { getSavedSweetRecords } from "@/lib/localRecords";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
-
-type AdminAccess = {
-  role: string;
-  scope: "platform" | "school";
-} | null;
+import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -56,12 +52,6 @@ function profileRoleLabel(value?: string | null) {
   return "学生";
 }
 
-function identityLabel(role: string, adminAccess: AdminAccess) {
-  if (adminAccess?.scope === "platform") return "平台管理员";
-  if (adminAccess?.scope === "school") return "学校负责人";
-  return role;
-}
-
 function recordsTitle(role: string) {
   if (role === "学校负责人") return "本校 SWEET 记录";
   if (role === "支持老师") return "本校 SWEET 记录";
@@ -77,38 +67,15 @@ function recordsDescription(role: string, hasSchool: boolean) {
   return "完成 SWEET 后点击保存，记录会出现在这里。当前账号还没有加入学校试点空间。";
 }
 
-async function loadAdminAccess(): Promise<AdminAccess> {
-  const supabase = getSupabase();
-  if (!supabase) return null;
-
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) return null;
-
-  try {
-    const response = await fetch("/api/admin/overview", {
-      headers: { authorization: `Bearer ${token}` },
-    });
-    const payload = await response.json();
-    if (!response.ok) return null;
-    return {
-      role: payload.admin?.role || "管理员",
-      scope: payload.admin?.scope === "school" ? "school" : "platform",
-    };
-  } catch {
-    return null;
-  }
-}
-
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
+  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [records, setRecords] = useState<CloudSweetRecord[]>([]);
   const [wechatIdentities, setWechatIdentities] = useState<WechatIdentity[]>([]);
   const [wechatBindSession, setWechatBindSession] = useState<WechatBindSession | null>(null);
   const [wechatStatus, setWechatStatus] = useState("");
   const [wechatLoading, setWechatLoading] = useState(false);
-  const [adminAccess, setAdminAccess] = useState<AdminAccess>(null);
   const [localCount, setLocalCount] = useState(0);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
@@ -121,9 +88,9 @@ export default function AccountPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
-  const profileRole = profileRoleLabel(profile?.role || role);
-  const displayRole = identityLabel(profileRole, adminAccess);
-  const hasSchool = Boolean(profile?.school_id);
+  const displayRole = accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
+  const adminAccess = accountStatus?.adminAccess || null;
+  const hasSchool = Boolean(accountStatus?.hasSchool || profile?.school_id);
   const isManagedSchoolRole = displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员";
 
   async function refreshAccount() {
@@ -135,24 +102,31 @@ export default function AccountPage() {
       setLocalCount(getSavedSweetRecords().length);
       if (!currentUser) {
         setProfile(null);
+        setAccountStatus(null);
         setRecords([]);
         setWechatIdentities([]);
-        setAdminAccess(null);
         return;
       }
-      await applySchoolInvites();
-      const [nextProfile, nextRecords, nextWechatIdentities, nextAdminAccess] = await Promise.all([
+
+      const [nextAccountStatus, fallbackProfile, nextRecords, nextWechatIdentities] = await Promise.all([
+        getAccountStatus().catch((statusError) => {
+          console.warn("Account status failed", statusError);
+          return null;
+        }),
         getProfile(currentUser),
         listCloudSweetRecords(),
         listWechatIdentities(),
-        loadAdminAccess(),
       ]);
+      const nextProfile = nextAccountStatus?.profile || fallbackProfile;
+      setAccountStatus(nextAccountStatus);
       setProfile(nextProfile);
       setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
       setRole(profileRoleLabel(nextProfile?.role));
       setRecords(nextRecords);
       setWechatIdentities(nextWechatIdentities);
-      setAdminAccess(nextAdminAccess);
+      if (nextAccountStatus?.inviteSyncError) {
+        setNotice("账户身份已加载，但学校邀请同步需要稍后再试。");
+      }
     } catch (accountError) {
       setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
     } finally {
@@ -209,7 +183,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("验证码已发送到邮箱，请查收邮件里的验证码并在下方输入。首次使用的新邮箱也可能先收到确认链接，点击确认后会回到这里。 ");
+      setNotice("邮件已发送。请查看邮件里的 6 位验证码并输入；如果邮件显示的是确认链接，请直接点击链接完成登录。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -242,7 +216,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
-      setNotice("新的验证码已发送。首次使用的新邮箱也可能先收到确认链接。");
+      setNotice("新的邮件已发送。请查看 6 位验证码；如果看到的是确认链接，请直接点击链接。 ");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
@@ -252,7 +226,7 @@ export default function AccountPage() {
 
   async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user) return;
+    if (!user || isManagedSchoolRole) return;
     setNotice("");
     setError("");
     try {
@@ -282,7 +256,7 @@ export default function AccountPage() {
     setNotice("已退出登录。");
     setWechatBindSession(null);
     setWechatStatus("");
-    setAdminAccess(null);
+    setAccountStatus(null);
     setAccountTab("profile");
     await refreshAccount();
   }
@@ -331,7 +305,9 @@ export default function AccountPage() {
               {user
                 ? accountTab === "wechat"
                   ? "微信绑定"
-                  : "账户资料"
+                  : isManagedSchoolRole
+                    ? "试点身份"
+                    : "账户资料"
                 : otpSent
                   ? "输入邮箱验证码"
                   : "邮箱验证码登录"}
@@ -344,7 +320,7 @@ export default function AccountPage() {
                     className={`rounded-xl px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                     onClick={() => setAccountTab("profile")}
                   >
-                    账户资料
+                    {isManagedSchoolRole ? "试点身份" : "账户资料"}
                   </button>
                   <button
                     type="button"
@@ -355,18 +331,31 @@ export default function AccountPage() {
                   </button>
                 </div>
                 {accountTab === "profile" ? (
-                  <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
-                    <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
-                    <label className="grid gap-2 text-sm font-bold text-ink">
-                      昵称
-                      <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
-                    </label>
-                    {isManagedSchoolRole ? (
-                      <div className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
-                        <p className="font-bold text-ink">当前试点身份：{displayRole}</p>
-                        <p className="mt-2">这个身份由平台或学校负责人统一配置，不需要在这里手动选择。</p>
+                  isManagedSchoolRole ? (
+                    <div className="mt-6 grid gap-4">
+                      <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
+                      <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
+                        <p className="text-xs font-bold text-sage-dark">当前试点身份</p>
+                        <p className="mt-2 text-xl font-bold text-ink">{displayRole}</p>
+                        <p className="mt-2">
+                          这个身份由 YouthTempo 试点管理配置，不需要自己选择学生或家长身份。
+                          {displayRole === "学校负责人" ? "你可以进入试点管理台添加本校学生和支持老师。" : null}
+                          {displayRole === "支持老师" ? "你可以查看本校学生记录，用于试点支持。" : null}
+                          {displayRole === "平台管理员" ? "你可以创建学校空间，并指定学校负责人。" : null}
+                        </p>
                       </div>
-                    ) : (
+                      <div className="grid gap-3 sm:flex sm:flex-wrap">
+                        {adminAccess ? <Link href="/admin" className="button-primary w-full text-center sm:w-auto">进入试点管理台</Link> : null}
+                        <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
+                      <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
+                      <label className="grid gap-2 text-sm font-bold text-ink">
+                        昵称
+                        <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
+                      </label>
                       <label className="grid gap-2 text-sm font-bold text-ink">
                         账号类型
                         <select
@@ -378,15 +367,15 @@ export default function AccountPage() {
                           <option>家长</option>
                         </select>
                       </label>
-                    )}
-                    <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
-                      学校试点中，学生加入学校空间后，本校支持老师和学校负责人可查看学生记录。试点身份和学校归属由学校统一配置。
-                    </p>
-                    <div className="grid gap-3 sm:flex sm:flex-wrap">
-                      <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
-                      <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
-                    </div>
-                  </form>
+                      <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
+                        学校试点中，学生加入学校空间后，本校支持老师和学校负责人可查看学生记录。学校归属由学校统一配置。
+                      </p>
+                      <div className="grid gap-3 sm:flex sm:flex-wrap">
+                        <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
+                        <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+                      </div>
+                    </form>
+                  )
                 ) : (
                   <div className="mt-6 grid gap-4">
                     <p className="text-[0.95rem] leading-7 text-muted">
@@ -417,7 +406,7 @@ export default function AccountPage() {
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
-                  输入邮箱后会收到一封含验证码的邮件，不需要记密码。首次使用的新邮箱也可能先收到确认链接，点击确认后会回到这里。
+                  输入邮箱后会收到登录邮件。如果邮件里显示数字验证码，请输入下方；如果只显示确认链接，请直接点击链接完成登录。
                 </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   邮箱
@@ -425,20 +414,21 @@ export default function AccountPage() {
                 </label>
                 {otpSent ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
-                    邮件验证码
+                    邮件中的数字验证码
                     <input
                       className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-center text-lg font-bold outline-none focus:border-sage"
                       value={otp}
                       onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                      placeholder="请输入邮件里的验证码"
+                      placeholder="例如 123456"
                       inputMode="numeric"
                       autoComplete="one-time-code"
                     />
+                    <span className="text-xs leading-6 text-muted">如果这封邮件没有验证码、只有确认链接，请点邮件里的链接，不需要在这里输入。</span>
                   </label>
                 ) : null}
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
                   <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}>
-                    {authLoading ? "请稍等..." : otpSent ? "验证并登录" : "发送验证码"}
+                    {authLoading ? "请稍等..." : otpSent ? "验证并登录" : "发送登录邮件"}
                   </button>
                   {otpSent ? (
                     <button type="button" className="button-secondary w-full sm:w-auto" onClick={resendOtp} disabled={authLoading}>
