@@ -52,7 +52,7 @@ export default function Home() {
       <section className="section">
         <div className="container grid items-center gap-12 lg:grid-cols-[1.08fr_0.92fr]">
           <div>
-            <p className="eyebrow">青序计划 YouthTempo</p>
+            <p className="eyebrow">YouthTempo</p>
             <h1 className="mt-4 max-w-3xl text-[2.05rem] font-bold leading-[1.17] text-ink sm:text-[2.8rem] lg:text-[3.1rem]">
               成长不是抢跑，而是找到自己的节奏。
             </h1>
@@ -94,7 +94,7 @@ export default function Home() {
           <SectionHeader
             label="Why Early Support"
             title="为什么需要更早支持"
-            description="很多年轻人的压力并不是一开始就以明确的“心理问题”出现，而是先体现在睡眠、饮食、运动、任务投入、情绪表达和沟通困难中。青序计划希望在问题变得更难承受之前，提供更低门槛、更容易开始的支持方式。"
+            description="很多年轻人的压力并不是一开始就以明确的“心理问题”出现，而是先体现在睡眠、饮食、运动、任务投入、情绪表达和沟通困难中。YouthTempo 希望在问题变得更难承受之前，提供更低门槛、更容易开始的支持方式。"
           />
         </div>
       </section>
@@ -104,7 +104,7 @@ export default function Home() {
           <SectionHeader
             label="Who We Support"
             title="青春期和成年早期，是更早支持的重要窗口。"
-            description="青序计划关注年轻人自身，也关注他们身边的家庭和学校支持系统。"
+            description="YouthTempo 关注年轻人自身，也关注他们身边的家庭和学校支持系统。"
           />
           <div className="grid gap-6 md:grid-cols-3">
             {audienceCards.map((item) => (
@@ -121,7 +121,7 @@ export default function Home() {
           <SectionHeader
             label="Support Pathway Starting from Daily Rhythm"
             title="从日常节律开始的支持路径"
-            description="青序计划从 SWEET 节律记录开始，帮助年轻人看见睡眠、醒来、饮食、运动和任务投入之间的关系，并在需要时进入情绪表达、睡前整理或支持路径。"
+            description="YouthTempo 从 SWEET 节律记录开始，帮助年轻人看见睡眠、醒来、饮食、运动和任务投入之间的关系，并在需要时进入情绪表达、睡前整理或支持路径。"
           />
           <div className="grid gap-6 md:grid-cols-3">
             {supportLayers.map((item) => (
