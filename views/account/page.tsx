@@ -49,8 +49,8 @@ function recordPreview(record: CloudSweetRecord) {
 }
 
 function permissionLabel(value: string) {
-  if (value === "guardian_view") return "家长查看支持";
-  if (value === "school_support") return "学校支持协作";
+  if (value === "guardian_view") return "支持者查看摘要";
+  if (value === "school_support") return "支持者协作";
   return "试点反馈研究";
 }
 
@@ -69,7 +69,7 @@ export default function AccountPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [name, setName] = useState("");
-  const [role, setRole] = useState("学生");
+  const [role, setRole] = useState("普通用户");
   const [accountTab, setAccountTab] = useState<"profile" | "wechat">("profile");
   const [granteeEmail, setGranteeEmail] = useState("");
   const [permissionType, setPermissionType] = useState("guardian_view");
@@ -99,7 +99,7 @@ export default function AccountPage() {
       ]);
       setProfile(nextProfile);
       setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
-      setRole(nextProfile?.role || "学生");
+      setRole(nextProfile?.role === "支持者" ? "支持者" : "普通用户");
       setRecords(nextRecords);
       setPermissions(nextPermissions);
       setWechatIdentities(nextWechatIdentities);
@@ -208,6 +208,7 @@ export default function AccountPage() {
     try {
       const nextProfile = await saveProfile(user, name.trim(), role);
       setProfile(nextProfile);
+      setRole(nextProfile.role === "支持者" ? "支持者" : "普通用户");
       setNotice("账户资料已保存。");
     } catch (profileError) {
       setError(profileError instanceof Error ? profileError.message : "资料保存失败。");
@@ -231,14 +232,14 @@ export default function AccountPage() {
     setNotice("");
     setError("");
     if (!granteeEmail.trim()) {
-      setError("请填写被授权人的邮箱。");
+      setError("请填写支持者邮箱。");
       return;
     }
     try {
       await createPermission(granteeEmail, permissionType);
       setGranteeEmail("");
       setPermissions(await listPermissions());
-      setNotice("授权已创建，可在下方随时撤销。");
+      setNotice("支持者授权已创建，可在下方随时撤销。");
     } catch (permissionError) {
       setError(permissionError instanceof Error ? permissionError.message : "创建授权失败。");
     }
@@ -285,7 +286,7 @@ export default function AccountPage() {
       <PageHero
         label="Account & Records"
         title="登录与我的记录"
-        subtitle="用邮箱登录后，可以保存 SWEET 节律记录、回看历史，并管理是否授权家长或学校支持者参与支持。"
+        subtitle="用邮箱登录后，可以保存 SWEET 节律记录、绑定微信，并用清楚可撤销的方式授权支持者参与支持。"
       />
 
       {!isSupabaseConfigured() ? (
@@ -340,14 +341,15 @@ export default function AccountPage() {
                       <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
                     </label>
                     <label className="grid gap-2 text-sm font-bold text-ink">
-                      角色
+                      账号类型
                       <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={role} onChange={(event) => setRole(event.target.value)}>
-                        <option>学生</option>
-                        <option>家长</option>
-                        <option>老师</option>
-                        <option>学校合作方</option>
+                        <option>普通用户</option>
+                        <option>支持者</option>
                       </select>
                     </label>
+                    <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
+                      支持者可以是家长、老师、学校心理老师或其他被信任的大人。管理员权限不在这里选择，由试点管理台单独控制。
+                    </p>
                     <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
                       <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
@@ -425,7 +427,7 @@ export default function AccountPage() {
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
                 <p className="mt-2 overflow-hidden text-ellipsis text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
-                <p className="mt-2 text-sm leading-6 text-muted">{user ? `角色：${profile?.role || role}` : "登录后可保存云端记录和授权设置。"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${profile?.role || role}` : "登录后可保存云端记录和授权设置。"}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
@@ -439,6 +441,7 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">保留在当前浏览器。</p>
                 </div>
               </div>
+              <Link href="/admin" className="button-secondary w-full text-center sm:w-fit">试点管理台</Link>
             </div>
           </div>
         </div>
@@ -479,18 +482,18 @@ export default function AccountPage() {
 
       <section className="section section-muted">
         <div className="container">
-          <SectionHeader title="授权管理" description="需要别人一起支持时，再授权；不需要时，可以撤销。默认只显示你自己的记录。" />
+          <SectionHeader title="支持者授权" description="支持者可以是家长、老师、学校心理老师或其他被信任的大人。需要别人一起支持时再授权，不需要时可以撤销。" />
           <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:gap-8">
             <form className="card grid gap-4" onSubmit={handlePermissionSubmit}>
               <label className="grid gap-2 text-sm font-bold text-ink">
-                被授权人邮箱
-                <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={granteeEmail} onChange={(event) => setGranteeEmail(event.target.value)} placeholder="parent@example.com" type="email" />
+                支持者邮箱
+                <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={granteeEmail} onChange={(event) => setGranteeEmail(event.target.value)} placeholder="supporter@example.com" type="email" />
               </label>
               <label className="grid gap-2 text-sm font-bold text-ink">
-                授权类型
+                授权范围
                 <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={permissionType} onChange={(event) => setPermissionType(event.target.value)}>
-                  <option value="guardian_view">家长查看支持</option>
-                  <option value="school_support">学校支持协作</option>
+                  <option value="guardian_view">查看支持摘要</option>
+                  <option value="school_support">参与学校/家庭支持协作</option>
                   <option value="research_feedback">试点反馈研究</option>
                 </select>
               </label>
@@ -509,7 +512,7 @@ export default function AccountPage() {
                     ) : null}
                   </div>
                 </article>
-              )) : <div className="card text-sm font-bold text-muted">还没有创建授权。</div>}
+              )) : <div className="card text-sm font-bold text-muted">还没有创建支持者授权。</div>}
             </div>
           </div>
         </div>
