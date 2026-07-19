@@ -1,9 +1,51 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { navItems } from "@/data/site";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+
+async function canOpenAdmin() {
+  if (!isSupabaseConfigured()) return false;
+  const supabase = getSupabase();
+  if (!supabase) return false;
+
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return false;
+
+  try {
+    const response = await fetch("/api/admin/overview", {
+      headers: { authorization: `Bearer ${token}` },
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showAdminLink, setShowAdminLink] = useState(false);
+
+  useEffect(() => {
+    const supabase = getSupabase();
+    let mounted = true;
+
+    async function refreshAdminLink() {
+      const allowed = await canOpenAdmin();
+      if (mounted) setShowAdminLink(allowed);
+    }
+
+    refreshAdminLink();
+
+    const subscription = supabase?.auth.onAuthStateChange(() => {
+      refreshAdminLink();
+    });
+
+    return () => {
+      mounted = false;
+      subscription?.data.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/92 backdrop-blur">
@@ -18,6 +60,11 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
+            {showAdminLink ? (
+              <Link href="/admin" className="whitespace-nowrap transition hover:text-sage-dark">
+                试点管理台
+              </Link>
+            ) : null}
           </nav>
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
             <Link href="/account" className="button-secondary px-4 py-2 text-xs sm:px-5">
@@ -54,6 +101,15 @@ export function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              {showAdminLink ? (
+                <Link
+                  href="/admin"
+                  className="rounded-2xl px-4 py-3 text-sm font-bold text-ink/80 transition hover:bg-cream hover:text-sage-dark"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  试点管理台
+                </Link>
+              ) : null}
               <div className="mt-1 grid gap-2 border-t border-ink/10 pt-3">
                 <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
                   登录 / 我的记录
