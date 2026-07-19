@@ -135,6 +135,20 @@ export async function verifyEmailOtp(email: string, token: string) {
   return data.user;
 }
 
+export async function applySchoolInvites() {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/apply-school-invites", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "学校空间同步失败。");
+  return data as { applied: number; roles: string[] };
+}
+
 export async function signOut() {
   const supabase = getSupabase();
   if (!supabase) return;
