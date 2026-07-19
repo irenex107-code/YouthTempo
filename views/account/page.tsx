@@ -338,19 +338,19 @@ export default function AccountPage() {
                 </label>
                 {otpSent ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
-                    6 位验证码
+                    邮件验证码
                     <input
                       className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-center text-lg font-bold outline-none focus:border-sage"
                       value={otp}
-                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                      placeholder="000000"
+                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
+                      placeholder="请输入邮件里的验证码"
                       inputMode="numeric"
                       autoComplete="one-time-code"
                     />
                   </label>
                 ) : null}
                 <div className="grid gap-3 sm:flex sm:flex-wrap">
-                  <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={authLoading || !email.trim() || (otpSent && otp.length < 6)}>
+                  <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}>
                     {authLoading ? "请稍等..." : otpSent ? "验证并登录" : "发送验证码"}
                   </button>
                   {otpSent ? (
