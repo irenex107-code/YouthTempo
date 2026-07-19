@@ -97,10 +97,11 @@ export default function AccountPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
-  const displayRole = accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
+  const isIdentityLoading = Boolean(user && loading && !accountStatus && !profile);
+  const displayRole = isIdentityLoading ? "正在确认" : accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
   const adminAccess = accountStatus?.adminAccess || null;
   const hasSchool = Boolean(accountStatus?.hasSchool || profile?.school_id);
-  const isManagedSchoolRole = displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员";
+  const isManagedSchoolRole = !isIdentityLoading && (displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员");
 
   async function refreshAccount() {
     setLoading(true);
@@ -218,7 +219,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("验证码已发送。请查看邮箱。 ");
+      setNotice("验证码已发送。请查看邮箱。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -255,7 +256,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
-      setNotice("新的验证码已发送。 ");
+      setNotice("新的验证码已发送。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
@@ -342,11 +343,13 @@ export default function AccountPage() {
             <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
             <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
               {user
-                ? accountTab === "wechat"
-                  ? "微信绑定"
-                  : isManagedSchoolRole
-                    ? "试点身份"
-                    : "账户资料"
+                ? isIdentityLoading
+                  ? "正在确认身份"
+                  : accountTab === "wechat"
+                    ? "微信绑定"
+                    : isManagedSchoolRole
+                      ? "试点身份"
+                      : "账户资料"
                 : otpSent
                   ? "输入验证码"
                   : "邮箱登录"}
@@ -370,7 +373,17 @@ export default function AccountPage() {
                   </button>
                 </div>
                 {accountTab === "profile" ? (
-                  isManagedSchoolRole ? (
+                  isIdentityLoading ? (
+                    <div className="mt-6 grid gap-4">
+                      <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
+                      <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
+                        <p className="text-xs font-bold text-sage-dark">正在同步账户身份</p>
+                        <p className="mt-2 text-xl font-bold text-ink">请稍等一下</p>
+                        <p className="mt-2">系统正在确认这个邮箱是否已加入学校试点空间。确认完成前不会要求你填写学生或家长资料。</p>
+                      </div>
+                      <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+                    </div>
+                  ) : isManagedSchoolRole ? (
                     <div className="mt-6 grid gap-4">
                       <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
                       <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
@@ -487,7 +500,7 @@ export default function AccountPage() {
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
                 <p className="mt-2 overflow-hidden text-ellipsis text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
-                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${displayRole}` : "登录后可保存云端记录和学校空间信息。"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${isIdentityLoading ? "正在确认试点身份..." : displayRole}` : "登录后可保存云端记录和学校空间信息。"}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
@@ -497,11 +510,11 @@ export default function AccountPage() {
                 </div>
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
                   <p className="text-xs font-bold text-sage">学校空间</p>
-                  <p className="mt-2 text-2xl font-bold text-ink">{hasSchool ? "已加入" : "未加入"}</p>
+                  <p className="mt-2 text-2xl font-bold text-ink">{isIdentityLoading ? "确认中" : hasSchool ? "已加入" : "未加入"}</p>
                   <p className="mt-2 text-sm leading-6 text-muted">由试点学校统一配置。</p>
                 </div>
               </div>
-              {displayRole === "学生" ? (
+              {displayRole === "学生" && !isIdentityLoading ? (
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
                   <p className="text-xs font-bold text-sage">本地备份</p>
                   <p className="mt-2 text-2xl font-bold text-ink">{localCount} 条</p>
