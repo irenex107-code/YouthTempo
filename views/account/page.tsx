@@ -8,6 +8,7 @@ import {
   CloudSweetRecord,
   WechatBindSession,
   WechatIdentity,
+  applySchoolInvites,
   checkWechatBindSession,
   createWechatBindSession,
   deleteCloudSweetRecord,
@@ -51,18 +52,26 @@ function recordPreview(record: CloudSweetRecord) {
 
 function profileRoleLabel(value?: string | null) {
   if (value === "家长") return "家长";
-  if (value === "学校支持人员") return "学校支持人员";
+  if (value === "学校支持人员") return "支持老师";
   return "学生";
 }
 
+function identityLabel(role: string, adminAccess: AdminAccess) {
+  if (adminAccess?.scope === "platform") return "平台管理员";
+  if (adminAccess?.scope === "school") return "学校负责人";
+  return role;
+}
+
 function recordsTitle(role: string) {
-  if (role === "学校支持人员") return "学校学生 SWEET 记录";
+  if (role === "学校负责人") return "本校 SWEET 记录";
+  if (role === "支持老师") return "本校 SWEET 记录";
   if (role === "家长") return "孩子分享的 SWEET 记录";
   return "我的 SWEET 历史记录";
 }
 
 function recordsDescription(role: string, hasSchool: boolean) {
-  if (role === "学校支持人员") return "这里显示你所在学校空间中学生的 SWEET 记录，用于试点支持和早期识别。";
+  if (role === "学校负责人") return "这里显示你负责学校里的学生 SWEET 记录。你也可以进入试点管理台配置本校成员。";
+  if (role === "支持老师") return "这里显示你所在学校空间中学生的 SWEET 记录，用于试点支持和早期识别。";
   if (role === "家长") return "家长端暂时不默认开放记录查看。后续会根据学校试点和家庭同意流程单独设计。";
   if (hasSchool) return "你在学校试点空间中的 SWEET 记录会保存在这里，学校支持人员可用于支持和跟进。";
   return "完成 SWEET 后点击保存，记录会出现在这里。当前账号还没有加入学校试点空间。";
@@ -112,8 +121,10 @@ export default function AccountPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
-  const currentRole = profileRoleLabel(profile?.role || role);
+  const profileRole = profileRoleLabel(profile?.role || role);
+  const displayRole = identityLabel(profileRole, adminAccess);
   const hasSchool = Boolean(profile?.school_id);
+  const isManagedSchoolRole = displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员";
 
   async function refreshAccount() {
     setLoading(true);
@@ -129,6 +140,7 @@ export default function AccountPage() {
         setAdminAccess(null);
         return;
       }
+      await applySchoolInvites();
       const [nextProfile, nextRecords, nextWechatIdentities, nextAdminAccess] = await Promise.all([
         getProfile(currentUser),
         listCloudSweetRecords(),
@@ -197,7 +209,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("验证码已发送到邮箱，请查收邮件里的验证码并在下方输入。");
+      setNotice("验证码已发送到邮箱，请查收邮件里的验证码并在下方输入。首次使用的新邮箱也可能先收到确认链接，点击确认后会回到这里。 ");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -230,7 +242,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
-      setNotice("新的验证码已发送。");
+      setNotice("新的验证码已发送。首次使用的新邮箱也可能先收到确认链接。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
@@ -349,21 +361,26 @@ export default function AccountPage() {
                       昵称
                       <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
                     </label>
-                    <label className="grid gap-2 text-sm font-bold text-ink">
-                      账号类型
-                      <select
-                        className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage disabled:bg-cream disabled:text-ink/60"
-                        value={role}
-                        onChange={(event) => setRole(event.target.value)}
-                        disabled={currentRole === "学校支持人员"}
-                      >
-                        <option>学生</option>
-                        <option>家长</option>
-                        {currentRole === "学校支持人员" ? <option>学校支持人员</option> : null}
-                      </select>
-                    </label>
+                    {isManagedSchoolRole ? (
+                      <div className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
+                        <p className="font-bold text-ink">当前试点身份：{displayRole}</p>
+                        <p className="mt-2">这个身份由平台或学校负责人统一配置，不需要在这里手动选择。</p>
+                      </div>
+                    ) : (
+                      <label className="grid gap-2 text-sm font-bold text-ink">
+                        账号类型
+                        <select
+                          className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
+                          value={role}
+                          onChange={(event) => setRole(event.target.value)}
+                        >
+                          <option>学生</option>
+                          <option>家长</option>
+                        </select>
+                      </label>
+                    )}
                     <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
-                      学校试点中，学生加入学校空间后，学校支持人员可查看本校学生记录。学校支持人员身份和学校归属由管理员统一配置，不在这里手动选择。
+                      学校试点中，学生加入学校空间后，本校支持老师和学校负责人可查看学生记录。试点身份和学校归属由学校统一配置。
                     </p>
                     <div className="grid gap-3 sm:flex sm:flex-wrap">
                       <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
@@ -400,7 +417,7 @@ export default function AccountPage() {
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
-                  输入邮箱后会收到一封含验证码的邮件，不需要记密码。手机和电脑都请直接输入验证码登录。
+                  输入邮箱后会收到一封含验证码的邮件，不需要记密码。首次使用的新邮箱也可能先收到确认链接，点击确认后会回到这里。
                 </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   邮箱
@@ -442,7 +459,7 @@ export default function AccountPage() {
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
                 <p className="mt-2 overflow-hidden text-ellipsis text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
-                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${currentRole}` : "登录后可保存云端记录和学校空间信息。"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${displayRole}` : "登录后可保存云端记录和学校空间信息。"}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
@@ -456,7 +473,7 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">由试点学校统一配置。</p>
                 </div>
               </div>
-              {currentRole === "学生" ? (
+              {displayRole === "学生" ? (
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
                   <p className="text-xs font-bold text-sage">本地备份</p>
                   <p className="mt-2 text-2xl font-bold text-ink">{localCount} 条</p>
@@ -468,8 +485,8 @@ export default function AccountPage() {
                   <p className="text-xs font-bold text-sage-dark">管理权限</p>
                   <p className="mt-2 text-sm leading-6 text-muted">
                     {adminAccess.scope === "platform"
-                      ? "你可以创建学校空间，并指定学校管理员。"
-                      : "你可以管理自己学校的学生和支持人员。"}
+                      ? "你可以创建学校空间，并指定学校负责人。"
+                      : "你可以管理自己学校的学生和支持老师。"}
                   </p>
                   <Link href="/admin" className="button-secondary mt-4 w-full text-center sm:w-fit">进入试点管理台</Link>
                 </div>
@@ -481,12 +498,12 @@ export default function AccountPage() {
 
       <section className="section">
         <div className="container">
-          <SectionHeader title={recordsTitle(currentRole)} description={recordsDescription(currentRole, hasSchool)} />
+          <SectionHeader title={recordsTitle(displayRole)} description={recordsDescription(displayRole, hasSchool)} />
           {loading ? <div className="card text-sm font-bold text-muted">正在加载记录……</div> : null}
           {!loading && records.length > 0 ? (
             <div className="grid gap-5">
               {records.map((record) => {
-                const canDelete = currentRole === "学生" && record.user_id === user?.id;
+                const canDelete = displayRole === "学生" && record.user_id === user?.id;
                 return (
                   <article key={record.id} className="card">
                     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -511,11 +528,11 @@ export default function AccountPage() {
             <div className="card">
               <h3 className="text-xl font-bold text-ink">暂时没有可见记录</h3>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                {currentRole === "学生"
+                {displayRole === "学生"
                   ? "登录后完成一次 SWEET 节律记录，并在结果页保存。"
-                  : "当学校空间中有学生记录，且你的学校支持人员身份配置完成后，会显示在这里。"}
+                  : "当学校空间中有学生记录，且你的试点身份配置完成后，会显示在这里。"}
               </p>
-              {currentRole === "学生" ? <Link href="/check-in" className="button-primary mt-6 w-full sm:w-auto">开始 SWEET 节律记录</Link> : null}
+              {displayRole === "学生" ? <Link href="/check-in" className="button-primary mt-6 w-full sm:w-auto">开始 SWEET 节律记录</Link> : null}
             </div>
           ) : null}
         </div>
