@@ -23,8 +23,8 @@ type AdminOverview = {
 };
 
 function permissionLabel(value: string) {
-  if (value === "guardian_view") return "支持者查看摘要";
-  if (value === "school_support") return "支持者协作";
+  if (value === "guardian_view") return "家长查看摘要";
+  if (value === "school_support") return "学校支持协作";
   return "试点反馈研究";
 }
 
@@ -76,7 +76,7 @@ export default function AdminPage() {
       <PageHero
         label="Pilot Admin"
         title="试点管理台"
-        subtitle="先用一个轻量入口管理试点概览、支持者授权和后续反馈，不做复杂学校组织架构。"
+        subtitle="用一个轻量入口查看试点概览、家校授权和后续反馈，不把青少年用户卷进复杂权限。"
       />
 
       <section className="section section-muted">
@@ -100,12 +100,13 @@ export default function AdminPage() {
                 <p className="eyebrow">Signed in as admin</p>
                 <h2 className="mt-3 text-[1.6rem] font-bold leading-tight text-ink">{overview.admin.email}</h2>
                 <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                  当前只保留三层：普通用户、支持者、管理员。学校先作为支持者接入，避免试点阶段权限过度复杂。
+                  前台角色保持清楚：学生、家长、学校支持人员。管理员不出现在用户选择里，只由后台权限表控制。
                 </p>
                 <div className="mt-6 grid gap-3">
                   {[
-                    ["普通用户", "填写 SWEET、保存自己的记录、授权支持者查看摘要。"],
-                    ["支持者", "家长、老师或学校支持人员，只查看被授权内容。"],
+                    ["学生", "填写 SWEET、保存自己的记录、主动决定是否授权家长或学校查看摘要。"],
+                    ["家长", "围绕孩子授权的信息参与支持，不默认看到孩子全部记录。"],
+                    ["学校支持人员", "适合试点学校、老师或心理老师，用于被授权后的协作支持。"],
                     ["管理员", "查看试点概览、授权关系和后续反馈入口。"],
                   ].map(([title, text]) => (
                     <div key={title} className="rounded-2xl bg-cream px-4 py-4">
@@ -128,9 +129,9 @@ export default function AdminPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">云端保存的节律记录。</p>
                 </div>
                 <div className="card">
-                  <p className="text-xs font-bold text-sage">授权关系</p>
+                  <p className="text-xs font-bold text-sage">家校授权</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.permissions}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">用户主动创建的支持者授权。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">用户主动创建的家长或学校授权。</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">微信绑定</p>
@@ -147,8 +148,8 @@ export default function AdminPage() {
         <section className="section">
           <div className="container">
             <SectionHeader
-              title="最近授权关系"
-              description="这里先显示最近创建的支持者授权，帮助你在试点阶段检查权限是否清楚、是否可撤销。"
+              title="最近家校授权"
+              description="这里先显示最近创建的家长或学校授权，帮助你在试点阶段检查权限是否清楚、是否可撤销。"
             />
             <div className="grid gap-4">
               {overview.recentPermissions.length > 0 ? overview.recentPermissions.map((permission) => (
@@ -163,7 +164,7 @@ export default function AdminPage() {
                     <p className="rounded-full bg-cream px-4 py-2 text-xs font-bold text-sage-dark">{formatDate(permission.created_at)}</p>
                   </div>
                 </article>
-              )) : <div className="card text-sm font-bold text-muted">还没有授权关系。</div>}
+              )) : <div className="card text-sm font-bold text-muted">还没有家校授权关系。</div>}
             </div>
           </div>
         </section>
@@ -180,7 +181,7 @@ export default function AdminPage() {
           <div className="card">
             <h3 className="text-xl font-bold text-ink">保持简单</h3>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              学校不单独做复杂组织架构，先用支持者账号和明确授权关系接入。
+              学校先作为“学校支持人员”接入，通过学生主动授权参与，不先做复杂班级或组织架构。
             </p>
           </div>
         </div>
