@@ -2,33 +2,85 @@ import type { NextApiRequest } from "next";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
-type AdminRole = {
+type PlatformAdminRole = {
   email: string;
   role: string;
   status: string;
 };
 
-export async function requireAdmin(req: NextApiRequest): Promise<{
+export type AdminContext = {
   supabase: SupabaseClient;
   user: User;
-  adminRole: AdminRole;
-}> {
+  kind: "platform" | "school";
+  email: string;
+  roleLabel: string;
+  platformAdminRole: PlatformAdminRole | null;
+  managedSchoolIds: string[];
+};
+
+export async function getAdminContext(req: NextApiRequest): Promise<AdminContext> {
   const user = await getAuthenticatedUser(req);
   if (!user?.email) throw new Error("请先登录管理员账号。");
 
   const supabase = getSupabaseAdmin();
   const email = user.email.trim().toLowerCase();
-  const { data: adminRole, error } = await supabase
+  const { data: platformAdminRole, error: platformError } = await supabase
     .from("admin_roles")
     .select("email,role,status")
     .eq("email", email)
     .eq("status", "active")
     .maybeSingle();
+  if (platformError) throw platformError;
 
-  if (error) throw error;
-  if (!adminRole) throw new Error("当前账号没有管理员权限。");
+  if (platformAdminRole) {
+    return {
+      supabase,
+      user,
+      kind: "platform",
+      email,
+      roleLabel: "平台管理员",
+      platformAdminRole: platformAdminRole as PlatformAdminRole,
+      managedSchoolIds: [],
+    };
+  }
 
-  return { supabase, user, adminRole: adminRole as AdminRole };
+  const { data: memberships, error: membershipError } = await supabase
+    .from("school_members")
+    .select("school_id,member_role,status")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .eq("member_role", "school_admin");
+  if (membershipError) throw membershipError;
+
+  const managedSchoolIds = (memberships || [])
+    .map((membership) => membership.school_id as string)
+    .filter(Boolean);
+
+  if (managedSchoolIds.length === 0) throw new Error("当前账号没有试点管理权限。请确认你是平台管理员或学校管理员。");
+
+  return {
+    supabase,
+    user,
+    kind: "school",
+    email,
+    roleLabel: "学校管理员",
+    platformAdminRole: null,
+    managedSchoolIds,
+  };
+}
+
+export async function requirePlatformAdmin(req: NextApiRequest) {
+  const context = await getAdminContext(req);
+  if (context.kind !== "platform") throw new Error("只有平台管理员可以创建或管理学校空间。");
+  return context;
+}
+
+export async function requireAdmin(req: NextApiRequest) {
+  return getAdminContext(req);
+}
+
+export function canManageSchool(context: AdminContext, schoolId: string) {
+  return context.kind === "platform" || context.managedSchoolIds.includes(schoolId);
 }
 
 export async function findAuthUserByEmail(supabase: SupabaseClient, email: string) {
