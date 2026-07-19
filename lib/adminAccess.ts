@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { applySchoolInvitesForUser } from "@/lib/schoolInvites";
 
 type PlatformAdminRole = {
   email: string;
@@ -44,6 +45,8 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
     };
   }
 
+  await applySchoolInvitesForUser(supabase, user);
+
   const { data: memberships, error: membershipError } = await supabase
     .from("school_members")
     .select("school_id,member_role,status")
@@ -56,14 +59,14 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
     .map((membership) => membership.school_id as string)
     .filter(Boolean);
 
-  if (managedSchoolIds.length === 0) throw new Error("当前账号没有试点管理权限。请确认你是平台管理员或学校管理员。");
+  if (managedSchoolIds.length === 0) throw new Error("当前账号没有试点管理权限。请确认你是平台管理员或学校负责人。");
 
   return {
     supabase,
     user,
     kind: "school",
     email,
-    roleLabel: "学校管理员",
+    roleLabel: "学校负责人",
     platformAdminRole: null,
     managedSchoolIds,
   };
