@@ -12,7 +12,7 @@ type School = {
   created_at: string;
 };
 
-type AssignmentRole = "学生" | "学校支持人员" | "学校管理员";
+type AssignmentRole = "学生" | "支持老师" | "学校负责人";
 
 type AdminOverview = {
   admin: { email: string; role: string; status: string; scope: "platform" | "school" };
@@ -55,7 +55,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
-  const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学生", "学校支持人员", "学校管理员"] : ["学生", "学校支持人员"];
+  const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学生", "支持老师", "学校负责人"] : ["学生", "支持老师"];
 
   async function loadAdminOverview() {
     setLoading(true);
@@ -78,7 +78,7 @@ export default function AdminPage() {
       const nextOverview = payload as AdminOverview;
       setOverview(nextOverview);
       setSelectedSchoolId((current) => current || nextOverview.schools[0]?.id || "");
-      if (nextOverview.admin.scope === "school" && assignmentRole === "学校管理员") setAssignmentRole("学生");
+      if (nextOverview.admin.scope === "school" && assignmentRole === "学校负责人") setAssignmentRole("学生");
     } catch (adminError) {
       setError(adminError instanceof Error ? adminError.message : "管理员概览加载失败。");
     } finally {
@@ -109,7 +109,7 @@ export default function AdminPage() {
       if (!response.ok) throw new Error(payload.error || "学校空间创建失败。");
       setSchoolName("");
       setSelectedSchoolId(payload.school.id);
-      setActionNotice("学校空间已创建。下一步请添加该校的学校管理员。");
+      setActionNotice("学校空间已创建。下一步请添加该校的学校负责人。");
       await loadAdminOverview();
     } catch (schoolError) {
       setError(schoolError instanceof Error ? schoolError.message : "学校空间创建失败。");
@@ -136,7 +136,11 @@ export default function AdminPage() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "学校空间分配失败。");
       setAssignmentEmail("");
-      setActionNotice(`${assignmentRole}已加入 ${payload.school.name}。`);
+      setActionNotice(
+        payload.status === "invited"
+          ? `${assignmentRole}已预授权给 ${payload.school.name}。对方用这个邮箱登录后会自动生效。`
+          : `${assignmentRole}已加入 ${payload.school.name}。`,
+      );
       await loadAdminOverview();
     } catch (assignmentError) {
       setError(assignmentError instanceof Error ? assignmentError.message : "学校空间分配失败。");
@@ -150,7 +154,7 @@ export default function AdminPage() {
       <PageHero
         label="Pilot Admin"
         title="试点管理台"
-        subtitle="平台管理员负责开通学校；学校管理员负责管理本校学生。学生属于学校空间后，学校支持人员可查看本校 SWEET 记录。"
+        subtitle="平台管理员开通学校并指定学校负责人；学校负责人管理本校学生和支持老师。成员可以先按邮箱预授权，之后登录自动生效。"
       />
 
       <section className="section section-muted">
@@ -176,13 +180,14 @@ export default function AdminPage() {
                 <p className="mt-2 text-sm font-bold text-sage-dark">当前权限：{overview.admin.role}</p>
                 <p className="mt-4 text-[0.95rem] leading-7 text-muted">
                   {isPlatformAdmin
-                    ? "你负责创建试点学校，并指定每个学校的学校管理员。后续学生添加主要交给学校自己完成。"
-                    : "你只管理自己学校空间里的学生和支持人员；看不到其他学校的数据。"}
+                    ? "你负责创建试点学校，并指定每个学校的学校负责人。后续学生和支持老师添加主要交给学校自己完成。"
+                    : "你只管理自己学校空间里的学生和支持老师；看不到其他学校的数据。"}
                 </p>
                 <div className="mt-6 grid gap-3">
                   {[
-                    ["平台管理员", "创建学校空间，指定学校管理员，查看试点整体概览。"],
-                    ["学校管理员", "管理本校学生和学校支持人员，查看本校记录。"],
+                    ["平台管理员", "创建学校空间，指定学校负责人，查看试点整体概览。"],
+                    ["学校负责人", "管理本校学生和支持老师，查看本校记录。"],
+                    ["支持老师", "查看本校学生记录，用于跟进和支持；不能添加成员。"],
                     ["学生", "填写 SWEET、保存自己的记录；加入学校空间后记录归属本校。"],
                   ].map(([title, text]) => (
                     <div key={title} className="rounded-2xl bg-cream px-4 py-4">
@@ -212,7 +217,7 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校成员</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolMembers}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">已配置的学校管理员和支持人员。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">已配置的学校负责人和支持老师。</p>
                 </div>
               </div>
             </div>
@@ -238,7 +243,7 @@ export default function AdminPage() {
                 </form>
               ) : (
                 <p className="mt-6 rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
-                  学校空间由平台管理员创建。你可以在下方把学生和本校支持人员加入你负责的学校。
+                  学校空间由平台管理员创建。你可以在下方把学生和本校支持老师加入你负责的学校。
                 </p>
               )}
 
@@ -255,7 +260,7 @@ export default function AdminPage() {
                   <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentEmail} onChange={(event) => setAssignmentEmail(event.target.value)} placeholder="student@example.com" type="email" />
                 </label>
                 <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
-                  这里填写对方登录 YouthTempo 用的邮箱。对方需要先用邮箱登录一次，系统里才有账户；之后学校管理员就可以把他们加入本校。
+                  这里填写对方准备用来登录 YouthTempo 的邮箱。即使对方还没登录过，也可以先预授权；对方之后用同一邮箱登录，系统会自动加入对应学校和身份。
                 </p>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   加入身份
@@ -264,7 +269,7 @@ export default function AdminPage() {
                   </select>
                 </label>
                 <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={actionLoading || !selectedSchoolId || !assignmentEmail.trim()}>
-                  加入学校空间
+                  保存学校身份
                 </button>
               </form>
               {actionNotice ? <p className="mt-4 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
