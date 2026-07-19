@@ -50,27 +50,11 @@ create table if not exists public.wechat_bind_sessions (
   confirmed_at timestamptz
 );
 
--- 免登录扫码登录会话：创建时用户尚未登录，故 user_id 可空，扫码确认后由服务端回填。
-create table if not exists public.wechat_login_sessions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
-  scene text not null unique,
-  status text not null default 'pending' check (status in ('pending', 'confirmed', 'expired')),
-  openid text,
-  unionid text,
-  expires_at timestamptz not null,
-  created_at timestamptz not null default now(),
-  confirmed_at timestamptz
-);
-
 alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
 alter table public.user_permissions enable row level security;
 alter table public.wechat_identities enable row level security;
 alter table public.wechat_bind_sessions enable row level security;
-alter table public.wechat_login_sessions enable row level security;
--- wechat_login_sessions 不设任何策略：匿名扫码登录会话仅由服务端 service_role 读写，
--- service_role 绕过 RLS，普通 anon/authenticated 角色无法访问，符合最小暴露原则。
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -164,6 +148,3 @@ on public.wechat_identities(user_id, created_at desc);
 
 create index if not exists wechat_bind_sessions_user_created_idx
 on public.wechat_bind_sessions(user_id, created_at desc);
-
-create index if not exists wechat_login_sessions_created_idx
-on public.wechat_login_sessions(created_at desc);

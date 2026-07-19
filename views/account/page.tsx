@@ -9,12 +9,9 @@ import {
   UserPermission,
   WechatBindSession,
   WechatIdentity,
-  WechatLoginSession,
   checkWechatBindSession,
-  checkWechatLoginSession,
   createPermission,
   createWechatBindSession,
-  createWechatLoginSession,
   deleteCloudSweetRecord,
   getCurrentUser,
   getProfile,
@@ -71,10 +68,6 @@ export default function AccountPage() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<"email" | "wechat" | null>(null);
-  const [wechatLoginSession, setWechatLoginSession] = useState<WechatLoginSession | null>(null);
-  const [wechatLoginStatus, setWechatLoginStatus] = useState("");
-  const [wechatLoginLoading, setWechatLoginLoading] = useState(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState("学生");
   const [granteeEmail, setGranteeEmail] = useState("");
@@ -156,58 +149,6 @@ export default function AccountPage() {
 
     return () => window.clearInterval(interval);
   }, [wechatBindSession]);
-
-  useEffect(() => {
-    if (!wechatLoginSession) return;
-
-    const interval = window.setInterval(async () => {
-      try {
-        const result = await checkWechatLoginSession(wechatLoginSession.scene);
-        if (result.authenticated) {
-          window.clearInterval(interval);
-          setWechatLoginSession(null);
-          // 小程序接入前：会话已确认，但登录凭证签发尚未实现（见 check-login-session TODO）。
-          setWechatLoginStatus("扫码已确认，登录能力将在小程序完善后开放。当前请先使用邮箱登录。");
-          await refreshAccount();
-        } else if (result.status === "expired") {
-          window.clearInterval(interval);
-          setWechatLoginStatus("二维码已过期，请重新生成。");
-          setWechatLoginSession(null);
-        }
-      } catch (loginError) {
-        window.clearInterval(interval);
-        setWechatLoginStatus(loginError instanceof Error ? loginError.message : "微信登录状态检查失败。");
-        setWechatLoginSession(null);
-      }
-    }, 2200);
-
-    return () => window.clearInterval(interval);
-  }, [wechatLoginSession]);
-
-  async function handleCreateWechatLoginSession() {
-    setWechatLoginLoading(true);
-    setWechatLoginStatus("");
-    setError("");
-    try {
-      const session = await createWechatLoginSession();
-      setWechatLoginSession(session);
-      setWechatLoginStatus("请用微信扫描小程序码，完成后此页面会自动更新。");
-    } catch (loginError) {
-      setWechatLoginStatus(loginError instanceof Error ? loginError.message : "微信登录二维码生成失败。");
-    } finally {
-      setWechatLoginLoading(false);
-    }
-  }
-
-  function backToLoginMethods() {
-    setLoginMethod(null);
-    setOtpSent(false);
-    setOtp("");
-    setWechatLoginSession(null);
-    setWechatLoginStatus("");
-    setNotice("");
-    setError("");
-  }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -319,9 +260,6 @@ export default function AccountPage() {
     setNotice("已退出登录。");
     setWechatBindSession(null);
     setWechatStatus("");
-    setLoginMethod(null);
-    setWechatLoginSession(null);
-    setWechatLoginStatus("");
     await refreshAccount();
   }
 
@@ -366,15 +304,7 @@ export default function AccountPage() {
           <div className="card">
             <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
             <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
-              {user
-                ? "账户资料"
-                : loginMethod === null
-                  ? "选择登录方式"
-                  : loginMethod === "wechat"
-                    ? "微信扫码登录"
-                    : otpSent
-                      ? "输入邮箱验证码"
-                      : "邮箱验证码登录"}
+              {user ? "账户资料" : otpSent ? "输入邮箱验证码" : "邮箱验证码登录"}
             </h2>
             {user ? (
               <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
@@ -397,57 +327,6 @@ export default function AccountPage() {
                   <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
                 </div>
               </form>
-            ) : loginMethod === null ? (
-              <div className="mt-6 grid gap-4">
-                <p className="text-[0.95rem] leading-7 text-muted">
-                  请选择登录方式。邮箱验证码登录手机和电脑都可用；微信扫码登录需要已绑定微信的账户。
-                </p>
-                <button
-                  type="button"
-                  className="button-primary w-full"
-                  onClick={() => {
-                    setNotice("");
-                    setError("");
-                    setLoginMethod("email");
-                  }}
-                >
-                  邮箱验证码登录
-                </button>
-                <button
-                  type="button"
-                  className="button-secondary w-full"
-                  onClick={() => {
-                    setNotice("");
-                    setError("");
-                    setLoginMethod("wechat");
-                  }}
-                >
-                  微信扫码登录
-                </button>
-              </div>
-            ) : loginMethod === "wechat" ? (
-              <div className="mt-6 grid gap-4">
-                <p className="text-[0.95rem] leading-7 text-muted">
-                  点击生成小程序码后，用微信扫码。扫码成功后此页面会自动更新。
-                </p>
-                {wechatLoginSession ? (
-                  <div className="rounded-3xl border border-ink/10 bg-white p-3">
-                    <img src={wechatLoginSession.qrCodeDataUrl} alt="微信登录二维码" className="mx-auto aspect-square w-44 rounded-2xl object-contain" />
-                  </div>
-                ) : null}
-                <button
-                  type="button"
-                  className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45"
-                  onClick={handleCreateWechatLoginSession}
-                  disabled={wechatLoginLoading}
-                >
-                  {wechatLoginLoading ? "正在生成..." : wechatLoginSession ? "重新生成二维码" : "生成微信登录码"}
-                </button>
-                <button type="button" className="button-secondary w-full" onClick={backToLoginMethods}>
-                  ← 返回选择登录方式
-                </button>
-                {wechatLoginStatus ? <p className="text-sm font-bold text-sage-dark">{wechatLoginStatus}</p> : null}
-              </div>
             ) : (
               <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                 <p className="text-[0.95rem] leading-7 text-muted">
@@ -480,9 +359,6 @@ export default function AccountPage() {
                     </button>
                   ) : null}
                 </div>
-                <button type="button" className="button-secondary w-full sm:w-fit" onClick={backToLoginMethods} disabled={authLoading}>
-                  ← 返回选择登录方式
-                </button>
               </form>
             )}
             {notice ? <p className="mt-4 text-sm font-bold text-sage-dark">{notice}</p> : null}
