@@ -43,19 +43,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const authUser = await findAuthUserByEmail(supabase, email);
     if (!authUser) {
-      const { data: invite, error: inviteError } = await supabase
+      const { data: existingInvite, error: existingInviteError } = await supabase
         .from("school_invites")
-        .upsert({
-          school_id: schoolId,
-          email,
-          assignment_role: inviteRole,
-          status: "active",
-          invited_by: context.user.id,
-          updated_at: new Date().toISOString(),
-          applied_user_id: null,
-          applied_at: null,
-          revoked_at: null,
-        }, { onConflict: "email,school_id,assignment_role" })
+        .select("id")
+        .eq("school_id", schoolId)
+        .eq("assignment_role", inviteRole)
+        .eq("status", "active")
+        .ilike("email", email)
+        .maybeSingle();
+      if (existingInviteError) throw existingInviteError;
+
+      const invitePayload = {
+        school_id: schoolId,
+        email,
+        assignment_role: inviteRole,
+        status: "active",
+        invited_by: context.user.id,
+        updated_at: new Date().toISOString(),
+        applied_user_id: null,
+        applied_at: null,
+        revoked_at: null,
+      };
+
+      const inviteQuery = existingInvite
+        ? supabase.from("school_invites").update(invitePayload).eq("id", existingInvite.id)
+        : supabase.from("school_invites").insert(invitePayload);
+      const { data: invite, error: inviteError } = await inviteQuery
         .select("id,email,assignment_role,status")
         .single();
       if (inviteError) throw inviteError;
