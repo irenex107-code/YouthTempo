@@ -96,6 +96,7 @@ export default function AccountPage() {
   async function refreshAccount() {
     setLoading(true);
     setError("");
+    setNotice((currentNotice) => currentNotice || "");
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
@@ -108,16 +109,39 @@ export default function AccountPage() {
         return;
       }
 
-      const [nextAccountStatus, fallbackProfile, nextRecords, nextWechatIdentities] = await Promise.all([
-        getAccountStatus().catch((statusError) => {
-          console.warn("Account status failed", statusError);
-          return null;
+      let nextAccountStatus: AccountStatus | null = null;
+      let nextProfile: CloudProfile | null = null;
+      let nonFatalNotice = "";
+
+      try {
+        nextAccountStatus = await getAccountStatus();
+        nextProfile = nextAccountStatus.profile;
+      } catch (statusError) {
+        console.warn("Account status failed", statusError);
+        nonFatalNotice = "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。";
+      }
+
+      if (!nextProfile) {
+        try {
+          nextProfile = await getProfile(currentUser);
+        } catch (profileError) {
+          console.warn("Profile fallback failed", profileError);
+          nonFatalNotice = nonFatalNotice || "账户资料暂时没有加载完整，但不影响退出登录或重新尝试。";
+        }
+      }
+
+      const [nextRecords, nextWechatIdentities] = await Promise.all([
+        listCloudSweetRecords().catch((recordsError) => {
+          console.warn("Cloud records failed", recordsError);
+          nonFatalNotice = nonFatalNotice || "记录暂时没有加载出来，请稍后刷新。";
+          return [] as CloudSweetRecord[];
         }),
-        getProfile(currentUser),
-        listCloudSweetRecords(),
-        listWechatIdentities(),
+        listWechatIdentities().catch((wechatError) => {
+          console.warn("Wechat identities failed", wechatError);
+          return [] as WechatIdentity[];
+        }),
       ]);
-      const nextProfile = nextAccountStatus?.profile || fallbackProfile;
+
       setAccountStatus(nextAccountStatus);
       setProfile(nextProfile);
       setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
@@ -126,6 +150,8 @@ export default function AccountPage() {
       setWechatIdentities(nextWechatIdentities);
       if (nextAccountStatus?.inviteSyncError) {
         setNotice("账户身份已加载，但学校邀请同步需要稍后再试。");
+      } else if (nonFatalNotice) {
+        setNotice(nonFatalNotice);
       }
     } catch (accountError) {
       setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
@@ -183,7 +209,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
-      setNotice("邮件已发送。请查看邮件里的 6 位验证码并输入；如果邮件显示的是确认链接，请直接点击链接完成登录。");
+      setNotice("邮件已发送。请查看邮件里的 8 位验证码并输入；如果邮件显示的是确认链接，请直接点击链接完成登录。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
@@ -216,7 +242,7 @@ export default function AccountPage() {
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
-      setNotice("新的邮件已发送。请查看 6 位验证码；如果看到的是确认链接，请直接点击链接。 ");
+      setNotice("新的邮件已发送。请查看 8 位验证码；如果看到的是确认链接，请直接点击链接。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
@@ -414,12 +440,12 @@ export default function AccountPage() {
                 </label>
                 {otpSent ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
-                    邮件中的数字验证码
+                    邮件中的 8 位数字验证码
                     <input
                       className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-center text-lg font-bold outline-none focus:border-sage"
                       value={otp}
                       onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                      placeholder="例如 123456"
+                      placeholder="例如 12345678"
                       inputMode="numeric"
                       autoComplete="one-time-code"
                     />
