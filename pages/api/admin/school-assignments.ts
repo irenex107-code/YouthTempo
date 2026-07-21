@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!school) return res.status(404).json({ error: "找不到这个学校空间。" });
 
     let authUser = await findAuthUserByEmail(supabase, email);
-    let status: "active" | "created" = "active";
+    let status: "active" | "created" | "confirmed" = "active";
 
     if (!authUser) {
       const { data: createdUser, error: createUserError } = await supabase.auth.admin.createUser({
@@ -57,6 +57,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!createdUser.user) throw new Error("账号创建失败，请稍后重试。");
       authUser = createdUser.user;
       status = "created";
+    } else if (!authUser.email_confirmed_at) {
+      const { data: confirmedUser, error: confirmUserError } = await supabase.auth.admin.updateUserById(authUser.id, {
+        email_confirm: true,
+      });
+      if (confirmUserError) throw confirmUserError;
+      if (confirmedUser.user) authUser = confirmedUser.user;
+      status = "confirmed";
     }
 
     const memberRole = memberRoleFromInvite(inviteRole);
