@@ -41,38 +41,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (schoolError) throw schoolError;
     if (!school) return res.status(404).json({ error: "找不到这个学校空间。" });
 
-    const authUser = await findAuthUserByEmail(supabase, email);
+    let authUser = await findAuthUserByEmail(supabase, email);
+    let status: "active" | "created" = "active";
+
     if (!authUser) {
-      const { data: existingInvite, error: existingInviteError } = await supabase
-        .from("school_invites")
-        .select("id")
-        .eq("school_id", schoolId)
-        .eq("assignment_role", inviteRole)
-        .eq("status", "active")
-        .ilike("email", email)
-        .maybeSingle();
-      if (existingInviteError) throw existingInviteError;
-
-      const invitePayload = {
-        school_id: schoolId,
+      const { data: createdUser, error: createUserError } = await supabase.auth.admin.createUser({
         email,
-        assignment_role: inviteRole,
-        status: "active",
-        invited_by: context.user.id,
-        updated_at: new Date().toISOString(),
-        applied_user_id: null,
-        applied_at: null,
-        revoked_at: null,
-      };
-
-      const inviteQuery = existingInvite
-        ? supabase.from("school_invites").update(invitePayload).eq("id", existingInvite.id)
-        : supabase.from("school_invites").insert(invitePayload);
-      const { data: invite, error: inviteError } = await inviteQuery
-        .select("id,email,assignment_role,status")
-        .single();
-      if (inviteError) throw inviteError;
-      return res.status(200).json({ school, invite, assignmentRole, status: "invited" });
+        email_confirm: true,
+        user_metadata: {
+          display_name: email.split("@")[0],
+          source: "school_assignment",
+        },
+      });
+      if (createUserError) throw createUserError;
+      if (!createdUser.user) throw new Error("账号创建失败，请稍后重试。");
+      authUser = createdUser.user;
+      status = "created";
     }
 
     const memberRole = memberRoleFromInvite(inviteRole);
@@ -111,7 +95,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (recordsError) throw recordsError;
     }
 
-    return res.status(200).json({ profile, school, assignmentRole, status: "active" });
+    await supabase
+      .from("school_invites")
+      .update({
+        status: "applied",
+        applied_user_id: authUser.id,
+        applied_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("school_id", schoolId)
+      .eq("assignment_role", inviteRole)
+      .ilike("email", email)
+      .eq("status", "active");
+
+    return res.status(200).json({ profile, school, assignmentRole, status });
   } catch (error) {
     const message = error instanceof Error ? error.message : "学校空间分配失败。";
     const status = message.includes("没有") || message.includes("只能") || message.includes("不能") ? 403 : message.includes("请先登录") ? 401 : 500;
