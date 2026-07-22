@@ -94,17 +94,22 @@ export default function AccountPage() {
   const [role, setRole] = useState("学生");
   const [accountTab, setAccountTab] = useState<"profile" | "wechat">("profile");
   const [loading, setLoading] = useState(true);
+  const [identityChecking, setIdentityChecking] = useState(true);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
-  const isIdentityLoading = Boolean(user && loading && !accountStatus && !profile);
+  const isIdentityLoading = Boolean(user && identityChecking);
   const displayRole = isIdentityLoading ? "正在确认" : accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
   const adminAccess = accountStatus?.adminAccess || null;
   const hasSchool = Boolean(accountStatus?.hasSchool || profile?.school_id);
   const isManagedSchoolRole = !isIdentityLoading && (displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员");
+  const isSchoolAssignedStudent = !isIdentityLoading && displayRole === "学生" && hasSchool;
+  const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent;
+  const confirmedRoleLabel = isSchoolAssignedStudent ? "学校学生" : displayRole;
 
   async function refreshAccount() {
     setLoading(true);
+    setIdentityChecking(true);
     setError("");
     setNotice((currentNotice) => currentNotice || "");
     try {
@@ -118,6 +123,13 @@ export default function AccountPage() {
         setWechatIdentities([]);
         return;
       }
+
+      // Never render identity details from the previously signed-in account.
+      setProfile(null);
+      setAccountStatus(null);
+      setRecords([]);
+      setWechatIdentities([]);
+      setAccountTab("profile");
 
       let nextAccountStatus: AccountStatus | null = null;
       let nextProfile: CloudProfile | null = null;
@@ -167,6 +179,7 @@ export default function AccountPage() {
       setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
     } finally {
       setLoading(false);
+      setIdentityChecking(false);
     }
   }
 
@@ -266,7 +279,7 @@ export default function AccountPage() {
 
   async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!user || isManagedSchoolRole) return;
+    if (!user || isExternallyManagedRole) return;
     setNotice("");
     setError("");
     try {
@@ -347,7 +360,7 @@ export default function AccountPage() {
                   ? "正在确认身份"
                   : accountTab === "wechat"
                     ? "微信绑定"
-                    : isManagedSchoolRole
+                    : isExternallyManagedRole
                       ? "试点身份"
                       : "账户资料"
                 : otpSent
@@ -362,7 +375,7 @@ export default function AccountPage() {
                     className={`rounded-xl px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                     onClick={() => setAccountTab("profile")}
                   >
-                    {isManagedSchoolRole ? "试点身份" : "账户资料"}
+                    {isExternallyManagedRole ? "试点身份" : "账户资料"}
                   </button>
                   <button
                     type="button"
@@ -383,14 +396,15 @@ export default function AccountPage() {
                       </div>
                       <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
                     </div>
-                  ) : isManagedSchoolRole ? (
+                  ) : isExternallyManagedRole ? (
                     <div className="mt-6 grid gap-4">
                       <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
                       <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
                         <p className="text-xs font-bold text-sage-dark">当前试点身份</p>
-                        <p className="mt-2 text-xl font-bold text-ink">{displayRole}</p>
+                        <p className="mt-2 text-xl font-bold text-ink">{confirmedRoleLabel}</p>
                         <p className="mt-2">
                           这个身份由 YouthTempo 试点管理配置，不需要自己选择学生或家长身份。
+                          {isSchoolAssignedStudent ? "你已经加入学校试点空间，可以继续完成 SWEET 记录；学校支持老师和学校负责人会在学校空间内查看记录，用于支持和跟进。" : null}
                           {displayRole === "学校负责人" ? "你可以进入试点管理台添加本校学生和支持老师。" : null}
                           {displayRole === "支持老师" ? "你可以查看本校学生记录，用于试点支持。" : null}
                           {displayRole === "平台管理员" ? "你可以创建学校空间，并指定学校负责人。" : null}
@@ -500,7 +514,7 @@ export default function AccountPage() {
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
                 <p className="mt-2 overflow-hidden text-ellipsis text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
-                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${isIdentityLoading ? "正在确认试点身份..." : displayRole}` : "登录后可保存云端记录和学校空间信息。"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${isIdentityLoading ? "正在确认试点身份..." : confirmedRoleLabel}` : "登录后可保存云端记录和学校空间信息。"}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
