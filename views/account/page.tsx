@@ -353,7 +353,7 @@ export default function AccountPage() {
       <section className="section section-muted">
         <div className="container grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
           <div className="card">
-            <p className="eyebrow">{user ? "Signed in" : "Sign in"}</p>
+            <p className="eyebrow">{user ? "已登录" : "登录"}</p>
             <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
               {user
                 ? isIdentityLoading
@@ -508,8 +508,7 @@ export default function AccountPage() {
           </div>
 
           <div className="card">
-            <p className="eyebrow">Account overview</p>
-            <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账户概览</h2>
+            <h2 className="text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账户概览</h2>
             <div className="mt-6 grid gap-3">
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
