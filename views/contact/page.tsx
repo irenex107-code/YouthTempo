@@ -45,7 +45,7 @@ export default function ContactPage() {
         <div className="container grid gap-8 lg:grid-cols-[1fr_0.85fr]">
           <div className="card">
             <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">联系信息</h2>
-            <p className="mt-3 text-sm font-bold text-sage">YouthTempo Project</p>
+            <p className="mt-3 text-sm font-bold text-sage">YouthTempo 项目</p>
             <p className="mt-5 text-[0.95rem] leading-7 text-muted">
               当前原型阶段可先通过项目负责人 Irene 统一收集反馈。正式试点前，可以在这里补充学校合作邮箱、项目微信或报名表链接。
             </p>
