@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { canManageSchool, findAuthUserByEmail, getAdminContext } from "@/lib/adminAccess";
+import { canManageSchool, canManageSchoolMembers, findAuthUserByEmail, getAdminContext } from "@/lib/adminAccess";
 import { inviteRoleFromLabel, memberRoleFromInvite } from "@/lib/schoolInvites";
 
 const roleLabels = ["学生", "支持老师", "学校负责人"] as const;
@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
     if (!email) return res.status(400).json({ error: "请输入对方登录 YouthTempo 使用的邮箱。" });
     if (!canManageSchool(context, schoolId)) return res.status(403).json({ error: "你只能管理自己学校空间里的成员。" });
+    if (!canManageSchoolMembers(context, schoolId)) return res.status(403).json({ error: "只有学校负责人可以添加学校成员。" });
     if (context.kind === "school" && assignmentRole === "学校负责人") {
       return res.status(403).json({ error: "学校负责人不能新增其他学校负责人。如需新增，请联系平台管理员。" });
     }
