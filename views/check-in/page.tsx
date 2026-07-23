@@ -298,7 +298,7 @@ export default function CheckInPage() {
           <div className="card">
             <h2 className="text-2xl font-bold">这不是测试，也不是正式评估。</h2>
             <p className="mt-3 text-[0.95rem] leading-7 text-muted">
-              SWEET 只是帮助你看见今天的生活节奏。AI 回应用于整理状态和下一步，不替代专业人员或可信任的大人的支持。
+              SWEET 帮助你看见今天的生活节奏。AI 可以帮你理清当前状态，并提示可以尝试的下一步；需要更多帮助时，请联系可信任的大人或专业人员。
             </p>
           </div>
         }
@@ -338,7 +338,7 @@ export default function CheckInPage() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="text-[1.55rem] font-bold leading-[1.25] text-ink sm:text-[1.8rem]">{step.label} {step.title}</h2>
-                  <p className="mt-2 text-sm font-bold text-sage">SWEET daily record</p>
+                  <p className="mt-2 text-sm font-bold text-sage">SWEET 日常记录</p>
                 </div>
                 <p className="max-w-md text-sm leading-7 text-muted">{step.description}</p>
               </div>
@@ -452,7 +452,7 @@ export default function CheckInPage() {
                   <div><h3 className="text-lg font-bold text-ink">推荐下一步</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.recommendedNextTool}</p></div>
                 </div>
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
-                <p className="mt-4 text-xs leading-6 text-muted">这里的回应不能替代专业支持，但可以帮助你先整理当前状态和下一步选择。</p>
+                <p className="mt-4 text-xs leading-6 text-muted">这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。</p>
                 <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
                   <Link href="/mood-journal" className="button-primary w-full sm:w-auto">进入情绪表达</Link>
                   <Link href="/worry-time" className="button-secondary w-full sm:w-auto">做睡前整理</Link>
