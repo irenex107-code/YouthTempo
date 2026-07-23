@@ -50,7 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? { role: "平台管理员", scope: "platform" }
         : isSchoolLead
           ? { role: "学校负责人", scope: "school" }
-          : null,
+          : isSupportTeacher
+            ? { role: "支持老师", scope: "school" }
+            : null,
       schoolMemberships: activeMemberships,
       hasSchool: Boolean(profile?.school_id || activeMemberships.length),
       inviteSyncError,
