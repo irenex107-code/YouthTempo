@@ -17,6 +17,7 @@ export type AdminContext = {
   roleLabel: string;
   platformAdminRole: PlatformAdminRole | null;
   managedSchoolIds: string[];
+  schoolRoles: Record<string, "school_admin" | "school_support">;
 };
 
 export async function getAdminContext(req: NextApiRequest): Promise<AdminContext> {
@@ -42,6 +43,7 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
       roleLabel: "平台管理员",
       platformAdminRole: platformAdminRole as PlatformAdminRole,
       managedSchoolIds: [],
+      schoolRoles: {},
     };
   }
 
@@ -52,23 +54,31 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
     .select("school_id,member_role,status")
     .eq("user_id", user.id)
     .eq("status", "active")
-    .eq("member_role", "school_admin");
+    .in("member_role", ["school_admin", "school_support"]);
   if (membershipError) throw membershipError;
 
   const managedSchoolIds = (memberships || [])
     .map((membership) => membership.school_id as string)
     .filter(Boolean);
+  const schoolRoles = Object.fromEntries(
+    (memberships || []).map((membership) => [
+      membership.school_id as string,
+      membership.member_role as "school_admin" | "school_support",
+    ]),
+  );
 
-  if (managedSchoolIds.length === 0) throw new Error("当前账号没有试点管理权限。请确认你是平台管理员或学校负责人。");
+  if (managedSchoolIds.length === 0) throw new Error("当前账号没有学校工作台权限。");
+  const isSchoolLead = Object.values(schoolRoles).includes("school_admin");
 
   return {
     supabase,
     user,
     kind: "school",
     email,
-    roleLabel: "学校负责人",
+    roleLabel: isSchoolLead ? "学校负责人" : "支持老师",
     platformAdminRole: null,
     managedSchoolIds,
+    schoolRoles,
   };
 }
 
@@ -84,6 +94,10 @@ export async function requireAdmin(req: NextApiRequest) {
 
 export function canManageSchool(context: AdminContext, schoolId: string) {
   return context.kind === "platform" || context.managedSchoolIds.includes(schoolId);
+}
+
+export function canManageSchoolMembers(context: AdminContext, schoolId: string) {
+  return context.kind === "platform" || context.schoolRoles[schoolId] === "school_admin";
 }
 
 export async function findAuthUserByEmail(supabase: SupabaseClient, email: string) {
