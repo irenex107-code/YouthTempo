@@ -64,7 +64,7 @@ export default function PrivacySafetyPage() {
       <section className="section section-muted">
         <div className="container grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
-            <p className="eyebrow">Data Scope</p>
+            <p className="eyebrow">数据范围</p>
             <h2 className="mt-3 text-[1.8rem] font-bold leading-[1.25] text-ink sm:text-[2.2rem]">哪些数据可能被保存？</h2>
             <p className="mt-4 text-base leading-8 text-muted">
               数据保存的目标是帮助用户和支持者更早看见节律变化，而不是建立标签、排名或判断。保存范围包括用户主动提交的 SWEET 记录、账户资料和授权关系。
