@@ -9,7 +9,7 @@ const audienceCards = [
     text: "处在学习压力、情绪变化、家庭沟通和自我探索交织的阶段。很多状态变化会先出现在睡眠、饮食、运动、任务投入和情绪表达里。",
   },
   {
-    title: "初显期成人 18-25",
+    title: "青年 18-25",
     label: "Emerging Adults",
     text: "从学校走向更独立的生活阶段，可能面对身份探索、学业选择、未来压力和关系变化，需要更柔和、更容易开始的支持。",
   },
@@ -56,21 +56,17 @@ export default function Home() {
             <h1 className="mt-4 max-w-3xl text-[2.05rem] font-bold leading-[1.17] text-ink sm:text-[2.8rem] lg:text-[3.1rem]">
               成长不是抢跑，而是找到自己的节奏。
             </h1>
-            <p className="mt-4 text-lg font-bold leading-snug text-ink/85 sm:text-2xl">
-              Life is about pacing, not racing.
-            </p>
             <p className="mt-6 max-w-3xl text-base leading-8 text-muted">
-              一个从日常节律开始的青少年与青年早期支持平台，帮助年轻人在压力变得更难承受之前，更容易看见自己的状态、表达感受并连接支持。
+              YouthTempo 从日常节律开始，帮助年轻人在压力变得更难承受之前，看见自己的状态、表达感受，并更容易找到可以信任的支持。
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/sweet-model" className="button-secondary">了解 SWEET 模型</Link>
-              <Link href="/check-in" className="button-primary">开始 SWEET 自评</Link>
+              <Link href="/check-in" className="button-primary">开始 SWEET 节律记录</Link>
             </div>
           </div>
           <div className="card mx-auto w-full max-w-md p-7">
-            <p className="text-xs font-bold text-sage">SWEET Daily Rhythm</p>
+            <p className="text-xs font-bold text-sage">SWEET 日常节律</p>
             <h2 className="mt-2 text-[1.35rem] font-extrabold leading-tight text-ink">从日常节律开始</h2>
-            <p className="mt-2 text-sm leading-6 text-muted">Daily rhythm as the first step</p>
             <div className="mt-6 space-y-3">
               {heroSweetItems.map((item) => (
                 <div
@@ -138,11 +134,8 @@ export default function Home() {
           <div>
             <p className="eyebrow">项目愿景</p>
             <h2 className="mt-3 max-w-3xl text-[1.8rem] font-bold leading-[1.25] text-ink sm:text-[2.35rem]">
-              Support should be easier to reach before young people have to face problems alone.
+              让支持在年轻人独自承受之前，更容易被看见，也更容易获得。
             </h2>
-            <p className="mt-6 text-xl font-bold italic leading-relaxed text-sage-dark sm:text-2xl">
-              支持应该在年轻人独自承受之前，更容易被看见和获得。
-            </p>
           </div>
           <InfoCard title="项目重点" label="Project focus">
             <ol className="space-y-4 font-bold text-ink/80">
