@@ -1,14 +1,15 @@
 type CardProps = {
   title: string;
   label?: string;
+  showLabel?: boolean;
   children: React.ReactNode;
 };
 
-export function InfoCard({ title, label, children }: CardProps) {
+export function InfoCard({ title, label, showLabel = false, children }: CardProps) {
   return (
     <article className="card h-full">
       <h3 className="text-[1.05rem] font-bold leading-snug text-ink sm:text-[1.18rem]">{title}</h3>
-      {label ? <p className="mt-2 text-xs font-bold tracking-normal text-sage">{label}</p> : null}
+      {showLabel && label ? <p className="mt-2 text-xs font-bold tracking-normal text-sage">{label}</p> : null}
       <div className="mt-3 text-[0.95rem] leading-7 text-muted">{children}</div>
     </article>
   );
