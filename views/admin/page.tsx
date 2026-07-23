@@ -15,7 +15,13 @@ type School = {
 type AssignmentRole = "学生" | "支持老师" | "学校负责人";
 
 type AdminOverview = {
-  admin: { email: string; role: string; status: string; scope: "platform" | "school" };
+  admin: {
+    email: string;
+    role: string;
+    status: string;
+    scope: "platform" | "school";
+    canManageMembers: boolean;
+  };
   counts: {
     profiles: number;
     sweetRecords: number;
@@ -31,6 +37,25 @@ type AdminOverview = {
     summary: string | null;
     created_at: string;
   }>;
+  attentionQueue: Array<{
+    id: string;
+    user_id: string;
+    school_id: string;
+    student_name: string;
+    student_email: string | null;
+    summary: string | null;
+    created_at: string;
+    level: "priority" | "check_in";
+    reasons: string[];
+    followup_status: "new" | "in_progress" | "resolved";
+    followup_note: string;
+    followup_updated_at: string | null;
+  }>;
+};
+
+type FollowupDraft = {
+  status: "new" | "in_progress" | "resolved";
+  note: string;
 };
 
 function formatDate(value: string) {
@@ -48,7 +73,8 @@ function adminTitle(overview: AdminOverview | null) {
 }
 
 function adminSubtitle(overview: AdminOverview | null) {
-  if (overview?.admin.scope === "school") return "添加本校学生和支持老师，查看本校 SWEET 记录。";
+  if (overview?.admin.role === "支持老师") return "查看本校学生近期节律变化，记录支持和跟进进度。";
+  if (overview?.admin.scope === "school") return "管理本校成员，查看近期节律变化和支持进度。";
   return "创建学校空间，指定学校负责人，并查看试点整体运行情况。";
 }
 
@@ -61,6 +87,8 @@ export default function AdminPage() {
   const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学生");
   const [actionNotice, setActionNotice] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [followupDrafts, setFollowupDrafts] = useState<Record<string, FollowupDraft>>({});
+  const [savingFollowupId, setSavingFollowupId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -88,6 +116,14 @@ export default function AdminPage() {
       if (!response.ok) throw new Error(payload.error || "管理员概览加载失败。");
       const nextOverview = payload as AdminOverview;
       setOverview(nextOverview);
+      setFollowupDrafts(
+        Object.fromEntries(
+          nextOverview.attentionQueue.map((item) => [
+            item.id,
+            { status: item.followup_status, note: item.followup_note },
+          ]),
+        ),
+      );
       setSelectedSchoolId((current) => current || nextOverview.schools[0]?.id || "");
       if (nextOverview.admin.scope === "school" && assignmentRole === "学校负责人") setAssignmentRole("学生");
     } catch (adminError) {
@@ -160,6 +196,33 @@ export default function AdminPage() {
     }
   }
 
+  async function saveFollowup(recordId: string, schoolId: string) {
+    if (!accessToken) return;
+    const draft = followupDrafts[recordId];
+    if (!draft) return;
+    setSavingFollowupId(recordId);
+    setActionNotice("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/followups", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ recordId, schoolId, ...draft }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "跟进状态保存失败。");
+      setActionNotice("跟进状态已保存。");
+      await loadAdminOverview();
+    } catch (followupError) {
+      setError(followupError instanceof Error ? followupError.message : "跟进状态保存失败。");
+    } finally {
+      setSavingFollowupId("");
+    }
+  }
+
   return (
     <>
       <PageHero label="Pilot Admin" title={adminTitle(overview)} subtitle={adminSubtitle(overview)} />
@@ -188,13 +251,15 @@ export default function AdminPage() {
                 <p className="mt-4 text-[0.95rem] leading-7 text-muted">
                   {isPlatformAdmin
                     ? "平台管理员负责创建学校和指定学校负责人。学校负责人再管理本校成员。"
-                    : "你可以添加本校学生和支持老师，并查看本校 SWEET 记录。"}
+                    : overview.admin.role === "支持老师"
+                      ? "你可以查看本校学生近期 SWEET 记录，并记录必要的支持进度。"
+                      : "你可以添加本校学生和支持老师，并查看本校 SWEET 记录。"}
                 </p>
                 {selectedSchool ? (
                   <div className="mt-6 rounded-2xl border border-sage/35 bg-mint px-4 py-4">
                     <p className="text-xs font-bold text-sage-dark">当前学校</p>
                     <p className="mt-2 text-2xl font-bold text-ink">{selectedSchool.name}</p>
-                    <p className="mt-2 text-sm font-bold text-sage-dark">{selectedSchool.status === "active" ? "Active" : selectedSchool.status}</p>
+                    <p className="mt-2 text-sm font-bold text-sage-dark">{selectedSchool.status === "active" ? "使用中" : selectedSchool.status}</p>
                   </div>
                 ) : null}
               </div>
@@ -221,7 +286,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {overview ? (
+      {overview?.admin.canManageMembers ? (
         <section className="section">
           <div className="container grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="card">
@@ -282,7 +347,7 @@ export default function AdminPage() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="font-bold text-ink">{school.name}</p>
-                      <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sage-dark">{school.status === "active" ? "Active" : school.status}</p>
+                      <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sage-dark">{school.status === "active" ? "使用中" : school.status}</p>
                     </div>
                   </button>
                 )) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">暂时没有可管理的学校空间。</p>}
@@ -296,8 +361,100 @@ export default function AdminPage() {
         <section className="section section-muted">
           <div className="container">
             <SectionHeader
-              title="最近 SWEET 记录"
-              description={isPlatformAdmin ? "这里显示最近云端记录，帮助确认学校空间数据链路是否正常。" : "这里显示你负责学校里的最近学生记录。"}
+              title="需要了解的近期变化"
+              description="依据最近一次 SWEET 记录中的日常节律变化整理，帮助学校安排温和的了解和支持。这不是诊断或风险评级，请结合学生的真实情况判断。"
+            />
+            {actionNotice ? <p className="mb-4 rounded-2xl bg-white/75 px-4 py-3 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
+            {error ? <p className="mb-4 rounded-2xl border border-ink/10 bg-white/75 px-4 py-3 text-sm font-bold text-ink">{error}</p> : null}
+            <div className="grid gap-4">
+              {overview.attentionQueue.length > 0 ? overview.attentionQueue.map((item) => {
+                const draft = followupDrafts[item.id] || {
+                  status: item.followup_status,
+                  note: item.followup_note,
+                };
+                const isResolved = draft.status === "resolved";
+
+                return (
+                  <article key={item.id} className={`card ${isResolved ? "opacity-75" : ""}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-bold text-ink">{item.student_name || "学生"}</h3>
+                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${item.level === "priority" ? "bg-[#f7e8dc] text-[#824b2d]" : "bg-mint text-sage-dark"}`}>
+                            {item.level === "priority" ? "建议尽快了解" : "建议近期了解"}
+                          </span>
+                        </div>
+                        {item.student_email ? <p className="mt-1 break-all text-xs text-muted">{item.student_email}</p> : null}
+                      </div>
+                      <p className="rounded-full bg-cream px-4 py-2 text-xs font-bold text-sage-dark">{formatDate(item.created_at)}</p>
+                    </div>
+
+                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                      {item.reasons.map((reason) => (
+                        <p key={reason} className="rounded-2xl border border-ink/10 bg-cream px-4 py-3 text-sm leading-6 text-ink">
+                          {reason}
+                        </p>
+                      ))}
+                    </div>
+                    {item.summary ? <p className="mt-4 text-sm leading-7 text-muted">{item.summary}</p> : null}
+
+                    <div className="mt-6 grid gap-4 border-t border-ink/10 pt-5 lg:grid-cols-[12rem_1fr_auto] lg:items-end">
+                      <label className="grid gap-2 text-sm font-bold text-ink">
+                        跟进状态
+                        <select
+                          className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                          value={draft.status}
+                          onChange={(event) => setFollowupDrafts((current) => ({
+                            ...current,
+                            [item.id]: { ...draft, status: event.target.value as FollowupDraft["status"] },
+                          }))}
+                        >
+                          <option value="new">待了解</option>
+                          <option value="in_progress">跟进中</option>
+                          <option value="resolved">已完成</option>
+                        </select>
+                      </label>
+                      <label className="grid gap-2 text-sm font-bold text-ink">
+                        必要备注
+                        <input
+                          className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                          value={draft.note}
+                          maxLength={500}
+                          onChange={(event) => setFollowupDrafts((current) => ({
+                            ...current,
+                            [item.id]: { ...draft, note: event.target.value },
+                          }))}
+                          placeholder="只记录必要的支持信息，避免写入无关隐私"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 lg:w-auto"
+                        disabled={savingFollowupId === item.id}
+                        onClick={() => saveFollowup(item.id, item.school_id)}
+                      >
+                        {savingFollowupId === item.id ? "保存中…" : "保存进度"}
+                      </button>
+                    </div>
+                  </article>
+                );
+              }) : (
+                <div className="card">
+                  <p className="font-bold text-ink">目前没有需要单独了解的近期变化。</p>
+                  <p className="mt-2 text-sm leading-7 text-muted">新的 SWEET 记录出现明显节律变化时，会整理到这里。</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {overview ? (
+        <section className="section">
+          <div className="container">
+            <SectionHeader
+              title="全部最近记录"
+              description={isPlatformAdmin ? "用于确认学校空间的数据链路和记录同步情况。" : "查看你负责学校中的近期 SWEET 记录。"}
             />
             <div className="grid gap-4">
               {overview.recentRecords.length > 0 ? overview.recentRecords.map((record) => (
