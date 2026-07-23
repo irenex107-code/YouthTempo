@@ -8,7 +8,7 @@ export function Footer() {
         <div>
           <p className="font-extrabold">YouthTempo</p>
           <p className="mt-3 max-w-xl text-sm leading-7 text-muted">
-            面向青少年、家庭与学校的低门槛成长支持平台。我们从日常节律、情绪表达和可信任的人际连接开始，帮助支持更早发生。
+            YouthTempo 面向青少年、家庭和学校，提供容易开始的成长支持。我们从日常节律、情绪表达和可信任的人际连接开始，让年轻人更早获得帮助。
           </p>
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-3 text-sm font-bold text-ink/75 md:justify-end">
