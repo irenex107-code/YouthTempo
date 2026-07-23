@@ -2,7 +2,6 @@ export const navItems = [
   { label: "青少年入口", href: "/for-teens" },
   { label: "家长入口", href: "/for-parents" },
   { label: "SWEET 节律", href: "/check-in" },
-  { label: "情绪表达", href: "/mood-journal" },
   { label: "支持路径", href: "/referral" },
 ];
 
@@ -21,7 +20,7 @@ export const sweetModules = [
     label: "Wake",
     question: "今天醒来后的状态是疲惫、平静还是紧张？",
     summary: "一天开始的状态，会影响年轻人的情绪、专注和行动感。",
-    example: "晨间状态记录、柔和唤醒建议、早晨 check-in。"
+    example: "晨间状态记录、柔和唤醒建议、早晨状态整理。"
   },
   {
     key: "Eat",
