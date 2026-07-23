@@ -10,28 +10,28 @@ const emotionGroups = [
 ];
 
 const starters = [
-  "我现在不是不想说，只是还没整理清楚。",
-  "我希望你先听我说完，不要马上评价。",
-  "我最近有点累，可能需要一点时间慢慢调整。",
-  "我不是故意拖延，我只是现在开始起来有点困难。",
+  "我现在有点乱，能先听我慢慢说吗？",
+  "你先听我说完，可以吗？",
+  "我最近真的有点累，能先陪我一下吗？",
+  "我不是不想做，是现在有点不知道怎么开始。",
 ];
 
 function buildStarterOptions(reflectionText: string) {
   if (/拖|开始|任务|作业|学习|催|压力|做不好/.test(reflectionText)) {
     return [
-      "我不是故意拖延，我是现在开始起来有点困难。可以先给我一点时间整理吗？",
+      "我不是不想做，是现在有点不知道怎么开始。能陪我先拆小一点吗？",
       ...starters,
     ];
   }
   if (/不想说|说不清|乱|麻木|累/.test(reflectionText)) {
     return [
-      "我现在不是不想说，只是还没整理清楚。可以先听我慢慢说吗？",
+      "我现在有点乱，还没想好怎么说。你能先听听吗？",
       ...starters,
     ];
   }
   if (/评价|吵|冲突|生气|烦/.test(reflectionText)) {
     return [
-      "我希望你先听我说完，不要马上评价，这样我会比较容易继续说。",
+      "你先听我说完，可以吗？我现在还不太需要建议。",
       ...starters,
     ];
   }
@@ -189,10 +189,9 @@ export default function MoodJournalPage() {
           </div>
 
           <div className="card">
-            <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">低冲突表达句式</h2>
-            <p className="mt-2 text-sm font-bold text-sage">Communication Starter</p>
+            <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">可以直接说的话</h2>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              可以结合刚才写下的情绪词和整理内容，选择一句更柔和的方式，向家长、老师或可信任的人开口。
+              不用说得很完整。选一句最接近你现在感受的话，向家长、老师或可信任的人开口。
             </p>
             <div className="mt-6 rounded-2xl bg-cream p-5 text-lg font-bold leading-8 text-ink">
               “{starter}”
@@ -245,7 +244,7 @@ export default function MoodJournalPage() {
                 {aiResult.supportReminder}
               </p>
               <p className="mt-4 text-xs leading-6 text-muted">
-                这里的回应不能替代专业支持，但可以帮助你先整理当前状态和下一步选择。
+                这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。
               </p>
             </div>
           </div>
