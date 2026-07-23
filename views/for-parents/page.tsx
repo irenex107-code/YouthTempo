@@ -75,12 +75,12 @@ const aidetSteps = [
 ];
 
 const phrases = [
-  "我想先理解你最近的状态。",
-  "我们可以一起看看哪一部分最累。",
-  "你不用马上解释清楚，我们可以慢慢说。",
-  "我不会马上评价你，我们先一起想一个小步骤。",
-  "我注意到你最近早上很难起来，我想先听听你自己的感觉。",
-  "我们先不讨论对错，只看看哪一个生活节律最需要被照顾。",
+  "你最近是不是有点累？我想先听听。",
+  "我们先聊十分钟，不用现在就解决。",
+  "你还没想好怎么说也没关系。",
+  "我先不评价，你说说最近最累的是哪一块。",
+  "我注意到你最近早上很难起来，是不是哪里卡住了？",
+  "我们先不谈对错，看看哪件事能让你轻松一点。",
 ];
 const parentStarts = [
   ["先观察 SWEET", "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。"],
@@ -95,7 +95,7 @@ export default function ForParentsPage() {
       <PageHero
         label="For Parents"
         title="家长入口"
-        subtitle="更早理解孩子的节奏，比更晚处理危机更重要。SWEET 帮助家长看见孩子的生活节律，AIDET 帮助家长用更安全、不指责的方式开口沟通。SWEET shows what to notice. AIDET guides how to talk."
+        subtitle="更早理解孩子的节奏，比更晚处理危机更重要。SWEET 帮助家长看见孩子的生活节律，AIDET 帮助家长用更安全、不指责的方式开口沟通。"
       />
 
       <section className="section section-muted">
@@ -186,8 +186,8 @@ export default function ForParentsPage() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader
-            title="可以直接使用的低冲突句式"
-            description="目标不是马上让孩子解释清楚，而是让对话可以继续。"
+            title="可以直接说的话"
+            description="这些话不用照着念。选一句接近你平时说话方式的，让对话先开始。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {phrases.map((phrase) => (
@@ -212,7 +212,6 @@ export default function ForParentsPage() {
           </div>
           <div className="card lg:col-span-2">
             <h3 className="text-xl font-bold text-ink">家校资源</h3>
-            <p className="mt-2 text-sm font-bold text-sage">Parent & School Resources</p>
             <p className="mt-4 max-w-3xl text-[0.95rem] leading-7 text-muted">
               给家长和学校的支持材料，帮助更早理解青少年的节律、情绪表达和支持需求。
             </p>
