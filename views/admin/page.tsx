@@ -169,7 +169,7 @@ export default function AdminPage() {
           {loading ? <div className="card text-sm font-bold text-muted">正在检查管理权限……</div> : null}
           {!loading && error && !overview ? (
             <div className="card max-w-3xl">
-              <p className="eyebrow">Access</p>
+              <p className="eyebrow">访问权限</p>
               <h2 className="mt-3 text-[1.6rem] font-bold text-ink">需要管理权限</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">{error}</p>
               <div className="mt-6 flex flex-wrap gap-3">
@@ -182,7 +182,7 @@ export default function AdminPage() {
           {overview ? (
             <div className="grid gap-5 lg:grid-cols-[0.82fr_1.18fr] lg:gap-8">
               <div className="card">
-                <p className="eyebrow">Signed in</p>
+                <p className="eyebrow">已登录</p>
                 <h2 className="mt-3 overflow-hidden text-ellipsis text-[1.35rem] font-bold leading-tight text-ink sm:text-[1.6rem]">{overview.admin.email}</h2>
                 <p className="mt-2 text-sm font-bold text-sage-dark">当前权限：{overview.admin.role}</p>
                 <p className="mt-4 text-[0.95rem] leading-7 text-muted">
@@ -225,7 +225,7 @@ export default function AdminPage() {
         <section className="section">
           <div className="container grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="card">
-              <p className="eyebrow">Members</p>
+              <p className="eyebrow">成员</p>
               <h2 className="mt-3 text-[1.5rem] font-bold text-ink">添加学校成员</h2>
 
               {isPlatformAdmin ? (
@@ -270,7 +270,7 @@ export default function AdminPage() {
             </div>
 
             <div className="card">
-              <p className="eyebrow">Schools</p>
+              <p className="eyebrow">学校</p>
               <h2 className="mt-3 text-[1.5rem] font-bold text-ink">{isPlatformAdmin ? "学校列表" : "我的学校"}</h2>
               <div className="mt-6 grid gap-3">
                 {overview.schools.length > 0 ? overview.schools.map((school) => (
