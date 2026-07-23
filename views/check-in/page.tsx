@@ -45,11 +45,11 @@ const steps: CheckStep[] = [
     id: "sleep",
     title: "睡眠",
     label: "Sleep",
-    description: "记录昨晚睡了多久、睡得怎么样，以及可能影响睡眠的因素。",
+    description: "先选一个最接近昨晚睡眠的状态。",
     fields: [
-      { id: "duration", type: "single", title: "昨晚大概睡了多久？", options: ["少于 5 小时", "5-6 小时", "6-7 小时", "7-8 小时", "8 小时以上", "不太确定"] },
       { id: "quality", type: "single", title: "睡眠质量如何？", options: ["比较安稳", "还可以", "容易醒", "入睡困难", "睡得很乱"] },
-      { id: "factors", type: "multi", title: "可能影响睡眠的因素", options: ["睡前想太多", "作业或任务压力", "手机使用时间较长", "家庭或人际压力", "身体不舒服", "不太确定"] },
+      { id: "duration", type: "single", title: "昨晚大概睡了多久？", required: false, options: ["少于 5 小时", "5-6 小时", "6-7 小时", "7-8 小时", "8 小时以上", "不太确定"] },
+      { id: "factors", type: "multi", title: "可能影响睡眠的因素", required: false, options: ["睡前想太多", "作业或任务压力", "手机使用时间较长", "家庭或人际压力", "身体不舒服", "不太确定"] },
       { id: "note", type: "text", title: "可选补充", required: false, placeholder: "例如：昨晚很晚才睡，睡前一直在想明天的事情。" },
     ],
   },
@@ -57,11 +57,11 @@ const steps: CheckStep[] = [
     id: "wake",
     title: "醒来",
     label: "Wake",
-    description: "记录今天早晨的状态，以及开始一天时有没有遇到阻力。",
+    description: "先选一个最接近今天早晨的状态。",
     fields: [
       { id: "state", type: "single", title: "今天醒来后的状态更接近哪一种？", options: ["平静", "有精神", "有点疲惫", "紧张或烦躁", "不想开始今天"] },
-      { id: "startDifficulty", type: "single", title: "今天开始的难度", options: ["很容易开始", "需要一点时间", "有点困难", "很难开始"] },
-      { id: "factors", type: "multi", title: "可能影响晨间状态的因素", options: ["没睡够", "一醒来就想到很多事", "早上任务压力大", "身体有点累", "情绪影响", "不太确定"] },
+      { id: "startDifficulty", type: "single", title: "今天开始的难度", required: false, options: ["很容易开始", "需要一点时间", "有点困难", "很难开始"] },
+      { id: "factors", type: "multi", title: "可能影响晨间状态的因素", required: false, options: ["没睡够", "一醒来就想到很多事", "早上任务压力大", "身体有点累", "情绪影响", "不太确定"] },
       { id: "note", type: "text", title: "可选补充", required: false, placeholder: "例如：早上一醒来就想到作业，所以有点不想开始。" },
     ],
   },
@@ -69,36 +69,36 @@ const steps: CheckStep[] = [
     id: "eat",
     title: "饮食",
     label: "Eat",
-    description: "记录今天吃饭的节奏和大概吃了什么，帮助理解精力、专注和日常状态。",
+    description: "先看看今天吃饭的节奏是否规律。",
     fields: [
-      { id: "mealCount", type: "single", title: "今天大概吃了几餐？", options: ["三餐比较规律", "两餐", "一餐", "吃得比较零散", "不太确定"] },
-      { id: "foodDetails", type: "text", title: "今天吃了什么？", placeholder: "例如：\n早餐：牛奶和面包\n午餐：米饭、鸡蛋、青菜\n晚餐：吃得比较少，只吃了面条" },
       { id: "rhythm", type: "single", title: "今天饮食节奏如何？", options: ["基本规律", "有一餐不太规律", "时间比较乱", "几乎没有好好吃饭"] },
-      { id: "factors", type: "multi", title: "饮食状态可能和什么有关？", options: ["太忙了", "没胃口", "作息太乱", "情绪影响", "忘记吃饭", "家里或学校选择有限", "不太确定"] },
-      { id: "energyConnection", type: "single", title: "今天精力和饮食有关系吗？", options: ["感觉有关系", "好像有一点", "不太确定", "没什么关系"] },
+      { id: "mealCount", type: "single", title: "今天大概吃了几餐？", required: false, options: ["三餐比较规律", "两餐", "一餐", "吃得比较零散", "不太确定"] },
+      { id: "foodDetails", type: "text", title: "今天吃了什么？", required: false, placeholder: "想记录时再写，不需要列出每一样食物。" },
+      { id: "factors", type: "multi", title: "饮食状态可能和什么有关？", required: false, options: ["太忙了", "没胃口", "作息太乱", "情绪影响", "忘记吃饭", "家里或学校选择有限", "不太确定"] },
+      { id: "energyConnection", type: "single", title: "今天精力和饮食有关系吗？", required: false, options: ["感觉有关系", "好像有一点", "不太确定", "没什么关系"] },
     ],
   },
   {
     id: "exercise",
     title: "运动",
     label: "Exercise",
-    description: "记录今天身体有没有动一动，以及身体紧绷、久坐或压力释放的状态。",
+    description: "先看看今天身体大概活动了多久。",
     fields: [
       { id: "duration", type: "single", title: "今天大概活动了多久？", options: ["几乎没有活动", "5-10 分钟", "10-20 分钟", "20-30 分钟", "30 分钟以上", "不太确定"] },
-      { id: "activityTypes", type: "multi", title: "今天做了什么活动？", options: ["走路", "拉伸", "体育课", "球类/跑步/跳操等运动", "上下楼/通勤", "家务或日常活动", "几乎没有", "其他"] },
+      { id: "activityTypes", type: "multi", title: "今天做了什么活动？", required: false, options: ["走路", "拉伸", "体育课", "球类/跑步/跳操等运动", "上下楼/通勤", "家务或日常活动", "几乎没有", "其他"] },
       { id: "activityNote", type: "text", title: "活动补充", required: false, placeholder: "例如：今天走路回家，大概 15 分钟；或者体育课跑了一会儿。" },
-      { id: "bodyState", type: "single", title: "今天身体状态更像哪种？", options: ["比较放松", "有点紧绷", "久坐后不太舒服", "很累，不想动", "不太确定"] },
-      { id: "factors", type: "multi", title: "活动较少可能和什么有关？", options: ["太累了", "没有时间", "没有动力", "一直坐着学习或工作", "情绪影响", "身体不舒服", "不太确定"] },
+      { id: "bodyState", type: "single", title: "今天身体状态更像哪种？", required: false, options: ["比较放松", "有点紧绷", "久坐后不太舒服", "很累，不想动", "不太确定"] },
+      { id: "factors", type: "multi", title: "活动较少可能和什么有关？", required: false, options: ["太累了", "没有时间", "没有动力", "一直坐着学习或工作", "情绪影响", "身体不舒服", "不太确定"] },
     ],
   },
   {
     id: "task",
     title: "任务投入",
     label: "Task",
-    description: "记录今天学习或生活任务是否容易开始，以及有没有一个已经完成的小任务。",
+    description: "先看看今天开始学习或生活任务是否顺利。",
     fields: [
       { id: "engagement", type: "single", title: "今天学习或生活任务完成得怎么样？", options: ["比较顺利", "能完成基本任务", "开始有点困难", "很难开始，或一直拖着"] },
-      { id: "difficultyReasons", type: "multi", title: "最卡住的是哪一部分？", options: ["任务太多", "不知道从哪里开始", "担心做不好", "被催促后更抗拒", "情绪很累", "不太确定"] },
+      { id: "difficultyReasons", type: "multi", title: "最卡住的是哪一部分？", required: false, options: ["任务太多", "不知道从哪里开始", "担心做不好", "被催促后更抗拒", "情绪很累", "不太确定"] },
       { id: "completedSmallTask", type: "text", title: "今天有没有一个完成的小任务？", required: false, placeholder: "例如：完成了一页作业、整理了书包、回复了一条消息。" },
     ],
   },
@@ -116,10 +116,6 @@ function isFieldComplete(value: FieldValue) {
   return Array.isArray(value) ? value.length > 0 : value.trim().length > 0;
 }
 
-function fieldValueToText(value: FieldValue) {
-  return Array.isArray(value) ? value.join("、") : value;
-}
-
 export default function CheckInPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
@@ -130,6 +126,13 @@ export default function CheckInPage() {
   const [saveStatus, setSaveStatus] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedRecordKey, setSavedRecordKey] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState<Record<StepId, boolean>>({
+    sleep: false,
+    wake: false,
+    eat: false,
+    exercise: false,
+    task: false,
+  });
   const questionCardRef = useRef<HTMLElement | null>(null);
   const shouldScrollToQuestionRef = useRef(false);
 
@@ -185,7 +188,7 @@ export default function CheckInPage() {
 
   function goNext() {
     if (!canGoNext) {
-      setValidation("请先完成这一页的必要记录，再继续。");
+      setValidation("请先选择一个最接近今天状态的选项。");
       return;
     }
     setValidation("");
@@ -200,6 +203,7 @@ export default function CheckInPage() {
     setValidation("");
     setSaveStatus("");
     setSavedRecordKey("");
+    setDetailsOpen({ sleep: false, wake: false, eat: false, exercise: false, task: false });
   }
 
   function getRecordPayload() {
@@ -223,7 +227,7 @@ export default function CheckInPage() {
       smallStep: aiResult?.smallStep,
       recommendedNextTool: aiResult?.recommendedNextTool,
     };
-    const recordKey = JSON.stringify(recordPayload);
+    const recordKey = JSON.stringify(recordPayload.records);
     if (recordKey === savedRecordKey) {
       setSaveStatus("这次 SWEET 记录已经保存过了。");
       return;
@@ -267,7 +271,6 @@ export default function CheckInPage() {
     setError("");
     setValidation("");
     setSaveStatus("");
-    setSavedRecordKey("");
     try {
       const payload = {
         currentDate: new Date().toISOString(),
@@ -293,7 +296,7 @@ export default function CheckInPage() {
       <PageHero
         label="SWEET Rhythm Check-in"
         title="SWEET 节律记录"
-        subtitle="从睡眠、醒来、饮食、运动和任务投入五个维度，记录今天的生活节奏，并生成 AI 节律小结。"
+        subtitle="约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。"
         aside={
           <div className="card">
             <h2 className="text-2xl font-bold">这不是测试，也不是正式评估。</h2>
@@ -344,7 +347,9 @@ export default function CheckInPage() {
               </div>
 
               <div className="mt-7 grid gap-7 sm:mt-8">
-                {step.fields.map((field) => {
+                {step.fields
+                  .filter((field) => field.required !== false || detailsOpen[step.id])
+                  .map((field) => {
                   const value = currentAnswer[field.id];
                   if (field.type === "text") {
                     return (
@@ -409,15 +414,16 @@ export default function CheckInPage() {
                       </div>
                     </div>
                   );
-                })}
+                  })}
               </div>
 
-              <div className="mt-8 rounded-2xl bg-cream p-4">
-                <p className="text-xs font-bold text-sage">当前记录</p>
-                <p className="mt-2 text-sm leading-7 text-muted">
-                  {step.fields.filter((field) => isFieldComplete(currentAnswer[field.id])).map((field) => `${field.title}：${fieldValueToText(currentAnswer[field.id])}`).join(" / ") || "还没有填写这一维度的记录。"}
-                </p>
-              </div>
+              <button
+                type="button"
+                className="mt-7 text-sm font-bold text-sage-dark"
+                onClick={() => setDetailsOpen((current) => ({ ...current, [step.id]: !current[step.id] }))}
+              >
+                {detailsOpen[step.id] ? "收起补充问题" : "想补充更多（可选）"}
+              </button>
 
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
 
@@ -430,13 +436,19 @@ export default function CheckInPage() {
                     下一步
                   </button>
                 ) : (
-                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading} onClick={generateSummary}>
-                    {loading ? "正在生成 AI 节律小结……" : "生成 AI SWEET 节律小结"}
-                  </button>
+                  <>
+                    <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || saving} onClick={saveCurrentRecord}>
+                      {saving ? "正在保存..." : "完成并保存"}
+                    </button>
+                    <button type="button" className="button-secondary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading} onClick={generateSummary}>
+                      {loading ? "正在生成小结……" : "看看 AI 小结（可选）"}
+                    </button>
+                  </>
                 )}
               </div>
             </article>
 
+            {saveStatus ? <p className="mt-5 rounded-2xl bg-white/80 p-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
             {error ? <div className="mt-6 rounded-2xl bg-white/80 p-5 text-sm font-bold text-sage-dark">{error}</div> : null}
 
             {aiResult ? (
@@ -457,12 +469,8 @@ export default function CheckInPage() {
                   <Link href="/mood-journal" className="button-primary w-full sm:w-auto">进入情绪表达</Link>
                   <Link href="/worry-time" className="button-secondary w-full sm:w-auto">做睡前整理</Link>
                   <Link href="/referral" className="button-secondary w-full sm:w-auto">查看支持路径</Link>
-                  <button type="button" className="button-secondary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" onClick={saveCurrentRecord} disabled={saving}>
-                    {saving ? "正在保存..." : "保存到我的记录"}
-                  </button>
                   <button type="button" className="button-secondary w-full sm:w-auto" onClick={reset}>重新填写</button>
                 </div>
-                {saveStatus ? <p className="mt-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
               </section>
             ) : null}
           </div>
