@@ -109,7 +109,6 @@ export default function WorryTimePage() {
           <div className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
             <article className="card">
               <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">15 分钟整理</h2>
-              <p className="mt-2 text-sm font-bold text-sage">15-minute bedtime organization</p>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">
                 给睡前担心一个清晰边界：先整理 15 分钟，剩下的留给明天慢慢处理。
               </p>
@@ -136,8 +135,7 @@ export default function WorryTimePage() {
             </article>
 
             <article className="card">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">写下今天最担心的三件事</h2>
-              <p className="mt-2 text-sm font-bold text-sage">Three worries</p>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">写下现在最放不下的事</h2>
               <div className="mt-6 grid gap-5">
                 {worries.map((worry, index) => (
                   <label key={index} className="grid gap-2">
@@ -157,7 +155,6 @@ export default function WorryTimePage() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-ink">把担心分一分</h2>
-                <p className="mt-2 text-sm font-bold text-sage">Control check</p>
               </div>
               <p className="max-w-xl text-sm leading-6 text-muted">
                 不需要判断对错，只是先看看：哪些可以做一点点，哪些今晚可以先放下。
@@ -194,7 +191,6 @@ export default function WorryTimePage() {
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.55fr]">
             <article className="card">
               <h2 className="text-xl font-bold text-ink">明天可以做的一个小行动</h2>
-              <p className="mt-2 text-sm font-bold text-sage">One small action</p>
               <textarea
                 className="mt-5 min-h-28 w-full rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage"
                 value={action}
