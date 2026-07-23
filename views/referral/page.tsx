@@ -367,7 +367,7 @@ export default function ReferralPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className={`text-xs font-bold ${active || completed ? "text-sage-dark" : "text-muted"}`}>
-                      Step {index + 1}
+                      第 {index + 1} 步
                     </p>
                     {completed ? (
                       <span className="rounded-full bg-mist px-2 py-0.5 text-xs font-bold text-sage-dark">已完成</span>
@@ -455,7 +455,7 @@ export default function ReferralPage() {
 
           {aiResult ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/90 p-6 shadow-soft sm:p-8">
-              <p className="text-sm font-bold text-sage">Next Support Pathway</p>
+              <p className="text-sm font-bold text-sage">支持建议</p>
               <h2 className="mt-2 text-[1.7rem] font-bold leading-[1.25] text-ink">你的下一步支持路径</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{buildAnsweredSummary(answers)}</p>
 
