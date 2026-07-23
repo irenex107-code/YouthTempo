@@ -419,10 +419,17 @@ export default function CheckInPage() {
 
               <button
                 type="button"
-                className="mt-7 text-sm font-bold text-sage-dark"
+                aria-expanded={detailsOpen[step.id]}
+                className="mt-7 flex w-full items-center justify-between gap-4 rounded-2xl border border-sage/35 bg-mint/70 px-4 py-3 text-left text-sm font-bold text-sage-dark transition hover:border-sage hover:bg-mist focus:outline-none focus:ring-4 focus:ring-sage/15 sm:w-auto sm:min-w-64"
                 onClick={() => setDetailsOpen((current) => ({ ...current, [step.id]: !current[step.id] }))}
               >
-                {detailsOpen[step.id] ? "收起补充问题" : "想补充更多（可选）"}
+                <span>{detailsOpen[step.id] ? "收起补充问题" : "想补充更多"}</span>
+                <span className="flex items-center gap-2 text-xs">
+                  {detailsOpen[step.id] ? "收起" : "可选"}
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-base leading-none shadow-sm">
+                    {detailsOpen[step.id] ? "−" : "+"}
+                  </span>
+                </span>
               </button>
 
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
