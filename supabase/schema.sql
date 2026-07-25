@@ -247,13 +247,6 @@ on public.school_members for select
 to authenticated
 using (
   user_id = (select auth.uid())
-  or exists (
-    select 1 from public.school_members viewer
-    where viewer.school_id = school_members.school_id
-      and viewer.user_id = (select auth.uid())
-      and viewer.status = 'active'
-      and viewer.member_role in ('school_support', 'school_admin')
-  )
 );
 
 drop policy if exists "school_invites_select_relevant" on public.school_invites;
