@@ -343,7 +343,8 @@ export default function AccountPage() {
             <div className="card">
               <h2 className="text-[1.7rem] font-bold text-ink">需要先连接 Supabase</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                账号、数据库和学校空间管理已经写入代码。请在 Vercel 环境变量里添加 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY，并在 Supabase 执行 supabase/schema.sql。
+                账号、数据库和学校空间管理已经写入代码。请检查当前部署平台的 Supabase
+                公开配置，并确认数据库初始化已经完成。
               </p>
             </div>
           </div>
