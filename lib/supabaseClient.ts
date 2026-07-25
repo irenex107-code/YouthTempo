@@ -1,7 +1,14 @@
 import { SupabaseClient, createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+// Supabase's project URL and publishable key are public browser configuration.
+// Keep production fallbacks so container platforms that do not expose runtime
+// variables during `next build` can still initialize the client.
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://saqkzfsmabsgbwdvuras.supabase.co";
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
 
 let browserClient: SupabaseClient | null = null;
 
