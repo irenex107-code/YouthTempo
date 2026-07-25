@@ -245,7 +245,15 @@ export default function CheckInPage() {
           }
           setSaveStatus("还没有登录，已先保存到当前浏览器。登录后可保存到云端历史记录。");
         } catch (saveError) {
-          const message = saveError instanceof Error ? saveError.message : "云端保存暂时失败。";
+          const message =
+            saveError instanceof Error
+              ? saveError.message
+              : typeof saveError === "object" &&
+                  saveError !== null &&
+                  "message" in saveError &&
+                  typeof saveError.message === "string"
+                ? saveError.message
+                : "云端保存暂时失败。";
           setSaveStatus(`${message} 已尝试保存到当前浏览器作为备份。`);
         }
       }
