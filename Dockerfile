@@ -19,8 +19,11 @@ WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_SUPABASE_URL
-ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+# These are public browser credentials. CloudBase does not expose service
+# runtime variables during the Docker build, so provide production defaults
+# while still allowing other environments to override them with build args.
+ARG NEXT_PUBLIC_SUPABASE_URL=https://saqkzfsmabsgbwdvuras.supabase.co
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv
 
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
