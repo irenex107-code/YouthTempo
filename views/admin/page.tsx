@@ -24,6 +24,7 @@ type AdminOverview = {
   };
   counts: {
     profiles: number;
+    schoolUsers: number;
     sweetRecords: number;
     schools: number;
     schoolMembers: number;
@@ -267,7 +268,7 @@ export default function AdminPage() {
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校成员</p>
-                  <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolMembers}</p>
+                  <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolUsers}</p>
                   <p className="mt-2 text-sm leading-6 text-muted">学生、学校负责人和支持老师。</p>
                 </div>
                 <div className="card">
