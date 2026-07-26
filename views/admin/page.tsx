@@ -116,6 +116,11 @@ export default function AdminPage() {
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || overview?.schools[0];
   const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学生", "支持老师", "学校负责人"] : ["学生", "支持老师"];
+  const assignedStudentIdSet = new Set(
+    schoolRoster?.assignments.map((assignment) => assignment.student_user_id) || [],
+  );
+  const unassignedStudents =
+    schoolRoster?.students.filter((student) => !assignedStudentIdSet.has(student.id)) || [];
 
   async function loadAdminOverview() {
     setLoading(true);
@@ -560,6 +565,71 @@ export default function AdminPage() {
                 </button>
               </div>
             </div>
+
+            {schoolRoster && (schoolRoster.teachers.length > 0 || schoolRoster.students.length > 0) ? (
+              <div className="mt-5 grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+                <div className="card">
+                  <p className="eyebrow">当前分配</p>
+                  <h2 className="mt-2 text-[1.35rem] font-bold text-ink">老师负责关系</h2>
+                  <div className="mt-5 grid gap-3">
+                    {schoolRoster.teachers.length ? schoolRoster.teachers.map((teacher) => {
+                      const studentIds = schoolRoster.assignments
+                        .filter((assignment) => assignment.teacher_user_id === teacher.id)
+                        .map((assignment) => assignment.student_user_id);
+                      const students = schoolRoster.students.filter((student) =>
+                        studentIds.includes(student.id),
+                      );
+
+                      return (
+                        <div key={teacher.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-bold text-ink">{teacher.display_name || teacher.email}</p>
+                              {teacher.display_name ? (
+                                <p className="mt-1 break-all text-xs text-muted">{teacher.email}</p>
+                              ) : null}
+                            </div>
+                            <p className="rounded-full bg-mint px-3 py-1 text-xs font-bold text-sage-dark">
+                              {students.length} 名学生
+                            </p>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {students.length ? students.map((student) => (
+                              <span key={student.id} className="rounded-full bg-cream px-3 py-1 text-xs font-bold text-ink/75">
+                                {student.display_name || student.email}
+                              </span>
+                            )) : (
+                              <p className="text-sm text-muted">尚未分配学生</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }) : (
+                      <p className="rounded-2xl bg-cream px-4 py-4 text-sm text-muted">还没有支持老师。</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="card">
+                  <p className="eyebrow">待分配</p>
+                  <h2 className="mt-2 text-[1.35rem] font-bold text-ink">尚未分配学生</h2>
+                  <p className="mt-3 text-sm leading-7 text-muted">
+                    未分配学生仍可被学校负责人查看，但支持老师暂时看不到其记录。
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {unassignedStudents.length ? unassignedStudents.map((student) => (
+                      <span key={student.id} className="rounded-full border border-ink/10 bg-white px-3 py-2 text-xs font-bold text-ink/75">
+                        {student.display_name || student.email}
+                      </span>
+                    )) : (
+                      <p className="rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">
+                        所有学生都已有负责老师。
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}
