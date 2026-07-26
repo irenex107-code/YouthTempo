@@ -1,6 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { fail, generateJson, missing, requirePost } from "./_shared";
 
+type CheckInResult = {
+  summary?: unknown;
+  mainAffectedAreas?: unknown;
+  rhythmClue?: unknown;
+  smallStep?: unknown;
+  recommendedNextTool?: unknown;
+  supportReminder?: unknown;
+};
+
+function shortText(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!requirePost(req, res)) return;
   const { records, currentDate } = req.body || {};
@@ -9,14 +22,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const result = await generateJson({
+    const result = (await generateJson({
       task:
-        "根据用户填写的 SWEET 节律记录生成今日 SWEET 节律小结。SWEET 是核心结构：Sleep 睡眠、Wake 醒来、Eat 饮食、Exercise 运动、Task 任务投入。必须具体引用用户记录：睡眠时长、睡眠质量、醒来状态、开始难度、吃了几餐、吃了什么、饮食节奏、精力关系、活动时长、活动类型、身体状态、任务投入、卡住因素和已完成的小任务。请识别今天波动最明显的维度，并用温和、具体、非诊断的方式总结五个维度。Eat 要从营养支持、食物丰富度、饮食节奏、精力节律、专注和青少年日常功能角度分析；可以温和建议一顿相对完整的正餐或更稳定的吃饭节奏，但不要计算热量、不要谈体重控制、身材、节食、严格饮食计划，也不要评价用户“不健康”。Exercise 要从轻量活动、久坐、身体紧绷、压力释放、精力节律和专注角度分析；可以建议几分钟走动、拉伸或离开座位，但不要谈燃脂、身材、训练表现、健身目标或高强度计划。Task 要在合适时连接睡眠、精力、情绪和压力。只给一个小行动；推荐下一步时根据记录选择一到两个工具：情绪表达、睡前整理或转介支持。不要诊断，不要医学化，不要替代医生、咨询师、父母、学校或专业资源。",
+        [
+          "根据用户填写的 SWEET 节律记录，生成一份手机上十秒左右可以读完的今日回应。",
+          "SWEET 包含 Sleep 睡眠、Wake 醒来、Eat 饮食、Exercise 运动、Task 任务投入。",
+          "不要逐项复述问卷，也不要写成分析报告。优先看见一件今天做到了的事，再指出一到两个最值得留意的节律线索。",
+          "summary：1 到 2 句，60 字以内。直接回应用户今天的具体状态，不以“根据记录”“数据显示”开头。",
+          "mainAffectedAreas：最多两个维度，使用“睡眠、醒来、饮食、运动、任务投入”中的名称；没有明显波动时可以为空。",
+          "rhythmClue：1 到 2 句，80 字以内。只解释记录中确实存在的一条可能联系，使用“可能、看起来、也许”，不要断言原因。",
+          "smallStep：只给一个明天十分钟内能完成的小行动。要具体到何时、做什么，不使用“保持规律、注意休息、健康饮食、适当运动”等空泛表达。",
+          "recommendedNextTool：只推荐一个入口，并简短说明原因。只能选择“情绪表达”“睡前整理”“支持路径”；如果今天不需要额外工具，写“今天先到这里就可以”。",
+          "supportReminder：通常一句即可。状态较平稳时不要机械地要求求助；只有记录体现持续困难、明显无法启动或安全风险时，再建议联系可信任的大人或专业支持。",
+          "语言要像自然对话，避免“赋能、维度波动、改善身心状态、提升专注力”等报告式词语。不要诊断，不要评价体重、身材、热量或意志力。",
+        ].join("\n"),
       schema:
-        '{ "summary": string, "mainAffectedAreas": string[], "fiveDimensionObservation": string, "nutritionEnergyObservation": string, "bodyActivityObservation": string, "smallStep": string, "recommendedNextTool": string, "supportReminder": string }',
+        '{ "summary": string, "mainAffectedAreas": string[], "rhythmClue": string, "smallStep": string, "recommendedNextTool": string, "supportReminder": string }',
       input: { records, currentDate },
+    })) as CheckInResult;
+    res.status(200).json({
+      summary: shortText(result.summary, "今天的记录已经整理好了。"),
+      mainAffectedAreas: Array.isArray(result.mainAffectedAreas)
+        ? result.mainAffectedAreas.filter((item): item is string => typeof item === "string").slice(0, 2)
+        : [],
+      rhythmClue: shortText(result.rhythmClue, "今天暂时没有特别明显的节律线索，不需要急着下结论。"),
+      smallStep: shortText(result.smallStep, "明天先选一个最容易开始的小任务，做五分钟就可以停。"),
+      recommendedNextTool: shortText(result.recommendedNextTool, "今天先到这里就可以。"),
+      supportReminder: shortText(result.supportReminder, "不用一次解决所有事情，先照顾好今天就可以。"),
     });
-    res.status(200).json(result);
   } catch (error) {
     console.error(error);
     fail(res);
