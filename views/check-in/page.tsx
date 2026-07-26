@@ -32,9 +32,7 @@ type Answers = Record<StepId, StepAnswers>;
 type AiResult = {
   summary: string;
   mainAffectedAreas: string[];
-  fiveDimensionObservation: string;
-  nutritionEnergyObservation: string;
-  bodyActivityObservation: string;
+  rhythmClue: string;
   smallStep: string;
   recommendedNextTool: string;
   supportReminder: string;
@@ -470,13 +468,22 @@ export default function CheckInPage() {
               <section className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
                 <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今日 SWEET 节律小结</h2>
                 <p className="mt-4 text-base leading-8 text-muted">{aiResult.summary}</p>
-                <div className="mt-6 grid gap-5 md:grid-cols-2">
-                  <div><h3 className="text-lg font-bold text-ink">今天主要波动的维度</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{mainAffectedAreas}</p></div>
-                  <div><h3 className="text-lg font-bold text-ink">五个维度的简要观察</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.fiveDimensionObservation}</p></div>
-                  <div><h3 className="text-lg font-bold text-ink">营养与精力支持观察</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.nutritionEnergyObservation}</p></div>
-                  <div><h3 className="text-lg font-bold text-ink">身体活动与压力释放观察</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.bodyActivityObservation}</p></div>
-                  <div><h3 className="text-lg font-bold text-ink">今天可以先做的一件小事</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.smallStep}</p></div>
-                  <div><h3 className="text-lg font-bold text-ink">推荐下一步</h3><p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.recommendedNextTool}</p></div>
+                <div className="mt-6 grid gap-4">
+                  {mainAffectedAreas ? (
+                    <p className="text-sm font-bold text-sage-dark">今天可以多留意：{mainAffectedAreas}</p>
+                  ) : null}
+                  <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+                    <h3 className="text-base font-bold text-ink">今天的一条节律线索</h3>
+                    <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.rhythmClue}</p>
+                  </div>
+                  <div className="rounded-2xl border border-sage/25 bg-mist/65 p-5">
+                    <h3 className="text-base font-bold text-ink">明天只做这一小步</h3>
+                    <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.smallStep}</p>
+                  </div>
+                  <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
+                    <h3 className="text-base font-bold text-ink">接下来可以去哪里</h3>
+                    <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.recommendedNextTool}</p>
+                  </div>
                 </div>
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
                 <p className="mt-4 text-xs leading-6 text-muted">这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。</p>
