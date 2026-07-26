@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { canManageSchool, getAdminContext } from "@/lib/adminAccess";
+import { canAccessStudent, canManageSchool, getAdminContext } from "@/lib/adminAccess";
 
 const allowedStatuses = ["new", "in_progress", "resolved"] as const;
 
@@ -32,6 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .maybeSingle();
     if (recordError) throw recordError;
     if (!record) return res.status(404).json({ error: "找不到这条学校记录。" });
+    if (!canAccessStudent(context, schoolId, record.user_id)) {
+      return res.status(403).json({ error: "你只能跟进分配给自己的学生。" });
+    }
 
     const now = new Date().toISOString();
     const { data, error } = await context.supabase
