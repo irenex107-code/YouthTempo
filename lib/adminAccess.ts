@@ -18,6 +18,7 @@ export type AdminContext = {
   platformAdminRole: PlatformAdminRole | null;
   managedSchoolIds: string[];
   schoolRoles: Record<string, "school_admin" | "school_support">;
+  assignedStudentIds: string[];
 };
 
 export async function getAdminContext(req: NextApiRequest): Promise<AdminContext> {
@@ -44,6 +45,7 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
       platformAdminRole: platformAdminRole as PlatformAdminRole,
       managedSchoolIds: [],
       schoolRoles: {},
+      assignedStudentIds: [],
     };
   }
 
@@ -69,6 +71,18 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
 
   if (managedSchoolIds.length === 0) throw new Error("当前账号没有学校工作台权限。");
   const isSchoolLead = Object.values(schoolRoles).includes("school_admin");
+  const supportSchoolIds = managedSchoolIds.filter(
+    (schoolId) => schoolRoles[schoolId] === "school_support",
+  );
+  const { data: assignments, error: assignmentError } = supportSchoolIds.length
+    ? await supabase
+        .from("teacher_student_assignments")
+        .select("student_user_id")
+        .eq("teacher_user_id", user.id)
+        .eq("status", "active")
+        .in("school_id", supportSchoolIds)
+    : { data: [], error: null };
+  if (assignmentError) throw assignmentError;
 
   return {
     supabase,
@@ -79,6 +93,9 @@ export async function getAdminContext(req: NextApiRequest): Promise<AdminContext
     platformAdminRole: null,
     managedSchoolIds,
     schoolRoles,
+    assignedStudentIds: Array.from(
+      new Set((assignments || []).map((assignment) => assignment.student_user_id as string)),
+    ),
   };
 }
 
@@ -98,6 +115,15 @@ export function canManageSchool(context: AdminContext, schoolId: string) {
 
 export function canManageSchoolMembers(context: AdminContext, schoolId: string) {
   return context.kind === "platform" || context.schoolRoles[schoolId] === "school_admin";
+}
+
+export function canAccessStudent(context: AdminContext, schoolId: string, studentUserId: string) {
+  if (context.kind === "platform") return true;
+  if (context.schoolRoles[schoolId] === "school_admin") return true;
+  return (
+    context.schoolRoles[schoolId] === "school_support" &&
+    context.assignedStudentIds.includes(studentUserId)
+  );
 }
 
 export async function findAuthUserByEmail(supabase: SupabaseClient, email: string) {
