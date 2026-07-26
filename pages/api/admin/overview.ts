@@ -17,6 +17,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const context = await getAdminContext(req);
     const { supabase } = context;
+    const isSupportOnly =
+      context.kind === "school" &&
+      !Object.values(context.schoolRoles).includes("school_admin");
+    const assignedStudentIds = context.assignedStudentIds;
 
     const schoolsQuery = supabase
       .from("schools")
@@ -32,13 +36,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const schoolIds = (schools || []).map((school) => school.id as string);
     const hasScopedSchools = context.kind === "platform" || schoolIds.length > 0;
 
-    const profileCountQuery = context.kind === "school"
+    let profileCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("profiles").select("id", { count: "exact", head: true });
-    const schoolUserCountQuery = context.kind === "school"
+    let schoolUserCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("profiles").select("id", { count: "exact", head: true }).not("school_id", "is", null);
-    const recordCountQuery = context.kind === "school"
+    let recordCountQuery = context.kind === "school"
       ? supabase.from("sweet_records").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("sweet_records").select("id", { count: "exact", head: true });
     const memberCountQuery = context.kind === "school"
@@ -46,8 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : supabase.from("school_members").select("id", { count: "exact", head: true });
     const wechatCountQuery = supabase.from("wechat_identities").select("id", { count: "exact", head: true });
 
+    if (isSupportOnly && assignedStudentIds.length > 0) {
+      profileCountQuery = profileCountQuery.in("id", assignedStudentIds);
+      schoolUserCountQuery = schoolUserCountQuery.in("id", assignedStudentIds);
+      recordCountQuery = recordCountQuery.in("user_id", assignedStudentIds);
+    }
+
     const [profileCount, schoolUserCount, sweetRecordCount, schoolMemberCount, wechatIdentityCount] = hasScopedSchools
-      ? await Promise.all([
+      ? isSupportOnly && assignedStudentIds.length === 0
+        ? [0, 0, 0, 0, 0]
+        : await Promise.all([
           getCount(profileCountQuery),
           getCount(schoolUserCountQuery),
           getCount(recordCountQuery),
@@ -56,26 +68,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ])
       : [0, 0, 0, 0, 0];
 
-    const recentRecordsQuery = supabase
+    let recentRecordsQuery = supabase
       .from("sweet_records")
       .select("id,user_id,school_id,summary,created_at")
       .order("created_at", { ascending: false })
       .limit(6);
-    const { data: recentRecords, error: recordsError } = context.kind === "school"
-      ? await recentRecordsQuery.in("school_id", schoolIds)
-      : await recentRecordsQuery;
+    if (context.kind === "school") recentRecordsQuery = recentRecordsQuery.in("school_id", schoolIds);
+    if (isSupportOnly && assignedStudentIds.length > 0) {
+      recentRecordsQuery = recentRecordsQuery.in("user_id", assignedStudentIds);
+    }
+    const { data: recentRecords, error: recordsError } =
+      isSupportOnly && assignedStudentIds.length === 0
+        ? { data: [], error: null }
+        : await recentRecordsQuery;
     if (recordsError) throw recordsError;
 
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const attentionRecordsQuery = supabase
+    let attentionRecordsQuery = supabase
       .from("sweet_records")
       .select("id,user_id,school_id,records,summary,created_at")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .limit(100);
-    const { data: attentionRecords, error: attentionError } = context.kind === "school"
-      ? await attentionRecordsQuery.in("school_id", schoolIds)
-      : await attentionRecordsQuery;
+    if (context.kind === "school") attentionRecordsQuery = attentionRecordsQuery.in("school_id", schoolIds);
+    if (isSupportOnly && assignedStudentIds.length > 0) {
+      attentionRecordsQuery = attentionRecordsQuery.in("user_id", assignedStudentIds);
+    }
+    const { data: attentionRecords, error: attentionError } =
+      isSupportOnly && assignedStudentIds.length === 0
+        ? { data: [], error: null }
+        : await attentionRecordsQuery;
     if (attentionError) throw attentionError;
 
     const latestAttentionByUser = new Map<string, {
