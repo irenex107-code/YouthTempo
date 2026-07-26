@@ -35,6 +35,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const profileCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("profiles").select("id", { count: "exact", head: true });
+    const schoolUserCountQuery = context.kind === "school"
+      ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
+      : supabase.from("profiles").select("id", { count: "exact", head: true }).not("school_id", "is", null);
     const recordCountQuery = context.kind === "school"
       ? supabase.from("sweet_records").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("sweet_records").select("id", { count: "exact", head: true });
@@ -43,14 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : supabase.from("school_members").select("id", { count: "exact", head: true });
     const wechatCountQuery = supabase.from("wechat_identities").select("id", { count: "exact", head: true });
 
-    const [profileCount, sweetRecordCount, schoolMemberCount, wechatIdentityCount] = hasScopedSchools
+    const [profileCount, schoolUserCount, sweetRecordCount, schoolMemberCount, wechatIdentityCount] = hasScopedSchools
       ? await Promise.all([
           getCount(profileCountQuery),
+          getCount(schoolUserCountQuery),
           getCount(recordCountQuery),
           getCount(memberCountQuery),
           getCount(wechatCountQuery),
         ])
-      : [0, 0, 0, 0];
+      : [0, 0, 0, 0, 0];
 
     const recentRecordsQuery = supabase
       .from("sweet_records")
@@ -140,6 +144,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       counts: {
         profiles: profileCount,
+        schoolUsers: schoolUserCount,
         sweetRecords: sweetRecordCount,
         schools: schools?.length || 0,
         schoolMembers: schoolMemberCount,
