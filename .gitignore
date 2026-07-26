@@ -1,5 +1,6 @@
 # 依赖
 node_modules/
+.pnpm-store/
 
 # Next.js 构建产物
 .next/
@@ -15,3 +16,6 @@ next-env.d.ts
 
 # 系统文件
 .DS_Store
+
+# 本地备份包
+outputs/*.tar.gz
