@@ -390,11 +390,9 @@ export default function AccountPage() {
                   isIdentityLoading ? (
                     <div className="mt-6 grid gap-4">
                       <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
-                      <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
-                        <p className="text-xs font-bold text-sage-dark">正在同步账户身份</p>
-                        <p className="mt-2 text-xl font-bold text-ink">请稍等一下</p>
-                        <p className="mt-2">系统正在确认这个邮箱是否已加入学校试点空间。确认完成前不会要求你填写学生或家长资料。</p>
-                      </div>
+                      <p className="rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">
+                        正在确认账户身份…
+                      </p>
                       <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
                     </div>
                   ) : isExternallyManagedRole ? (
