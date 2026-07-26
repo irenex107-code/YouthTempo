@@ -45,29 +45,38 @@ export async function generateJson<T extends JsonValue>({
 
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        temperature: attempt === 0 ? 0.4 : 0.1,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemMessage },
-          {
-            role: "user",
-            content: attempt === 0 ? userMessage : `${userMessage}\n\n上一次输出无法解析。请只返回一个语法正确、字段完整的 JSON 对象。`,
-          },
-        ],
-      }),
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${baseUrl}/v1/chat/completions`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          temperature: attempt === 0 ? 0.4 : 0.1,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: systemMessage },
+            {
+              role: "user",
+              content: attempt === 0 ? userMessage : `${userMessage}\n\n上一次请求未能生成可用结果。请只返回一个语法正确、字段完整的 JSON 对象。`,
+            },
+          ],
+        }),
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) continue;
+      throw error;
+    }
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`OpenAI request failed: ${response.status} ${text}`);
+      lastError = new Error(`OpenAI request failed: ${response.status} ${text}`);
+      if (attempt === 0 && (response.status === 429 || response.status >= 500)) continue;
+      throw lastError;
     }
 
     const data = await response.json();
