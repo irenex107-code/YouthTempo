@@ -59,6 +59,21 @@ type FollowupDraft = {
   note: string;
 };
 
+type SchoolPerson = {
+  id: string;
+  email: string;
+  display_name: string;
+};
+
+type SchoolRoster = {
+  teachers: SchoolPerson[];
+  students: SchoolPerson[];
+  assignments: Array<{
+    teacher_user_id: string;
+    student_user_id: string;
+  }>;
+};
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
     month: "long",
@@ -90,6 +105,11 @@ export default function AdminPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [followupDrafts, setFollowupDrafts] = useState<Record<string, FollowupDraft>>({});
   const [savingFollowupId, setSavingFollowupId] = useState("");
+  const [schoolRoster, setSchoolRoster] = useState<SchoolRoster | null>(null);
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterSaving, setRosterSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -137,6 +157,80 @@ export default function AdminPage() {
   useEffect(() => {
     loadAdminOverview();
   }, []);
+
+  async function loadSchoolRoster(schoolId: string, token = accessToken) {
+    if (!token || !schoolId || !overview?.admin.canManageMembers) return;
+    setRosterLoading(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/admin/teacher-student-assignments?schoolId=${encodeURIComponent(schoolId)}`,
+        { headers: { authorization: `Bearer ${token}` } },
+      );
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "学校名单加载失败。");
+      const roster = payload as SchoolRoster;
+      setSchoolRoster(roster);
+      setSelectedTeacherId((current) =>
+        roster.teachers.some((teacher) => teacher.id === current)
+          ? current
+          : roster.teachers[0]?.id || "",
+      );
+    } catch (rosterError) {
+      setError(rosterError instanceof Error ? rosterError.message : "学校名单加载失败。");
+    } finally {
+      setRosterLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (overview?.admin.canManageMembers && selectedSchoolId && accessToken) {
+      loadSchoolRoster(selectedSchoolId);
+    } else {
+      setSchoolRoster(null);
+    }
+  }, [overview?.admin.canManageMembers, selectedSchoolId, accessToken]);
+
+  useEffect(() => {
+    if (!schoolRoster || !selectedTeacherId) {
+      setSelectedStudentIds([]);
+      return;
+    }
+    setSelectedStudentIds(
+      schoolRoster.assignments
+        .filter((assignment) => assignment.teacher_user_id === selectedTeacherId)
+        .map((assignment) => assignment.student_user_id),
+    );
+  }, [schoolRoster, selectedTeacherId]);
+
+  async function saveTeacherStudents() {
+    if (!accessToken || !selectedSchoolId || !selectedTeacherId) return;
+    setRosterSaving(true);
+    setActionNotice("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/teacher-student-assignments", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          schoolId: selectedSchoolId,
+          teacherUserId: selectedTeacherId,
+          studentUserIds: selectedStudentIds,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "老师负责学生保存失败。");
+      setSchoolRoster(payload as SchoolRoster);
+      setActionNotice("负责学生已保存。支持老师下次打开工作台时只会看到这些学生。");
+    } catch (rosterError) {
+      setError(rosterError instanceof Error ? rosterError.message : "老师负责学生保存失败。");
+    } finally {
+      setRosterSaving(false);
+    }
+  }
 
   async function handleCreateSchool(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -352,6 +446,118 @@ export default function AdminPage() {
                     </div>
                   </button>
                 )) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">暂时没有可管理的学校空间。</p>}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {overview?.admin.canManageMembers ? (
+        <section className="section section-muted">
+          <div className="container">
+            <SectionHeader
+              title="分配老师负责的学生"
+              description="支持老师只会看到分配给自己的学生记录；学校负责人仍可查看全校。"
+            />
+            <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+              <div className="card">
+                <label className="grid gap-2 text-sm font-bold text-ink">
+                  支持老师
+                  <select
+                    className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                    value={selectedTeacherId}
+                    onChange={(event) => setSelectedTeacherId(event.target.value)}
+                    disabled={rosterLoading || !schoolRoster?.teachers.length}
+                  >
+                    {!schoolRoster?.teachers.length ? <option value="">还没有支持老师</option> : null}
+                    {schoolRoster?.teachers.map((teacher) => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.display_name || teacher.email}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="mt-4 text-sm leading-7 text-muted">
+                  先在上方添加支持老师和学生，再为每位老师选择负责学生。
+                </p>
+                <div className="mt-6 rounded-2xl bg-cream px-4 py-4">
+                  <p className="text-xs font-bold text-sage-dark">当前已选择</p>
+                  <p className="mt-2 text-3xl font-bold text-ink">{selectedStudentIds.length} 人</p>
+                </div>
+              </div>
+
+              <div className="card">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="eyebrow">学生名单</p>
+                    <h2 className="mt-2 text-[1.35rem] font-bold text-ink">选择负责学生</h2>
+                  </div>
+                  {schoolRoster?.students.length ? (
+                    <button
+                      type="button"
+                      className="text-sm font-bold text-sage-dark"
+                      onClick={() =>
+                        setSelectedStudentIds(
+                          selectedStudentIds.length === schoolRoster.students.length
+                            ? []
+                            : schoolRoster.students.map((student) => student.id),
+                        )
+                      }
+                    >
+                      {selectedStudentIds.length === schoolRoster.students.length ? "取消全选" : "全选"}
+                    </button>
+                  ) : null}
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {rosterLoading ? (
+                    <p className="rounded-2xl bg-cream px-4 py-4 text-sm font-bold text-muted">正在加载学校名单……</p>
+                  ) : schoolRoster?.students.length ? (
+                    schoolRoster.students.map((student) => {
+                      const checked = selectedStudentIds.includes(student.id);
+                      return (
+                        <label
+                          key={student.id}
+                          className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-4 transition ${
+                            checked ? "border-sage bg-mint" : "border-ink/10 bg-white"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-1 h-4 w-4 accent-sage"
+                            checked={checked}
+                            onChange={() =>
+                              setSelectedStudentIds((current) =>
+                                checked
+                                  ? current.filter((id) => id !== student.id)
+                                  : [...current, student.id],
+                              )
+                            }
+                          />
+                          <span className="min-w-0">
+                            <span className="block font-bold text-ink">
+                              {student.display_name || "未填写昵称"}
+                            </span>
+                            <span className="mt-1 block break-all text-xs text-muted">{student.email}</span>
+                          </span>
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
+                      这所学校还没有学生账号。
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="button-primary mt-6 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
+                  disabled={rosterSaving || rosterLoading || !selectedTeacherId}
+                  onClick={saveTeacherStudents}
+                >
+                  {rosterSaving ? "保存中…" : "保存负责学生"}
+                </button>
               </div>
             </div>
           </div>
