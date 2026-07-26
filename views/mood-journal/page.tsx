@@ -131,7 +131,7 @@ export default function MoodJournalPage() {
                       key={word}
                       type="button"
                       onClick={() => toggleWord(word)}
-                      className={`rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
+                      className={`min-h-11 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
                         selectedWords.includes(word)
                           ? "border-sage bg-mist text-sage-dark"
                           : "border-ink/10 bg-white/80 text-ink/70 hover:border-sage/50"
@@ -201,10 +201,10 @@ export default function MoodJournalPage() {
             </button>
             <button
               type="button"
-              className="mt-4 block text-sm font-bold text-sage-dark"
+              className="button-secondary mt-3 w-full sm:w-auto"
               onClick={() => setShowAllStarters((current) => !current)}
             >
-              {showAllStarters ? "收起句式" : "查看更多句式"}
+              {showAllStarters ? "收起其他句式" : "查看其他句式"}
             </button>
             {showAllStarters ? (
               <div className="mt-5 grid gap-3">

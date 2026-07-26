@@ -173,7 +173,7 @@ export default function WorryTimePage() {
                         key={item}
                         type="button"
                         onClick={() => updateControl(index, item)}
-                        className={`rounded-full border px-4 py-2 text-center text-xs font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
+                        className={`min-h-11 rounded-full border px-4 py-2 text-center text-xs font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
                           controls[index] === item
                             ? "border-sage bg-mist text-sage-dark"
                             : "border-ink/10 bg-white text-ink/70 hover:border-sage/50"
@@ -208,7 +208,7 @@ export default function WorryTimePage() {
               <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
                 完成整理
               </button>
-              <button type="button" className="mt-3 w-full text-sm font-bold text-muted transition hover:text-sage-dark" onClick={reset}>
+              <button type="button" className="mt-3 min-h-11 w-full text-sm font-bold text-muted transition hover:text-sage-dark" onClick={reset}>
                 重新填写
               </button>
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}

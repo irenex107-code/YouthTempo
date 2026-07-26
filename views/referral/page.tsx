@@ -401,7 +401,7 @@ export default function ReferralPage() {
                         key={option}
                         type="button"
                         onClick={() => handleOptionClick(item, option)}
-                        className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
+                        className={`min-h-11 rounded-full border px-4 py-2 text-sm font-bold transition ${
                           selected
                             ? "border-sage bg-mist text-sage-dark shadow-sm ring-2 ring-sage/15"
                             : "border-ink/10 bg-white/80 text-muted hover:border-sage/50 hover:text-sage-dark"
