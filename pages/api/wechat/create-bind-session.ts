@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: "请先登录，再绑定微信。" });
-    if (!isWechatConfigured()) return res.status(500).json({ error: "微信小程序环境变量还没有配置完成。" });
+    if (!isWechatConfigured()) return res.status(503).json({ error: "微信绑定暂不可用，请稍后再试。" });
 
     const supabase = getSupabaseAdmin();
     const scene = crypto.randomUUID().replace(/-/g, "");

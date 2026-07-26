@@ -2,8 +2,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
-import { saveSweetRecord } from "@/lib/localRecords";
-import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
 type FieldType = "single" | "multi" | "text";
@@ -232,36 +230,16 @@ export default function CheckInPage() {
     }
     setSaving(true);
     try {
-      if (isSupabaseConfigured()) {
-        try {
-          const user = await getCurrentUser();
-          if (user) {
-            await saveCloudSweetRecord(recordPayload);
-            setSavedRecordKey(recordKey);
-            setSaveStatus("已保存到云端“我的记录”。你可以在账户页回看历史记录。");
-            return;
-          }
-          setSaveStatus("还没有登录，已先保存到当前浏览器。登录后可保存到云端历史记录。");
-        } catch (saveError) {
-          const message =
-            saveError instanceof Error
-              ? saveError.message
-              : typeof saveError === "object" &&
-                  saveError !== null &&
-                  "message" in saveError &&
-                  typeof saveError.message === "string"
-                ? saveError.message
-                : "云端保存暂时失败。";
-          setSaveStatus(`${message} 已尝试保存到当前浏览器作为备份。`);
-        }
-      }
-      const saved = saveSweetRecord(recordPayload);
-      if (saved) setSavedRecordKey(recordKey);
-      if (!isSupabaseConfigured()) {
-        setSaveStatus(saved ? "已保存到本地“我的记录”。连接 Supabase 后可保存到云端数据库。" : "当前浏览器暂时无法保存记录。");
+      const user = await getCurrentUser();
+      if (!user) {
+        setSaveStatus("请先登录，再保存这次记录。");
         return;
       }
-      if (!saved) setSaveStatus("当前浏览器暂时无法保存记录。");
+      await saveCloudSweetRecord(recordPayload);
+      setSavedRecordKey(recordKey);
+      setSaveStatus("已保存。可以在“我的记录”中查看。");
+    } catch {
+      setSaveStatus("保存失败，请稍后再试。");
     } finally {
       setSaving(false);
     }

@@ -7,35 +7,30 @@ const sweetObservations = [
   {
     letter: "S",
     title: "Sleep 睡眠",
-    label: "Sleep",
     question: "最近睡得是否稳定？",
     text: "比如入睡时间、夜里醒来、早晨疲惫感，是否和以前明显不同。",
   },
   {
     letter: "W",
     title: "Wake up on time 起床",
-    label: "Wake up on time",
     question: "早晨是否很难启动？",
     text: "起床、洗漱、出门或开始一天时，是否变得更吃力。",
   },
   {
     letter: "E",
     title: "Eat healthily 饮食",
-    label: "Eat healthily",
     question: "吃饭是否规律？",
     text: "精力是否有明显波动，是否常常没胃口、跳餐或靠零食撑过去。",
   },
   {
     letter: "E",
     title: "Exercise 运动",
-    label: "Exercise",
     question: "身体活动是否明显减少？",
     text: "孩子是否越来越少出门、运动或参与原本会做的活动。",
   },
   {
     letter: "T",
     title: "Task engagement 任务参与",
-    label: "Task engagement",
     question: "学习或生活任务是否很难开始？",
     text: "重点不是只看结果，而是看启动和维持是否变难。",
   },
@@ -79,8 +74,6 @@ const phrases = [
   "我们先聊十分钟，不用现在就解决。",
   "你还没想好怎么说也没关系。",
   "我先不评价，你说说最近最累的是哪一块。",
-  "我注意到你最近早上很难起来，是不是哪里卡住了？",
-  "我们先不谈对错，看看哪件事能让你轻松一点。",
 ];
 const parentStarts = [
   ["先观察 SWEET", "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。"],
@@ -93,17 +86,16 @@ export default function ForParentsPage() {
   return (
     <>
       <PageHero
-        label="For Parents"
         title="家长入口"
-        subtitle="更早理解孩子的节奏，比更晚处理危机更重要。SWEET 帮助家长看见孩子的生活节律，AIDET 帮助家长用更安全、不指责的方式开口沟通。"
+        subtitle="SWEET 帮助家长看见生活节律，AIDET 帮助家长用更安全、不指责的方式开口。"
       />
 
       <section className="section section-muted">
         <div className="container grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <InfoCard title="不是给孩子贴标签" label="No labeling">
-            平台不是为了判断孩子“有没有问题”，而是帮助家庭更早注意到日常节律、压力变化和支持需求。先看见状态，才更容易减少误解和冲突。
+          <InfoCard title="家长是观察者和支持者">
+            家长可以关注持续变化、提供稳定陪伴并在需要时连接学校或专业支持。家长默认不查看孩子的个人记录，也不需要根据一次记录给孩子下结论。
           </InfoCard>
-          <InfoCard title="从节律开始理解，而不是立刻追问原因" label="Daily rhythm first">
+          <InfoCard title="从节律开始，不急着追问原因">
             对很多孩子来说，直接回答“你到底怎么了”很难。SWEET 提供的是观察内容，AIDET 提供的是沟通方式，帮助家长先从更具体、更低压力的地方靠近孩子。
           </InfoCard>
         </div>
@@ -135,18 +127,14 @@ export default function ForParentsPage() {
             {sweetObservations.map((item) => (
               <article
                 key={item.title}
-                className="group flex min-h-[17rem] flex-col rounded-[1.35rem] border border-sage/15 bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white"
+                className="group flex flex-col rounded-2xl border border-sage/15 bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white lg:min-h-[17rem]"
               >
-                <div className="mb-5 flex items-start justify-between gap-3">
+                <div className="mb-5 flex items-start gap-3">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mist text-xl font-extrabold text-sage-dark">
                     {item.letter}
                   </div>
-                  <p className="rounded-full bg-cream-deep px-3 py-1 text-[0.7rem] font-bold text-sage-dark">
-                    SWEET
-                  </p>
                 </div>
                 <h3 className="text-[1.05rem] font-extrabold leading-snug text-ink">{item.title}</h3>
-                <p className="mt-2 text-xs font-bold text-sage">{item.label}</p>
                 <p className="mt-5 text-[1rem] font-bold leading-7 text-ink/85">{item.question}</p>
                 <p className="mt-3 text-[0.92rem] leading-7 text-muted">{item.text}</p>
               </article>
@@ -165,7 +153,7 @@ export default function ForParentsPage() {
             {aidetSteps.map((item) => (
               <article
                 key={item.title}
-                className="flex min-h-[18rem] flex-col rounded-[1.35rem] border border-ink/10 bg-white/90 p-5 shadow-soft"
+                className="flex flex-col rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft lg:min-h-[18rem]"
               >
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <span className="text-sm font-extrabold text-sage">{item.step}</span>
@@ -191,9 +179,9 @@ export default function ForParentsPage() {
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {phrases.map((phrase) => (
-              <InfoCard key={phrase} title={`“${phrase}”`} label="Conversation starter">
-                这类句式把重点放在理解状态，而不是立刻评价、纠正或要求改变。
-              </InfoCard>
+              <blockquote key={phrase} className="rounded-2xl border border-ink/10 bg-white/80 p-5 text-[0.95rem] font-bold leading-7 text-ink/80 shadow-soft">
+                “{phrase}”
+              </blockquote>
             ))}
           </div>
         </div>

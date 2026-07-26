@@ -1,6 +1,6 @@
 import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabaseClient";
-import type { SavedSweetRecordStep } from "@/lib/localRecords";
+import type { SavedSweetRecordStep } from "@/lib/sweetRecordTypes";
 
 export type UserRole = "学生" | "家长" | "学校支持人员";
 
@@ -223,6 +223,21 @@ export async function saveCloudSweetRecord(record: {
   const user = await getCurrentUser();
   if (!user) throw new Error("请先登录，再保存到云端记录。");
   const profile = await getProfile(user);
+  const { data: latestRecord, error: latestError } = await supabase
+    .from("sweet_records")
+    .select("id,user_id,school_id,records,summary,small_step,recommended_next_tool,created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (latestError) throw latestError;
+  if (
+    latestRecord &&
+    JSON.stringify(latestRecord.records) === JSON.stringify(record.records) &&
+    Date.now() - new Date(latestRecord.created_at).getTime() < 10 * 60 * 1000
+  ) {
+    return latestRecord as CloudSweetRecord;
+  }
   const { data, error } = await supabase
     .from("sweet_records")
     .insert({

@@ -20,9 +20,8 @@ export default function ContactPage() {
   return (
     <>
       <PageHero
-        label="Contact"
         title="联系我们"
-        subtitle="YouthTempo 仍在原型和试点准备阶段。欢迎学校、家长、学生和合作伙伴提出反馈，让这个工具更清楚、更安全、更能解决真实问题。"
+        subtitle="学校合作、产品反馈或隐私问题，可以联系 YouthTempo 项目负责人。"
       />
 
       <section className="section section-muted">
@@ -46,13 +45,10 @@ export default function ContactPage() {
           <div className="card">
             <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">联系信息</h2>
             <p className="mt-3 text-sm font-bold text-sage">YouthTempo 项目</p>
-            <p className="mt-5 text-[0.95rem] leading-7 text-muted">
-              当前原型阶段可先通过项目负责人 Irene 统一收集反馈。正式试点前，可以在这里补充学校合作邮箱、项目微信或报名表链接。
-            </p>
+            <p className="mt-5 text-[0.95rem] leading-7 text-muted">请通过邀请你使用 YouthTempo 的学校联系人或项目负责人 Irene 取得联系。</p>
             <div className="mt-6 grid gap-3 text-sm font-bold text-ink/80">
               <p className="rounded-2xl bg-cream px-4 py-3">负责人：Irene</p>
               <p className="rounded-2xl bg-cream px-4 py-3">用途：试点合作、产品反馈、隐私与数据问题</p>
-              <p className="rounded-2xl bg-cream px-4 py-3">状态：原型阶段，联系入口会随试点继续补充</p>
             </div>
           </div>
 

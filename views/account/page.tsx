@@ -23,7 +23,6 @@ import {
   signOut,
   verifyEmailOtp,
 } from "@/lib/cloudRecords";
-import { getSavedSweetRecords } from "@/lib/localRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 
 function formatDate(value: string) {
@@ -35,15 +34,9 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function recordPreview(record: CloudSweetRecord) {
-  return record.records
-    .map((step) => {
-      const filled = step.fields.filter((field) =>
-        Array.isArray(field.value) ? field.value.length > 0 : String(field.value || "").trim().length > 0,
-      );
-      return `${step.label} ${filled.length}/${step.fields.length}`;
-    })
-    .join(" / ");
+function formatRecordValue(value: string | string[]) {
+  if (Array.isArray(value)) return value.length ? value.join("、") : "未填写";
+  return String(value || "").trim() || "未填写";
 }
 
 function profileRoleLabel(value?: string | null) {
@@ -60,11 +53,11 @@ function recordsTitle(role: string) {
 }
 
 function recordsDescription(role: string, hasSchool: boolean) {
-  if (role === "学校负责人") return "这里显示你负责学校里的学生 SWEET 记录。你也可以进入试点管理台配置本校成员。";
-  if (role === "支持老师") return "这里显示你所在学校空间中学生的 SWEET 记录，用于试点支持和早期识别。";
-  if (role === "家长") return "家长端暂时不默认开放记录查看。后续会根据学校试点和家庭同意流程单独设计。";
-  if (hasSchool) return "你在学校试点空间中的 SWEET 记录会保存在这里，学校支持人员可用于支持和跟进。";
-  return "完成 SWEET 后点击保存，记录会出现在这里。当前账号还没有加入学校试点空间。";
+  if (role === "学校负责人") return "查看本校学生提交的记录，并进入管理台配置成员。";
+  if (role === "支持老师") return "这里只显示由学校分配给你的学生记录。";
+  if (role === "家长") return "家长默认不查看孩子的个人记录，可以在家长入口获得观察和沟通指引。";
+  if (hasSchool) return "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。";
+  return "完成 SWEET 后保存，即可在这里回看。";
 }
 
 function otpErrorMessage(error: unknown) {
@@ -85,7 +78,6 @@ export default function AccountPage() {
   const [wechatBindSession, setWechatBindSession] = useState<WechatBindSession | null>(null);
   const [wechatStatus, setWechatStatus] = useState("");
   const [wechatLoading, setWechatLoading] = useState(false);
-  const [localCount, setLocalCount] = useState(0);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -115,7 +107,6 @@ export default function AccountPage() {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
-      setLocalCount(getSavedSweetRecords().length);
       if (!currentUser) {
         setProfile(null);
         setAccountStatus(null);
@@ -332,19 +323,17 @@ export default function AccountPage() {
   return (
     <>
       <PageHero
-        label="Account & Records"
         title="登录与我的记录"
-        subtitle="YouthTempo 面向学校试点场景：学生记录自己的 SWEET 节律，学校支持人员在学校空间内查看学生记录，用于更早支持。"
+        subtitle="登录后保存、查看和管理你的 SWEET 记录。"
       />
 
       {!isSupabaseConfigured() ? (
         <section className="section section-muted">
           <div className="container">
             <div className="card">
-              <h2 className="text-[1.7rem] font-bold text-ink">需要先连接 Supabase</h2>
+              <h2 className="text-[1.7rem] font-bold text-ink">账户服务暂不可用</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                账号、数据库和学校空间管理已经写入代码。请检查当前部署平台的 Supabase
-                公开配置，并确认数据库初始化已经完成。
+                请稍后再试，或通过联系我们页面反馈问题。
               </p>
             </div>
           </div>
@@ -352,7 +341,7 @@ export default function AccountPage() {
       ) : null}
 
       <section className="section section-muted">
-        <div className="container grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
+        <div className={`container ${user ? "grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8" : "max-w-xl"}`}>
           <div className="card">
             <p className="eyebrow">{user ? "已登录" : "登录"}</p>
             <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
@@ -399,10 +388,9 @@ export default function AccountPage() {
                     <div className="mt-6 grid gap-4">
                       <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
                       <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
-                        <p className="text-xs font-bold text-sage-dark">当前试点身份</p>
+                        <p className="text-xs font-bold text-sage-dark">当前身份</p>
                         <p className="mt-2 text-xl font-bold text-ink">{confirmedRoleLabel}</p>
                         <p className="mt-2">
-                          这个身份由 YouthTempo 试点管理配置，不需要自己选择学生或家长身份。
                           {isSchoolAssignedStudent ? "你已经加入学校试点空间，可以继续完成 SWEET 记录；学校支持老师和学校负责人会在学校空间内查看记录，用于支持和跟进。" : null}
                           {displayRole === "学校负责人" ? "你可以进入试点管理台添加本校学生和支持老师。" : null}
                           {displayRole === "支持老师" ? "你可以查看本校学生记录，用于试点支持。" : null}
@@ -432,9 +420,6 @@ export default function AccountPage() {
                           <option>家长</option>
                         </select>
                       </label>
-                      <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-7 text-muted">
-                        学校试点中，学生加入学校空间后，本校支持老师和学校负责人可查看学生记录。学校归属由学校统一配置。
-                      </p>
                       <div className="grid gap-3 sm:flex sm:flex-wrap">
                         <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
                         <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
@@ -506,7 +491,7 @@ export default function AccountPage() {
             {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
           </div>
 
-          <div className="card">
+          {user ? <div className="card">
             <h2 className="text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账户概览</h2>
             <div className="mt-6 grid gap-3">
               <div className="rounded-2xl bg-cream px-4 py-4">
@@ -518,7 +503,7 @@ export default function AccountPage() {
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
                   <p className="text-xs font-bold text-sage">可见记录</p>
                   <p className="mt-2 text-2xl font-bold text-ink">{records.length} 条</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">根据账号角色和学校空间显示。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">可在下方展开查看。</p>
                 </div>
                 <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
                   <p className="text-xs font-bold text-sage">学校空间</p>
@@ -526,13 +511,6 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">由试点学校统一配置。</p>
                 </div>
               </div>
-              {displayRole === "学生" && !isIdentityLoading ? (
-                <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
-                  <p className="text-xs font-bold text-sage">本地备份</p>
-                  <p className="mt-2 text-2xl font-bold text-ink">{localCount} 条</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">保留在当前浏览器。</p>
-                </div>
-              ) : null}
               {adminAccess ? (
                 <div className="rounded-2xl border border-sage/45 bg-mint px-4 py-4">
                   <p className="text-xs font-bold text-sage-dark">管理权限</p>
@@ -545,7 +523,7 @@ export default function AccountPage() {
                 </div>
               ) : null}
             </div>
-          </div>
+          </div> : null}
         </div>
       </section>
 
@@ -568,7 +546,26 @@ export default function AccountPage() {
                         <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>删除</button>
                       ) : null}
                     </div>
-                    <p className="mt-4 text-sm leading-7 text-muted">{recordPreview(record)}</p>
+                    <details className="mt-4 rounded-2xl border border-ink/10 bg-white/70">
+                      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-sage-dark">
+                        查看完整记录
+                      </summary>
+                      <div className="grid gap-5 border-t border-ink/10 px-4 py-5">
+                        {record.records.map((step) => (
+                          <div key={step.id}>
+                            <h4 className="text-sm font-bold text-ink">{step.label} · {step.title}</h4>
+                            <dl className="mt-3 grid gap-3">
+                              {step.fields.map((field) => (
+                                <div key={field.id} className="rounded-xl bg-cream px-4 py-3">
+                                  <dt className="text-xs font-bold leading-5 text-muted">{field.title}</dt>
+                                  <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value)}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                     {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
                     {record.small_step ? <p className="mt-4 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">可以先做的一件小事：{record.small_step}</p> : null}
                     {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">推荐下一步：{record.recommended_next_tool}</p> : null}
