@@ -74,6 +74,19 @@ create table if not exists public.school_members (
   unique (school_id, user_id)
 );
 
+create table if not exists public.teacher_student_assignments (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references public.schools(id) on delete cascade,
+  teacher_user_id uuid not null references auth.users(id) on delete cascade,
+  student_user_id uuid not null references auth.users(id) on delete cascade,
+  assigned_by uuid references auth.users(id) on delete set null,
+  status text not null default 'active' check (status in ('active', 'revoked')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  revoked_at timestamptz,
+  unique (school_id, teacher_user_id, student_user_id)
+);
+
 create table if not exists public.school_invites (
   id uuid primary key default gen_random_uuid(),
   school_id uuid not null references public.schools(id) on delete cascade,
@@ -157,6 +170,7 @@ alter table public.schools enable row level security;
 alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
 alter table public.school_members enable row level security;
+alter table public.teacher_student_assignments enable row level security;
 alter table public.school_invites enable row level security;
 alter table public.user_permissions enable row level security;
 alter table public.wechat_identities enable row level security;
@@ -216,7 +230,20 @@ using (
     where member.school_id = sweet_records.school_id
       and member.user_id = (select auth.uid())
       and member.status = 'active'
-      and member.member_role in ('school_support', 'school_admin')
+      and (
+        member.member_role = 'school_admin'
+        or (
+          member.member_role = 'school_support'
+          and exists (
+            select 1
+            from public.teacher_student_assignments assignment
+            where assignment.school_id = sweet_records.school_id
+              and assignment.teacher_user_id = (select auth.uid())
+              and assignment.student_user_id = sweet_records.user_id
+              and assignment.status = 'active'
+          )
+        )
+      )
   )
 );
 
@@ -248,6 +275,12 @@ to authenticated
 using (
   user_id = (select auth.uid())
 );
+
+drop policy if exists "teacher_assignments_select_own" on public.teacher_student_assignments;
+create policy "teacher_assignments_select_own"
+on public.teacher_student_assignments for select
+to authenticated
+using (teacher_user_id = (select auth.uid()));
 
 drop policy if exists "school_invites_select_relevant" on public.school_invites;
 create policy "school_invites_select_relevant"
@@ -322,6 +355,18 @@ on public.school_members(user_id, status);
 
 create index if not exists school_members_school_status_idx
 on public.school_members(school_id, status);
+
+create index if not exists teacher_assignments_teacher_status_idx
+on public.teacher_student_assignments(teacher_user_id, status);
+
+create index if not exists teacher_assignments_student_status_idx
+on public.teacher_student_assignments(student_user_id, status);
+
+create index if not exists teacher_assignments_school_status_idx
+on public.teacher_student_assignments(school_id, status);
+
+create index if not exists teacher_assignments_assigned_by_idx
+on public.teacher_student_assignments(assigned_by);
 
 create unique index if not exists school_invites_active_email_school_role_idx
 on public.school_invites (lower(email), school_id, assignment_role)
