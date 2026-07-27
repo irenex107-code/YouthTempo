@@ -51,7 +51,7 @@ export const sweetModules = [
 export const footerLinks = [
   { label: "家校资源", href: "/resources" },
   { label: "支持路径", href: "/referral" },
-  { label: "我的记录", href: "/account" },
+  { label: "账号", href: "/account" },
   { label: "隐私与安全", href: "/privacy-safety" },
   { label: "联系我们", href: "/contact" },
 ];

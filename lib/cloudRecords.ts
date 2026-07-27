@@ -197,6 +197,9 @@ export async function saveProfile(user: User, displayName: string, role: string)
   };
   const { data, error } = await supabase.from("profiles").upsert(payload).select("*").single();
   if (error) throw error;
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("youthtempo:profile-updated"));
+  }
   return { ...data, role: normalizeRole(data.role) } as CloudProfile;
 }
 

@@ -336,7 +336,7 @@ export default function AdminPage() {
               <h2 className="mt-3 text-[1.6rem] font-bold text-ink">需要管理权限</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">{error}</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href="/account" className="button-primary">去登录 / 我的记录</Link>
+                <Link href="/account" className="button-primary">去账号登录</Link>
                 <Link href="/contact" className="button-secondary">查看联系入口</Link>
               </div>
             </div>

@@ -17,7 +17,7 @@ const pageTitles: Record<string, string> = {
   "/resources": "家校资源 | YouthTempo",
   "/privacy-safety": "隐私与安全 | YouthTempo",
   "/contact": "联系我们 | YouthTempo",
-  "/account": "登录与我的记录 | YouthTempo",
+  "/account": "账号 | YouthTempo",
   "/admin": "试点管理台 | YouthTempo",
 };
 

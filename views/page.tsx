@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useState } from "react";
 import { InfoCard } from "@/components/Cards";
 import { SectionHeader } from "@/components/SectionHeader";
 
@@ -46,7 +47,31 @@ const heroSweetItems = [
   { title: "任务投入", label: "Task" },
 ];
 
+const demoOptions = [
+  {
+    id: "steady",
+    label: "还算顺利",
+    summary: "今天早晨的节奏还算稳定。",
+    step: "保留现在有效的做法就好，不需要额外给自己加任务。",
+  },
+  {
+    id: "slow",
+    label: "有点费力",
+    summary: "今天早晨启动有点费力。这是状态线索，不是对能力的判断。",
+    step: "先选一件最小的事开始，例如洗漱、喝水或收好书包。",
+  },
+  {
+    id: "stuck",
+    label: "很难开始",
+    summary: "今天早晨很难启动，可以再看看睡眠或压力是不是也在影响你。",
+    step: "把必须做的事缩成一步，也可以告诉一个你信任的大人。",
+  },
+] as const;
+
 export default function Home() {
+  const [demoChoice, setDemoChoice] = useState<(typeof demoOptions)[number]["id"]>("slow");
+  const demoResult = demoOptions.find((item) => item.id === demoChoice) ?? demoOptions[1];
+
   return (
     <>
       <section className="section">
@@ -86,6 +111,56 @@ export default function Home() {
       </section>
 
       <section className="section section-muted">
+        <div className="container grid items-center gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+          <div>
+            <p className="eyebrow">10 秒体验</p>
+            <h2 className="mt-3 max-w-2xl text-[1.8rem] font-bold leading-[1.25] text-ink sm:text-[2.35rem]">
+              一次记录会得到什么？
+            </h2>
+            <p className="mt-4 max-w-2xl text-[0.95rem] leading-7 text-muted">
+              先从一个具体状态开始。YouthTempo 会帮你把变化说清楚，再找到一个容易开始的小行动。
+            </p>
+            <Link href="/check-in" className="button-primary mt-6 w-full sm:w-auto">
+              开始完整 SWEET 记录
+            </Link>
+          </div>
+
+          <div className="card">
+            <p className="text-sm font-bold text-ink">今天早晨开始一天时，你感觉怎么样？</p>
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3" role="group" aria-label="选择今天早晨的状态">
+              {demoOptions.map((item) => {
+                const selected = demoChoice === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`min-h-12 rounded-2xl border px-4 py-3 text-sm font-bold transition ${
+                      selected
+                        ? "border-sage bg-mint text-sage-dark"
+                        : "border-ink/10 bg-white text-ink/70 hover:border-sage/50"
+                    }`}
+                    aria-pressed={selected}
+                    onClick={() => setDemoChoice(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-5 border-t border-ink/10 pt-5" aria-live="polite">
+              <p className="text-xs font-bold text-sage-dark">整理结果</p>
+              <p className="mt-2 text-base font-bold leading-7 text-ink">{demoResult.summary}</p>
+              <p className="mt-3 text-[0.95rem] leading-7 text-muted">
+                <span className="font-bold text-ink">可以先做：</span>
+                {demoResult.step}
+              </p>
+            </div>
+            <p className="mt-4 text-xs leading-6 text-muted">这是产品示例，不会保存你的选择。</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
         <div className="container">
           <SectionHeader
             label="Why Early Support"

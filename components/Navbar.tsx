@@ -1,51 +1,88 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { useEffect, useRef, useState } from "react";
 import { navItems } from "@/data/site";
-import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
-
-async function canOpenAdmin() {
-  if (!isSupabaseConfigured()) return false;
-  const supabase = getSupabase();
-  if (!supabase) return false;
-
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) return false;
-
-  try {
-    const response = await fetch("/api/admin/overview", {
-      headers: { authorization: `Bearer ${token}` },
-    });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
+import { getSupabase } from "@/lib/supabaseClient";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAdminLink, setShowAdminLink] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [accountName, setAccountName] = useState("");
+  const refreshVersionRef = useRef(0);
 
   useEffect(() => {
     const supabase = getSupabase();
     let mounted = true;
 
-    async function refreshAdminLink() {
-      const allowed = await canOpenAdmin();
-      if (mounted) setShowAdminLink(allowed);
+    async function refreshAccount(session?: Session | null) {
+      const refreshVersion = refreshVersionRef.current + 1;
+      refreshVersionRef.current = refreshVersion;
+
+      let activeSession = session;
+      if (activeSession === undefined) {
+        const { data } = await supabase?.auth.getSession() || { data: { session: null } };
+        activeSession = data.session;
+      }
+
+      if (!mounted || refreshVersion !== refreshVersionRef.current) return;
+      if (!activeSession) {
+        setSignedIn(false);
+        setAccountName("");
+        setShowAdminLink(false);
+        setAuthReady(true);
+        return;
+      }
+
+      setSignedIn(true);
+      const metadataName =
+        typeof activeSession.user.user_metadata?.display_name === "string"
+          ? activeSession.user.user_metadata.display_name.trim()
+          : "";
+
+      try {
+        const response = await fetch("/api/account/status", {
+          headers: { authorization: `Bearer ${activeSession.access_token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "账号状态加载失败。");
+        if (!mounted || refreshVersion !== refreshVersionRef.current) return;
+        const displayName =
+          typeof data.profile?.display_name === "string"
+            ? data.profile.display_name.trim()
+            : "";
+        setAccountName(displayName || metadataName);
+        setShowAdminLink(Boolean(data.adminAccess));
+      } catch {
+        if (!mounted || refreshVersion !== refreshVersionRef.current) return;
+        setAccountName(metadataName);
+        setShowAdminLink(false);
+      } finally {
+        if (mounted && refreshVersion === refreshVersionRef.current) setAuthReady(true);
+      }
     }
 
-    refreshAdminLink();
+    refreshAccount();
 
-    const subscription = supabase?.auth.onAuthStateChange(() => {
-      refreshAdminLink();
+    const subscription = supabase?.auth.onAuthStateChange((_event, session) => {
+      refreshAccount(session);
     });
+    const handleProfileUpdated = () => refreshAccount();
+    window.addEventListener("youthtempo:profile-updated", handleProfileUpdated);
 
     return () => {
       mounted = false;
       subscription?.data.subscription.unsubscribe();
+      window.removeEventListener("youthtempo:profile-updated", handleProfileUpdated);
     };
   }, []);
+
+  const accountLabel = signedIn
+    ? accountName
+      ? `你好，${accountName}！`
+      : "你好！"
+    : "登录 / 我的记录";
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/92 backdrop-blur">
@@ -67,9 +104,17 @@ export function Navbar() {
             ) : null}
           </nav>
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
-            <Link href="/account" className="button-secondary px-4 py-2 text-xs sm:px-5">
-              登录 / 我的记录
-            </Link>
+            {authReady ? (
+              <Link
+                href="/account"
+                className="button-secondary max-w-48 truncate px-4 py-2 text-xs sm:px-5"
+                title={accountLabel}
+              >
+                {accountLabel}
+              </Link>
+            ) : (
+              <span className="h-9 w-28 animate-pulse rounded-full bg-ink/5" aria-label="正在加载账号" />
+            )}
             <Link href="/check-in" className="button-primary px-4 py-2 text-xs sm:px-5">
               开始 SWEET 节律
             </Link>
@@ -111,9 +156,13 @@ export function Navbar() {
                 </Link>
               ) : null}
               <div className="mt-1 grid gap-2 border-t border-ink/10 pt-3">
-                <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
-                  登录 / 我的记录
-                </Link>
+                {authReady ? (
+                  <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
+                    {accountLabel}
+                  </Link>
+                ) : (
+                  <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label="正在加载账号" />
+                )}
                 <Link href="/check-in" className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
                   开始 SWEET 节律
                 </Link>

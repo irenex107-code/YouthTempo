@@ -34,6 +34,21 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function countRecentRecordDays(records: CloudSweetRecord[], userId?: string) {
+  if (!userId) return 0;
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+  const days = new Set(
+    records
+      .filter((record) => record.user_id === userId && new Date(record.created_at) >= start)
+      .map((record) => {
+        const date = new Date(record.created_at);
+        return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      }),
+  );
+  return days.size;
+}
+
 function formatRecordValue(value: string | string[]) {
   if (Array.isArray(value)) return value.length ? value.join("、") : "未填写";
   return String(value || "").trim() || "未填写";
@@ -46,18 +61,28 @@ function profileRoleLabel(value?: string | null) {
 }
 
 function recordsTitle(role: string) {
-  if (role === "学校负责人") return "本校 SWEET 记录";
-  if (role === "支持老师") return "本校 SWEET 记录";
-  if (role === "家长") return "孩子分享的 SWEET 记录";
+  if (role === "平台管理员") return "试点 SWEET 记录";
+  if (role === "学校负责人") return "本校学生的 SWEET 记录";
+  if (role === "支持老师") return "负责学生的 SWEET 记录";
+  if (role === "家长") return "这个账号保存的 SWEET 记录";
   return "我的 SWEET 历史记录";
 }
 
 function recordsDescription(role: string, hasSchool: boolean) {
+  if (role === "平台管理员") return "查看试点记录概况，具体学校管理请进入试点管理台。";
   if (role === "学校负责人") return "查看本校学生提交的记录，并进入管理台配置成员。";
   if (role === "支持老师") return "这里只显示由学校分配给你的学生记录。";
-  if (role === "家长") return "家长默认不查看孩子的个人记录，可以在家长入口获得观察和沟通指引。";
+  if (role === "家长") return "目前只显示这个账号自己保存的记录，不会自动显示孩子的记录。";
   if (hasSchool) return "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。";
   return "完成 SWEET 后保存，即可在这里回看。";
+}
+
+function emptyRecordsDescription(role: string) {
+  if (role === "学生") return "完成一次 SWEET 节律记录并保存后，会显示在这里。";
+  if (role === "家长") return "家长账号目前不会自动显示孩子的记录。家长入口提供观察和沟通指引。";
+  if (role === "支持老师") return "学校负责人分配学生后，这里会显示你负责学生的记录。";
+  if (role === "学校负责人") return "本校学生保存 SWEET 记录后，会显示在这里。";
+  return "试点产生记录后，会显示在这里。";
 }
 
 function otpErrorMessage(error: unknown) {
@@ -98,6 +123,7 @@ export default function AccountPage() {
   const isSchoolAssignedStudent = !isIdentityLoading && displayRole === "学生" && hasSchool;
   const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent;
   const confirmedRoleLabel = isSchoolAssignedStudent ? "学校学生" : displayRole;
+  const recentRecordDays = countRecentRecordDays(records, user?.id);
 
   async function refreshAccount() {
     setLoading(true);
@@ -139,7 +165,7 @@ export default function AccountPage() {
           nextProfile = await getProfile(currentUser);
         } catch (profileError) {
           console.warn("Profile fallback failed", profileError);
-          nonFatalNotice = nonFatalNotice || "账户资料暂时没有加载完整，但不影响退出登录或重新尝试。";
+          nonFatalNotice = nonFatalNotice || "账号资料暂时没有加载完整，可以稍后重试。";
         }
       }
 
@@ -277,7 +303,7 @@ export default function AccountPage() {
       const nextProfile = await saveProfile(user, name.trim(), role);
       setProfile(nextProfile);
       setRole(profileRoleLabel(nextProfile.role));
-      setNotice("账户资料已保存。");
+      setNotice("账号资料已保存。");
     } catch (profileError) {
       setError(profileError instanceof Error ? profileError.message : "资料保存失败。");
     }
@@ -323,15 +349,15 @@ export default function AccountPage() {
   return (
     <>
       <PageHero
-        title="登录与我的记录"
-        subtitle="登录后保存、查看和管理你的 SWEET 记录。"
+        title="账号"
+        subtitle="登录后，你可以保存和查看 SWEET 记录。"
       />
 
       {!isSupabaseConfigured() ? (
         <section className="section section-muted">
           <div className="container">
             <div className="card">
-              <h2 className="text-[1.7rem] font-bold text-ink">账户服务暂不可用</h2>
+              <h2 className="text-[1.7rem] font-bold text-ink">账号服务暂不可用</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">
                 请稍后再试，或通过联系我们页面反馈问题。
               </p>
@@ -352,7 +378,7 @@ export default function AccountPage() {
                     ? "微信绑定"
                     : isExternallyManagedRole
                       ? "试点身份"
-                      : "账户资料"
+                      : "账号资料"
                 : otpSent
                   ? "输入验证码"
                   : "邮箱登录"}
@@ -365,7 +391,7 @@ export default function AccountPage() {
                     className={`rounded-xl px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                     onClick={() => setAccountTab("profile")}
                   >
-                    {isExternallyManagedRole ? "试点身份" : "账户资料"}
+                    {isExternallyManagedRole ? "试点身份" : "账号资料"}
                   </button>
                   <button
                     type="button"
@@ -380,7 +406,7 @@ export default function AccountPage() {
                     <div className="mt-6 grid gap-4">
                       <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
                       <p className="rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">
-                        正在确认账户身份…
+                        正在确认身份…
                       </p>
                       <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
                     </div>
@@ -429,7 +455,7 @@ export default function AccountPage() {
                 ) : (
                   <div className="mt-6 grid gap-4">
                     <p className="text-[0.95rem] leading-7 text-muted">
-                      生成绑定码后用微信扫描进入小程序，绑定成功后这个微信身份会关联到当前账户。绑定不影响邮箱登录，也不会改变已有记录。
+                      用微信扫描绑定码后，这个微信身份会关联到当前账号。邮箱登录和已有记录不会受到影响。
                     </p>
                     {wechatBindSession ? (
                       <div className="rounded-3xl border border-ink/10 bg-white p-3">
@@ -438,7 +464,7 @@ export default function AccountPage() {
                       </div>
                     ) : (
                       <div className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
-                        {wechatIdentities.length > 0 ? "当前账户已经绑定微信，可继续使用邮箱登录和云端记录。" : "还没有绑定微信。生成绑定码后，二维码会显示在这里。"}
+                        {wechatIdentities.length > 0 ? "这个账号已经绑定微信。" : "还没有绑定微信。"}
                       </div>
                     )}
                     <button
@@ -492,7 +518,7 @@ export default function AccountPage() {
           </div>
 
           {user ? <div className="card">
-            <h2 className="text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账户概览</h2>
+            <h2 className="text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账号概览</h2>
             <div className="mt-6 grid gap-3">
               <div className="rounded-2xl bg-cream px-4 py-4">
                 <p className="text-xs font-bold text-sage">当前身份</p>
@@ -510,6 +536,18 @@ export default function AccountPage() {
                   <p className="mt-2 text-2xl font-bold text-ink">{isIdentityLoading ? "确认中" : hasSchool ? "已加入" : "未加入"}</p>
                   <p className="mt-2 text-sm leading-6 text-muted">由试点学校统一配置。</p>
                 </div>
+                {!isIdentityLoading && displayRole === "学生" ? (
+                  <div className="rounded-2xl border border-sage/30 bg-mist/60 px-4 py-4 sm:col-span-2">
+                    <p className="text-xs font-bold text-sage">本周节律记录</p>
+                    <p className="mt-2 text-2xl font-bold text-ink">{recentRecordDays} 天</p>
+                    <p className="mt-2 text-sm leading-6 text-muted">
+                      不需要每天都做到。想回来看一眼时，30 秒也可以。
+                    </p>
+                    <Link href="/check-in" className="mt-3 inline-flex text-sm font-bold text-sage-dark hover:text-sage">
+                      记录今天
+                    </Link>
+                  </div>
+                ) : null}
               </div>
               {adminAccess ? (
                 <div className="rounded-2xl border border-sage/45 bg-mint px-4 py-4">
@@ -534,7 +572,7 @@ export default function AccountPage() {
           {!loading && records.length > 0 ? (
             <div className="grid gap-5">
               {records.map((record) => {
-                const canDelete = displayRole === "学生" && record.user_id === user?.id;
+                const canDelete = record.user_id === user?.id;
                 return (
                   <article key={record.id} className="card">
                     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -577,12 +615,10 @@ export default function AccountPage() {
           {!loading && records.length === 0 ? (
             <div className="card">
               <h3 className="text-xl font-bold text-ink">暂时没有可见记录</h3>
-              <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                {displayRole === "学生"
-                  ? "登录后完成一次 SWEET 节律记录，并在结果页保存。"
-                  : "当学校空间中有学生记录，且你的试点身份配置完成后，会显示在这里。"}
-              </p>
+              <p className="mt-4 text-[0.95rem] leading-7 text-muted">{emptyRecordsDescription(displayRole)}</p>
               {displayRole === "学生" ? <Link href="/check-in" className="button-primary mt-6 w-full sm:w-auto">开始 SWEET 节律记录</Link> : null}
+              {displayRole === "家长" ? <Link href="/for-parents" className="button-secondary mt-6 w-full sm:w-auto">查看家长入口</Link> : null}
+              {adminAccess ? <Link href="/admin" className="button-secondary mt-6 w-full sm:w-auto">进入试点管理台</Link> : null}
             </div>
           ) : null}
         </div>

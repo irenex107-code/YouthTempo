@@ -130,6 +130,7 @@ export default function CheckInPage() {
     task: false,
   });
   const questionCardRef = useRef<HTMLElement | null>(null);
+  const resultRef = useRef<HTMLElement | null>(null);
   const shouldScrollToQuestionRef = useRef(false);
 
   const step = steps[currentStep];
@@ -147,6 +148,11 @@ export default function CheckInPage() {
     shouldScrollToQuestionRef.current = false;
     questionCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [currentStep]);
+
+  useEffect(() => {
+    if (!aiResult) return;
+    resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [aiResult]);
 
   function goToStep(index: number) {
     shouldScrollToQuestionRef.current = true;
@@ -237,7 +243,7 @@ export default function CheckInPage() {
       }
       await saveCloudSweetRecord(recordPayload);
       setSavedRecordKey(recordKey);
-      setSaveStatus("已保存。可以在“我的记录”中查看。");
+      setSaveStatus("已保存，可以在“账号”中查看。");
     } catch {
       setSaveStatus("保存失败，请稍后再试。");
     } finally {
@@ -246,6 +252,7 @@ export default function CheckInPage() {
   }
 
   async function generateSummary() {
+    if (loading) return;
     if (!allRequiredDone) {
       setValidation("请先完成五个 SWEET 维度的必要记录，再生成回应。");
       return;
@@ -427,23 +434,30 @@ export default function CheckInPage() {
                     下一步
                   </button>
                 ) : (
-                  <>
-                    <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || saving} onClick={saveCurrentRecord}>
-                      {saving ? "正在保存..." : "完成并保存"}
-                    </button>
-                    <button type="button" className="button-secondary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading} onClick={generateSummary}>
-                      {loading ? "正在生成小结……" : "看看 AI 小结（可选）"}
-                    </button>
-                  </>
+                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading} onClick={generateSummary}>
+                    {loading ? "正在整理..." : "完成并生成小结"}
+                  </button>
                 )}
               </div>
             </article>
 
             {saveStatus ? <p className="mt-5 rounded-2xl bg-white/80 p-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
-            {error ? <div className="mt-6 rounded-2xl bg-white/80 p-5 text-sm font-bold text-sage-dark">{error}</div> : null}
+            {error ? (
+              <div className="mt-6 rounded-2xl bg-white/80 p-5">
+                <p className="text-sm font-bold text-sage-dark">{error}</p>
+                <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
+                  <button type="button" className="button-primary w-full sm:w-auto" disabled={loading} onClick={generateSummary}>
+                    {loading ? "正在重试..." : "重新生成"}
+                  </button>
+                  <button type="button" className="button-secondary w-full sm:w-auto" disabled={saving} onClick={saveCurrentRecord}>
+                    {saving ? "正在保存..." : "先保存记录"}
+                  </button>
+                </div>
+              </div>
+            ) : null}
 
             {aiResult ? (
-              <section className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
+              <section ref={resultRef} className="mt-8 scroll-mt-24 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:scroll-mt-28 sm:p-8">
                 <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今日 SWEET 节律小结</h2>
                 <p className="mt-4 text-base leading-8 text-muted">{aiResult.summary}</p>
                 <div className="mt-6 grid gap-4">
@@ -466,7 +480,10 @@ export default function CheckInPage() {
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
                 <p className="mt-4 text-xs leading-6 text-muted">这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。</p>
                 <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
-                  <Link href="/mood-journal" className="button-primary w-full sm:w-auto">进入情绪表达</Link>
+                  <button type="button" className="button-primary w-full sm:w-auto" disabled={saving} onClick={saveCurrentRecord}>
+                    {saving ? "正在保存..." : "保存到账号"}
+                  </button>
+                  <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">进入情绪表达</Link>
                   <Link href="/worry-time" className="button-secondary w-full sm:w-auto">做睡前整理</Link>
                   <Link href="/referral" className="button-secondary w-full sm:w-auto">查看支持路径</Link>
                   <button type="button" className="button-secondary w-full sm:w-auto" onClick={reset}>重新填写</button>
