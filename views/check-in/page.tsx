@@ -217,6 +217,21 @@ export default function CheckInPage() {
     }));
   }
 
+  function recordSaveErrorMessage(saveError: unknown) {
+    const message = saveError instanceof Error ? saveError.message : "";
+    const normalized = message.toLowerCase();
+    if (normalized.includes("jwt") || normalized.includes("session") || normalized.includes("登录")) {
+      return "登录状态已过期，请重新登录后再保存。";
+    }
+    if (normalized.includes("row-level security") || normalized.includes("permission") || normalized.includes("42501")) {
+      return "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。";
+    }
+    if (normalized.includes("fetch") || normalized.includes("network") || normalized.includes("failed to")) {
+      return "网络连接不稳定，请检查网络后重新保存。";
+    }
+    return "云端保存失败，请稍后重新保存。";
+  }
+
   async function saveCurrentRecord() {
     if (saving) return;
     if (!allRequiredDone) {
@@ -244,8 +259,9 @@ export default function CheckInPage() {
       await saveCloudSweetRecord(recordPayload);
       setSavedRecordKey(recordKey);
       setSaveStatus("已保存，可以在“账号”中查看。");
-    } catch {
-      setSaveStatus("保存失败，请稍后再试。");
+    } catch (saveError) {
+      console.error("SWEET record save failed", saveError);
+      setSaveStatus(recordSaveErrorMessage(saveError));
     } finally {
       setSaving(false);
     }
