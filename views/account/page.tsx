@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { SectionHeader } from "@/components/SectionHeader";
 import {
@@ -60,25 +60,24 @@ function profileRoleLabel(value?: string | null) {
 }
 
 function recordsTitle(role: string) {
-  if (role === "平台管理员") return "试点 SWEET 记录";
   if (role === "学校负责人") return "本校学生的 SWEET 记录";
   if (role === "支持老师") return "负责学生的 SWEET 记录";
-  if (role === "家长") return "这个账号保存的 SWEET 记录";
+  if (role === "家长") return "孩子的 SWEET 记录";
   return "我的 SWEET 历史记录";
 }
 
 function recordsDescription(role: string, hasSchool: boolean) {
-  if (role === "平台管理员") return "查看试点记录概况，具体学校管理请进入试点管理台。";
-  if (role === "学校负责人") return "查看本校学生提交的记录，并进入管理台配置成员。";
-  if (role === "支持老师") return "这里只显示由学校分配给你的学生记录。";
-  if (role === "家长") return "目前只显示这个账号自己保存的记录，不会自动显示孩子的记录。";
+  if (role === "平台管理员") return "进入平台管理，查看全部学校、成员和负责关系。";
+  if (role === "学校负责人") return "管理本校成员，同时查看本校学生提交的记录。";
+  if (role === "支持老师") return "查看学校分配给你的学生记录和近期变化。";
+  if (role === "家长") return "亲子关系确认后，在这里查看孩子共享的节律记录。";
   if (hasSchool) return "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。";
   return "完成 SWEET 后保存，即可在这里回看。";
 }
 
 function emptyRecordsDescription(role: string) {
   if (role === "学生") return "完成一次 SWEET 节律记录并保存后，会显示在这里。";
-  if (role === "家长") return "家长账号目前不会自动显示孩子的记录。家长入口提供观察和沟通指引。";
+  if (role === "家长") return "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由试点学校确认。";
   if (role === "支持老师") return "学校负责人分配学生后，这里会显示你负责学生的记录。";
   if (role === "学校负责人") return "本校学生保存 SWEET 记录后，会显示在这里。";
   return "试点产生记录后，会显示在这里。";
@@ -106,6 +105,8 @@ export default function AccountPage() {
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpRequestInFlight = useRef(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState("学生");
   const [accountTab, setAccountTab] = useState<"profile" | "wechat">("profile");
@@ -128,6 +129,10 @@ export default function AccountPage() {
   const recentRecordDays = countRecentRecordDays(records, user?.id);
   const accountName = profile?.display_name?.trim() || user?.email || "你的账户";
   const isInitialAccountLoad = loading && !user;
+  const isPlatformAdmin = displayRole === "平台管理员";
+  const isSchoolLead = displayRole === "学校负责人";
+  const isSupportTeacher = displayRole === "支持老师";
+  const isParent = displayRole === "家长";
 
   async function refreshAccount() {
     setLoading(true);
@@ -245,18 +250,30 @@ export default function AccountPage() {
     return () => window.clearInterval(interval);
   }, [wechatBindSession]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setInterval(() => {
+      setResendCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [resendCooldown]);
+
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (otpRequestInFlight.current) return;
+    otpRequestInFlight.current = true;
     setNotice("");
     setError("");
     setAuthLoading(true);
     try {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
+      setResendCooldown(60);
       setNotice("验证码已发送。请查看邮箱。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
+      otpRequestInFlight.current = false;
       setAuthLoading(false);
     }
   }
@@ -284,16 +301,20 @@ export default function AccountPage() {
   }
 
   async function resendOtp() {
+    if (otpRequestInFlight.current || resendCooldown > 0) return;
+    otpRequestInFlight.current = true;
     setNotice("");
     setError("");
     setAuthLoading(true);
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
+      setResendCooldown(60);
       setNotice("新的验证码已发送。");
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
+      otpRequestInFlight.current = false;
       setAuthLoading(false);
     }
   }
@@ -426,8 +447,13 @@ export default function AccountPage() {
                   </button>
                   {otpSent ? (
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                      <button type="button" className="font-bold text-sage-dark hover:text-sage" onClick={resendOtp} disabled={authLoading}>
-                        重新发送验证码
+                      <button
+                        type="button"
+                        className="font-bold text-sage-dark hover:text-sage disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={resendOtp}
+                        disabled={authLoading || resendCooldown > 0}
+                      >
+                        {resendCooldown > 0 ? `${resendCooldown} 秒后可重新发送` : "重新发送验证码"}
                       </button>
                       <button
                         type="button"
@@ -469,7 +495,12 @@ export default function AccountPage() {
                 </div>
                 {!needsPersonalProfile ? (
                   <div className="grid shrink-0 gap-3 sm:flex">
-                    {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
+                    {isPlatformAdmin ? <Link href="/admin" className="button-primary w-full sm:w-auto">进入平台管理</Link> : null}
+                    {isSchoolLead ? <Link href="/admin" className="button-primary w-full sm:w-auto">进入学校管理</Link> : null}
+                    {isSchoolLead ? <Link href="#records" className="button-secondary w-full sm:w-auto">查看学生记录</Link> : null}
+                    {isSupportTeacher ? <Link href="#records" className="button-primary w-full sm:w-auto">查看负责学生</Link> : null}
+                    {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">跟进工作台</Link> : null}
+                    {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">查看孩子记录</Link> : null}
                     {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">记录今天</Link> : null}
                   </div>
                 ) : null}
@@ -643,8 +674,8 @@ export default function AccountPage() {
         </>
       )}
 
-      {user && !needsPersonalProfile ? (
-        <section className="section pt-8 sm:pt-10 lg:pt-12">
+      {user && !needsPersonalProfile && !isPlatformAdmin ? (
+        <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">
           <div className="container">
             <SectionHeader title={recordsTitle(displayRole)} />
             {loading ? <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-6 text-sm font-bold text-muted">正在加载记录…</div> : null}
