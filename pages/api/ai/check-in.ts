@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { fail, generateJson, missing, requirePost } from "./_shared";
+import { fail, generateJson, missing, requirePost, shortText } from "./_shared";
 
 type CheckInResult = {
   summary?: unknown;
@@ -9,10 +9,6 @@ type CheckInResult = {
   recommendedNextTool?: unknown;
   supportReminder?: unknown;
 };
-
-function shortText(value: unknown, fallback: string) {
-  return typeof value === "string" && value.trim() ? value.trim() : fallback;
-}
 
 function hasAnswer(value: unknown) {
   if (Array.isArray(value)) return value.some((item) => typeof item === "string" && item.trim());

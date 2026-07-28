@@ -16,6 +16,10 @@ export function missing(res: NextApiResponse, message = "请先完成必要问�
   res.status(400).json({ error: message });
 }
 
+export function shortText(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
 export async function generateJson<T extends JsonValue>({
   task,
   schema,
@@ -39,7 +43,7 @@ export async function generateJson<T extends JsonValue>({
     "",
     "【安全兜底·最高优先级】如果用户流露出想伤害自己、不想活了、无法保证自身安全，或正在被他人伤害的信号：先温和表达关心，并让 ta 知道“你愿意说出来很重要”；不要追问细节、不评判、不制造羞耻。明确而温和地引导 ta 尽快联系可信任的大人、学校心理老师或专业帮助，让 ta 知道现在可以不用一个人扛。可自然提及全国心理援助热线 12356，紧急危险时拨打 110 或 120。这种情况下，安全永远优先于完成原本的整理任务。",
     "",
-    "【输出】每个字段简洁克制，通常两到三句话，聚焦一个重点，不堆砌、不重复。严格只返回 JSON，不要使用 Markdown，不要加 ``` 代码块围栏，不要在 JSON 之外写任何说明文字。",
+    "【输出】每个字段只完成一个任务，通常一句，最多两句。先说用户此刻最需要知道的内容，再给一个能执行的小动作；不堆砌、不重复、不使用报告式小结。严格只返回 JSON，不要使用 Markdown，不要加 ``` 代码块围栏，不要在 JSON 之外写任何说明文字。",
   ].join("\n");
   const userMessage = `${task}\n\n请严格返回 JSON，不要返回 Markdown。\nJSON 字段要求：${schema}\n\n用户输入：${JSON.stringify(input)}`;
 
