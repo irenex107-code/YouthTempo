@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import {
   AccountStatus,
@@ -124,6 +123,8 @@ export default function AccountPage() {
   const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent;
   const confirmedRoleLabel = isSchoolAssignedStudent ? "学校学生" : displayRole;
   const recentRecordDays = countRecentRecordDays(records, user?.id);
+  const accountName = profile?.display_name?.trim() || user?.email || "你的账户";
+  const isInitialAccountLoad = loading && !user;
 
   async function refreshAccount() {
     setLoading(true);
@@ -348,281 +349,316 @@ export default function AccountPage() {
 
   return (
     <>
-      <PageHero
-        title="账号"
-        subtitle="登录后，你可以保存和查看 SWEET 记录。"
-      />
-
-      {!isSupabaseConfigured() ? (
+      {isInitialAccountLoad ? (
         <section className="section section-muted">
-          <div className="container">
-            <div className="card">
-              <h2 className="text-[1.7rem] font-bold text-ink">账号服务暂不可用</h2>
-              <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                请稍后再试，或通过联系我们页面反馈问题。
-              </p>
+          <div className="container max-w-3xl">
+            <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-8 text-center shadow-soft sm:px-8">
+              <p className="text-sm font-bold text-sage">正在进入账户…</p>
             </div>
           </div>
         </section>
-      ) : null}
+      ) : !user ? (
+        <section className="section section-muted">
+          <div className="container grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+            <div className="max-w-xl">
+              <p className="eyebrow">YouthTempo 账号</p>
+              <h1 className="mt-3 text-[2rem] font-bold leading-tight text-ink sm:text-[2.7rem]">
+                登录后继续记录
+              </h1>
+              <p className="mt-4 max-w-lg text-[0.95rem] leading-7 text-muted sm:text-base sm:leading-8">
+                使用邮箱验证码登录。你的 SWEET 记录会保存在云端，换设备后仍可查看。
+              </p>
+              <div className="mt-7 grid gap-3 text-sm leading-6 text-muted sm:grid-cols-2">
+                <p className="border-l-2 border-sage/45 pl-4">无需设置密码</p>
+                <p className="border-l-2 border-sage/45 pl-4">首次登录会自动创建账号</p>
+              </div>
+            </div>
 
-      <section className="section section-muted">
-        <div className={`container ${user ? "grid gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8" : "max-w-xl"}`}>
-          <div className="card">
-            <p className="eyebrow">{user ? "已登录" : "登录"}</p>
-            <h2 className="mt-3 text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">
-              {user
-                ? isIdentityLoading
-                  ? "正在确认身份"
-                  : accountTab === "wechat"
-                    ? "微信绑定"
-                    : isExternallyManagedRole
-                      ? "试点身份"
-                      : "账号资料"
-                : otpSent
-                  ? "输入验证码"
-                  : "邮箱登录"}
-            </h2>
-            {user ? (
-              <>
-                <div className="mt-5 inline-flex rounded-2xl bg-cream p-1 text-sm font-bold">
-                  <button
-                    type="button"
-                    className={`rounded-xl px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
-                    onClick={() => setAccountTab("profile")}
-                  >
-                    {isExternallyManagedRole ? "试点身份" : "账号资料"}
-                  </button>
-                  <button
-                    type="button"
-                    className={`rounded-xl px-4 py-2 transition ${accountTab === "wechat" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
-                    onClick={() => setAccountTab("wechat")}
-                  >
-                    微信绑定
-                  </button>
+            <div className="w-full rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft sm:p-7 lg:max-w-lg lg:justify-self-end">
+              <p className="eyebrow">{otpSent ? "验证码已发送" : "邮箱登录"}</p>
+              <h2 className="mt-2 text-[1.45rem] font-bold leading-tight text-ink sm:text-[1.7rem]">
+                {otpSent ? "输入 8 位验证码" : "欢迎回来"}
+              </h2>
+
+              {!isSupabaseConfigured() ? (
+                <div className="mt-6 rounded-2xl bg-cream px-4 py-4">
+                  <p className="font-bold text-ink">账号服务暂不可用</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">请稍后再试，或通过联系我们页面反馈问题。</p>
                 </div>
-                {accountTab === "profile" ? (
-                  isIdentityLoading ? (
-                    <div className="mt-6 grid gap-4">
-                      <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
-                      <p className="rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">
-                        正在确认身份…
-                      </p>
-                      <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
-                    </div>
-                  ) : isExternallyManagedRole ? (
-                    <div className="mt-6 grid gap-4">
-                      <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
-                      <div className="rounded-2xl border border-sage/35 bg-mint px-4 py-4 text-sm leading-7 text-muted">
-                        <p className="text-xs font-bold text-sage-dark">当前身份</p>
-                        <p className="mt-2 text-xl font-bold text-ink">{confirmedRoleLabel}</p>
-                        <p className="mt-2">
-                          {isSchoolAssignedStudent ? "你已经加入学校试点空间，可以继续完成 SWEET 记录；学校支持老师和学校负责人会在学校空间内查看记录，用于支持和跟进。" : null}
-                          {displayRole === "学校负责人" ? "你可以进入试点管理台添加本校学生和支持老师。" : null}
-                          {displayRole === "支持老师" ? "你可以查看本校学生记录，用于试点支持。" : null}
-                          {displayRole === "平台管理员" ? "你可以创建学校空间，并指定学校负责人。" : null}
-                        </p>
-                      </div>
-                      <div className="grid gap-3 sm:flex sm:flex-wrap">
-                        {adminAccess ? <Link href="/admin" className="button-primary w-full text-center sm:w-auto">进入试点管理台</Link> : null}
-                        <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <form className="mt-6 grid gap-4" onSubmit={handleProfileSubmit}>
-                      <p className="overflow-hidden text-ellipsis rounded-2xl bg-cream px-4 py-3 text-sm font-bold text-ink/75">{user.email}</p>
-                      <label className="grid gap-2 text-sm font-bold text-ink">
-                        昵称
-                        <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
-                      </label>
-                      <label className="grid gap-2 text-sm font-bold text-ink">
-                        账号类型
-                        <select
-                          className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
-                          value={role}
-                          onChange={(event) => setRole(event.target.value)}
-                        >
-                          <option>学生</option>
-                          <option>家长</option>
-                        </select>
-                      </label>
-                      <div className="grid gap-3 sm:flex sm:flex-wrap">
-                        <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
-                        <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
-                      </div>
-                    </form>
-                  )
-                ) : (
-                  <div className="mt-6 grid gap-4">
-                    <p className="text-[0.95rem] leading-7 text-muted">
-                      用微信扫描绑定码后，这个微信身份会关联到当前账号。邮箱登录和已有记录不会受到影响。
-                    </p>
-                    {wechatBindSession ? (
-                      <div className="rounded-3xl border border-ink/10 bg-white p-3">
-                        <img src={wechatBindSession.qrCodeDataUrl} alt="微信小程序绑定码" className="mx-auto aspect-square w-44 rounded-2xl object-contain" />
-                        <p className="mt-3 text-center text-sm leading-7 text-muted">二维码 10 分钟内有效。扫码后小程序会完成绑定，网页会自动刷新状态。</p>
-                      </div>
-                    ) : (
-                      <div className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">
-                        {wechatIdentities.length > 0 ? "这个账号已经绑定微信。" : "还没有绑定微信。"}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
-                      onClick={handleCreateWechatBindSession}
-                      disabled={wechatLoading}
-                    >
-                      {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
-                    </button>
-                    {wechatStatus ? <p className="text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
-                  </div>
-                )}
-              </>
-            ) : (
-              <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
-                {!otpSent ? (
-                  <p className="text-[0.95rem] leading-7 text-muted">输入邮箱，获取 8 位验证码。</p>
-                ) : null}
-                <label className="grid gap-2 text-sm font-bold text-ink">
-                  邮箱
-                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage disabled:bg-cream disabled:text-ink/60" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" type="email" disabled={otpSent || authLoading} />
-                </label>
-                {otpSent ? (
+              ) : (
+                <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                   <label className="grid gap-2 text-sm font-bold text-ink">
-                    8 位验证码
+                    邮箱
                     <input
-                      className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-center text-lg font-bold outline-none focus:border-sage"
-                      value={otp}
-                      onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                      placeholder="12345678"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
+                      className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-sage focus:ring-4 focus:ring-sage/10 disabled:bg-cream disabled:text-ink/60"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="name@example.com"
+                      type="email"
+                      disabled={otpSent || authLoading}
                     />
                   </label>
-                ) : null}
-                <div className="grid gap-3 sm:flex sm:flex-wrap">
-                  <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}>
+                  {otpSent ? (
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      验证码
+                      <input
+                        className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-center text-lg font-bold tracking-[0.22em] outline-none transition focus:border-sage focus:ring-4 focus:ring-sage/10"
+                        value={otp}
+                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
+                        placeholder="12345678"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                      />
+                    </label>
+                  ) : null}
+                  <button
+                    type="submit"
+                    className="button-primary mt-1 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45"
+                    disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}
+                  >
                     {authLoading ? "请稍等..." : otpSent ? "登录" : "发送验证码"}
                   </button>
                   {otpSent ? (
-                    <button type="button" className="button-secondary w-full sm:w-auto" onClick={resendOtp} disabled={authLoading}>
-                      重新发送
-                    </button>
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                      <button type="button" className="font-bold text-sage-dark hover:text-sage" onClick={resendOtp} disabled={authLoading}>
+                        重新发送验证码
+                      </button>
+                      <button
+                        type="button"
+                        className="font-bold text-muted hover:text-ink"
+                        onClick={() => {
+                          setOtp("");
+                          setOtpSent(false);
+                          setNotice("");
+                          setError("");
+                        }}
+                        disabled={authLoading}
+                      >
+                        更换邮箱
+                      </button>
+                    </div>
                   ) : null}
-                </div>
-              </form>
-            )}
-            {notice ? <p className="mt-4 text-sm font-bold text-sage-dark">{notice}</p> : null}
-            {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
+                </form>
+              )}
+              {notice ? <p className="mt-4 rounded-xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">{notice}</p> : null}
+              {error ? <p className="mt-4 rounded-xl border border-sage/30 bg-white px-4 py-3 text-sm font-bold text-sage-dark">{error}</p> : null}
+            </div>
           </div>
-
-          {user ? <div className="card">
-            <h2 className="text-[1.5rem] font-bold leading-[1.25] text-ink sm:text-[1.7rem]">账号概览</h2>
-            <div className="mt-6 grid gap-3">
-              <div className="rounded-2xl bg-cream px-4 py-4">
-                <p className="text-xs font-bold text-sage">当前身份</p>
-                <p className="mt-2 overflow-hidden text-ellipsis text-base font-bold text-ink">{profile?.display_name || user?.email || "未登录"}</p>
-                <p className="mt-2 text-sm leading-6 text-muted">{user ? `账号类型：${isIdentityLoading ? "正在确认试点身份..." : confirmedRoleLabel}` : "登录后可保存云端记录和学校空间信息。"}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
-                  <p className="text-xs font-bold text-sage">可见记录</p>
-                  <p className="mt-2 text-2xl font-bold text-ink">{records.length} 条</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">可在下方展开查看。</p>
+        </section>
+      ) : (
+        <>
+          <section className="section section-muted pb-10 pt-10 sm:pb-12 sm:pt-12 lg:pb-14 lg:pt-14">
+            <div className="container">
+              <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                <div className="min-w-0">
+                  <p className="eyebrow">我的账户</p>
+                  <h1 className="mt-2 overflow-hidden text-ellipsis text-[2rem] font-bold leading-tight text-ink sm:text-[2.5rem]">
+                    你好，{accountName}
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-[0.95rem] leading-7 text-muted">
+                    {recordsDescription(displayRole, hasSchool)}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-ink/10 bg-white/75 px-4 py-4">
-                  <p className="text-xs font-bold text-sage">学校空间</p>
-                  <p className="mt-2 text-2xl font-bold text-ink">{isIdentityLoading ? "确认中" : hasSchool ? "已加入" : "未加入"}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">由试点学校统一配置。</p>
+                <div className="grid shrink-0 gap-3 sm:flex">
+                  {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
+                  {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">记录今天</Link> : null}
+                </div>
+              </div>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
+                  <p className="text-xs font-bold text-sage">当前身份</p>
+                  <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : confirmedRoleLabel}</p>
+                  <p className="mt-2 overflow-hidden text-ellipsis text-sm text-muted">{user.email}</p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
+                  <p className="text-xs font-bold text-sage">可见记录</p>
+                  <p className="mt-2 text-xl font-bold text-ink">{records.length} 条</p>
+                  <p className="mt-2 text-sm text-muted">保存在当前账号</p>
                 </div>
                 {!isIdentityLoading && displayRole === "学生" ? (
-                  <div className="rounded-2xl border border-sage/30 bg-mist/60 px-4 py-4 sm:col-span-2">
-                    <p className="text-xs font-bold text-sage">本周节律记录</p>
-                    <p className="mt-2 text-2xl font-bold text-ink">{recentRecordDays} 天</p>
-                    <p className="mt-2 text-sm leading-6 text-muted">
-                      不需要每天都做到。想回来看一眼时，30 秒也可以。
-                    </p>
-                    <Link href="/check-in" className="mt-3 inline-flex text-sm font-bold text-sage-dark hover:text-sage">
-                      记录今天
-                    </Link>
+                  <div className="rounded-2xl border border-sage/30 bg-mist/70 px-5 py-5">
+                    <p className="text-xs font-bold text-sage">最近 7 天</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{recentRecordDays} 天有记录</p>
+                    <p className="mt-2 text-sm text-muted">不需要每天都完成</p>
                   </div>
-                ) : null}
+                ) : (
+                  <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
+                    <p className="text-xs font-bold text-sage">学校空间</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : hasSchool ? "已加入" : "未加入"}</p>
+                    <p className="mt-2 text-sm text-muted">由试点学校配置</p>
+                  </div>
+                )}
               </div>
-              {adminAccess ? (
-                <div className="rounded-2xl border border-sage/45 bg-mint px-4 py-4">
-                  <p className="text-xs font-bold text-sage-dark">管理权限</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    {adminAccess.scope === "platform"
-                      ? "你可以创建学校空间，并指定学校负责人。"
-                      : "你可以管理自己学校的学生和支持老师。"}
-                  </p>
-                  <Link href="/admin" className="button-secondary mt-4 w-full text-center sm:w-fit">进入试点管理台</Link>
-                </div>
-              ) : null}
             </div>
-          </div> : null}
-        </div>
-      </section>
+          </section>
 
-      <section className="section">
-        <div className="container">
-          <SectionHeader title={recordsTitle(displayRole)} description={recordsDescription(displayRole, hasSchool)} />
-          {loading ? <div className="card text-sm font-bold text-muted">正在加载记录……</div> : null}
-          {!loading && records.length > 0 ? (
-            <div className="grid gap-5">
-              {records.map((record) => {
-                const canDelete = record.user_id === user?.id;
-                return (
-                  <article key={record.id} className="card">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-bold text-sage">{formatDate(record.created_at)}</p>
-                        <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">SWEET 节律记录</h3>
-                      </div>
-                      {canDelete ? (
-                        <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>删除</button>
-                      ) : null}
-                    </div>
-                    <details className="mt-4 rounded-2xl border border-ink/10 bg-white/70">
-                      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-sage-dark">
-                        查看完整记录
-                      </summary>
-                      <div className="grid gap-5 border-t border-ink/10 px-4 py-5">
-                        {record.records.map((step) => (
-                          <div key={step.id}>
-                            <h4 className="text-sm font-bold text-ink">{step.label} · {step.title}</h4>
-                            <dl className="mt-3 grid gap-3">
-                              {step.fields.map((field) => (
-                                <div key={field.id} className="rounded-xl bg-cream px-4 py-3">
-                                  <dt className="text-xs font-bold leading-5 text-muted">{field.title}</dt>
-                                  <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value)}</dd>
-                                </div>
-                              ))}
-                            </dl>
+          <section className="px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
+            <div className="container">
+              <details className="rounded-2xl border border-ink/10 bg-white/70">
+                <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-ink sm:px-6">
+                  账户设置
+                  <span className="ml-2 font-normal text-muted">资料、微信绑定与退出</span>
+                </summary>
+                <div className="border-t border-ink/10 px-5 py-6 sm:px-6">
+                  <div className="inline-flex rounded-xl bg-cream p-1 text-sm font-bold">
+                    <button
+                      type="button"
+                      className={`rounded-lg px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
+                      onClick={() => setAccountTab("profile")}
+                    >
+                      {isExternallyManagedRole ? "试点身份" : "账号资料"}
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-lg px-4 py-2 transition ${accountTab === "wechat" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
+                      onClick={() => setAccountTab("wechat")}
+                    >
+                      微信绑定
+                    </button>
+                  </div>
+
+                  <div className="mt-6 max-w-2xl">
+                    {accountTab === "profile" ? (
+                      isIdentityLoading ? (
+                        <p className="rounded-xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">正在确认身份…</p>
+                      ) : isExternallyManagedRole ? (
+                        <div className="grid gap-4">
+                          <div className="rounded-xl bg-cream px-4 py-4">
+                            <p className="text-xs font-bold text-sage">当前身份</p>
+                            <p className="mt-2 text-lg font-bold text-ink">{confirmedRoleLabel}</p>
+                            <p className="mt-2 text-sm leading-6 text-muted">
+                              {isSchoolAssignedStudent ? "学校已经为这个账号配置学生身份。" : null}
+                              {displayRole === "学校负责人" ? "你可以在管理台配置本校学生和支持老师。" : null}
+                              {displayRole === "支持老师" ? "你可以查看学校分配给你的学生记录。" : null}
+                              {displayRole === "平台管理员" ? "你可以创建学校空间并指定负责人。" : null}
+                            </p>
                           </div>
-                        ))}
+                          <button type="button" className="button-secondary w-full sm:w-fit" onClick={handleSignOut}>退出登录</button>
+                        </div>
+                      ) : (
+                        <form className="grid gap-4" onSubmit={handleProfileSubmit}>
+                          <label className="grid gap-2 text-sm font-bold text-ink">
+                            昵称
+                            <input className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
+                          </label>
+                          <label className="grid gap-2 text-sm font-bold text-ink">
+                            账号类型
+                            <select
+                              className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                              value={role}
+                              onChange={(event) => setRole(event.target.value)}
+                            >
+                              <option>学生</option>
+                              <option>家长</option>
+                            </select>
+                          </label>
+                          <div className="grid gap-3 sm:flex">
+                            <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
+                            <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+                          </div>
+                        </form>
+                      )
+                    ) : (
+                      <div className="grid gap-4">
+                        <p className="text-[0.95rem] leading-7 text-muted">
+                          绑定后，可以在小程序中使用同一个 YouthTempo 账号。
+                        </p>
+                        {wechatBindSession ? (
+                          <div className="w-fit rounded-2xl border border-ink/10 bg-white p-3">
+                            <img src={wechatBindSession.qrCodeDataUrl} alt="微信小程序绑定码" className="aspect-square w-44 rounded-xl object-contain" />
+                            <p className="mt-2 max-w-44 text-center text-xs leading-5 text-muted">二维码 10 分钟内有效</p>
+                          </div>
+                        ) : (
+                          <p className="rounded-xl bg-cream px-4 py-3 text-sm text-muted">
+                            {wechatIdentities.length > 0 ? "已绑定微信。" : "尚未绑定微信。"}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
+                          onClick={handleCreateWechatBindSession}
+                          disabled={wechatLoading}
+                        >
+                          {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
+                        </button>
+                        {wechatStatus ? <p className="text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
                       </div>
-                    </details>
-                    {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
-                    {record.small_step ? <p className="mt-4 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">可以先做的一件小事：{record.small_step}</p> : null}
-                    {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">推荐下一步：{record.recommended_next_tool}</p> : null}
-                  </article>
-                );
-              })}
+                    )}
+                  </div>
+                  {notice ? <p className="mt-5 text-sm font-bold text-sage-dark">{notice}</p> : null}
+                  {error ? <p className="mt-5 text-sm font-bold text-sage-dark">{error}</p> : null}
+                </div>
+              </details>
             </div>
-          ) : null}
-          {!loading && records.length === 0 ? (
-            <div className="card">
-              <h3 className="text-xl font-bold text-ink">暂时没有可见记录</h3>
-              <p className="mt-4 text-[0.95rem] leading-7 text-muted">{emptyRecordsDescription(displayRole)}</p>
-              {displayRole === "学生" ? <Link href="/check-in" className="button-primary mt-6 w-full sm:w-auto">开始 SWEET 节律记录</Link> : null}
-              {displayRole === "家长" ? <Link href="/for-parents" className="button-secondary mt-6 w-full sm:w-auto">查看家长入口</Link> : null}
-              {adminAccess ? <Link href="/admin" className="button-secondary mt-6 w-full sm:w-auto">进入试点管理台</Link> : null}
-            </div>
-          ) : null}
-        </div>
-      </section>
+          </section>
+        </>
+      )}
+
+      {user ? (
+        <section className="section pt-8 sm:pt-10 lg:pt-12">
+          <div className="container">
+            <SectionHeader title={recordsTitle(displayRole)} />
+            {loading ? <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-6 text-sm font-bold text-muted">正在加载记录…</div> : null}
+            {!loading && records.length > 0 ? (
+              <div className="grid gap-5">
+                {records.map((record) => {
+                  const canDelete = record.user_id === user.id;
+                  return (
+                    <article key={record.id} className="card">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-bold text-sage">{formatDate(record.created_at)}</p>
+                          <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">SWEET 节律记录</h3>
+                        </div>
+                        {canDelete ? (
+                          <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>删除</button>
+                        ) : null}
+                      </div>
+                      <details className="mt-4 rounded-xl border border-ink/10 bg-white/70">
+                        <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-sage-dark">
+                          查看完整记录
+                        </summary>
+                        <div className="grid gap-5 border-t border-ink/10 px-4 py-5">
+                          {record.records.map((step) => (
+                            <div key={step.id}>
+                              <h4 className="text-sm font-bold text-ink">{step.label} · {step.title}</h4>
+                              <dl className="mt-3 grid gap-3">
+                                {step.fields.map((field) => (
+                                  <div key={field.id} className="rounded-xl bg-cream px-4 py-3">
+                                    <dt className="text-xs font-bold leading-5 text-muted">{field.title}</dt>
+                                    <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value)}</dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                      {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
+                      {record.small_step ? <p className="mt-4 rounded-xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">可以先做的一件小事：{record.small_step}</p> : null}
+                      {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">推荐下一步：{record.recommended_next_tool}</p> : null}
+                    </article>
+                  );
+                })}
+              </div>
+            ) : null}
+            {!loading && records.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-sage/40 bg-white/55 px-5 py-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-7">
+                <div>
+                  <h3 className="text-lg font-bold text-ink">暂时没有可见记录</h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-7 text-muted">{emptyRecordsDescription(displayRole)}</p>
+                </div>
+                <div className="mt-5 shrink-0 sm:mt-0">
+                  {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">开始记录</Link> : null}
+                  {displayRole === "家长" ? <Link href="/for-parents" className="button-secondary w-full sm:w-auto">查看家长入口</Link> : null}
+                  {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }
