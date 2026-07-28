@@ -6,10 +6,10 @@ import { getSupabase } from "@/lib/supabaseClient";
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showAdminLink, setShowAdminLink] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [accountName, setAccountName] = useState("");
+  const [accountRole, setAccountRole] = useState("");
   const refreshVersionRef = useRef(0);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function Navbar() {
       if (!activeSession) {
         setSignedIn(false);
         setAccountName("");
-        setShowAdminLink(false);
+        setAccountRole("");
         setAuthReady(true);
         return;
       }
@@ -53,11 +53,11 @@ export function Navbar() {
             ? data.profile.display_name.trim()
             : "";
         setAccountName(displayName || metadataName);
-        setShowAdminLink(Boolean(data.adminAccess));
+        setAccountRole(typeof data.displayRole === "string" ? data.displayRole : "");
       } catch {
         if (!mounted || refreshVersion !== refreshVersionRef.current) return;
         setAccountName(metadataName);
-        setShowAdminLink(false);
+        setAccountRole("");
       } finally {
         if (mounted && refreshVersion === refreshVersionRef.current) setAuthReady(true);
       }
@@ -83,6 +83,16 @@ export function Navbar() {
       ? `你好，${accountName}！`
       : "你好！"
     : "登录 / 我的记录";
+  const primaryAction =
+    accountRole === "平台管理员"
+      ? { href: "/admin", label: "平台管理", mobileLabel: "平台管理" }
+      : accountRole === "学校负责人"
+        ? { href: "/admin", label: "学校管理", mobileLabel: "学校管理" }
+        : accountRole === "支持老师"
+          ? { href: "/account#records", label: "学生记录", mobileLabel: "学生记录" }
+          : accountRole === "家长"
+            ? { href: "/account#records", label: "孩子记录", mobileLabel: "孩子记录" }
+            : { href: "/check-in", label: "开始 SWEET 节律", mobileLabel: "记录今天" };
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/92 backdrop-blur">
@@ -97,11 +107,6 @@ export function Navbar() {
                 {item.label}
               </Link>
             ))}
-            {showAdminLink ? (
-              <Link href="/admin" className="whitespace-nowrap transition hover:text-sage-dark">
-                试点管理台
-              </Link>
-            ) : null}
           </nav>
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
             {authReady ? (
@@ -115,23 +120,30 @@ export function Navbar() {
             ) : (
               <span className="h-9 w-28 animate-pulse rounded-full bg-ink/5" aria-label="正在加载账号" />
             )}
-            <Link href="/check-in" className="button-primary px-4 py-2 text-xs sm:px-5">
-              开始 SWEET 节律
+            <Link href={primaryAction.href} className="button-primary px-4 py-2 text-xs sm:px-5">
+              {primaryAction.label}
             </Link>
           </div>
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white/75 text-ink shadow-sm sm:hidden"
-            aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <span className="grid gap-1.5">
-              <span className={`block h-0.5 w-5 rounded-full bg-current transition ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
-              <span className={`block h-0.5 w-5 rounded-full bg-current transition ${menuOpen ? "opacity-0" : ""}`} />
-              <span className={`block h-0.5 w-5 rounded-full bg-current transition ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
-            </span>
-          </button>
+          <div className="flex items-center gap-2 sm:hidden">
+            {signedIn && accountRole ? (
+              <Link href={primaryAction.href} className="button-primary px-3 py-2 text-xs">
+                {primaryAction.mobileLabel}
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white/75 text-ink shadow-sm"
+              aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <span className="grid gap-1.5">
+                <span className={`block h-0.5 w-5 rounded-full bg-current transition ${menuOpen ? "translate-y-2 rotate-45" : ""}`} />
+                <span className={`block h-0.5 w-5 rounded-full bg-current transition ${menuOpen ? "opacity-0" : ""}`} />
+                <span className={`block h-0.5 w-5 rounded-full bg-current transition ${menuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+              </span>
+            </button>
+          </div>
         </div>
         {menuOpen ? (
           <div className="container pb-4 sm:hidden">
@@ -146,15 +158,6 @@ export function Navbar() {
                   {item.label}
                 </Link>
               ))}
-              {showAdminLink ? (
-                <Link
-                  href="/admin"
-                  className="rounded-2xl px-4 py-3 text-sm font-bold text-ink/80 transition hover:bg-cream hover:text-sage-dark"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  试点管理台
-                </Link>
-              ) : null}
               <div className="mt-1 grid gap-2 border-t border-ink/10 pt-3">
                 {authReady ? (
                   <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
@@ -163,8 +166,8 @@ export function Navbar() {
                 ) : (
                   <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label="正在加载账号" />
                 )}
-                <Link href="/check-in" className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
-                  开始 SWEET 节律
+                <Link href={primaryAction.href} className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
+                  {primaryAction.label}
                 </Link>
               </div>
             </nav>
