@@ -91,6 +91,7 @@ create table if not exists public.school_invites (
   id uuid primary key default gen_random_uuid(),
   school_id uuid not null references public.schools(id) on delete cascade,
   email text not null,
+  display_name text,
   assignment_role text not null check (assignment_role in ('student', 'support_teacher', 'school_lead')),
   status text not null default 'active' check (status in ('active', 'applied', 'revoked')),
   invited_by uuid references auth.users(id) on delete set null,
@@ -100,6 +101,8 @@ create table if not exists public.school_invites (
   applied_at timestamptz,
   revoked_at timestamptz
 );
+
+alter table public.school_invites add column if not exists display_name text;
 
 create table if not exists public.user_permissions (
   id uuid primary key default gen_random_uuid(),
@@ -178,6 +181,10 @@ alter table public.wechat_bind_sessions enable row level security;
 alter table public.admin_roles enable row level security;
 alter table public.school_followups enable row level security;
 
+-- Follow-up notes contain school support context and are only accessed by
+-- authenticated server routes using the service role.
+revoke all privileges on table public.school_followups from anon, authenticated;
+
 drop policy if exists "schools_select_member" on public.schools;
 create policy "schools_select_member"
 on public.schools for select
@@ -199,23 +206,27 @@ using (
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
 on public.profiles for select
-using (auth.uid() = id);
+to authenticated
+using ((select auth.uid()) = id);
 
 drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own"
 on public.profiles for insert
-with check (auth.uid() = id);
+to authenticated
+with check ((select auth.uid()) = id);
 
 drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own"
 on public.profiles for update
-using (auth.uid() = id)
-with check (auth.uid() = id);
+to authenticated
+using ((select auth.uid()) = id)
+with check ((select auth.uid()) = id);
 
 drop policy if exists "sweet_records_select_own" on public.sweet_records;
 create policy "sweet_records_select_own"
 on public.sweet_records for select
-using (auth.uid() = user_id);
+to authenticated
+using ((select auth.uid()) = user_id);
 
 drop policy if exists "sweet_records_select_authorized_grantee" on public.sweet_records;
 
@@ -266,7 +277,8 @@ with check (
 drop policy if exists "sweet_records_delete_own" on public.sweet_records;
 create policy "sweet_records_delete_own"
 on public.sweet_records for delete
-using (auth.uid() = user_id);
+to authenticated
+using ((select auth.uid()) = user_id);
 
 drop policy if exists "school_members_select_own_school" on public.school_members;
 create policy "school_members_select_own_school"
@@ -377,6 +389,14 @@ on public.school_invites(lower(email), status);
 
 create index if not exists school_invites_school_status_idx
 on public.school_invites(school_id, status);
+
+create index if not exists school_invites_applied_user_idx
+on public.school_invites(applied_user_id)
+where applied_user_id is not null;
+
+create index if not exists school_invites_invited_by_idx
+on public.school_invites(invited_by)
+where invited_by is not null;
 
 create index if not exists user_permissions_owner_created_idx
 on public.user_permissions(owner_user_id, created_at desc);
