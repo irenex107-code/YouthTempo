@@ -116,7 +116,7 @@ export default function AdminPage() {
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || overview?.schools[0];
-  const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学生", "支持老师", "学校负责人"] : ["学生", "支持老师"];
+  const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学校负责人"] : ["学生", "支持老师"];
   const assignedStudentIdSet = new Set(
     schoolRoster?.assignments.map((assignment) => assignment.student_user_id) || [],
   );
@@ -152,7 +152,7 @@ export default function AdminPage() {
         ),
       );
       setSelectedSchoolId((current) => current || nextOverview.schools[0]?.id || "");
-      if (nextOverview.admin.scope === "school" && assignmentRole === "学校负责人") setAssignmentRole("学生");
+      setAssignmentRole(nextOverview.admin.scope === "platform" ? "学校负责人" : "学生");
     } catch (adminError) {
       setError(adminError instanceof Error ? adminError.message : "管理员概览加载失败。");
     } finally {
@@ -256,9 +256,9 @@ export default function AdminPage() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "学校空间创建失败。");
       setSchoolName("");
-      setSelectedSchoolId(payload.school.id);
       setActionNotice("学校已创建。现在可以添加学校负责人。");
       await loadAdminOverview();
+      setSelectedSchoolId(payload.school.id);
     } catch (schoolError) {
       setError(schoolError instanceof Error ? schoolError.message : "学校空间创建失败。");
     } finally {
@@ -394,11 +394,14 @@ export default function AdminPage() {
         <section className="section">
           <div className="container grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="card">
-              <p className="eyebrow">成员</p>
-              <h2 className="mt-3 text-[1.5rem] font-bold text-ink">添加学校成员</h2>
+              <p className="eyebrow">{isPlatformAdmin ? "学校配置" : "成员"}</p>
+              <h2 className="mt-3 text-[1.5rem] font-bold text-ink">
+                {isPlatformAdmin ? "创建学校并指定负责人" : "添加学校成员"}
+              </h2>
 
               {isPlatformAdmin ? (
                 <form className="mt-6 grid gap-4 rounded-3xl bg-cream p-4" onSubmit={handleCreateSchool}>
+                  <p className="text-sm font-bold text-sage-dark">第一步 · 创建学校</p>
                   <label className="grid gap-2 text-sm font-bold text-ink">
                     新学校名称
                     <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder="例如：Special A" />
@@ -410,6 +413,7 @@ export default function AdminPage() {
               ) : null}
 
               <form className="mt-6 grid gap-4" onSubmit={handleAssignUser}>
+                {isPlatformAdmin ? <p className="text-sm font-bold text-sage-dark">第二步 · 指定学校负责人</p> : null}
                 {overview.schools.length > 1 || isPlatformAdmin ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
                     学校
@@ -420,32 +424,44 @@ export default function AdminPage() {
                   </label>
                 ) : null}
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  成员姓名
+                  {isPlatformAdmin ? "负责人姓名" : "成员姓名"}
                   <input
                     className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
                     value={assignmentName}
                     onChange={(event) => setAssignmentName(event.target.value)}
-                    placeholder={assignmentRole === "学生" ? "学生姓名" : "老师姓名"}
+                    placeholder={isPlatformAdmin ? "学校负责人姓名" : assignmentRole === "学生" ? "学生姓名" : "老师姓名"}
                     maxLength={50}
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  成员邮箱
-                  <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentEmail} onChange={(event) => setAssignmentEmail(event.target.value)} placeholder="student@example.com" type="email" />
+                  {isPlatformAdmin ? "负责人登录邮箱" : "成员邮箱"}
+                  <input
+                    className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
+                    value={assignmentEmail}
+                    onChange={(event) => setAssignmentEmail(event.target.value)}
+                    placeholder={isPlatformAdmin ? "lead@example.com" : "student@example.com"}
+                    type="email"
+                  />
                 </label>
-                <label className="grid gap-2 text-sm font-bold text-ink">
-                  成员身份
-                  <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentRole} onChange={(event) => setAssignmentRole(event.target.value as AssignmentRole)}>
-                    {roleOptions.map((option) => <option key={option}>{option}</option>)}
-                  </select>
-                </label>
-                <p className="text-sm leading-6 text-muted">姓名会用于学校名单和登录后的问候；对方不需要再次填写身份资料。</p>
+                {!isPlatformAdmin ? (
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    成员身份
+                    <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentRole} onChange={(event) => setAssignmentRole(event.target.value as AssignmentRole)}>
+                      {roleOptions.map((option) => <option key={option}>{option}</option>)}
+                    </select>
+                  </label>
+                ) : null}
+                <p className="text-sm leading-6 text-muted">
+                  {isPlatformAdmin
+                    ? "负责人登录后可以添加本校学生和支持老师；平台管理员不需要代为维护学校成员。"
+                    : "姓名会用于学校名单和登录后的问候；对方不需要再次填写身份资料。"}
+                </p>
                 <button
                   type="submit"
                   className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
                   disabled={actionLoading || !selectedSchoolId || !assignmentName.trim() || !assignmentEmail.trim()}
                 >
-                  添加成员
+                  {isPlatformAdmin ? "添加学校负责人" : "添加成员"}
                 </button>
               </form>
               {actionNotice ? <p className="mt-4 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
