@@ -96,13 +96,38 @@ function formatDate(value: string) {
 
 function adminTitle(overview: AdminOverview | null) {
   if (overview?.admin.scope === "school") return "学校工作台";
-  return "试点管理台";
+  return "平台管理台";
 }
 
 function adminSubtitle(overview: AdminOverview | null) {
-  if (overview?.admin.role === "支持老师") return "查看本校学生近期节律变化，记录支持和跟进进度。";
-  if (overview?.admin.scope === "school") return "管理本校成员，查看近期节律变化和支持进度。";
-  return "查看所有试点学校、成员和负责关系，并在学校需要时协助维护。";
+  if (overview?.admin.role === "支持老师") return "先查看负责学生，再记录必要的支持进度。";
+  if (overview?.admin.scope === "school") return "管理本校成员和负责关系，及时了解学生的近期变化。";
+  return "管理学校空间、负责人和全平台协作关系。";
+}
+
+function workspaceActions(overview: AdminOverview) {
+  if (overview.admin.scope === "platform") {
+    return [
+      { href: "#schools-overview", label: "学校总览", description: "查看学校、老师、学生与家庭关系" },
+      { href: "#member-management", label: "学校配置", description: "创建学校并辅助登记负责人" },
+      { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
+    ];
+  }
+
+  if (overview.admin.role === "支持老师") {
+    return [
+      { href: "#recent-changes", label: "需要了解", description: "先看负责学生的近期变化" },
+      { href: "#recent-records", label: "学生记录", description: "查看负责学生的完整记录" },
+      { href: "#support-handoff", label: "连接支持", description: "需要时连接家庭或专业资源" },
+    ];
+  }
+
+  return [
+    { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
+    { href: "#member-management", label: "成员管理", description: "登记老师、学生和家长" },
+    { href: "#teacher-assignment", label: "负责关系", description: "分配老师负责的学生" },
+    { href: "#guardian-assignment", label: "家庭关系", description: "确认家长与孩子" },
+  ];
 }
 
 export default function AdminPage() {
@@ -397,9 +422,36 @@ export default function AdminPage() {
 
   return (
     <>
-      <PageHero label="Pilot Admin" title={adminTitle(overview)} subtitle={adminSubtitle(overview)} />
+      <PageHero label="角色工作台" title={adminTitle(overview)} subtitle={adminSubtitle(overview)} />
 
-      <section className="section section-muted">
+      {overview ? (
+        <section className="border-b border-ink/10 bg-white/70">
+          <div className="container py-4 sm:py-5">
+            <p className="mb-3 text-xs font-bold text-sage-dark">工作导航</p>
+            <nav
+              className={`grid border-y border-ink/10 ${
+                workspaceActions(overview).length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+              }`}
+              aria-label={`${overview.admin.role}工作导航`}
+            >
+              {workspaceActions(overview).map((action, index) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={`group px-1 py-4 transition hover:bg-mint/60 sm:px-4 ${
+                    index > 0 ? "border-t border-ink/10 sm:border-l sm:border-t-0" : ""
+                  }`}
+                >
+                  <span className="block text-sm font-bold text-ink group-hover:text-sage-dark">{action.label}</span>
+                  <span className="mt-1 block text-xs leading-5 text-muted">{action.description}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </section>
+      ) : null}
+
+      <section id="role-overview" className="section section-muted scroll-mt-24">
         <div className="container">
           {loading ? <div className="card text-sm font-bold text-muted">正在检查管理权限……</div> : null}
           {!loading && error && !overview ? (
@@ -459,7 +511,7 @@ export default function AdminPage() {
       </section>
 
       {overview?.admin.canManageMembers ? (
-        <section className="section">
+        <section id="member-management" className="section scroll-mt-24">
           <div className="container grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="card">
               <p className="eyebrow">{isPlatformAdmin ? "学校配置" : "成员"}</p>
@@ -576,7 +628,7 @@ export default function AdminPage() {
       ) : null}
 
       {isPlatformAdmin && overview ? (
-        <section className="section section-muted">
+        <section id="schools-overview" className="section section-muted scroll-mt-24">
           <div className="container">
             <SectionHeader
               title="学校与人员总览"
@@ -713,7 +765,7 @@ export default function AdminPage() {
       ) : null}
 
       {overview?.admin.canManageMembers ? (
-        <section className={`section ${isPlatformAdmin ? "" : "section-muted"}`}>
+        <section id="teacher-assignment" className={`section scroll-mt-24 ${isPlatformAdmin ? "" : "section-muted"}`}>
           <div className="container">
             <details open={!isPlatformAdmin}>
               <summary className={isPlatformAdmin ? "cursor-pointer list-none border-y border-ink/10 py-5 text-[1.25rem] font-bold text-ink" : "hidden"}>
@@ -902,7 +954,7 @@ export default function AdminPage() {
       ) : null}
 
       {overview?.admin.canManageMembers ? (
-        <section className={`section ${isPlatformAdmin ? "section-muted" : ""}`}>
+        <section id="guardian-assignment" className={`section scroll-mt-24 ${isPlatformAdmin ? "section-muted" : ""}`}>
           <div className="container">
             <details open={!isPlatformAdmin}>
               <summary className={isPlatformAdmin ? "cursor-pointer list-none border-y border-ink/10 py-5 text-[1.25rem] font-bold text-ink" : "hidden"}>
@@ -1005,7 +1057,7 @@ export default function AdminPage() {
       ) : null}
 
       {overview ? (
-        <section className="section section-muted">
+        <section id="recent-changes" className="section section-muted scroll-mt-24">
           <div className="container">
             <SectionHeader
               title="需要了解的近期变化"
@@ -1096,8 +1148,46 @@ export default function AdminPage() {
         </section>
       ) : null}
 
+      {overview && !isPlatformAdmin ? (
+        <section id="support-handoff" className="section scroll-mt-24">
+          <div className="container">
+            <SectionHeader
+              title="家校与专业支持如何衔接"
+              description="先由熟悉学生的人温和了解，再根据实际需要连接家庭或专业支持。每一步都只分享完成支持所必需的信息。"
+            />
+            <div className="grid border-y border-ink/10 md:grid-cols-3">
+              {[
+                ["01", "校内了解", "由负责老师结合近期节律变化与学生本人沟通，不用一次记录给学生下结论。"],
+                ["02", "联系家庭", "需要家庭参与时，由学校联系已确认关联的家长，共同商量可执行的支持。"],
+                ["03", "专业支持", "日常生活持续明显受影响或出现安全风险时，再连接合适的专业或医疗资源。"],
+              ].map(([step, title, description], index) => (
+                <div
+                  key={step}
+                  className={`py-6 md:px-6 ${index > 0 ? "border-t border-ink/10 md:border-l md:border-t-0" : ""}`}
+                >
+                  <p className="text-xs font-bold text-sage-dark">{step}</p>
+                  <h2 className="mt-2 text-lg font-bold text-ink">{title}</h2>
+                  <p className="mt-3 text-sm leading-7 text-muted">{description}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/for-parents#conversation" className="button-secondary">
+                查看家长沟通参考
+              </Link>
+              <Link href="/referral" className="button-primary">
+                查看专业支持路径
+              </Link>
+            </div>
+            <p className="mt-4 text-xs leading-6 text-muted">
+              专业或医疗人员不会自动获得 YouthTempo 记录；如需共享，应由学校和家庭按照适用规则另行确认。
+            </p>
+          </div>
+        </section>
+      ) : null}
+
       {overview ? (
-        <section className="section">
+        <section id="recent-records" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader
               title="全部最近记录"
