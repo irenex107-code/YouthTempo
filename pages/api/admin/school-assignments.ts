@@ -32,9 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!email) return res.status(400).json({ error: "请输入对方登录 YouthTempo 使用的邮箱。" });
     if (!canManageSchool(context, schoolId)) return res.status(403).json({ error: "你只能管理自己学校空间里的成员。" });
     if (!canManageSchoolMembers(context, schoolId)) return res.status(403).json({ error: "只有学校负责人可以添加学校成员。" });
-    if (context.kind === "platform" && assignmentRole !== "学校负责人") {
-      return res.status(403).json({ error: "平台管理员只负责指定学校负责人。学生和支持老师应由学校负责人添加。" });
-    }
     if (context.kind === "school" && assignmentRole === "学校负责人") {
       return res.status(403).json({ error: "学校负责人不能新增其他学校负责人。如需新增，请联系平台管理员。" });
     }
@@ -137,7 +134,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ profile, school, assignmentRole, status });
   } catch (error) {
     const message = error instanceof Error ? error.message : "学校空间分配失败。";
-    const status = message.includes("没有") || message.includes("只能") || message.includes("不能") ? 403 : message.includes("请先登录") ? 401 : 500;
+    const status = message.includes("没有") || message.includes("只有") || message.includes("只能") || message.includes("不能") ? 403 : message.includes("请先登录") ? 401 : 500;
     return res.status(status).json({ error: message });
   }
 }

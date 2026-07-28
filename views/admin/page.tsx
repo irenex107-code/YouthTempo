@@ -31,6 +31,7 @@ type AdminOverview = {
     wechatBindings: number;
   };
   schools: School[];
+  schoolDirectories: SchoolDirectory[];
   recentRecords: Array<{
     id: string;
     user_id: string;
@@ -74,6 +75,11 @@ type SchoolRoster = {
   }>;
 };
 
+type SchoolDirectory = SchoolRoster & {
+  school_id: string;
+  leaders: SchoolPerson[];
+};
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
     month: "long",
@@ -91,7 +97,7 @@ function adminTitle(overview: AdminOverview | null) {
 function adminSubtitle(overview: AdminOverview | null) {
   if (overview?.admin.role === "支持老师") return "查看本校学生近期节律变化，记录支持和跟进进度。";
   if (overview?.admin.scope === "school") return "管理本校成员，查看近期节律变化和支持进度。";
-  return "创建学校空间，指定学校负责人，并查看试点整体运行情况。";
+  return "查看所有试点学校、成员和负责关系，并在学校需要时协助维护。";
 }
 
 export default function AdminPage() {
@@ -101,7 +107,7 @@ export default function AdminPage() {
   const [selectedSchoolId, setSelectedSchoolId] = useState("");
   const [assignmentName, setAssignmentName] = useState("");
   const [assignmentEmail, setAssignmentEmail] = useState("");
-  const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学生");
+  const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学校负责人");
   const [actionNotice, setActionNotice] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [followupDrafts, setFollowupDrafts] = useState<Record<string, FollowupDraft>>({});
@@ -116,7 +122,9 @@ export default function AdminPage() {
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || overview?.schools[0];
-  const roleOptions: AssignmentRole[] = isPlatformAdmin ? ["学校负责人"] : ["学生", "支持老师"];
+  const roleOptions: AssignmentRole[] = isPlatformAdmin
+    ? ["学校负责人", "支持老师", "学生"]
+    : ["学生", "支持老师"];
   const assignedStudentIdSet = new Set(
     schoolRoster?.assignments.map((assignment) => assignment.student_user_id) || [],
   );
@@ -152,7 +160,9 @@ export default function AdminPage() {
         ),
       );
       setSelectedSchoolId((current) => current || nextOverview.schools[0]?.id || "");
-      setAssignmentRole(nextOverview.admin.scope === "platform" ? "学校负责人" : "学生");
+      setAssignmentRole((current) =>
+        nextOverview.admin.scope === "school" && current === "学校负责人" ? "学生" : current,
+      );
     } catch (adminError) {
       setError(adminError instanceof Error ? adminError.message : "管理员概览加载失败。");
     } finally {
@@ -293,6 +303,7 @@ export default function AdminPage() {
       setAssignmentEmail("");
       setActionNotice(`已添加 ${addedName}。对方使用 ${assignmentEmail} 登录后，会直接显示姓名和${assignmentRole}身份。`);
       await loadAdminOverview();
+      await loadSchoolRoster(selectedSchoolId, accessToken);
     } catch (assignmentError) {
       setError(assignmentError instanceof Error ? assignmentError.message : "学校成员添加失败。");
     } finally {
@@ -354,7 +365,7 @@ export default function AdminPage() {
                 <p className="mt-2 text-sm font-bold text-sage-dark">当前权限：{overview.admin.role}</p>
                 <p className="mt-4 text-[0.95rem] leading-7 text-muted">
                   {isPlatformAdmin
-                    ? "平台管理员负责创建学校和指定学校负责人。学校负责人再管理本校成员。"
+                    ? "你可以查看全部学校的成员和负责关系。学校负责人负责日常维护，你可以在需要时协助添加和调整。"
                     : overview.admin.role === "支持老师"
                       ? "你可以查看本校学生近期 SWEET 记录，并记录必要的支持进度。"
                       : "你可以添加本校学生和支持老师，并查看本校 SWEET 记录。"}
@@ -396,7 +407,7 @@ export default function AdminPage() {
             <div className="card">
               <p className="eyebrow">{isPlatformAdmin ? "学校配置" : "成员"}</p>
               <h2 className="mt-3 text-[1.5rem] font-bold text-ink">
-                {isPlatformAdmin ? "创建学校并指定负责人" : "添加学校成员"}
+                {isPlatformAdmin ? "创建学校与辅助登记" : "添加学校成员"}
               </h2>
 
               {isPlatformAdmin ? (
@@ -413,7 +424,7 @@ export default function AdminPage() {
               ) : null}
 
               <form className="mt-6 grid gap-4" onSubmit={handleAssignUser}>
-                {isPlatformAdmin ? <p className="text-sm font-bold text-sage-dark">第二步 · 指定学校负责人</p> : null}
+                {isPlatformAdmin ? <p className="text-sm font-bold text-sage-dark">辅助登记学校成员</p> : null}
                 {overview.schools.length > 1 || isPlatformAdmin ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
                     学校
@@ -424,36 +435,40 @@ export default function AdminPage() {
                   </label>
                 ) : null}
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  {isPlatformAdmin ? "负责人姓名" : "成员姓名"}
+                  成员姓名
                   <input
                     className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
                     value={assignmentName}
                     onChange={(event) => setAssignmentName(event.target.value)}
-                    placeholder={isPlatformAdmin ? "学校负责人姓名" : assignmentRole === "学生" ? "学生姓名" : "老师姓名"}
+                    placeholder={
+                      assignmentRole === "学生"
+                        ? "学生姓名"
+                        : assignmentRole === "学校负责人"
+                          ? "负责人姓名"
+                          : "老师姓名"
+                    }
                     maxLength={50}
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  {isPlatformAdmin ? "负责人登录邮箱" : "成员邮箱"}
+                  成员登录邮箱
                   <input
                     className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
                     value={assignmentEmail}
                     onChange={(event) => setAssignmentEmail(event.target.value)}
-                    placeholder={isPlatformAdmin ? "lead@example.com" : "student@example.com"}
+                    placeholder="name@example.com"
                     type="email"
                   />
                 </label>
-                {!isPlatformAdmin ? (
-                  <label className="grid gap-2 text-sm font-bold text-ink">
-                    成员身份
-                    <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentRole} onChange={(event) => setAssignmentRole(event.target.value as AssignmentRole)}>
-                      {roleOptions.map((option) => <option key={option}>{option}</option>)}
-                    </select>
-                  </label>
-                ) : null}
+                <label className="grid gap-2 text-sm font-bold text-ink">
+                  成员身份
+                  <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentRole} onChange={(event) => setAssignmentRole(event.target.value as AssignmentRole)}>
+                    {roleOptions.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
                 <p className="text-sm leading-6 text-muted">
                   {isPlatformAdmin
-                    ? "负责人登录后可以添加本校学生和支持老师；平台管理员不需要代为维护学校成员。"
+                    ? "日常成员维护由学校负责人完成；平台管理员可在学校需要时协助登记。"
                     : "姓名会用于学校名单和登录后的问候；对方不需要再次填写身份资料。"}
                 </p>
                 <button
@@ -461,7 +476,7 @@ export default function AdminPage() {
                   className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
                   disabled={actionLoading || !selectedSchoolId || !assignmentName.trim() || !assignmentEmail.trim()}
                 >
-                  {isPlatformAdmin ? "添加学校负责人" : "添加成员"}
+                  添加成员
                 </button>
               </form>
               {actionNotice ? <p className="mt-4 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
@@ -472,32 +487,161 @@ export default function AdminPage() {
               <p className="eyebrow">学校</p>
               <h2 className="mt-3 text-[1.5rem] font-bold text-ink">{isPlatformAdmin ? "学校列表" : "我的学校"}</h2>
               <div className="mt-6 grid gap-3">
-                {overview.schools.length > 0 ? overview.schools.map((school) => (
-                  <button
-                    key={school.id}
-                    type="button"
-                    className={`rounded-2xl border px-4 py-4 text-left transition ${selectedSchoolId === school.id ? "border-sage bg-mint" : "border-ink/10 bg-white/75"}`}
-                    onClick={() => setSelectedSchoolId(school.id)}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="font-bold text-ink">{school.name}</p>
-                      <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sage-dark">{school.status === "active" ? "使用中" : school.status}</p>
-                    </div>
-                  </button>
-                )) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">暂时没有可管理的学校空间。</p>}
+                {overview.schools.length > 0 ? overview.schools.map((school) => {
+                  const directory = overview.schoolDirectories.find(
+                    (item) => item.school_id === school.id,
+                  );
+                  return (
+                    <button
+                      key={school.id}
+                      type="button"
+                      className={`rounded-2xl border px-4 py-4 text-left transition ${selectedSchoolId === school.id ? "border-sage bg-mint" : "border-ink/10 bg-white/75"}`}
+                      onClick={() => setSelectedSchoolId(school.id)}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="font-bold text-ink">{school.name}</p>
+                        <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sage-dark">{school.status === "active" ? "使用中" : school.status}</p>
+                      </div>
+                      {directory ? (
+                        <p className="mt-3 text-xs font-bold text-muted">
+                          负责人 {directory.leaders.length} · 老师 {directory.teachers.length} · 学生 {directory.students.length}
+                        </p>
+                      ) : null}
+                    </button>
+                  );
+                }) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">暂时没有可管理的学校空间。</p>}
               </div>
             </div>
           </div>
         </section>
       ) : null}
 
-      {overview?.admin.canManageMembers ? (
+      {isPlatformAdmin && overview ? (
         <section className="section section-muted">
           <div className="container">
             <SectionHeader
-              title="分配老师负责的学生"
-              description="支持老师只会看到分配给自己的学生记录；学校负责人仍可查看全校。"
+              title="学校与人员总览"
+              description="查看每所学校登记的负责人、支持老师、学生和老师负责关系。点击上方学校列表可切换后续辅助操作的学校。"
             />
+            <div className="grid gap-5">
+              {overview.schools.map((school) => {
+                const directory = overview.schoolDirectories.find(
+                  (item) => item.school_id === school.id,
+                );
+                if (!directory) return null;
+                const assignedStudentIds = new Set(
+                  directory.assignments.map((assignment) => assignment.student_user_id),
+                );
+                const studentsById = new Map(
+                  directory.students.map((student) => [student.id, student]),
+                );
+
+                return (
+                  <article key={school.id} className="card">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">学校</p>
+                        <h2 className="mt-2 text-[1.5rem] font-bold text-ink">{school.name}</h2>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs font-bold text-sage-dark">
+                        <span className="rounded-full bg-mint px-3 py-2">负责人 {directory.leaders.length}</span>
+                        <span className="rounded-full bg-mint px-3 py-2">老师 {directory.teachers.length}</span>
+                        <span className="rounded-full bg-mint px-3 py-2">学生 {directory.students.length}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid gap-6 border-t border-ink/10 pt-6 lg:grid-cols-[0.7fr_1.3fr]">
+                      <div>
+                        <p className="text-sm font-bold text-ink">学校负责人</p>
+                        <div className="mt-3 grid gap-2">
+                          {directory.leaders.length ? directory.leaders.map((leader) => (
+                            <div key={leader.id} className="rounded-2xl bg-cream px-4 py-3">
+                              <p className="font-bold text-ink">{leader.display_name || leader.email}</p>
+                              {leader.display_name ? <p className="mt-1 break-all text-xs text-muted">{leader.email}</p> : null}
+                            </div>
+                          )) : (
+                            <p className="text-sm text-muted">尚未登记学校负责人。</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-bold text-ink">支持老师与负责学生</p>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          {directory.teachers.length ? directory.teachers.map((teacher) => {
+                            const students = directory.assignments
+                              .filter((assignment) => assignment.teacher_user_id === teacher.id)
+                              .map((assignment) => studentsById.get(assignment.student_user_id))
+                              .filter((student): student is SchoolPerson => Boolean(student));
+
+                            return (
+                              <div key={teacher.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
+                                <div className="flex flex-wrap items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-ink">{teacher.display_name || teacher.email}</p>
+                                    {teacher.display_name ? <p className="mt-1 break-all text-xs text-muted">{teacher.email}</p> : null}
+                                  </div>
+                                  <span className="text-xs font-bold text-sage-dark">{students.length} 名学生</span>
+                                </div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {students.length ? students.map((student) => (
+                                    <span key={student.id} className="rounded-full bg-cream px-3 py-1 text-xs font-bold text-ink/75">
+                                      {student.display_name || student.email}
+                                    </span>
+                                  )) : <span className="text-xs text-muted">尚未分配学生</span>}
+                                </div>
+                              </div>
+                            );
+                          }) : (
+                            <p className="text-sm text-muted">尚未登记支持老师。</p>
+                          )}
+                        </div>
+                        {directory.students.length ? (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {directory.students.map((student) => (
+                              <span
+                                key={student.id}
+                                className={`rounded-full px-3 py-2 text-xs font-bold ${
+                                  assignedStudentIds.has(student.id)
+                                    ? "bg-mint text-sage-dark"
+                                    : "border border-ink/10 bg-white text-muted"
+                                }`}
+                              >
+                                {student.display_name || student.email}
+                                {assignedStudentIds.has(student.id) ? "" : " · 待分配"}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="mt-4 text-sm text-muted">尚未登记学生。</p>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {overview?.admin.canManageMembers ? (
+        <section className={`section ${isPlatformAdmin ? "" : "section-muted"}`}>
+          <div className="container">
+            <details open={!isPlatformAdmin}>
+              <summary className={isPlatformAdmin ? "cursor-pointer list-none border-y border-ink/10 py-5 text-[1.25rem] font-bold text-ink" : "hidden"}>
+                辅助调整老师负责关系
+                <span className="ml-3 text-sm font-normal text-muted">日常由学校负责人维护</span>
+              </summary>
+              <div className={isPlatformAdmin ? "pt-8" : ""}>
+                <SectionHeader
+                  title={isPlatformAdmin ? "辅助调整老师负责关系" : "分配老师负责的学生"}
+                  description={
+                    isPlatformAdmin
+                      ? `当前学校：${selectedSchool?.name || "请选择学校"}。平台管理员仅在学校需要时协助调整。`
+                      : "支持老师只会看到分配给自己的学生记录；学校负责人仍可查看全校。"
+                  }
+                />
             <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
               <div className="card">
                 <label className="grid gap-2 text-sm font-bold text-ink">
@@ -664,6 +808,8 @@ export default function AdminPage() {
                 </div>
               </div>
             ) : null}
+              </div>
+            </details>
           </div>
         </section>
       ) : null}

@@ -25,8 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const schoolsQuery = supabase
       .from("schools")
       .select("id,name,status,created_at")
-      .order("created_at", { ascending: false })
-      .limit(20);
+      .order("created_at", { ascending: false });
 
     const { data: schools, error: schoolsError } = context.kind === "school"
       ? await schoolsQuery.in("id", context.managedSchoolIds)
@@ -35,6 +34,99 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const schoolIds = (schools || []).map((school) => school.id as string);
     const hasScopedSchools = context.kind === "platform" || schoolIds.length > 0;
+    const canManageMembers =
+      context.kind === "platform" ||
+      Object.values(context.schoolRoles).includes("school_admin");
+    const directorySchoolIds =
+      context.kind === "platform"
+        ? schoolIds
+        : schoolIds.filter((schoolId) => context.schoolRoles[schoolId] === "school_admin");
+
+    let schoolDirectories: Array<{
+      school_id: string;
+      leaders: Array<{ id: string; email: string; display_name: string }>;
+      teachers: Array<{ id: string; email: string; display_name: string }>;
+      students: Array<{ id: string; email: string; display_name: string }>;
+      assignments: Array<{ teacher_user_id: string; student_user_id: string }>;
+    }> = [];
+
+    if (canManageMembers && directorySchoolIds.length > 0) {
+      const [
+        { data: memberships, error: membershipDirectoryError },
+        { data: students, error: studentDirectoryError },
+        { data: assignments, error: assignmentDirectoryError },
+      ] = await Promise.all([
+        supabase
+          .from("school_members")
+          .select("school_id,user_id,email,member_role")
+          .in("school_id", directorySchoolIds)
+          .in("member_role", ["school_admin", "school_support"])
+          .eq("status", "active"),
+        supabase
+          .from("profiles")
+          .select("id,email,display_name,school_id")
+          .in("school_id", directorySchoolIds)
+          .eq("role", "学生"),
+        supabase
+          .from("teacher_student_assignments")
+          .select("school_id,teacher_user_id,student_user_id")
+          .in("school_id", directorySchoolIds)
+          .eq("status", "active"),
+      ]);
+      if (membershipDirectoryError) throw membershipDirectoryError;
+      if (studentDirectoryError) throw studentDirectoryError;
+      if (assignmentDirectoryError) throw assignmentDirectoryError;
+
+      const memberUserIds = Array.from(
+        new Set((memberships || []).map((membership) => membership.user_id as string)),
+      );
+      const { data: memberProfiles, error: memberProfileError } = memberUserIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id,email,display_name")
+            .in("id", memberUserIds)
+        : { data: [], error: null };
+      if (memberProfileError) throw memberProfileError;
+
+      const memberProfileById = new Map(
+        (memberProfiles || []).map((profile) => [profile.id as string, profile]),
+      );
+      schoolDirectories = directorySchoolIds.map((schoolId) => {
+        const schoolMemberships = (memberships || []).filter(
+          (membership) => membership.school_id === schoolId,
+        );
+        const peopleForRole = (memberRole: "school_admin" | "school_support") =>
+          schoolMemberships
+            .filter((membership) => membership.member_role === memberRole)
+            .map((membership) => {
+              const profile = memberProfileById.get(membership.user_id as string);
+              return {
+                id: membership.user_id as string,
+                email: profile?.email || membership.email || "",
+                display_name: profile?.display_name || "",
+              };
+            });
+
+        return {
+          school_id: schoolId,
+          leaders: peopleForRole("school_admin"),
+          teachers: peopleForRole("school_support"),
+          students: (students || [])
+            .filter((student) => student.school_id === schoolId)
+            .map((student) => ({
+              id: student.id as string,
+              email: student.email || "",
+              display_name: student.display_name || "",
+            })),
+          assignments: (assignments || [])
+            .filter((assignment) => assignment.school_id === schoolId)
+            .map((assignment) => ({
+              teacher_user_id: assignment.teacher_user_id as string,
+              student_user_id: assignment.student_user_id as string,
+            })),
+        };
+      });
+    }
 
     let profileCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
@@ -160,9 +252,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role: context.roleLabel,
         status: "active",
         scope: context.kind,
-        canManageMembers:
-          context.kind === "platform" ||
-          Object.values(context.schoolRoles).includes("school_admin"),
+        canManageMembers,
       },
       counts: {
         profiles: profileCount,
@@ -173,6 +263,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         wechatBindings: context.kind === "platform" ? wechatIdentityCount : 0,
       },
       schools: schools || [],
+      schoolDirectories,
       recentRecords: recentRecords || [],
       attentionQueue,
     });
