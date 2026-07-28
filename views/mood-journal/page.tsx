@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 const emotionGroups = [
   ["压力类", ["紧张", "焦虑", "压迫", "不安"]],
@@ -159,18 +160,22 @@ export default function MoodJournalPage() {
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">这件事发生在什么情境里？</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => { setContext(e.target.value); setSaved(false); }} />
+                <VoiceInputButton value={context} onChange={(value) => { setContext(value); setSaved(false); }} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">当时你身体有什么感觉？</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => { setBody(e.target.value); setSaved(false); }} />
+                <VoiceInputButton value={body} onChange={(value) => { setBody(value); setSaved(false); }} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">你最想被别人理解的一点是什么？</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => { setUnderstanding(e.target.value); setSaved(false); }} />
+                <VoiceInputButton value={understanding} onChange={(value) => { setUnderstanding(value); setSaved(false); }} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">现在你希望自己先得到什么支持？</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => { setSupport(e.target.value); setSaved(false); }} />
+                <VoiceInputButton value={support} onChange={(value) => { setSupport(value); setSaved(false); }} />
               </label>
               <button type="button" className="button-primary w-fit" onClick={() => setSaved(true)}>
                 保存这次记录

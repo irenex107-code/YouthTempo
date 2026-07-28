@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 type AiWorryResult = {
   controllableParts: string;
@@ -145,6 +146,7 @@ export default function WorryTimePage() {
                       value={worry}
                       onChange={(e) => updateWorry(index, e.target.value)}
                     />
+                    <VoiceInputButton value={worry} onChange={(value) => updateWorry(index, value)} />
                   </label>
                 ))}
               </div>
@@ -200,6 +202,15 @@ export default function WorryTimePage() {
                 }}
                 placeholder="明天我可以先做的一件小事是……"
               />
+              <div className="mt-3">
+                <VoiceInputButton
+                  value={action}
+                  onChange={(value) => {
+                    setAction(value);
+                    setDone(false);
+                  }}
+                />
+              </div>
             </article>
             <article className="card flex flex-col justify-center">
               <button type="button" className="button-primary w-full" onClick={generateAiResponse} disabled={loading}>
