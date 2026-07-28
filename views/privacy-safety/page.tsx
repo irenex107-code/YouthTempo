@@ -50,7 +50,7 @@ export default function PrivacySafetyPage() {
         <div className="container">
           <SectionHeader
             title="用户登录与数据保存"
-            description="个人用户查看自己的记录；学校角色按照学校归属和师生分配关系查看记录。家长默认不能查看孩子的个人记录。"
+            description="个人用户查看自己的记录；学校角色按照学校归属和师生分配关系查看记录；家长仅能查看由学校确认关联的孩子记录。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {accountPlan.map(([title, text]) => (

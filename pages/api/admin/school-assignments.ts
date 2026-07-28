@@ -2,12 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { canManageSchool, canManageSchoolMembers, findAuthUserByEmail, getAdminContext } from "@/lib/adminAccess";
 import { inviteRoleFromLabel, memberRoleFromInvite } from "@/lib/schoolInvites";
 
-const roleLabels = ["学生", "支持老师", "学校负责人"] as const;
+const roleLabels = ["学生", "家长", "支持老师", "学校负责人"] as const;
 type AssignmentRole = (typeof roleLabels)[number];
 
 function normalizeRole(value: unknown): AssignmentRole {
   if (value === "学校负责人" || value === "学校管理员") return "学校负责人";
   if (value === "支持老师" || value === "学校支持人员") return "支持老师";
+  if (value === "家长") return "家长";
   return "学生";
 }
 
@@ -24,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const displayName = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);
-    const inviteRole = inviteRoleFromLabel(assignmentRole);
+    const inviteRole = assignmentRole === "家长" ? null : inviteRoleFromLabel(assignmentRole);
 
     if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
     if (!displayName) return res.status(400).json({ error: "请输入成员姓名。" });
@@ -82,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (updatedUser.user) authUser = updatedUser.user;
     }
 
-    const memberRole = memberRoleFromInvite(inviteRole);
+    const memberRole = inviteRole ? memberRoleFromInvite(inviteRole) : null;
     if (memberRole) {
       const { error: memberError } = await supabase.from("school_members").upsert({
         school_id: schoolId,
@@ -101,7 +102,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: authUser.id,
         email,
         display_name: displayName,
-        role: assignmentRole === "学生" ? "学生" : "学校支持人员",
+        role:
+          assignmentRole === "学生"
+            ? "学生"
+            : assignmentRole === "家长"
+              ? "家长"
+              : "学校支持人员",
         school_id: schoolId,
         updated_at: new Date().toISOString(),
       })
@@ -118,18 +124,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (recordsError) throw recordsError;
     }
 
-    await supabase
-      .from("school_invites")
-      .update({
-        status: "applied",
-        applied_user_id: authUser.id,
-        applied_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("school_id", schoolId)
-      .eq("assignment_role", inviteRole)
-      .ilike("email", email)
-      .eq("status", "active");
+    if (inviteRole) {
+      await supabase
+        .from("school_invites")
+        .update({
+          status: "applied",
+          applied_user_id: authUser.id,
+          applied_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("school_id", schoolId)
+        .eq("assignment_role", inviteRole)
+        .ilike("email", email)
+        .eq("status", "active");
+    }
 
     return res.status(200).json({ profile, school, assignmentRole, status });
   } catch (error) {

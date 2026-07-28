@@ -12,7 +12,7 @@ type School = {
   created_at: string;
 };
 
-type AssignmentRole = "学生" | "支持老师" | "学校负责人";
+type AssignmentRole = "学生" | "家长" | "支持老师" | "学校负责人";
 
 type AdminOverview = {
   admin: {
@@ -69,8 +69,13 @@ type SchoolPerson = {
 type SchoolRoster = {
   teachers: SchoolPerson[];
   students: SchoolPerson[];
+  guardians: SchoolPerson[];
   assignments: Array<{
     teacher_user_id: string;
+    student_user_id: string;
+  }>;
+  guardianAssignments: Array<{
+    guardian_user_id: string;
     student_user_id: string;
   }>;
 };
@@ -115,16 +120,19 @@ export default function AdminPage() {
   const [schoolRoster, setSchoolRoster] = useState<SchoolRoster | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState("");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [selectedGuardianId, setSelectedGuardianId] = useState("");
+  const [selectedGuardianStudentIds, setSelectedGuardianStudentIds] = useState<string[]>([]);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterSaving, setRosterSaving] = useState(false);
+  const [guardianSaving, setGuardianSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || overview?.schools[0];
   const roleOptions: AssignmentRole[] = isPlatformAdmin
-    ? ["学校负责人", "支持老师", "学生"]
-    : ["学生", "支持老师"];
+    ? ["学校负责人", "支持老师", "学生", "家长"]
+    : ["学生", "家长", "支持老师"];
   const assignedStudentIdSet = new Set(
     schoolRoster?.assignments.map((assignment) => assignment.student_user_id) || [],
   );
@@ -192,6 +200,11 @@ export default function AdminPage() {
           ? current
           : roster.teachers[0]?.id || "",
       );
+      setSelectedGuardianId((current) =>
+        roster.guardians.some((guardian) => guardian.id === current)
+          ? current
+          : roster.guardians[0]?.id || "",
+      );
     } catch (rosterError) {
       setError(rosterError instanceof Error ? rosterError.message : "学校名单加载失败。");
     } finally {
@@ -219,6 +232,18 @@ export default function AdminPage() {
     );
   }, [schoolRoster, selectedTeacherId]);
 
+  useEffect(() => {
+    if (!schoolRoster || !selectedGuardianId) {
+      setSelectedGuardianStudentIds([]);
+      return;
+    }
+    setSelectedGuardianStudentIds(
+      schoolRoster.guardianAssignments
+        .filter((assignment) => assignment.guardian_user_id === selectedGuardianId)
+        .map((assignment) => assignment.student_user_id),
+    );
+  }, [schoolRoster, selectedGuardianId]);
+
   async function saveTeacherStudents() {
     if (!accessToken || !selectedSchoolId || !selectedTeacherId) return;
     setRosterSaving(true);
@@ -245,6 +270,38 @@ export default function AdminPage() {
       setError(rosterError instanceof Error ? rosterError.message : "老师负责学生保存失败。");
     } finally {
       setRosterSaving(false);
+    }
+  }
+
+  async function saveGuardianStudents() {
+    if (!accessToken || !selectedSchoolId || !selectedGuardianId || !schoolRoster) return;
+    setGuardianSaving(true);
+    setActionNotice("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/guardian-student-assignments", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          schoolId: selectedSchoolId,
+          guardianUserId: selectedGuardianId,
+          studentUserIds: selectedGuardianStudentIds,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "亲子关系保存失败。");
+      setSchoolRoster({
+        ...schoolRoster,
+        guardianAssignments: payload.guardianAssignments,
+      });
+      setActionNotice("亲子关系已确认。家长下次进入账户时会看到对应孩子的记录。");
+    } catch (guardianError) {
+      setError(guardianError instanceof Error ? guardianError.message : "亲子关系保存失败。");
+    } finally {
+      setGuardianSaving(false);
     }
   }
 
@@ -383,7 +440,7 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校成员</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolUsers}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">学生、学校负责人和支持老师。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">学生、家长、学校负责人和支持老师。</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">SWEET 记录</p>
@@ -443,6 +500,8 @@ export default function AdminPage() {
                     placeholder={
                       assignmentRole === "学生"
                         ? "学生姓名"
+                        : assignmentRole === "家长"
+                          ? "家长姓名"
                         : assignmentRole === "学校负责人"
                           ? "负责人姓名"
                           : "老师姓名"
@@ -504,7 +563,7 @@ export default function AdminPage() {
                       </div>
                       {directory ? (
                         <p className="mt-3 text-xs font-bold text-muted">
-                          负责人 {directory.leaders.length} · 老师 {directory.teachers.length} · 学生 {directory.students.length}
+                          负责人 {directory.leaders.length} · 老师 {directory.teachers.length} · 学生 {directory.students.length} · 家长 {directory.guardians.length}
                         </p>
                       ) : null}
                     </button>
@@ -521,7 +580,7 @@ export default function AdminPage() {
           <div className="container">
             <SectionHeader
               title="学校与人员总览"
-              description="查看每所学校登记的负责人、支持老师、学生和老师负责关系。点击上方学校列表可切换后续辅助操作的学校。"
+              description="查看每所学校登记的负责人、支持老师、学生、家长及对应关系。点击上方学校列表可切换后续辅助操作的学校。"
             />
             <div className="grid gap-5">
               {overview.schools.map((school) => {
@@ -547,6 +606,7 @@ export default function AdminPage() {
                         <span className="rounded-full bg-mint px-3 py-2">负责人 {directory.leaders.length}</span>
                         <span className="rounded-full bg-mint px-3 py-2">老师 {directory.teachers.length}</span>
                         <span className="rounded-full bg-mint px-3 py-2">学生 {directory.students.length}</span>
+                        <span className="rounded-full bg-mint px-3 py-2">家长 {directory.guardians.length}</span>
                       </div>
                     </div>
 
@@ -614,6 +674,33 @@ export default function AdminPage() {
                           </div>
                         ) : (
                           <p className="mt-4 text-sm text-muted">尚未登记学生。</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-6 border-t border-ink/10 pt-6">
+                      <p className="text-sm font-bold text-ink">家长与孩子</p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {directory.guardians.length ? directory.guardians.map((guardian) => {
+                          const children = directory.guardianAssignments
+                            .filter((assignment) => assignment.guardian_user_id === guardian.id)
+                            .map((assignment) => studentsById.get(assignment.student_user_id))
+                            .filter((student): student is SchoolPerson => Boolean(student));
+
+                          return (
+                            <div key={guardian.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
+                              <p className="font-bold text-ink">{guardian.display_name || guardian.email}</p>
+                              {guardian.display_name ? <p className="mt-1 break-all text-xs text-muted">{guardian.email}</p> : null}
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {children.length ? children.map((child) => (
+                                  <span key={child.id} className="rounded-full bg-cream px-3 py-1 text-xs font-bold text-ink/75">
+                                    {child.display_name || child.email}
+                                  </span>
+                                )) : <span className="text-xs text-muted">尚未关联孩子</span>}
+                              </div>
+                            </div>
+                          );
+                        }) : (
+                          <p className="text-sm text-muted">尚未登记家长。</p>
                         )}
                       </div>
                     </div>
@@ -808,6 +895,109 @@ export default function AdminPage() {
                 </div>
               </div>
             ) : null}
+              </div>
+            </details>
+          </div>
+        </section>
+      ) : null}
+
+      {overview?.admin.canManageMembers ? (
+        <section className={`section ${isPlatformAdmin ? "section-muted" : ""}`}>
+          <div className="container">
+            <details open={!isPlatformAdmin}>
+              <summary className={isPlatformAdmin ? "cursor-pointer list-none border-y border-ink/10 py-5 text-[1.25rem] font-bold text-ink" : "hidden"}>
+                辅助确认家长与孩子
+                <span className="ml-3 text-sm font-normal text-muted">日常由学校负责人维护</span>
+              </summary>
+              <div className={isPlatformAdmin ? "pt-8" : ""}>
+                <SectionHeader
+                  title={isPlatformAdmin ? "辅助确认家长与孩子" : "确认家长与孩子"}
+                  description={
+                    isPlatformAdmin
+                      ? `当前学校：${selectedSchool?.name || "请选择学校"}。关系确认后，家长只能看到所关联孩子的记录。`
+                      : "先登记家长账号，再选择该家长可以查看的孩子。关系由学校确认，家长不能自行扩大查看范围。"
+                  }
+                />
+                <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+                  <div className="card">
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      家长
+                      <select
+                        className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                        value={selectedGuardianId}
+                        onChange={(event) => setSelectedGuardianId(event.target.value)}
+                        disabled={rosterLoading || !schoolRoster?.guardians.length}
+                      >
+                        {!schoolRoster?.guardians.length ? <option value="">还没有家长账号</option> : null}
+                        {schoolRoster?.guardians.map((guardian) => (
+                          <option key={guardian.id} value={guardian.id}>
+                            {guardian.display_name || guardian.email}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="mt-6 rounded-2xl bg-cream px-4 py-4">
+                      <p className="text-xs font-bold text-sage-dark">已关联孩子</p>
+                      <p className="mt-2 text-3xl font-bold text-ink">{selectedGuardianStudentIds.length} 人</p>
+                    </div>
+                    <Link href="/referral" className="button-secondary mt-5 w-full sm:w-auto">
+                      查看专业支持路径
+                    </Link>
+                  </div>
+
+                  <div className="card">
+                    <div>
+                      <p className="eyebrow">学生名单</p>
+                      <h2 className="mt-2 text-[1.35rem] font-bold text-ink">选择孩子</h2>
+                    </div>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      {rosterLoading ? (
+                        <p className="rounded-2xl bg-cream px-4 py-4 text-sm font-bold text-muted">正在加载学校名单……</p>
+                      ) : schoolRoster?.students.length ? (
+                        schoolRoster.students.map((student) => {
+                          const checked = selectedGuardianStudentIds.includes(student.id);
+                          return (
+                            <label
+                              key={student.id}
+                              className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-4 transition ${
+                                checked ? "border-sage bg-mint" : "border-ink/10 bg-white"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                className="mt-1 h-4 w-4 accent-sage"
+                                checked={checked}
+                                onChange={() =>
+                                  setSelectedGuardianStudentIds((current) =>
+                                    checked
+                                      ? current.filter((id) => id !== student.id)
+                                      : [...current, student.id],
+                                  )
+                                }
+                              />
+                              <span className="min-w-0">
+                                <span className="block font-bold text-ink">{student.display_name || "未填写姓名"}</span>
+                                <span className="mt-1 block break-all text-xs text-muted">{student.email}</span>
+                              </span>
+                            </label>
+                          );
+                        })
+                      ) : (
+                        <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">这所学校还没有学生账号。</p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="button-primary mt-6 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
+                      disabled={guardianSaving || rosterLoading || !selectedGuardianId}
+                      onClick={saveGuardianStudents}
+                    >
+                      {guardianSaving ? "保存中…" : "确认亲子关系"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </details>
           </div>

@@ -93,7 +93,7 @@ export default function ForParentsPage() {
       <section className="section section-muted">
         <div className="container grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <InfoCard title="家长是观察者和支持者">
-            家长可以关注持续变化、提供稳定陪伴并在需要时连接学校或专业支持。家长默认不查看孩子的个人记录，也不需要根据一次记录给孩子下结论。
+            家长可以关注持续变化、提供稳定陪伴并在需要时连接学校或专业支持。家长不会自动看到所有学生信息，只能查看由学校确认关联的孩子记录，也不需要根据一次记录给孩子下结论。
           </InfoCard>
           <InfoCard title="从节律开始，不急着追问原因">
             对很多孩子来说，直接回答“你到底怎么了”很难。SWEET 提供的是观察内容，AIDET 提供的是沟通方式，帮助家长先从更具体、更低压力的地方靠近孩子。

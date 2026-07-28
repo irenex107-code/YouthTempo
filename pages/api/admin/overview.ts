@@ -47,14 +47,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       leaders: Array<{ id: string; email: string; display_name: string }>;
       teachers: Array<{ id: string; email: string; display_name: string }>;
       students: Array<{ id: string; email: string; display_name: string }>;
+      guardians: Array<{ id: string; email: string; display_name: string }>;
       assignments: Array<{ teacher_user_id: string; student_user_id: string }>;
+      guardianAssignments: Array<{ guardian_user_id: string; student_user_id: string }>;
     }> = [];
 
     if (canManageMembers && directorySchoolIds.length > 0) {
       const [
         { data: memberships, error: membershipDirectoryError },
         { data: students, error: studentDirectoryError },
+        { data: guardians, error: guardianDirectoryError },
         { data: assignments, error: assignmentDirectoryError },
+        { data: guardianAssignments, error: guardianAssignmentDirectoryError },
       ] = await Promise.all([
         supabase
           .from("school_members")
@@ -68,14 +72,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .in("school_id", directorySchoolIds)
           .eq("role", "学生"),
         supabase
+          .from("profiles")
+          .select("id,email,display_name,school_id")
+          .in("school_id", directorySchoolIds)
+          .eq("role", "家长"),
+        supabase
           .from("teacher_student_assignments")
           .select("school_id,teacher_user_id,student_user_id")
+          .in("school_id", directorySchoolIds)
+          .eq("status", "active"),
+        supabase
+          .from("guardian_student_links")
+          .select("school_id,guardian_user_id,student_user_id")
           .in("school_id", directorySchoolIds)
           .eq("status", "active"),
       ]);
       if (membershipDirectoryError) throw membershipDirectoryError;
       if (studentDirectoryError) throw studentDirectoryError;
+      if (guardianDirectoryError) throw guardianDirectoryError;
       if (assignmentDirectoryError) throw assignmentDirectoryError;
+      if (guardianAssignmentDirectoryError) throw guardianAssignmentDirectoryError;
 
       const memberUserIds = Array.from(
         new Set((memberships || []).map((membership) => membership.user_id as string)),
@@ -118,10 +134,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               email: student.email || "",
               display_name: student.display_name || "",
             })),
+          guardians: (guardians || [])
+            .filter((guardian) => guardian.school_id === schoolId)
+            .map((guardian) => ({
+              id: guardian.id as string,
+              email: guardian.email || "",
+              display_name: guardian.display_name || "",
+            })),
           assignments: (assignments || [])
             .filter((assignment) => assignment.school_id === schoolId)
             .map((assignment) => ({
               teacher_user_id: assignment.teacher_user_id as string,
+              student_user_id: assignment.student_user_id as string,
+            })),
+          guardianAssignments: (guardianAssignments || [])
+            .filter((assignment) => assignment.school_id === schoolId)
+            .map((assignment) => ({
+              guardian_user_id: assignment.guardian_user_id as string,
               student_user_id: assignment.student_user_id as string,
             })),
         };

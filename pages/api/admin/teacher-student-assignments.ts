@@ -18,6 +18,14 @@ async function loadRoster(
     .order("display_name", { ascending: true });
   if (studentError) throw studentError;
 
+  const { data: guardians, error: guardianError } = await supabase
+    .from("profiles")
+    .select("id,email,display_name")
+    .eq("school_id", schoolId)
+    .eq("role", "家长")
+    .order("display_name", { ascending: true });
+  if (guardianError) throw guardianError;
+
   const { data: teacherMemberships, error: teacherError } = await supabase
     .from("school_members")
     .select("user_id,email")
@@ -52,7 +60,20 @@ async function loadRoster(
     .eq("status", "active");
   if (assignmentError) throw assignmentError;
 
-  return { teachers, students: students || [], assignments: assignments || [] };
+  const { data: guardianAssignments, error: guardianAssignmentError } = await supabase
+    .from("guardian_student_links")
+    .select("guardian_user_id,student_user_id")
+    .eq("school_id", schoolId)
+    .eq("status", "active");
+  if (guardianAssignmentError) throw guardianAssignmentError;
+
+  return {
+    teachers,
+    students: students || [],
+    guardians: guardians || [],
+    assignments: assignments || [],
+    guardianAssignments: guardianAssignments || [],
+  };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

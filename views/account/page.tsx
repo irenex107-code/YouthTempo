@@ -121,11 +121,16 @@ export default function AccountPage() {
   const hasSchool = Boolean(accountStatus?.hasSchool || profile?.school_id);
   const isManagedSchoolRole = !isIdentityLoading && (displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员");
   const isSchoolAssignedStudent = !isIdentityLoading && displayRole === "学生" && hasSchool;
-  const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent;
+  const isSchoolAssignedParent = !isIdentityLoading && displayRole === "家长" && hasSchool;
+  const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent || isSchoolAssignedParent;
   const needsPersonalProfile = Boolean(
     user && !isIdentityLoading && !isExternallyManagedRole && (!profile || !profile.display_name?.trim()),
   );
-  const confirmedRoleLabel = isSchoolAssignedStudent ? "学校学生" : displayRole;
+  const confirmedRoleLabel = isSchoolAssignedStudent
+    ? "学校学生"
+    : isSchoolAssignedParent
+      ? "学校家长"
+      : displayRole;
   const recentRecordDays = countRecentRecordDays(records, user?.id);
   const accountName = profile?.display_name?.trim() || user?.email || "你的账户";
   const isInitialAccountLoad = loading && !user;
@@ -133,6 +138,8 @@ export default function AccountPage() {
   const isSchoolLead = displayRole === "学校负责人";
   const isSupportTeacher = displayRole === "支持老师";
   const isParent = displayRole === "家长";
+  const linkedChildren = accountStatus?.linkedChildren || [];
+  const linkedChildById = new Map(linkedChildren.map((child) => [child.id, child]));
 
   async function refreshAccount() {
     setLoading(true);
@@ -490,7 +497,11 @@ export default function AccountPage() {
                   <p className="mt-3 max-w-2xl text-[0.95rem] leading-7 text-muted">
                     {needsPersonalProfile
                       ? "填写姓名并选择身份。之后登录时会直接进入你的记录页。"
-                      : recordsDescription(displayRole, hasSchool)}
+                      : isParent
+                        ? linkedChildren.length
+                          ? `已关联 ${linkedChildren.map((child) => child.display_name).join("、")}，可以查看学校确认范围内的节律记录。`
+                          : "亲子关系由试点学校确认。关联完成后，这里会直接显示孩子的节律记录。"
+                        : recordsDescription(displayRole, hasSchool)}
                   </p>
                 </div>
                 {!needsPersonalProfile ? (
@@ -501,6 +512,7 @@ export default function AccountPage() {
                     {isSupportTeacher ? <Link href="#records" className="button-primary w-full sm:w-auto">查看负责学生</Link> : null}
                     {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">跟进工作台</Link> : null}
                     {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">查看孩子记录</Link> : null}
+                    {isParent ? <Link href="/referral" className="button-secondary w-full sm:w-auto">需要更多支持</Link> : null}
                     {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">记录今天</Link> : null}
                   </div>
                 ) : null}
@@ -678,6 +690,15 @@ export default function AccountPage() {
         <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">
           <div className="container">
             <SectionHeader title={recordsTitle(displayRole)} />
+            {isParent && linkedChildren.length > 0 ? (
+              <div className="mb-5 flex flex-wrap gap-2">
+                {linkedChildren.map((child) => (
+                  <span key={child.id} className="rounded-full bg-mint px-4 py-2 text-sm font-bold text-sage-dark">
+                    {child.display_name}
+                  </span>
+                ))}
+              </div>
+            ) : null}
             {loading ? <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-6 text-sm font-bold text-muted">正在加载记录…</div> : null}
             {!loading && records.length > 0 ? (
               <div className="grid gap-5">
@@ -688,7 +709,11 @@ export default function AccountPage() {
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                           <p className="text-sm font-bold text-sage">{formatDate(record.created_at)}</p>
-                          <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">SWEET 节律记录</h3>
+                          <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">
+                            {linkedChildById.get(record.user_id)?.display_name
+                              ? `${linkedChildById.get(record.user_id)?.display_name}的 SWEET 记录`
+                              : "SWEET 节律记录"}
+                          </h3>
                         </div>
                         {canDelete ? (
                           <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>删除</button>
@@ -730,7 +755,7 @@ export default function AccountPage() {
                 </div>
                 <div className="mt-5 shrink-0 sm:mt-0">
                   {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">开始记录</Link> : null}
-                  {displayRole === "家长" ? <Link href="/for-parents" className="button-secondary w-full sm:w-auto">查看家长入口</Link> : null}
+                  {displayRole === "家长" && linkedChildren.length === 0 ? <Link href="/contact" className="button-secondary w-full sm:w-auto">联系学校确认关系</Link> : null}
                   {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
                 </div>
               </div>

@@ -87,6 +87,20 @@ create table if not exists public.teacher_student_assignments (
   unique (school_id, teacher_user_id, student_user_id)
 );
 
+create table if not exists public.guardian_student_links (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid not null references public.schools(id) on delete cascade,
+  guardian_user_id uuid not null references auth.users(id) on delete cascade,
+  student_user_id uuid not null references auth.users(id) on delete cascade,
+  confirmed_by uuid references auth.users(id) on delete set null,
+  status text not null default 'active' check (status in ('active', 'revoked')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  revoked_at timestamptz,
+  unique (school_id, guardian_user_id, student_user_id),
+  check (guardian_user_id <> student_user_id)
+);
+
 create table if not exists public.school_invites (
   id uuid primary key default gen_random_uuid(),
   school_id uuid not null references public.schools(id) on delete cascade,
@@ -174,6 +188,7 @@ alter table public.profiles enable row level security;
 alter table public.sweet_records enable row level security;
 alter table public.school_members enable row level security;
 alter table public.teacher_student_assignments enable row level security;
+alter table public.guardian_student_links enable row level security;
 alter table public.school_invites enable row level security;
 alter table public.user_permissions enable row level security;
 alter table public.wechat_identities enable row level security;
@@ -229,6 +244,20 @@ to authenticated
 using ((select auth.uid()) = user_id);
 
 drop policy if exists "sweet_records_select_authorized_grantee" on public.sweet_records;
+drop policy if exists "sweet_records_select_guardian" on public.sweet_records;
+create policy "sweet_records_select_guardian"
+on public.sweet_records for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.guardian_student_links guardian_link
+    where guardian_link.guardian_user_id = (select auth.uid())
+      and guardian_link.student_user_id = sweet_records.user_id
+      and guardian_link.school_id = sweet_records.school_id
+      and guardian_link.status = 'active'
+  )
+);
 
 drop policy if exists "sweet_records_select_school_members" on public.sweet_records;
 create policy "sweet_records_select_school_members"
@@ -293,6 +322,19 @@ create policy "teacher_assignments_select_own"
 on public.teacher_student_assignments for select
 to authenticated
 using (teacher_user_id = (select auth.uid()));
+
+drop policy if exists "guardian_links_select_related" on public.guardian_student_links;
+create policy "guardian_links_select_related"
+on public.guardian_student_links for select
+to authenticated
+using (
+  guardian_user_id = (select auth.uid())
+  or student_user_id = (select auth.uid())
+);
+
+revoke insert, update, delete on table public.guardian_student_links from anon, authenticated;
+revoke all on table public.guardian_student_links from anon;
+grant select on table public.guardian_student_links to authenticated;
 
 drop policy if exists "school_invites_select_relevant" on public.school_invites;
 create policy "school_invites_select_relevant"
@@ -379,6 +421,19 @@ on public.teacher_student_assignments(school_id, status);
 
 create index if not exists teacher_assignments_assigned_by_idx
 on public.teacher_student_assignments(assigned_by);
+
+create index if not exists guardian_links_guardian_status_idx
+on public.guardian_student_links(guardian_user_id, status);
+
+create index if not exists guardian_links_student_status_idx
+on public.guardian_student_links(student_user_id, status);
+
+create index if not exists guardian_links_school_status_idx
+on public.guardian_student_links(school_id, status);
+
+create index if not exists guardian_links_confirmed_by_idx
+on public.guardian_student_links(confirmed_by)
+where confirmed_by is not null;
 
 create unique index if not exists school_invites_active_email_school_role_idx
 on public.school_invites (lower(email), school_id, assignment_role)

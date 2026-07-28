@@ -54,6 +54,7 @@ export type AccountStatus = {
   adminAccess: { role: string; scope: "platform" | "school" } | null;
   schoolMemberships: Array<{ school_id: string; member_role: string; status: string }>;
   hasSchool: boolean;
+  linkedChildren: Array<{ id: string; display_name: string; school_id: string }>;
   inviteSyncError?: string | null;
 };
 

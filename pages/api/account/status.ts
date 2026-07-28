@@ -42,6 +42,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isSupportTeacher = activeMemberships.some((membership) => membership.member_role === "school_support");
     const baseRole = profileRoleLabel(profile?.role as string | null | undefined);
     const displayRole = platformAdmin ? "平台管理员" : isSchoolLead ? "学校负责人" : isSupportTeacher ? "支持老师" : baseRole;
+    const { data: guardianLinks, error: guardianLinkError } = baseRole === "家长"
+      ? await supabase
+          .from("guardian_student_links")
+          .select("school_id,student_user_id")
+          .eq("guardian_user_id", user.id)
+          .eq("status", "active")
+      : { data: [], error: null };
+    if (guardianLinkError) throw guardianLinkError;
+
+    const linkedStudentIds = (guardianLinks || []).map((link) => link.student_user_id as string);
+    const { data: linkedProfiles, error: linkedProfileError } = linkedStudentIds.length
+      ? await supabase
+          .from("profiles")
+          .select("id,display_name,school_id")
+          .in("id", linkedStudentIds)
+      : { data: [], error: null };
+    if (linkedProfileError) throw linkedProfileError;
+
+    const linkedProfileById = new Map(
+      (linkedProfiles || []).map((linkedProfile) => [linkedProfile.id as string, linkedProfile]),
+    );
+    const linkedChildren = (guardianLinks || []).map((link) => {
+      const linkedProfile = linkedProfileById.get(link.student_user_id as string);
+      return {
+        id: link.student_user_id as string,
+        display_name: linkedProfile?.display_name || "孩子",
+        school_id: link.school_id as string,
+      };
+    });
 
     return res.status(200).json({
       profile,
@@ -55,6 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : null,
       schoolMemberships: activeMemberships,
       hasSchool: Boolean(profile?.school_id || activeMemberships.length),
+      linkedChildren,
       inviteSyncError,
     });
   } catch (error) {
