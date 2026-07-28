@@ -21,11 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const context = await getAdminContext(req);
     const { supabase } = context;
     const schoolId = typeof req.body?.schoolId === "string" ? req.body.schoolId.trim() : "";
+    const displayName = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);
     const inviteRole = inviteRoleFromLabel(assignmentRole);
 
     if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
+    if (!displayName) return res.status(400).json({ error: "请输入成员姓名。" });
+    if (displayName.length > 50) return res.status(400).json({ error: "成员姓名请控制在 50 个字符以内。" });
     if (!email) return res.status(400).json({ error: "请输入对方登录 YouthTempo 使用的邮箱。" });
     if (!canManageSchool(context, schoolId)) return res.status(403).json({ error: "你只能管理自己学校空间里的成员。" });
     if (!canManageSchoolMembers(context, schoolId)) return res.status(403).json({ error: "只有学校负责人可以添加学校成员。" });
@@ -50,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email,
         email_confirm: true,
         user_metadata: {
-          display_name: email.split("@")[0],
+          display_name: displayName,
           source: "school_assignment",
         },
       });
@@ -65,6 +68,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (confirmUserError) throw confirmUserError;
       if (confirmedUser.user) authUser = confirmedUser.user;
       status = "confirmed";
+    }
+
+    if (authUser.user_metadata?.display_name !== displayName) {
+      const { data: updatedUser, error: updateUserError } = await supabase.auth.admin.updateUserById(authUser.id, {
+        user_metadata: {
+          ...authUser.user_metadata,
+          display_name: displayName,
+          source: "school_assignment",
+        },
+      });
+      if (updateUserError) throw updateUserError;
+      if (updatedUser.user) authUser = updatedUser.user;
     }
 
     const memberRole = memberRoleFromInvite(inviteRole);
@@ -85,7 +100,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .upsert({
         id: authUser.id,
         email,
-        display_name: authUser.user_metadata?.display_name || email.split("@")[0],
+        display_name: displayName,
         role: assignmentRole === "学生" ? "学生" : "学校支持人员",
         school_id: schoolId,
         updated_at: new Date().toISOString(),

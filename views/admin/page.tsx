@@ -99,6 +99,7 @@ export default function AdminPage() {
   const [accessToken, setAccessToken] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [selectedSchoolId, setSelectedSchoolId] = useState("");
+  const [assignmentName, setAssignmentName] = useState("");
   const [assignmentEmail, setAssignmentEmail] = useState("");
   const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学生");
   const [actionNotice, setActionNotice] = useState("");
@@ -278,16 +279,19 @@ export default function AdminPage() {
           authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({ schoolId: selectedSchoolId, email: assignmentEmail, role: assignmentRole }),
+        body: JSON.stringify({
+          schoolId: selectedSchoolId,
+          name: assignmentName,
+          email: assignmentEmail,
+          role: assignmentRole,
+        }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "学校成员添加失败。");
+      const addedName = assignmentName.trim();
+      setAssignmentName("");
       setAssignmentEmail("");
-      setActionNotice(
-        payload.status === "invited"
-          ? `已预授权：${assignmentEmail} 之后登录会自动成为${assignmentRole}。`
-          : `已添加：${assignmentEmail} 已成为${assignmentRole}。`,
-      );
+      setActionNotice(`已添加 ${addedName}。对方使用 ${assignmentEmail} 登录后，会直接显示姓名和${assignmentRole}身份。`);
       await loadAdminOverview();
     } catch (assignmentError) {
       setError(assignmentError instanceof Error ? assignmentError.message : "学校成员添加失败。");
@@ -416,6 +420,16 @@ export default function AdminPage() {
                   </label>
                 ) : null}
                 <label className="grid gap-2 text-sm font-bold text-ink">
+                  成员姓名
+                  <input
+                    className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage"
+                    value={assignmentName}
+                    onChange={(event) => setAssignmentName(event.target.value)}
+                    placeholder={assignmentRole === "学生" ? "学生姓名" : "老师姓名"}
+                    maxLength={50}
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-ink">
                   成员邮箱
                   <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={assignmentEmail} onChange={(event) => setAssignmentEmail(event.target.value)} placeholder="student@example.com" type="email" />
                 </label>
@@ -425,8 +439,12 @@ export default function AdminPage() {
                     {roleOptions.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </label>
-                <p className="text-sm leading-6 text-muted">对方用这个邮箱登录后，会自动进入对应学校身份。</p>
-                <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={actionLoading || !selectedSchoolId || !assignmentEmail.trim()}>
+                <p className="text-sm leading-6 text-muted">姓名会用于学校名单和登录后的问候；对方不需要再次填写身份资料。</p>
+                <button
+                  type="submit"
+                  className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
+                  disabled={actionLoading || !selectedSchoolId || !assignmentName.trim() || !assignmentEmail.trim()}
+                >
                   添加成员
                 </button>
               </form>

@@ -121,6 +121,9 @@ export default function AccountPage() {
   const isManagedSchoolRole = !isIdentityLoading && (displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员");
   const isSchoolAssignedStudent = !isIdentityLoading && displayRole === "学生" && hasSchool;
   const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent;
+  const needsPersonalProfile = Boolean(
+    user && !isIdentityLoading && !isExternallyManagedRole && (!profile || !profile.display_name?.trim()),
+  );
   const confirmedRoleLabel = isSchoolAssignedStudent ? "学校学生" : displayRole;
   const recentRecordDays = countRecentRecordDays(records, user?.id);
   const accountName = profile?.display_name?.trim() || user?.email || "你的账户";
@@ -184,7 +187,7 @@ export default function AccountPage() {
 
       setAccountStatus(nextAccountStatus);
       setProfile(nextProfile);
-      setName(nextProfile?.display_name || currentUser.email?.split("@")[0] || "");
+      setName(nextProfile?.display_name || "");
       setRole(profileRoleLabel(nextProfile?.role));
       setRecords(nextRecords);
       setWechatIdentities(nextWechatIdentities);
@@ -300,10 +303,13 @@ export default function AccountPage() {
     if (!user || isExternallyManagedRole) return;
     setNotice("");
     setError("");
+    if (!name.trim()) {
+      setError("请填写姓名。");
+      return;
+    }
     try {
-      const nextProfile = await saveProfile(user, name.trim(), role);
-      setProfile(nextProfile);
-      setRole(profileRoleLabel(nextProfile.role));
+      await saveProfile(user, name.trim(), role);
+      await refreshAccount();
       setNotice("账号资料已保存。");
     } catch (profileError) {
       setError(profileError instanceof Error ? profileError.message : "资料保存失败。");
@@ -451,49 +457,91 @@ export default function AccountPage() {
             <div className="container">
               <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                 <div className="min-w-0">
-                  <p className="eyebrow">我的账户</p>
+                  <p className="eyebrow">{needsPersonalProfile ? "首次登录" : "我的账户"}</p>
                   <h1 className="mt-2 overflow-hidden text-ellipsis text-[2rem] font-bold leading-tight text-ink sm:text-[2.5rem]">
-                    你好，{accountName}
+                    {needsPersonalProfile ? "先完善你的资料" : `你好，${accountName}`}
                   </h1>
                   <p className="mt-3 max-w-2xl text-[0.95rem] leading-7 text-muted">
-                    {recordsDescription(displayRole, hasSchool)}
+                    {needsPersonalProfile
+                      ? "填写姓名并选择身份。之后登录时会直接进入你的记录页。"
+                      : recordsDescription(displayRole, hasSchool)}
                   </p>
                 </div>
-                <div className="grid shrink-0 gap-3 sm:flex">
-                  {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
-                  {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">记录今天</Link> : null}
-                </div>
+                {!needsPersonalProfile ? (
+                  <div className="grid shrink-0 gap-3 sm:flex">
+                    {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
+                    {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">记录今天</Link> : null}
+                  </div>
+                ) : null}
               </div>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
-                  <p className="text-xs font-bold text-sage">当前身份</p>
-                  <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : confirmedRoleLabel}</p>
-                  <p className="mt-2 overflow-hidden text-ellipsis text-sm text-muted">{user.email}</p>
-                </div>
-                <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
-                  <p className="text-xs font-bold text-sage">可见记录</p>
-                  <p className="mt-2 text-xl font-bold text-ink">{records.length} 条</p>
-                  <p className="mt-2 text-sm text-muted">保存在当前账号</p>
-                </div>
-                {!isIdentityLoading && displayRole === "学生" ? (
-                  <div className="rounded-2xl border border-sage/30 bg-mist/70 px-5 py-5">
-                    <p className="text-xs font-bold text-sage">最近 7 天</p>
-                    <p className="mt-2 text-xl font-bold text-ink">{recentRecordDays} 天有记录</p>
-                    <p className="mt-2 text-sm text-muted">不需要每天都完成</p>
+              {needsPersonalProfile ? (
+                <form className="mt-8 max-w-2xl rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft sm:p-7" onSubmit={handleProfileSubmit}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      姓名
+                      <input
+                        className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder="怎么称呼你"
+                        maxLength={50}
+                        autoFocus
+                      />
+                    </label>
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      账号类型
+                      <select
+                        className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                        value={role}
+                        onChange={(event) => setRole(event.target.value)}
+                      >
+                        <option>学生</option>
+                        <option>家长</option>
+                      </select>
+                    </label>
                   </div>
-                ) : (
+                  <div className="mt-5 grid gap-3 sm:flex">
+                    <button type="submit" className="button-primary w-full sm:w-auto" disabled={!name.trim()}>
+                      保存并继续
+                    </button>
+                    <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>
+                      退出登录
+                    </button>
+                  </div>
+                  {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
+                </form>
+              ) : (
+                <div className="mt-8 grid gap-4 sm:grid-cols-3">
                   <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
-                    <p className="text-xs font-bold text-sage">学校空间</p>
-                    <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : hasSchool ? "已加入" : "未加入"}</p>
-                    <p className="mt-2 text-sm text-muted">由试点学校配置</p>
+                    <p className="text-xs font-bold text-sage">当前身份</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : confirmedRoleLabel}</p>
+                    <p className="mt-2 overflow-hidden text-ellipsis text-sm text-muted">{user.email}</p>
                   </div>
-                )}
-              </div>
+                  <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
+                    <p className="text-xs font-bold text-sage">可见记录</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{records.length} 条</p>
+                    <p className="mt-2 text-sm text-muted">保存在当前账号</p>
+                  </div>
+                  {!isIdentityLoading && displayRole === "学生" ? (
+                    <div className="rounded-2xl border border-sage/30 bg-mist/70 px-5 py-5">
+                      <p className="text-xs font-bold text-sage">最近 7 天</p>
+                      <p className="mt-2 text-xl font-bold text-ink">{recentRecordDays} 天有记录</p>
+                      <p className="mt-2 text-sm text-muted">不需要每天都完成</p>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
+                      <p className="text-xs font-bold text-sage">学校空间</p>
+                      <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : hasSchool ? "已加入" : "未加入"}</p>
+                      <p className="mt-2 text-sm text-muted">由试点学校配置</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </section>
 
-          <section className="px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
+          {!needsPersonalProfile ? <section className="px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
             <div className="container">
               <details className="rounded-2xl border border-ink/10 bg-white/70">
                 <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-ink sm:px-6">
@@ -539,7 +587,7 @@ export default function AccountPage() {
                       ) : (
                         <form className="grid gap-4" onSubmit={handleProfileSubmit}>
                           <label className="grid gap-2 text-sm font-bold text-ink">
-                            昵称
+                            姓名
                             <input className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
                           </label>
                           <label className="grid gap-2 text-sm font-bold text-ink">
@@ -591,11 +639,11 @@ export default function AccountPage() {
                 </div>
               </details>
             </div>
-          </section>
+          </section> : null}
         </>
       )}
 
-      {user ? (
+      {user && !needsPersonalProfile ? (
         <section className="section pt-8 sm:pt-10 lg:pt-12">
           <div className="container">
             <SectionHeader title={recordsTitle(displayRole)} />

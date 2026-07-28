@@ -26,7 +26,7 @@ export async function applySchoolInvitesForUser(supabase: SupabaseClient, user: 
 
   const { data: invites, error: inviteError } = await supabase
     .from("school_invites")
-    .select("id,school_id,email,assignment_role,status")
+    .select("id,school_id,email,display_name,assignment_role,status")
     .eq("status", "active")
     .ilike("email", email);
   if (inviteError) throw inviteError;
@@ -53,7 +53,7 @@ export async function applySchoolInvitesForUser(supabase: SupabaseClient, user: 
     const { error: profileError } = await supabase.from("profiles").upsert({
       id: user.id,
       email,
-      display_name: user.user_metadata?.display_name || email.split("@")[0],
+      display_name: invite.display_name || user.user_metadata?.display_name || email.split("@")[0],
       role: displayRole,
       school_id: invite.school_id,
       updated_at: new Date().toISOString(),
