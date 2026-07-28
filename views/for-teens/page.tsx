@@ -16,6 +16,12 @@ const startCards = [
     href: "/mood-journal",
   },
   {
+    title: "我想先找个地方说说",
+    text: "从眼前最卡住的一件事开始，和 AI 简短聊几轮，把想法理清一点。",
+    action: "陪我理一理",
+    href: "/talk",
+  },
+  {
     title: "我睡前总是想很多",
     text: "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。",
     action: "做睡前整理",

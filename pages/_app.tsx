@@ -12,13 +12,14 @@ const pageTitles: Record<string, string> = {
   "/sweet-model": "SWEET 模型 | YouthTempo",
   "/check-in": "SWEET 节律记录 | YouthTempo",
   "/mood-journal": "情绪表达 | YouthTempo",
+  "/talk": "陪你理一理 | YouthTempo",
   "/worry-time": "睡前整理 | YouthTempo",
   "/referral": "支持路径 | YouthTempo",
   "/resources": "家校资源 | YouthTempo",
   "/privacy-safety": "隐私与安全 | YouthTempo",
   "/contact": "联系我们 | YouthTempo",
   "/account": "账号 | YouthTempo",
-  "/admin": "试点管理台 | YouthTempo",
+  "/admin": "管理工作台 | YouthTempo",
 };
 
 export default function App({ Component, pageProps }: AppProps) {
