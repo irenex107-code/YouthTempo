@@ -8,6 +8,37 @@ async function getCount(query: PromiseLike<{ count: number | null; error: unknow
   return count || 0;
 }
 
+function recordPreview(records: unknown) {
+  if (!Array.isArray(records)) return "已完成一份 SWEET 节律记录。";
+
+  const dimensions = records.flatMap((record) => {
+    if (!record || typeof record !== "object") return [];
+    const item = record as Record<string, unknown>;
+    const label =
+      typeof item.title === "string" && item.title.trim()
+        ? item.title.trim()
+        : typeof item.label === "string"
+          ? item.label.trim()
+          : "";
+    const fields = Array.isArray(item.fields) ? item.fields : [];
+    const firstAnswer = fields.flatMap((field) => {
+      if (!field || typeof field !== "object") return [];
+      const value = (field as Record<string, unknown>).value;
+      if (typeof value === "string" && value.trim()) return [value.trim()];
+      if (Array.isArray(value)) {
+        const text = value.filter((entry): entry is string => typeof entry === "string" && Boolean(entry.trim())).join("、");
+        return text ? [text] : [];
+      }
+      return [];
+    })[0];
+    return label && firstAnswer ? [`${label}：${firstAnswer}`] : [];
+  });
+
+  return dimensions.length
+    ? dimensions.slice(0, 3).join("；")
+    : "已完成一份 SWEET 节律记录。";
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -191,9 +222,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let recentRecordsQuery = supabase
       .from("sweet_records")
-      .select("id,user_id,school_id,summary,created_at")
+      .select("id,user_id,school_id,records,summary,created_at")
       .order("created_at", { ascending: false })
-      .limit(6);
+      .limit(40);
     if (context.kind === "school") recentRecordsQuery = recentRecordsQuery.in("school_id", schoolIds);
     if (isSupportOnly && assignedStudentIds.length > 0) {
       recentRecordsQuery = recentRecordsQuery.in("user_id", assignedStudentIds);
@@ -203,6 +234,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? { data: [], error: null }
         : await recentRecordsQuery;
     if (recordsError) throw recordsError;
+
+    const recentUserIds = Array.from(
+      new Set((recentRecords || []).map((record) => record.user_id as string)),
+    );
+    const { data: recentProfiles, error: recentProfileError } = recentUserIds.length
+      ? await supabase
+          .from("profiles")
+          .select("id,email,display_name")
+          .in("id", recentUserIds)
+      : { data: [], error: null };
+    if (recentProfileError) throw recentProfileError;
+    const recentProfileById = new Map(
+      (recentProfiles || []).map((profile) => [profile.id as string, profile]),
+    );
+    const schoolById = new Map((schools || []).map((school) => [school.id as string, school]));
+    const recentRecordItems = (recentRecords || []).map((record) => {
+      const profile = recentProfileById.get(record.user_id as string);
+      const school = record.school_id ? schoolById.get(record.school_id as string) : null;
+      return {
+        id: record.id,
+        user_id: record.user_id,
+        school_id: record.school_id,
+        school_name: school?.name || null,
+        student_name: profile?.display_name || profile?.email || "未命名学生",
+        student_email: profile?.email || null,
+        summary: record.summary?.trim() || recordPreview(record.records),
+        created_at: record.created_at,
+      };
+    });
 
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     let attentionRecordsQuery = supabase
@@ -293,7 +353,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       schools: schools || [],
       schoolDirectories,
-      recentRecords: recentRecords || [],
+      recentRecords: recentRecordItems,
       attentionQueue,
     });
   } catch (error) {

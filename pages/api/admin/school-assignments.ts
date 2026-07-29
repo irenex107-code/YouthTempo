@@ -12,9 +12,14 @@ function normalizeRole(value: unknown): AssignmentRole {
   return "学生";
 }
 
+async function runMutation(query: PromiseLike<{ error: unknown }>) {
+  const { error } = await query;
+  if (error) throw error;
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    res.setHeader("Allow", "POST, DELETE");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -22,6 +27,120 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const context = await getAdminContext(req);
     const { supabase } = context;
     const schoolId = typeof req.body?.schoolId === "string" ? req.body.schoolId.trim() : "";
+    const memberUserId = typeof req.body?.userId === "string" ? req.body.userId.trim() : "";
+
+    if (req.method === "DELETE") {
+      if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
+      if (!memberUserId) return res.status(400).json({ error: "请选择要移出的成员。" });
+      if (!canManageSchool(context, schoolId)) return res.status(403).json({ error: "你只能管理自己学校空间里的成员。" });
+      if (!canManageSchoolMembers(context, schoolId)) return res.status(403).json({ error: "只有学校负责人可以移出学校成员。" });
+      if (context.user.id === memberUserId) return res.status(400).json({ error: "不能从当前学校移出你自己的账号。" });
+
+      const [{ data: membership, error: membershipError }, { data: profile, error: profileError }] = await Promise.all([
+        supabase
+          .from("school_members")
+          .select("id,member_role,status")
+          .eq("school_id", schoolId)
+          .eq("user_id", memberUserId)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("id,email,display_name,role,school_id")
+          .eq("id", memberUserId)
+          .maybeSingle(),
+      ]);
+      if (membershipError) throw membershipError;
+      if (profileError) throw profileError;
+      if (!membership && profile?.school_id !== schoolId) {
+        return res.status(404).json({ error: "这名成员已不在当前学校。" });
+      }
+      if (
+        context.kind === "school" &&
+        membership?.member_role === "school_admin"
+      ) {
+        return res.status(403).json({ error: "学校负责人不能移出其他负责人，请联系平台管理员。" });
+      }
+
+      const now = new Date().toISOString();
+      await Promise.all([
+        runMutation(supabase
+          .from("school_members")
+          .update({ status: "revoked", revoked_at: now })
+          .eq("school_id", schoolId)
+          .eq("user_id", memberUserId)
+          .eq("status", "active")),
+        runMutation(supabase
+          .from("teacher_student_assignments")
+          .update({ status: "revoked", revoked_at: now, updated_at: now })
+          .eq("school_id", schoolId)
+          .eq("teacher_user_id", memberUserId)
+          .eq("status", "active")),
+        runMutation(supabase
+          .from("teacher_student_assignments")
+          .update({ status: "revoked", revoked_at: now, updated_at: now })
+          .eq("school_id", schoolId)
+          .eq("student_user_id", memberUserId)
+          .eq("status", "active")),
+        runMutation(supabase
+          .from("guardian_student_links")
+          .update({ status: "revoked", revoked_at: now, updated_at: now })
+          .eq("school_id", schoolId)
+          .eq("guardian_user_id", memberUserId)
+          .eq("status", "active")),
+        runMutation(supabase
+          .from("guardian_student_links")
+          .update({ status: "revoked", revoked_at: now, updated_at: now })
+          .eq("school_id", schoolId)
+          .eq("student_user_id", memberUserId)
+          .eq("status", "active")),
+        runMutation(supabase
+          .from("sweet_records")
+          .update({ school_id: null })
+          .eq("school_id", schoolId)
+          .eq("user_id", memberUserId)),
+        profile?.email
+          ? runMutation(supabase
+              .from("school_invites")
+              .update({ status: "revoked", revoked_at: now, updated_at: now })
+              .eq("school_id", schoolId)
+              .ilike("email", profile.email)
+              .in("status", ["active", "applied"]))
+          : Promise.resolve(),
+      ]);
+
+      const { data: remainingMemberships, error: remainingMembershipError } = await supabase
+        .from("school_members")
+        .select("school_id")
+        .eq("user_id", memberUserId)
+        .eq("status", "active")
+        .limit(1);
+      if (remainingMembershipError) throw remainingMembershipError;
+
+      if (profile?.school_id === schoolId) {
+        const profileUpdates: {
+          school_id: null;
+          updated_at: string;
+          role?: "学生";
+        } = {
+          school_id: null,
+          updated_at: now,
+        };
+        if (profile.role === "学校支持人员" && !remainingMemberships?.length) {
+          profileUpdates.role = "学生";
+        }
+        const { error: profileUpdateError } = await supabase
+          .from("profiles")
+          .update(profileUpdates)
+          .eq("id", memberUserId);
+        if (profileUpdateError) throw profileUpdateError;
+      }
+
+      return res.status(200).json({
+        removedUserId: memberUserId,
+        displayName: profile?.display_name || profile?.email || "成员",
+      });
+    }
+
     const displayName = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);

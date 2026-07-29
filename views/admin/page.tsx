@@ -36,7 +36,10 @@ type AdminOverview = {
     id: string;
     user_id: string;
     school_id: string | null;
-    summary: string | null;
+    school_name: string | null;
+    student_name: string;
+    student_email: string | null;
+    summary: string;
     created_at: string;
   }>;
   attentionQueue: Array<{
@@ -139,7 +142,10 @@ export default function AdminPage() {
   const [assignmentEmail, setAssignmentEmail] = useState("");
   const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学校负责人");
   const [actionNotice, setActionNotice] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
+  const [creatingSchool, setCreatingSchool] = useState(false);
+  const [addingMember, setAddingMember] = useState(false);
+  const [removingMemberId, setRemovingMemberId] = useState("");
+  const [recordSchoolFilter, setRecordSchoolFilter] = useState("all");
   const [followupDrafts, setFollowupDrafts] = useState<Record<string, FollowupDraft>>({});
   const [savingFollowupId, setSavingFollowupId] = useState("");
   const [schoolRoster, setSchoolRoster] = useState<SchoolRoster | null>(null);
@@ -155,6 +161,9 @@ export default function AdminPage() {
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || overview?.schools[0];
+  const selectedDirectory = overview?.schoolDirectories.find(
+    (directory) => directory.school_id === selectedSchool?.id,
+  );
   const roleOptions: AssignmentRole[] = isPlatformAdmin
     ? ["学校负责人", "支持老师", "学生", "家长"]
     : ["学生", "家长", "支持老师"];
@@ -163,6 +172,10 @@ export default function AdminPage() {
   );
   const unassignedStudents =
     schoolRoster?.students.filter((student) => !assignedStudentIdSet.has(student.id)) || [];
+  const filteredRecentRecords =
+    recordSchoolFilter === "all"
+      ? overview?.recentRecords || []
+      : overview?.recentRecords.filter((record) => record.school_id === recordSchoolFilter) || [];
 
   async function loadAdminOverview() {
     setLoading(true);
@@ -333,7 +346,7 @@ export default function AdminPage() {
   async function handleCreateSchool(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accessToken) return;
-    setActionLoading(true);
+    setCreatingSchool(true);
     setActionNotice("");
     setError("");
     try {
@@ -347,21 +360,41 @@ export default function AdminPage() {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "学校空间创建失败。");
+      const newSchool = payload.school as School;
       setSchoolName("");
       setActionNotice("学校已创建。现在可以添加学校负责人。");
-      await loadAdminOverview();
-      setSelectedSchoolId(payload.school.id);
+      setOverview((current) => current ? {
+        ...current,
+        counts: {
+          ...current.counts,
+          schools: current.counts.schools + 1,
+        },
+        schools: [newSchool, ...current.schools],
+        schoolDirectories: [
+          {
+            school_id: newSchool.id,
+            leaders: [],
+            teachers: [],
+            students: [],
+            guardians: [],
+            assignments: [],
+            guardianAssignments: [],
+          },
+          ...current.schoolDirectories,
+        ],
+      } : current);
+      setSelectedSchoolId(newSchool.id);
     } catch (schoolError) {
       setError(schoolError instanceof Error ? schoolError.message : "学校空间创建失败。");
     } finally {
-      setActionLoading(false);
+      setCreatingSchool(false);
     }
   }
 
   async function handleAssignUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accessToken) return;
-    setActionLoading(true);
+    setAddingMember(true);
     setActionNotice("");
     setError("");
     try {
@@ -389,7 +422,89 @@ export default function AdminPage() {
     } catch (assignmentError) {
       setError(assignmentError instanceof Error ? assignmentError.message : "学校成员添加失败。");
     } finally {
-      setActionLoading(false);
+      setAddingMember(false);
+    }
+  }
+
+  async function removeSchoolMember(person: SchoolPerson, role: AssignmentRole) {
+    if (!accessToken || !selectedSchoolId || removingMemberId) return;
+    const confirmed = window.confirm(
+      `确定将“${person.display_name || person.email}”移出${selectedSchool?.name || "当前学校"}吗？\n\n账号和个人历史不会被删除，但该成员会失去当前学校的查看权限和负责关系。`,
+    );
+    if (!confirmed) return;
+
+    setRemovingMemberId(person.id);
+    setActionNotice("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/school-assignments", {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          schoolId: selectedSchoolId,
+          userId: person.id,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "成员移出失败。");
+
+      setOverview((current) => current ? {
+        ...current,
+        counts: {
+          ...current.counts,
+          schoolUsers: Math.max(0, current.counts.schoolUsers - 1),
+          schoolMembers:
+            role === "学校负责人" || role === "支持老师"
+              ? Math.max(0, current.counts.schoolMembers - 1)
+              : current.counts.schoolMembers,
+        },
+        schoolDirectories: current.schoolDirectories.map((directory) =>
+          directory.school_id !== selectedSchoolId
+            ? directory
+            : {
+                ...directory,
+                leaders: directory.leaders.filter((member) => member.id !== person.id),
+                teachers: directory.teachers.filter((member) => member.id !== person.id),
+                students: directory.students.filter((member) => member.id !== person.id),
+                guardians: directory.guardians.filter((member) => member.id !== person.id),
+                assignments: directory.assignments.filter(
+                  (assignment) =>
+                    assignment.teacher_user_id !== person.id &&
+                    assignment.student_user_id !== person.id,
+                ),
+                guardianAssignments: directory.guardianAssignments.filter(
+                  (assignment) =>
+                    assignment.guardian_user_id !== person.id &&
+                    assignment.student_user_id !== person.id,
+                ),
+              },
+        ),
+        attentionQueue: current.attentionQueue.filter((item) => item.user_id !== person.id),
+      } : current);
+      setSchoolRoster((current) => current ? {
+        ...current,
+        teachers: current.teachers.filter((member) => member.id !== person.id),
+        students: current.students.filter((member) => member.id !== person.id),
+        guardians: current.guardians.filter((member) => member.id !== person.id),
+        assignments: current.assignments.filter(
+          (assignment) =>
+            assignment.teacher_user_id !== person.id &&
+            assignment.student_user_id !== person.id,
+        ),
+        guardianAssignments: current.guardianAssignments.filter(
+          (assignment) =>
+            assignment.guardian_user_id !== person.id &&
+            assignment.student_user_id !== person.id,
+        ),
+      } : current);
+      setActionNotice(`${payload.displayName || person.display_name || person.email} 已移出当前学校。`);
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : "成员移出失败。");
+    } finally {
+      setRemovingMemberId("");
     }
   }
 
@@ -429,20 +544,21 @@ export default function AdminPage() {
           <div className="container py-4 sm:py-5">
             <p className="mb-3 text-xs font-bold text-sage-dark">工作导航</p>
             <nav
-              className={`grid border-y border-ink/10 ${
+              className={`grid gap-3 ${
                 workspaceActions(overview).length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
               }`}
               aria-label={`${overview.admin.role}工作导航`}
             >
-              {workspaceActions(overview).map((action, index) => (
+              {workspaceActions(overview).map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className={`group px-1 py-4 transition hover:bg-mint/60 sm:px-4 ${
-                    index > 0 ? "border-t border-ink/10 sm:border-l sm:border-t-0" : ""
-                  }`}
+                  className="group rounded-2xl border border-ink/10 bg-white px-4 py-4 shadow-sm transition hover:border-sage hover:bg-mint/60"
                 >
-                  <span className="block text-sm font-bold text-ink group-hover:text-sage-dark">{action.label}</span>
+                  <span className="flex items-center justify-between gap-3 text-sm font-bold text-ink group-hover:text-sage-dark">
+                    {action.label}
+                    <span className="text-sage-dark" aria-hidden="true">→</span>
+                  </span>
                   <span className="mt-1 block text-xs leading-5 text-muted">{action.description}</span>
                 </Link>
               ))}
@@ -526,8 +642,8 @@ export default function AdminPage() {
                     新学校名称
                     <input className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder="例如：Special A" />
                   </label>
-                  <button type="submit" className="button-secondary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={actionLoading || !schoolName.trim()}>
-                    创建学校
+                  <button type="submit" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit" disabled={creatingSchool || !schoolName.trim()}>
+                    {creatingSchool ? "创建中…" : "创建学校"}
                   </button>
                 </form>
               ) : null}
@@ -585,9 +701,9 @@ export default function AdminPage() {
                 <button
                   type="submit"
                   className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-fit"
-                  disabled={actionLoading || !selectedSchoolId || !assignmentName.trim() || !assignmentEmail.trim()}
+                  disabled={addingMember || !selectedSchoolId || !assignmentName.trim() || !assignmentEmail.trim()}
                 >
-                  添加成员
+                  {addingMember ? "添加中…" : "添加成员"}
                 </button>
               </form>
               {actionNotice ? <p className="mt-4 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
@@ -611,7 +727,9 @@ export default function AdminPage() {
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="font-bold text-ink">{school.name}</p>
-                        <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sage-dark">{school.status === "active" ? "使用中" : school.status}</p>
+                        <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sage-dark">
+                          {selectedSchoolId === school.id ? "正在管理" : school.status === "active" ? "选择管理" : school.status}
+                        </p>
                       </div>
                       {directory ? (
                         <p className="mt-3 text-xs font-bold text-muted">
@@ -622,6 +740,54 @@ export default function AdminPage() {
                   );
                 }) : <p className="rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-muted">暂时没有可管理的学校空间。</p>}
               </div>
+
+              {selectedDirectory ? (
+                <div className="mt-7 border-t border-ink/10 pt-6">
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <p className="eyebrow">人员管理</p>
+                      <h3 className="mt-2 text-xl font-bold text-ink">{selectedSchool?.name}</h3>
+                    </div>
+                    <p className="text-xs leading-5 text-muted">移出学校不会删除账号或个人历史</p>
+                  </div>
+                  <div className="mt-5 grid gap-5">
+                    {([
+                      ["学校负责人", selectedDirectory.leaders],
+                      ["支持老师", selectedDirectory.teachers],
+                      ["学生", selectedDirectory.students],
+                      ["家长", selectedDirectory.guardians],
+                    ] as Array<[AssignmentRole, SchoolPerson[]]>).map(([role, people]) => (
+                      <div key={role}>
+                        <p className="mb-2 text-xs font-bold text-sage-dark">{role} · {people.length}</p>
+                        <div className="grid gap-2">
+                          {people.length ? people.map((person) => (
+                            <div key={person.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white px-4 py-3">
+                              <div className="min-w-0">
+                                <p className="font-bold text-ink">{person.display_name || person.email}</p>
+                                {person.display_name ? <p className="mt-1 break-all text-xs text-muted">{person.email}</p> : null}
+                              </div>
+                              {person.email === overview.admin.email ? (
+                                <span className="text-xs font-bold text-muted">当前账号</span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="rounded-xl border border-[#b8644d]/35 bg-white px-3 py-2 text-xs font-bold text-[#8a4634] transition hover:bg-[#f9eee9] disabled:cursor-not-allowed disabled:opacity-50"
+                                  disabled={Boolean(removingMemberId)}
+                                  onClick={() => removeSchoolMember(person, role)}
+                                >
+                                  {removingMemberId === person.id ? "正在移出…" : "移出学校"}
+                                </button>
+                              )}
+                            </div>
+                          )) : (
+                            <p className="rounded-2xl bg-cream px-4 py-3 text-sm text-muted">暂无{role}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -767,17 +933,21 @@ export default function AdminPage() {
       {overview?.admin.canManageMembers ? (
         <section id="teacher-assignment" className={`section scroll-mt-24 ${isPlatformAdmin ? "" : "section-muted"}`}>
           <div className="container">
-            <details open={!isPlatformAdmin}>
-              <summary className={isPlatformAdmin ? "cursor-pointer list-none border-y border-ink/10 py-5 text-[1.25rem] font-bold text-ink" : "hidden"}>
-                辅助调整老师负责关系
-                <span className="ml-3 text-sm font-normal text-muted">日常由学校负责人维护</span>
+            <details className="group" open={!isPlatformAdmin}>
+              <summary className={isPlatformAdmin ? "flex cursor-pointer list-none flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white px-5 py-5 shadow-sm transition hover:border-sage" : "hidden"}>
+                <span>
+                  <span className="block text-[1.25rem] font-bold text-ink">老师与学生分配</span>
+                  <span className="mt-1 block text-sm font-normal text-muted">选择老师可以查看和跟进的学生</span>
+                </span>
+                <span className="button-secondary pointer-events-none group-open:hidden">展开管理</span>
+                <span className="button-secondary pointer-events-none hidden group-open:inline-flex">收起</span>
               </summary>
               <div className={isPlatformAdmin ? "pt-8" : ""}>
                 <SectionHeader
-                  title={isPlatformAdmin ? "辅助调整老师负责关系" : "分配老师负责的学生"}
+                  title={isPlatformAdmin ? "老师与学生分配" : "分配老师负责的学生"}
                   description={
                     isPlatformAdmin
-                      ? `当前学校：${selectedSchool?.name || "请选择学校"}。平台管理员仅在学校需要时协助调整。`
+                      ? `当前学校：${selectedSchool?.name || "请选择学校"}。保存后，老师只会看到分配给自己的学生。`
                       : "支持老师只会看到分配给自己的学生记录；学校负责人仍可查看全校。"
                   }
                 />
@@ -956,14 +1126,18 @@ export default function AdminPage() {
       {overview?.admin.canManageMembers ? (
         <section id="guardian-assignment" className={`section scroll-mt-24 ${isPlatformAdmin ? "section-muted" : ""}`}>
           <div className="container">
-            <details open={!isPlatformAdmin}>
-              <summary className={isPlatformAdmin ? "cursor-pointer list-none border-y border-ink/10 py-5 text-[1.25rem] font-bold text-ink" : "hidden"}>
-                辅助确认家长与孩子
-                <span className="ml-3 text-sm font-normal text-muted">日常由学校负责人维护</span>
+            <details className="group" open={!isPlatformAdmin}>
+              <summary className={isPlatformAdmin ? "flex cursor-pointer list-none flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white px-5 py-5 shadow-sm transition hover:border-sage" : "hidden"}>
+                <span>
+                  <span className="block text-[1.25rem] font-bold text-ink">家长与孩子关联</span>
+                  <span className="mt-1 block text-sm font-normal text-muted">设置家长可以查看哪位孩子的记录</span>
+                </span>
+                <span className="button-secondary pointer-events-none group-open:hidden">展开管理</span>
+                <span className="button-secondary pointer-events-none hidden group-open:inline-flex">收起</span>
               </summary>
               <div className={isPlatformAdmin ? "pt-8" : ""}>
                 <SectionHeader
-                  title={isPlatformAdmin ? "辅助确认家长与孩子" : "确认家长与孩子"}
+                  title={isPlatformAdmin ? "家长与孩子关联" : "确认家长与孩子"}
                   description={
                     isPlatformAdmin
                       ? `当前学校：${selectedSchool?.name || "请选择学校"}。关系确认后，家长只能看到所关联孩子的记录。`
@@ -1191,23 +1365,73 @@ export default function AdminPage() {
           <div className="container">
             <SectionHeader
               title="全部最近记录"
-              description={isPlatformAdmin ? "用于确认学校空间的数据链路和记录同步情况。" : "查看你负责学校中的近期 SWEET 记录。"}
+              description={isPlatformAdmin ? "先查看全平台记录，也可以切换到一所学校。" : "查看你负责学校中的近期 SWEET 记录。"}
             />
+            {isPlatformAdmin && overview.schools.length ? (
+              <div className="mb-6">
+                <p className="mb-3 text-sm font-bold text-ink">记录范围</p>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="按学校筛选记录">
+                  <button
+                    type="button"
+                    className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
+                      recordSchoolFilter === "all"
+                        ? "border-sage bg-sage text-white"
+                        : "border-ink/10 bg-white text-ink hover:border-sage"
+                    }`}
+                    onClick={() => setRecordSchoolFilter("all")}
+                  >
+                    全部学校
+                  </button>
+                  {overview.schools.map((school) => (
+                    <button
+                      key={school.id}
+                      type="button"
+                      className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
+                        recordSchoolFilter === school.id
+                          ? "border-sage bg-sage text-white"
+                          : "border-ink/10 bg-white text-ink hover:border-sage"
+                      }`}
+                      onClick={() => setRecordSchoolFilter(school.id)}
+                    >
+                      {school.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="grid gap-4">
-              {overview.recentRecords.length > 0 ? overview.recentRecords.map((record) => (
+              {filteredRecentRecords.length > 0 ? filteredRecentRecords.map((record) => (
                 <article key={record.id} className="card">
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-ink">SWEET 节律记录</h3>
-                      <p className="mt-2 text-sm leading-7 text-muted">
-                        {record.summary || "这条记录暂时没有摘要。"}
-                      </p>
-                      <p className="mt-2 text-xs leading-6 text-muted">学校空间：{record.school_id ? "已关联" : "未关联"}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-bold text-ink">{record.student_name}</h3>
+                        <span className="rounded-full bg-mint px-3 py-1 text-xs font-bold text-sage-dark">
+                          {record.school_name || "未关联学校"}
+                        </span>
+                      </div>
+                      {record.student_email ? <p className="mt-1 break-all text-xs text-muted">{record.student_email}</p> : null}
+                      <p className="mt-4 text-sm leading-7 text-muted">{record.summary}</p>
                     </div>
                     <p className="rounded-full bg-cream px-4 py-2 text-xs font-bold text-sage-dark">{formatDate(record.created_at)}</p>
                   </div>
                 </article>
-              )) : <div className="card text-sm font-bold text-muted">还没有云端 SWEET 记录。</div>}
+              )) : (
+                <div className="card">
+                  <p className="font-bold text-ink">
+                    {recordSchoolFilter === "all" ? "还没有云端 SWEET 记录。" : "这所学校还没有 SWEET 记录。"}
+                  </p>
+                  {recordSchoolFilter !== "all" ? (
+                    <button
+                      type="button"
+                      className="button-secondary mt-4"
+                      onClick={() => setRecordSchoolFilter("all")}
+                    >
+                      查看全部学校
+                    </button>
+                  ) : null}
+                </div>
+              )}
             </div>
           </div>
         </section>
