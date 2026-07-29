@@ -125,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           school_id: null,
           updated_at: now,
         };
-        if (profile.role === "学校支持人员" && !remainingMemberships?.length) {
+        if (profile?.role === "学校支持人员" && !remainingMemberships?.length) {
           profileUpdates.role = "学生";
         }
         const { error: profileUpdateError } = await supabase
