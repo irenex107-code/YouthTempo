@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   "/check-in": "SWEET 节律记录 | YouthTempo",
   "/mood-journal": "情绪表达 | YouthTempo",
   "/talk": "陪你理一理 | YouthTempo",
+  "/messages": "想说的话 | YouthTempo",
   "/worry-time": "睡前整理 | YouthTempo",
   "/referral": "支持路径 | YouthTempo",
   "/resources": "家校资源 | YouthTempo",

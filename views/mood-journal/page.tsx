@@ -53,7 +53,6 @@ export default function MoodJournalPage() {
   const [body, setBody] = useState("");
   const [understanding, setUnderstanding] = useState("");
   const [support, setSupport] = useState("");
-  const [saved, setSaved] = useState(false);
   const [starterIndex, setStarterIndex] = useState(0);
   const [showAllStarters, setShowAllStarters] = useState(false);
   const [aiResult, setAiResult] = useState<MoodAiResult | null>(null);
@@ -65,7 +64,6 @@ export default function MoodJournalPage() {
     setSelectedWords((current) =>
       current.includes(word) ? current.filter((item) => item !== word) : [...current, word],
     );
-    setSaved(false);
   }
 
   const starterOptions = buildStarterOptions(`${context} ${body} ${understanding} ${support}`);
@@ -159,37 +157,29 @@ export default function MoodJournalPage() {
             <div className="grid gap-5">
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">这件事发生在什么情境里？</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => { setContext(e.target.value); setSaved(false); }} />
-                <VoiceInputButton value={context} onChange={(value) => { setContext(value); setSaved(false); }} />
+                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => setContext(e.target.value)} />
+                <VoiceInputButton value={context} onChange={setContext} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">当时你身体有什么感觉？</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => { setBody(e.target.value); setSaved(false); }} />
-                <VoiceInputButton value={body} onChange={(value) => { setBody(value); setSaved(false); }} />
+                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => setBody(e.target.value)} />
+                <VoiceInputButton value={body} onChange={setBody} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">你最想被别人理解的一点是什么？</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => { setUnderstanding(e.target.value); setSaved(false); }} />
-                <VoiceInputButton value={understanding} onChange={(value) => { setUnderstanding(value); setSaved(false); }} />
+                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => setUnderstanding(e.target.value)} />
+                <VoiceInputButton value={understanding} onChange={setUnderstanding} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">现在你希望自己先得到什么支持？</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => { setSupport(e.target.value); setSaved(false); }} />
-                <VoiceInputButton value={support} onChange={(value) => { setSupport(value); setSaved(false); }} />
+                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => setSupport(e.target.value)} />
+                <VoiceInputButton value={support} onChange={setSupport} />
               </label>
-              <button type="button" className="button-primary w-fit" onClick={() => setSaved(true)}>
-                保存这次记录
-              </button>
-              <button type="button" className="button-secondary w-fit" onClick={generateAiResponse} disabled={loading}>
+              <button type="button" className="button-primary w-fit" onClick={generateAiResponse} disabled={loading}>
                 {loading ? "生成中，请稍等……" : "生成 AI 情绪回应"}
               </button>
               {validation ? <p className="text-sm font-bold text-sage-dark">{validation}</p> : null}
               {error ? <p className="text-sm font-bold text-sage-dark">{error}</p> : null}
-              {saved ? (
-                <div className="rounded-2xl border border-sage/25 bg-mist p-5 text-[0.95rem] font-bold leading-7 text-sage-dark">
-                  这次整理已经暂时保留在页面上。你不需要马上解释清楚，先看见它就已经是一步。
-                </div>
-              ) : null}
             </div>
           </div>
 

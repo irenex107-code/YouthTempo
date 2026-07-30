@@ -123,6 +123,16 @@ export default function ForParentsPage() {
         </div>
       </section>
 
+      <section className="section section-muted pt-8 sm:pt-12">
+        <div className="container rounded-2xl border border-sage/25 bg-white/85 p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div>
+            <h2 className="text-xl font-bold text-ink">查看孩子想说的话</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">孩子写给家长的内容，会集中显示在独立功能页。</p>
+          </div>
+          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">查看收到的话</Link>
+        </div>
+      </section>
+
       <section className="section section-muted" data-section="sweet-observations">
         <div className="container">
           <SectionHeader

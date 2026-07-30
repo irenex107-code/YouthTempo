@@ -23,7 +23,7 @@ export default function ForTeachersPage() {
             {[
               ["看概览", "查看负责学生近 7 天的 SWEET 完成情况与最近变化，不必先翻阅每一条记录。"],
               ["看学生", "进入单个学生页面后，再查看阶段摘要和必要的原始记录。"],
-              ["做跟进", "记录必要的了解进度，并在需要时与家庭或专业支持衔接。"],
+              ["听学生说", "查看学生不容易当面说出口、选择写给老师的话。"],
             ].map(([title, description]) => (
               <article key={title} className="card">
                 <h2 className="text-xl font-bold text-ink">{title}</h2>
@@ -44,6 +44,7 @@ export default function ForTeachersPage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/account" className="button-primary">查看负责学生</Link>
+              <Link href="/messages" className="button-secondary">查看收到的话</Link>
               <Link href="/referral" className="button-secondary">查看支持路径</Link>
             </div>
           </div>
