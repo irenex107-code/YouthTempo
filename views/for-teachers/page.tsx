@@ -7,7 +7,7 @@ export default function ForTeachersPage() {
     <>
       <PageHero
         title="老师入口"
-        subtitle="YouthTempo 帮助老师了解所负责学生近期的生活节律变化，并找到合适的沟通起点。"
+        subtitle="YouthTempo 帮助老师通过 SWEET 了解所负责学生近期的生活节律，并以更安全、不贴标签的方式开始沟通。"
         action={
           <>
             <Link href="/account" className="button-primary">进入老师工作台</Link>

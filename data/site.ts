@@ -3,6 +3,7 @@ export const navItems = [
   { label: "家长入口", href: "/for-parents" },
   { label: "老师入口", href: "/for-teachers" },
   { label: "SWEET 节律", href: "/check-in" },
+  { label: "家校医社区", href: "/community" },
   { label: "下一步找谁", href: "/referral" },
 ];
 
@@ -51,6 +52,7 @@ export const sweetModules = [
 
 export const footerLinks = [
   { label: "家校陪伴指南", href: "/resources" },
+  { label: "家校医社区", href: "/community" },
   { label: "下一步找谁", href: "/referral" },
   { label: "账号", href: "/account" },
   { label: "隐私与安全", href: "/privacy-safety" },

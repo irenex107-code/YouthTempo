@@ -527,8 +527,8 @@ export default function CheckInPage() {
                   <button type="button" className="button-primary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
                     {saving ? "正在保存..." : savedRecordKey ? "已保存到账号" : "保存到账号"}
                   </button>
-                  <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">进入情绪表达</Link>
-                  <Link href="/worry-time" className="button-secondary w-full sm:w-auto">做睡前整理</Link>
+                  <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">打开心情拼图</Link>
+                  <Link href="/worry-time" className="button-secondary w-full sm:w-auto">今晚先放下</Link>
                   <Link href="/referral" className="button-secondary w-full sm:w-auto">查看支持路径</Link>
                   <button type="button" className="button-secondary w-full sm:w-auto" onClick={reset}>重新填写</button>
                 </div>

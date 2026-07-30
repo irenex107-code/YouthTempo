@@ -87,7 +87,7 @@ export default function ForParentsPage() {
     <>
       <PageHero
         title="家长入口"
-        subtitle="SWEET 帮助家长看见生活节律，AIDET 帮助家长用更安全、不指责的方式开口。"
+        subtitle="YouthTempo 帮助家长通过 SWEET 看见孩子的生活节律，并用 AIDET 以更安全、不指责的方式开口。"
         action={
           <>
             <Link href="/account" className="button-primary">进入家长工作台</Link>
@@ -126,7 +126,7 @@ export default function ForParentsPage() {
       <section className="section section-muted pt-8 sm:pt-12">
         <div className="container rounded-2xl border border-sage/25 bg-white/85 p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>
-            <h2 className="text-xl font-bold text-ink">查看孩子想说的话</h2>
+            <h2 className="text-xl font-bold text-ink">查看孩子写来的悄悄话</h2>
             <p className="mt-2 text-sm leading-7 text-muted">孩子写给家长的内容，会集中显示在独立功能页。</p>
           </div>
           <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">查看收到的话</Link>
@@ -217,7 +217,7 @@ export default function ForParentsPage() {
           <div className="card lg:col-span-2">
             <h3 className="text-xl font-bold text-ink">家校陪伴指南</h3>
             <p className="mt-4 max-w-3xl text-[0.95rem] leading-7 text-muted">
-              给家长和学校的支持材料，帮助更早理解青少年的节律、情绪表达和支持需求。
+              给家长和老师的陪伴方法，帮助更早理解青少年的节律、感受和支持需要。
             </p>
             <Link href="/resources" className="button-secondary mt-6">
               查看陪伴指南

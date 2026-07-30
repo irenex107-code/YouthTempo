@@ -30,12 +30,12 @@ const supportLayers = [
   {
     title: "第二层：表达与整理工具",
     label: "Expression & Organization",
-    text: "当状态出现波动时，通过情绪表达和睡前整理，把模糊压力具体化。",
+    text: "当状态出现波动时，通过心情拼图和今晚先放下，把模糊压力慢慢理清。",
   },
   {
     title: "第三层：支持路径",
     label: "Support Pathway",
-    text: "当自助整理不够时，引导用户连接可信任的大人、学校支持、家校资源或专业资源。",
+    text: "当自助整理不够时，引导用户连接可信任的大人、学校支持或医疗与专业支持。",
   },
 ];
 
@@ -192,7 +192,7 @@ export default function Home() {
           <SectionHeader
             label="Support Pathway Starting from Daily Rhythm"
             title="从日常节律开始的支持路径"
-            description="YouthTempo 从 SWEET 节律记录开始，帮助年轻人看见睡眠、醒来、饮食、运动和任务投入之间的关系，并在需要时进入情绪表达、睡前整理或支持路径。"
+            description="YouthTempo 从 SWEET 节律记录开始，帮助年轻人看见睡眠、醒来、饮食、运动和任务投入之间的关系，并在需要时打开心情拼图、今晚先放下或判断下一步找谁。"
           />
           <div className="grid gap-6 md:grid-cols-3">
             {supportLayers.map((item) => (

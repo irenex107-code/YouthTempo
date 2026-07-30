@@ -107,7 +107,7 @@ export default function MessagesPage() {
   return (
     <>
       <PageHero
-        title="想说的话"
+        title="悄悄话信箱"
         subtitle={isStudent ? "有些话不容易当面说，可以先写给老师、家长或自己。" : "在这里查看学生认真写下、希望你知道的话。"}
         action={<Link href="/account" className="button-secondary">返回工作台</Link>}
       />

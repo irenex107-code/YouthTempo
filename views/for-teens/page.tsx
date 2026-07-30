@@ -12,25 +12,25 @@ const startCards = [
   {
     title: "我有点说不清自己的感受",
     text: "先不用解释清楚，可以从情绪词、引导式整理和 AI 回应开始表达。",
-    action: "做情绪表达",
+    action: "打开心情拼图",
     href: "/mood-journal",
   },
   {
     title: "我想先找个地方说说",
     text: "从眼前最卡住的一件事开始，和 AI 简短聊几轮，把想法理清一点。",
-    action: "陪我理一理",
+    action: "陪我捋一捋",
     href: "/talk",
   },
   {
     title: "我有些话想告诉老师或家长",
     text: "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。",
-    action: "写下想说的话",
+    action: "打开悄悄话信箱",
     href: "/messages",
   },
   {
     title: "我睡前总是想很多",
     text: "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。",
-    action: "做睡前整理",
+    action: "今晚先放下",
     href: "/worry-time",
   },
   {
@@ -46,7 +46,7 @@ export default function ForTeensPage() {
     <>
       <PageHero
         title="青少年入口"
-        subtitle="选一个最接近现在需要的入口，不必先把所有事情说清楚。"
+        subtitle="YouthTempo 帮助青少年看见自己的生活节律、整理说不清的感受，并在需要时更容易向可信任的人开口。"
         action={
           <>
             <Link href="/account" className="button-primary">进入青少年工作台</Link>

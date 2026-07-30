@@ -115,13 +115,13 @@ function getRecommendedPath(answers: Answers) {
     hasAny(answers, "affectedAreas", ["情绪表达"]) ||
     hasAny(answers, "currentNeed", ["帮我和别人表达"])
   ) {
-    title = "先做情绪表达";
-    addLink(links, { label: "情绪表达", href: "/mood-journal", primary: true });
+    title = "先拼一拼现在的心情";
+    addLink(links, { label: "心情拼图", href: "/mood-journal", primary: true });
   }
 
   if (hasAny(answers, "currentState", ["最近睡眠不太稳定"]) || hasAny(answers, "affectedAreas", ["睡眠"])) {
-    title = links.length ? title : "先做睡前整理";
-    addLink(links, { label: "睡前整理", href: "/worry-time", primary: links.length === 0 });
+    title = links.length ? title : "今晚先放下一点";
+    addLink(links, { label: "今晚先放下", href: "/worry-time", primary: links.length === 0 });
     addLink(links, { label: "SWEET 节律记录", href: "/check-in" });
   }
 
@@ -131,7 +131,7 @@ function getRecommendedPath(answers: Answers) {
   ) {
     title = links.length ? title : "从节律和表达开始";
     addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, { label: "情绪表达", href: "/mood-journal" });
+    addLink(links, { label: "心情拼图", href: "/mood-journal" });
   }
 
   if (
@@ -139,8 +139,8 @@ function getRecommendedPath(answers: Answers) {
     hasAny(answers, "affectedAreas", ["家庭沟通"])
   ) {
     title = "先整理表达，再让一个可信任的人知道";
-    addLink(links, { label: "情绪表达", href: "/mood-journal", primary: links.length === 0 });
-    addLink(links, { label: "写下想说的话", href: "/messages" });
+    addLink(links, { label: "心情拼图", href: "/mood-journal", primary: links.length === 0 });
+    addLink(links, { label: "悄悄话信箱", href: "/messages" });
   }
 
   if (
@@ -149,13 +149,13 @@ function getRecommendedPath(answers: Answers) {
   ) {
     title = needsMoreSupport ? "记录节律，并让可信任的人知道" : "先做 SWEET 节律记录";
     addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, needsMoreSupport ? { label: "写下想说的话", href: "/messages" } : { label: "情绪表达", href: "/mood-journal" });
+    addLink(links, needsMoreSupport ? { label: "悄悄话信箱", href: "/messages" } : { label: "心情拼图", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["只是想先整理一下"]) || hasAny(answers, "supportType", ["自己先整理一下"])) {
     title = links.length ? title : "先自己整理一下";
     addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, { label: "情绪表达", href: "/mood-journal" });
+    addLink(links, { label: "心情拼图", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["不太确定"])) {
@@ -165,7 +165,7 @@ function getRecommendedPath(answers: Answers) {
 
   if (hasAny(answers, "supportType", ["有人听我说"]) || hasAny(answers, "trustedAdult", ["愿意", "可能愿意，但不知道怎么开口"])) {
     title = links.length ? title : "尝试和可信任的大人说";
-    addLink(links, { label: "情绪表达", href: "/mood-journal", primary: links.length === 0 });
+    addLink(links, { label: "心情拼图", href: "/mood-journal", primary: links.length === 0 });
   }
 
   if (needsMoreSupport) {
@@ -458,7 +458,7 @@ export default function ReferralPage() {
             <h2 className="text-xl font-bold text-ink">你也可以直接让一个人知道</h2>
             <p className="mt-2 text-sm leading-7 text-muted">不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。</p>
           </div>
-          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">写下想说的话</Link>
+          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">打开悄悄话信箱</Link>
         </div>
       </section>
     </>

@@ -124,7 +124,7 @@ function workspaceActions(overview: AdminOverview) {
   if (overview.admin.scope === "platform") {
     return [
       { href: "#schools-overview", label: "学校总览", description: "查看学校、老师、学生与家庭关系" },
-      { href: "#member-management", label: "学校配置", description: "创建学校并辅助登记负责人" },
+      { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
       { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
     ];
   }
@@ -655,7 +655,7 @@ export default function AdminPage() {
             <div className="card">
               <p className="eyebrow">{isPlatformAdmin ? "学校配置" : "成员"}</p>
               <h2 className="mt-3 text-[1.5rem] font-bold text-ink">
-                {isPlatformAdmin ? "创建学校与辅助登记" : "添加学校成员"}
+                {isPlatformAdmin ? "创建学校；必要时代学校登记成员" : "添加学校成员"}
               </h2>
 
               {isPlatformAdmin ? (
@@ -672,7 +672,12 @@ export default function AdminPage() {
               ) : null}
 
               <form className="mt-6 grid gap-4" onSubmit={handleAssignUser}>
-                {isPlatformAdmin ? <p className="text-sm font-bold text-sage-dark">辅助登记学校成员</p> : null}
+                {isPlatformAdmin ? (
+                  <div className="rounded-2xl border border-sage/25 bg-mint/45 p-4">
+                    <p className="text-sm font-bold text-sage-dark">平台协助区 · 代学校登记成员</p>
+                    <p className="mt-2 text-xs leading-6 text-muted">日常成员维护由学校负责人完成。只有学校需要协助时，平台管理员才在这里代为登记。</p>
+                  </div>
+                ) : null}
                 {overview.schools.length > 1 || isPlatformAdmin ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
                     学校

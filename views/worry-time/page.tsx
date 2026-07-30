@@ -101,8 +101,8 @@ export default function WorryTimePage() {
     <>
       <PageHero
         label="Worry Time"
-        title="睡前整理"
-        subtitle="睡前整理是 Sleep 睡眠维度下的延伸工具，适合在睡前反复想很多、难以放下担心时使用。用 15 分钟把今天的担心先放到纸面上。"
+        title="今晚先放下"
+        subtitle="这是 SWEET 睡眠维度下的延伸工具。用 15 分钟把反复出现的担心写下来，分清今晚能做什么、什么可以留到明天。"
       />
 
       <section className="section section-muted">
@@ -115,7 +115,7 @@ export default function WorryTimePage() {
               </p>
               <div className="mt-6 rounded-3xl bg-cream p-6 text-center">
                 <p className="text-5xl font-bold leading-none text-ink">{formatTime(secondsLeft)}</p>
-                <p className="mt-3 text-sm font-bold text-sage-dark">睡前整理计时器</p>
+                <p className="mt-3 text-sm font-bold text-sage-dark">今晚的 15 分钟</p>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 <button type="button" className="button-primary px-5 py-2 text-xs" onClick={() => setTimerRunning(true)}>
@@ -214,7 +214,7 @@ export default function WorryTimePage() {
             </article>
             <article className="card flex flex-col justify-center">
               <button type="button" className="button-primary w-full" onClick={generateAiResponse} disabled={loading}>
-                {loading ? "正在生成……" : "生成 AI 睡前整理"}
+                {loading ? "正在生成……" : "生成 AI 整理"}
               </button>
               <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
                 完成整理
@@ -229,7 +229,7 @@ export default function WorryTimePage() {
 
           {aiResult ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">AI 睡前整理</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">AI 帮你分一分</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
                   <h3 className="text-lg font-bold text-ink">可以先做一点点的部分</h3>
@@ -265,7 +265,7 @@ export default function WorryTimePage() {
                   回到 SWEET 节律
                 </Link>
                 <Link href="/mood-journal" className="button-secondary">
-                  进入情绪表达
+                  打开心情拼图
                 </Link>
               </div>
             </div>

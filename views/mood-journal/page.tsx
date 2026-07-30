@@ -109,7 +109,7 @@ export default function MoodJournalPage() {
     <>
       <PageHero
         label="Emotion Expression"
-        title="情绪表达"
+        title="心情拼图"
         subtitle="当你发现状态有些波动时，可以用情绪词、引导式整理和 AI 回应，把说不清的感受慢慢表达出来。"
       />
 

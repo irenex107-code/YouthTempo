@@ -118,14 +118,14 @@ export function Navbar() {
           <Link href="/" className="shrink-0 text-[1.05rem] font-extrabold text-ink">
             YouthTempo
           </Link>
-          <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 lg:flex xl:gap-5">
+          <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 xl:flex xl:gap-5">
             {visibleNavItems.map((item) => (
               <Link key={item.href} href={item.href} className="whitespace-nowrap transition hover:text-sage-dark">
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          <div className="hidden shrink-0 items-center gap-2 xl:flex">
             {authReady ? (
               <Link
                 href="/account"
@@ -141,7 +141,7 @@ export function Navbar() {
               {primaryAction.label}
             </Link>
           </div>
-          <div className="flex items-center gap-2 sm:hidden">
+          <div className="flex items-center gap-2 xl:hidden">
             {signedIn && accountRole ? (
               <Link href={primaryAction.href} className="button-primary px-3 py-2 text-xs">
                 {primaryAction.mobileLabel}
@@ -163,7 +163,7 @@ export function Navbar() {
           </div>
         </div>
         {menuOpen ? (
-          <div className="container pb-4 sm:hidden">
+          <div className="container pb-4 xl:hidden">
             <nav className="grid gap-2 rounded-3xl border border-ink/10 bg-white/92 p-3 shadow-soft">
               {visibleNavItems.map((item) => (
                 <Link

@@ -85,7 +85,7 @@ export default function TalkPage() {
   return (
     <>
       <PageHero
-        title="陪你理一理"
+        title="陪我捋一捋"
         subtitle="不用一次说清楚。可以先写下眼前最卡住的一件事，AI 会陪你整理几轮。"
       />
 
