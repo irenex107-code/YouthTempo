@@ -1,6 +1,7 @@
 export const navItems = [
   { label: "青少年入口", href: "/for-teens" },
   { label: "家长入口", href: "/for-parents" },
+  { label: "老师入口", href: "/for-teachers" },
   { label: "SWEET 节律", href: "/check-in" },
   { label: "支持路径", href: "/referral" },
 ];

@@ -232,7 +232,7 @@ export default function CheckInPage() {
     return "云端保存失败，请稍后重新保存。";
   }
 
-  async function saveCurrentRecord() {
+  async function saveCurrentRecord(result: AiResult | null = aiResult) {
     if (saving) return;
     if (!allRequiredDone) {
       setValidation("请先完成五个 SWEET 维度的必要记录，再保存。");
@@ -240,9 +240,9 @@ export default function CheckInPage() {
     }
     const recordPayload = {
       records: getRecordPayload(),
-      summary: aiResult?.summary,
-      smallStep: aiResult?.smallStep,
-      recommendedNextTool: aiResult?.recommendedNextTool,
+      summary: result?.summary,
+      smallStep: result?.smallStep,
+      recommendedNextTool: result?.recommendedNextTool,
     };
     const recordKey = JSON.stringify(recordPayload.records);
     if (recordKey === savedRecordKey) {
@@ -267,8 +267,23 @@ export default function CheckInPage() {
     }
   }
 
+  async function requestSummary(): Promise<AiResult> {
+    const payload = {
+      currentDate: new Date().toISOString(),
+      records: getRecordPayload().map((item) => ({ ...item, dimension: `${item.label} ${item.title}` })),
+    };
+    const response = await fetch("/api/ai/check-in", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "AI request failed");
+    return data as AiResult;
+  }
+
   async function generateSummary() {
-    if (loading) return;
+    if (loading || saving) return;
     if (!allRequiredDone) {
       setValidation("请先完成五个 SWEET 维度的必要记录，再生成回应。");
       return;
@@ -279,20 +294,33 @@ export default function CheckInPage() {
     setValidation("");
     setSaveStatus("");
     try {
-      const payload = {
-        currentDate: new Date().toISOString(),
-        records: getRecordPayload().map((item) => ({ ...item, dimension: `${item.label} ${item.title}` })),
-      };
-      const response = await fetch("/api/ai/check-in", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "AI request failed");
-      setAiResult(data);
+      const result = await requestSummary();
+      setAiResult(result);
     } catch {
       setError("暂时无法生成回应，请稍后再试。");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function generateAndSave() {
+    if (loading || saving) return;
+    if (!allRequiredDone) {
+      setValidation("请先完成五个 SWEET 维度的必要记录。");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setValidation("");
+    setSaveStatus("");
+    try {
+      const result = await requestSummary();
+      setAiResult(result);
+      await saveCurrentRecord(result);
+    } catch {
+      setError("AI 小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。");
+      await saveCurrentRecord(null);
     } finally {
       setLoading(false);
     }
@@ -450,8 +478,8 @@ export default function CheckInPage() {
                     下一步
                   </button>
                 ) : (
-                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading} onClick={generateSummary}>
-                    {loading ? "正在整理..." : "完成并生成小结"}
+                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading || saving} onClick={generateAndSave}>
+                    {loading || saving ? "正在生成并保存..." : "生成小结并保存"}
                   </button>
                 )}
               </div>
@@ -465,7 +493,7 @@ export default function CheckInPage() {
                   <button type="button" className="button-primary w-full sm:w-auto" disabled={loading} onClick={generateSummary}>
                     {loading ? "正在重试..." : "重新生成"}
                   </button>
-                  <button type="button" className="button-secondary w-full sm:w-auto" disabled={saving} onClick={saveCurrentRecord}>
+                  <button type="button" className="button-secondary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
                     {saving ? "正在保存..." : "先保存记录"}
                   </button>
                 </div>
@@ -496,8 +524,8 @@ export default function CheckInPage() {
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
                 <p className="mt-4 text-xs leading-6 text-muted">这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。</p>
                 <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
-                  <button type="button" className="button-primary w-full sm:w-auto" disabled={saving} onClick={saveCurrentRecord}>
-                    {saving ? "正在保存..." : "保存到账号"}
+                  <button type="button" className="button-primary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
+                    {saving ? "正在保存..." : savedRecordKey ? "已保存到账号" : "保存到账号"}
                   </button>
                   <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">进入情绪表达</Link>
                   <Link href="/worry-time" className="button-secondary w-full sm:w-auto">做睡前整理</Link>

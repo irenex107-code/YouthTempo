@@ -9,6 +9,7 @@ const pageTitles: Record<string, string> = {
   "/": "YouthTempo | 更早开始的青少年支持",
   "/for-teens": "青少年入口 | YouthTempo",
   "/for-parents": "家长入口 | YouthTempo",
+  "/for-teachers": "老师入口 | YouthTempo",
   "/sweet-model": "SWEET 模型 | YouthTempo",
   "/check-in": "SWEET 节律记录 | YouthTempo",
   "/mood-journal": "情绪表达 | YouthTempo",

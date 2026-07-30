@@ -48,6 +48,22 @@ export type WechatBindSession = {
   qrCodeDataUrl: string;
 };
 
+export type StudentMessage = {
+  id: string;
+  school_id: string | null;
+  sender_user_id: string;
+  recipient_type: "teacher" | "guardian" | "self";
+  recipient_user_id: string;
+  anonymous_to_recipient: boolean;
+  body: string;
+  moderation_status: "sent" | "safety_review";
+  read_at: string | null;
+  created_at: string;
+  sender_name: string;
+  recipient_name: string;
+  canRevealSender: boolean;
+};
+
 export type AccountStatus = {
   profile: CloudProfile | null;
   displayRole: "学生" | "家长" | "支持老师" | "学校负责人" | "平台管理员" | string;
@@ -55,6 +71,9 @@ export type AccountStatus = {
   schoolMemberships: Array<{ school_id: string; member_role: string; status: string }>;
   hasSchool: boolean;
   linkedChildren: Array<{ id: string; display_name: string; school_id: string }>;
+  assignedStudents: Array<{ id: string; display_name: string; school_id: string }>;
+  assignedTeachers: Array<{ id: string; display_name: string; school_id: string }>;
+  linkedGuardians: Array<{ id: string; display_name: string; school_id: string }>;
   inviteSyncError?: string | null;
 };
 
@@ -167,6 +186,50 @@ export async function getAccountStatus() {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "账户身份加载失败。");
   return data as AccountStatus;
+}
+
+export async function listStudentMessages() {
+  const token = await getAccessToken();
+  const response = await fetch("/api/messages", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "留言加载失败。");
+  return (data.messages || []) as StudentMessage[];
+}
+
+export async function sendStudentMessage(input: {
+  recipientType: "teacher" | "guardian" | "self";
+  recipientUserId?: string;
+  anonymous?: boolean;
+  body: string;
+}) {
+  const token = await getAccessToken();
+  const response = await fetch("/api/messages", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "留言发送失败。");
+  return data as { safetyNotice?: boolean };
+}
+
+export async function markStudentMessageRead(id: string) {
+  const token = await getAccessToken();
+  const response = await fetch("/api/messages", {
+    method: "PATCH",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "留言状态更新失败。");
 }
 
 export async function signOut() {

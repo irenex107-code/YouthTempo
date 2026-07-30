@@ -51,12 +51,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : { data: [], error: null };
     if (guardianLinkError) throw guardianLinkError;
 
+    const supportSchoolIds = activeMemberships
+      .filter((membership) => membership.member_role === "school_support")
+      .map((membership) => membership.school_id as string);
+    const { data: teacherAssignments, error: teacherAssignmentError } = supportSchoolIds.length
+      ? await supabase
+          .from("teacher_student_assignments")
+          .select("school_id,student_user_id")
+          .eq("teacher_user_id", user.id)
+          .eq("status", "active")
+          .in("school_id", supportSchoolIds)
+      : { data: [], error: null };
+    if (teacherAssignmentError) throw teacherAssignmentError;
+
+    const [{ data: studentTeacherLinks, error: studentTeacherError }, { data: studentGuardianLinks, error: studentGuardianError }] =
+      baseRole === "学生"
+        ? await Promise.all([
+            supabase
+              .from("teacher_student_assignments")
+              .select("school_id,teacher_user_id")
+              .eq("student_user_id", user.id)
+              .eq("status", "active"),
+            supabase
+              .from("guardian_student_links")
+              .select("school_id,guardian_user_id")
+              .eq("student_user_id", user.id)
+              .eq("status", "active"),
+          ])
+        : [
+            { data: [], error: null },
+            { data: [], error: null },
+          ];
+    if (studentTeacherError) throw studentTeacherError;
+    if (studentGuardianError) throw studentGuardianError;
+
     const linkedStudentIds = (guardianLinks || []).map((link) => link.student_user_id as string);
-    const { data: linkedProfiles, error: linkedProfileError } = linkedStudentIds.length
+    const assignedStudentIds = (teacherAssignments || []).map((assignment) => assignment.student_user_id as string);
+    const teacherIds = (studentTeacherLinks || []).map((assignment) => assignment.teacher_user_id as string);
+    const guardianIds = (studentGuardianLinks || []).map((link) => link.guardian_user_id as string);
+    const relatedUserIds = Array.from(new Set([...linkedStudentIds, ...assignedStudentIds, ...teacherIds, ...guardianIds]));
+    const { data: linkedProfiles, error: linkedProfileError } = relatedUserIds.length
       ? await supabase
           .from("profiles")
           .select("id,display_name,school_id")
-          .in("id", linkedStudentIds)
+          .in("id", relatedUserIds)
       : { data: [], error: null };
     if (linkedProfileError) throw linkedProfileError;
 
@@ -68,6 +106,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return {
         id: link.student_user_id as string,
         display_name: linkedProfile?.display_name || "孩子",
+        school_id: link.school_id as string,
+      };
+    });
+    const assignedStudents = (teacherAssignments || []).map((assignment) => {
+      const assignedProfile = linkedProfileById.get(assignment.student_user_id as string);
+      return {
+        id: assignment.student_user_id as string,
+        display_name: assignedProfile?.display_name || "学生",
+        school_id: assignment.school_id as string,
+      };
+    });
+    const assignedTeachers = (studentTeacherLinks || []).map((assignment) => {
+      const teacherProfile = linkedProfileById.get(assignment.teacher_user_id as string);
+      return {
+        id: assignment.teacher_user_id as string,
+        display_name: teacherProfile?.display_name || "老师",
+        school_id: assignment.school_id as string,
+      };
+    });
+    const linkedGuardians = (studentGuardianLinks || []).map((link) => {
+      const guardianProfile = linkedProfileById.get(link.guardian_user_id as string);
+      return {
+        id: link.guardian_user_id as string,
+        display_name: guardianProfile?.display_name || "家长",
         school_id: link.school_id as string,
       };
     });
@@ -85,6 +147,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       schoolMemberships: activeMemberships,
       hasSchool: Boolean(profile?.school_id || activeMemberships.length),
       linkedChildren,
+      assignedStudents,
+      assignedTeachers,
+      linkedGuardians,
       inviteSyncError,
     });
   } catch (error) {

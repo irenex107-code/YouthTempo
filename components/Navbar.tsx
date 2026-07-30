@@ -89,7 +89,7 @@ export function Navbar() {
       : accountRole === "学校负责人"
         ? { href: "/admin", label: "学校管理", mobileLabel: "学校管理" }
         : accountRole === "支持老师"
-          ? { href: "/account#records", label: "学生记录", mobileLabel: "学生记录" }
+          ? { href: "/account#students", label: "我的学生", mobileLabel: "我的学生" }
           : accountRole === "家长"
             ? { href: "/account#records", label: "孩子记录", mobileLabel: "孩子记录" }
             : { href: "/check-in", label: "开始 SWEET 节律", mobileLabel: "记录今天" };

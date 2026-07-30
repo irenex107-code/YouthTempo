@@ -97,6 +97,18 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function recentRecordCount(
+  records: AdminOverview["recentRecords"],
+  userIds: string[],
+  days = 28,
+) {
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const ids = new Set(userIds);
+  return records.filter(
+    (record) => ids.has(record.user_id) && new Date(record.created_at).getTime() >= cutoff,
+  ).length;
+}
+
 function adminTitle(overview: AdminOverview | null) {
   if (overview?.admin.scope === "school") return "学校工作台";
   return "平台管理台";
@@ -121,11 +133,12 @@ function workspaceActions(overview: AdminOverview) {
     return [
       { href: "#recent-changes", label: "需要了解", description: "先看负责学生的近期变化" },
       { href: "#recent-records", label: "学生记录", description: "查看负责学生的完整记录" },
-      { href: "#support-handoff", label: "连接支持", description: "需要时连接家庭或专业资源" },
+      { href: "/referral", label: "支持路径", description: "需要时连接更多支持" },
     ];
   }
 
   return [
+    { href: "#schools-overview", label: "学校概览", description: "按老师查看近 4 周总体情况" },
     { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
     { href: "#member-management", label: "成员管理", description: "登记老师、学生和家长" },
     { href: "#teacher-assignment", label: "负责关系", description: "分配老师负责的学生" },
@@ -141,6 +154,8 @@ export default function AdminPage() {
   const [assignmentName, setAssignmentName] = useState("");
   const [assignmentEmail, setAssignmentEmail] = useState("");
   const [assignmentRole, setAssignmentRole] = useState<AssignmentRole>("学校负责人");
+  const [newStudentTeacherId, setNewStudentTeacherId] = useState("");
+  const [newStudentGuardianId, setNewStudentGuardianId] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [creatingSchool, setCreatingSchool] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
@@ -409,6 +424,8 @@ export default function AdminPage() {
           name: assignmentName,
           email: assignmentEmail,
           role: assignmentRole,
+          teacherUserId: assignmentRole === "学生" ? newStudentTeacherId : "",
+          guardianUserId: assignmentRole === "学生" ? newStudentGuardianId : "",
         }),
       });
       const payload = await response.json();
@@ -416,7 +433,13 @@ export default function AdminPage() {
       const addedName = assignmentName.trim();
       setAssignmentName("");
       setAssignmentEmail("");
-      setActionNotice(`已添加 ${addedName}。对方使用 ${assignmentEmail} 登录后，会直接显示姓名和${assignmentRole}身份。`);
+      setNewStudentTeacherId("");
+      setNewStudentGuardianId("");
+      setActionNotice(
+        assignmentRole === "学生" && (newStudentTeacherId || newStudentGuardianId)
+          ? `已为 ${addedName} 建档并保存负责关系。`
+          : `已添加 ${addedName}。`,
+      );
       await loadAdminOverview();
       await loadSchoolRoster(selectedSchoolId, accessToken);
     } catch (assignmentError) {
@@ -693,10 +716,43 @@ export default function AdminPage() {
                     {roleOptions.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </label>
+                {assignmentRole === "学生" ? (
+                  <div className="grid gap-4 rounded-2xl border border-sage/25 bg-mint/45 p-4">
+                    <p className="text-sm font-bold text-sage-dark">同时建立负责关系（可稍后补充）</p>
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      负责老师
+                      <select
+                        className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                        value={newStudentTeacherId}
+                        onChange={(event) => setNewStudentTeacherId(event.target.value)}
+                      >
+                        <option value="">暂不选择</option>
+                        {selectedDirectory?.teachers.map((teacher) => (
+                          <option key={teacher.id} value={teacher.id}>{teacher.display_name || teacher.email}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="grid gap-2 text-sm font-bold text-ink">
+                      关联家长
+                      <select
+                        className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                        value={newStudentGuardianId}
+                        onChange={(event) => setNewStudentGuardianId(event.target.value)}
+                      >
+                        <option value="">暂不选择</option>
+                        {selectedDirectory?.guardians.map((guardian) => (
+                          <option key={guardian.id} value={guardian.id}>{guardian.display_name || guardian.email}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                ) : null}
                 <p className="text-sm leading-6 text-muted">
-                  {isPlatformAdmin
-                    ? "日常成员维护由学校负责人完成；平台管理员可在学校需要时协助登记。"
-                    : "姓名会用于学校名单和登录后的问候；对方不需要再次填写身份资料。"}
+                  {assignmentRole === "学生"
+                    ? "老师或家长尚未加入时，可以先完成学生建档，之后在关系管理中补充。"
+                    : isPlatformAdmin
+                      ? "日常成员维护由学校负责人完成；平台管理员可在学校需要时协助登记。"
+                      : "添加后，对方可以直接使用这个邮箱登录。"}
                 </p>
                 <button
                   type="submit"
@@ -793,12 +849,14 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {isPlatformAdmin && overview ? (
+      {overview && overview.admin.role !== "支持老师" ? (
         <section id="schools-overview" className="section section-muted scroll-mt-24">
           <div className="container">
             <SectionHeader
-              title="学校与人员总览"
-              description="查看每所学校登记的负责人、支持老师、学生、家长及对应关系。点击上方学校列表可切换后续辅助操作的学校。"
+              title={isPlatformAdmin ? "学校与人员总览" : "学校近 4 周概览"}
+              description={isPlatformAdmin
+                ? "按学校和老师查看人员关系与近期参与情况。"
+                : "先了解每位老师负责学生的整体情况，需要时再进入下方查看具体记录。"}
             />
             <div className="grid gap-5">
               {overview.schools.map((school) => {
@@ -851,6 +909,11 @@ export default function AdminPage() {
                               .filter((assignment) => assignment.teacher_user_id === teacher.id)
                               .map((assignment) => studentsById.get(assignment.student_user_id))
                               .filter((student): student is SchoolPerson => Boolean(student));
+                            const studentIds = students.map((student) => student.id);
+                            const fourWeekRecords = recentRecordCount(overview.recentRecords, studentIds);
+                            const attentionCount = overview.attentionQueue.filter(
+                              (item) => studentIds.includes(item.user_id) && item.school_id === school.id,
+                            ).length;
 
                             return (
                               <div key={teacher.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
@@ -867,6 +930,16 @@ export default function AdminPage() {
                                       {student.display_name || student.email}
                                     </span>
                                   )) : <span className="text-xs text-muted">尚未分配学生</span>}
+                                </div>
+                                <div className="mt-4 grid grid-cols-2 gap-2 border-t border-ink/10 pt-4 text-xs">
+                                  <p className="rounded-xl bg-cream px-3 py-2 font-bold text-ink">
+                                    近 4 周 {fourWeekRecords} 条记录
+                                  </p>
+                                  <p className={`rounded-xl px-3 py-2 font-bold ${
+                                    attentionCount ? "bg-[#f7e8dc] text-[#824b2d]" : "bg-mint text-sage-dark"
+                                  }`}>
+                                    {attentionCount ? `${attentionCount} 人建议了解` : "暂无待了解变化"}
+                                  </p>
                                 </div>
                               </div>
                             );
@@ -1322,44 +1395,6 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview && !isPlatformAdmin ? (
-        <section id="support-handoff" className="section scroll-mt-24">
-          <div className="container">
-            <SectionHeader
-              title="家校与专业支持如何衔接"
-              description="先由熟悉学生的人温和了解，再根据实际需要连接家庭或专业支持。每一步都只分享完成支持所必需的信息。"
-            />
-            <div className="grid border-y border-ink/10 md:grid-cols-3">
-              {[
-                ["01", "校内了解", "由负责老师结合近期节律变化与学生本人沟通，不用一次记录给学生下结论。"],
-                ["02", "联系家庭", "需要家庭参与时，由学校联系已确认关联的家长，共同商量可执行的支持。"],
-                ["03", "专业支持", "日常生活持续明显受影响或出现安全风险时，再连接合适的专业或医疗资源。"],
-              ].map(([step, title, description], index) => (
-                <div
-                  key={step}
-                  className={`py-6 md:px-6 ${index > 0 ? "border-t border-ink/10 md:border-l md:border-t-0" : ""}`}
-                >
-                  <p className="text-xs font-bold text-sage-dark">{step}</p>
-                  <h2 className="mt-2 text-lg font-bold text-ink">{title}</h2>
-                  <p className="mt-3 text-sm leading-7 text-muted">{description}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/for-parents#conversation" className="button-secondary">
-                查看家长沟通参考
-              </Link>
-              <Link href="/referral" className="button-primary">
-                查看专业支持路径
-              </Link>
-            </div>
-            <p className="mt-4 text-xs leading-6 text-muted">
-              专业或医疗人员不会自动获得 YouthTempo 记录；如需共享，应由学校和家庭按照适用规则另行确认。
-            </p>
-          </div>
-        </section>
-      ) : null}
-
       {overview ? (
         <section id="recent-records" className="section scroll-mt-24">
           <div className="container">
@@ -1367,6 +1402,13 @@ export default function AdminPage() {
               title="全部最近记录"
               description={isPlatformAdmin ? "先查看全平台记录，也可以切换到一所学校。" : "查看你负责学校中的近期 SWEET 记录。"}
             />
+            {!isPlatformAdmin && overview.admin.role === "学校负责人" ? (
+              <div className="mb-6">
+                <Link href="/account#records" className="button-secondary">
+                  查看学生原始回答
+                </Link>
+              </div>
+            ) : null}
             {isPlatformAdmin && overview.schools.length ? (
               <div className="mb-6">
                 <p className="mb-3 text-sm font-bold text-ink">记录范围</p>

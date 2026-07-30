@@ -6,6 +6,7 @@ import {
   AccountStatus,
   CloudProfile,
   CloudSweetRecord,
+  StudentMessage,
   WechatBindSession,
   WechatIdentity,
   checkWechatBindSession,
@@ -16,13 +17,16 @@ import {
   getProfile,
   handleAuthRedirect,
   listCloudSweetRecords,
+  listStudentMessages,
   listWechatIdentities,
   saveProfile,
   sendEmailOtp,
+  sendStudentMessage,
   signOut,
   verifyEmailOtp,
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import { rhythmOverview } from "@/lib/rhythmInsights";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -97,6 +101,7 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<CloudProfile | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [records, setRecords] = useState<CloudSweetRecord[]>([]);
+  const [messages, setMessages] = useState<StudentMessage[]>([]);
   const [wechatIdentities, setWechatIdentities] = useState<WechatIdentity[]>([]);
   const [wechatBindSession, setWechatBindSession] = useState<WechatBindSession | null>(null);
   const [wechatStatus, setWechatStatus] = useState("");
@@ -114,6 +119,13 @@ export default function AccountPage() {
   const [identityChecking, setIdentityChecking] = useState(true);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [selectedRelatedUserId, setSelectedRelatedUserId] = useState("");
+  const [messageRecipientType, setMessageRecipientType] = useState<"teacher" | "guardian" | "self">("self");
+  const [messageRecipientId, setMessageRecipientId] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [messageAnonymous, setMessageAnonymous] = useState(false);
+  const [messageSending, setMessageSending] = useState(false);
+  const [messageNotice, setMessageNotice] = useState("");
 
   const isIdentityLoading = Boolean(user && identityChecking);
   const displayRole = isIdentityLoading ? "正在确认" : accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
@@ -139,6 +151,16 @@ export default function AccountPage() {
   const isSupportTeacher = displayRole === "支持老师";
   const isParent = displayRole === "家长";
   const linkedChildren = accountStatus?.linkedChildren || [];
+  const assignedStudents = accountStatus?.assignedStudents || [];
+  const assignedTeachers = accountStatus?.assignedTeachers || [];
+  const linkedGuardians = accountStatus?.linkedGuardians || [];
+  const relatedPeople = isParent ? linkedChildren : isSupportTeacher ? assignedStudents : [];
+  const activeRelatedUserId =
+    selectedRelatedUserId && relatedPeople.some((person) => person.id === selectedRelatedUserId)
+      ? selectedRelatedUserId
+      : relatedPeople[0]?.id || "";
+  const activeRelatedPerson = relatedPeople.find((person) => person.id === activeRelatedUserId) || null;
+  const relatedOverview = rhythmOverview(records, isParent ? 28 : 7, activeRelatedUserId);
   const linkedChildById = new Map(linkedChildren.map((child) => [child.id, child]));
 
   async function refreshAccount() {
@@ -185,7 +207,7 @@ export default function AccountPage() {
         }
       }
 
-      const [nextRecords, nextWechatIdentities] = await Promise.all([
+      const [nextRecords, nextWechatIdentities, nextMessages] = await Promise.all([
         listCloudSweetRecords().catch((recordsError) => {
           console.warn("Cloud records failed", recordsError);
           nonFatalNotice = nonFatalNotice || "记录暂时没有加载出来，请稍后刷新。";
@@ -195,6 +217,10 @@ export default function AccountPage() {
           console.warn("Wechat identities failed", wechatError);
           return [] as WechatIdentity[];
         }),
+        listStudentMessages().catch((messagesError) => {
+          console.warn("Messages failed", messagesError);
+          return [] as StudentMessage[];
+        }),
       ]);
 
       setAccountStatus(nextAccountStatus);
@@ -203,6 +229,7 @@ export default function AccountPage() {
       setRole(profileRoleLabel(nextProfile?.role));
       setRecords(nextRecords);
       setWechatIdentities(nextWechatIdentities);
+      setMessages(nextMessages);
       if (nextAccountStatus?.inviteSyncError) {
         setNotice("账户身份已加载，但学校邀请同步需要稍后再试。");
       } else if (nonFatalNotice) {
@@ -381,6 +408,50 @@ export default function AccountPage() {
     }
   }
 
+  async function handleSendMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!user || messageSending) return;
+    const candidates =
+      messageRecipientType === "teacher"
+        ? assignedTeachers
+        : messageRecipientType === "guardian"
+          ? linkedGuardians
+          : [];
+    const recipientUserId =
+      messageRecipientType === "self"
+        ? user.id
+        : messageRecipientId || candidates[0]?.id || "";
+    if (messageRecipientType !== "self" && !recipientUserId) {
+      setMessageNotice(messageRecipientType === "teacher" ? "学校还没有为你安排负责老师。" : "学校还没有确认关联家长。");
+      return;
+    }
+
+    setMessageSending(true);
+    setMessageNotice("");
+    try {
+      const result = await sendStudentMessage({
+        recipientType: messageRecipientType,
+        recipientUserId,
+        anonymous: messageRecipientType === "teacher" && messageAnonymous,
+        body: messageBody,
+      });
+      setMessageBody("");
+      setMessageAnonymous(false);
+      setMessageNotice(
+        result.safetyNotice
+          ? "这段话已经送出。你不需要独自承担，请尽快联系身边可信任的大人；如果正处于危险中，请立即联系当地紧急服务。"
+          : messageRecipientType === "self"
+            ? "已经替你保存下来。"
+            : "已经送出。",
+      );
+      setMessages(await listStudentMessages());
+    } catch (sendError) {
+      setMessageNotice(sendError instanceof Error ? sendError.message : "暂时无法发送，请稍后再试。");
+    } finally {
+      setMessageSending(false);
+    }
+  }
+
   return (
     <>
       {isInitialAccountLoad ? (
@@ -509,7 +580,7 @@ export default function AccountPage() {
                     {isPlatformAdmin ? <Link href="/admin" className="button-primary w-full sm:w-auto">进入平台管理</Link> : null}
                     {isSchoolLead ? <Link href="/admin" className="button-primary w-full sm:w-auto">进入学校管理</Link> : null}
                     {isSchoolLead ? <Link href="#records" className="button-secondary w-full sm:w-auto">查看学生记录</Link> : null}
-                    {isSupportTeacher ? <Link href="#records" className="button-primary w-full sm:w-auto">查看负责学生</Link> : null}
+                    {isSupportTeacher ? <Link href="#students" className="button-primary w-full sm:w-auto">查看负责学生</Link> : null}
                     {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">跟进工作台</Link> : null}
                     {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">查看孩子记录</Link> : null}
                     {isParent ? <Link href="/referral" className="button-secondary w-full sm:w-auto">需要更多支持</Link> : null}
@@ -685,6 +756,221 @@ export default function AccountPage() {
           </section> : null}
         </>
       )}
+
+      {user && !needsPersonalProfile && displayRole === "学生" ? (
+        <section id="messages" className="section scroll-mt-24">
+          <div className="container grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <p className="eyebrow">想说的话</p>
+              <h2 className="mt-2 text-[1.75rem] font-bold text-ink">有些话，可以先写下来</h2>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-muted">
+                可以写给负责老师、家长或自己。写给老师时可以选择匿名；出现安全危险时，学校中获授权的负责人可以确认来源并提供帮助。
+              </p>
+            </div>
+            <form className="card" onSubmit={handleSendMessage}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-bold text-ink">
+                  写给谁
+                  <select
+                    className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                    value={messageRecipientType}
+                    onChange={(event) => {
+                      const nextType = event.target.value as "teacher" | "guardian" | "self";
+                      setMessageRecipientType(nextType);
+                      setMessageRecipientId("");
+                      if (nextType !== "teacher") setMessageAnonymous(false);
+                    }}
+                  >
+                    <option value="self">写给自己</option>
+                    <option value="teacher">写给老师</option>
+                    <option value="guardian">写给家长</option>
+                  </select>
+                </label>
+                {messageRecipientType !== "self" ? (
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    收件人
+                    <select
+                      className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                      value={messageRecipientId}
+                      onChange={(event) => setMessageRecipientId(event.target.value)}
+                    >
+                      <option value="">请选择</option>
+                      {(messageRecipientType === "teacher" ? assignedTeachers : linkedGuardians).map((person) => (
+                        <option key={person.id} value={person.id}>{person.display_name}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+              </div>
+              <label className="mt-4 grid gap-2 text-sm font-bold text-ink">
+                想说的话
+                <textarea
+                  className="min-h-36 rounded-2xl border border-ink/15 bg-white px-4 py-3 text-sm leading-7 outline-none focus:border-sage"
+                  value={messageBody}
+                  maxLength={1000}
+                  placeholder="不用组织得很完整，先写下最想让对方知道的事情。"
+                  onChange={(event) => setMessageBody(event.target.value)}
+                />
+                <span className="text-right text-xs font-normal text-muted">{messageBody.length}/1000</span>
+              </label>
+              {messageRecipientType === "teacher" ? (
+                <label className="mt-3 flex items-start gap-3 rounded-2xl bg-cream px-4 py-3 text-sm leading-6 text-muted">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 accent-sage"
+                    checked={messageAnonymous}
+                    onChange={(event) => setMessageAnonymous(event.target.checked)}
+                  />
+                  <span>对老师匿名。只有出现明确安全危险时，获授权的学校负责人才能确认来源。</span>
+                </label>
+              ) : null}
+              <button
+                type="submit"
+                className="button-primary mt-5 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto"
+                disabled={messageSending || !messageBody.trim()}
+              >
+                {messageSending ? "正在送出…" : messageRecipientType === "self" ? "保存给自己" : "送出这段话"}
+              </button>
+              {messageNotice ? <p className="mt-4 rounded-xl bg-mint px-4 py-3 text-sm font-bold leading-6 text-sage-dark">{messageNotice}</p> : null}
+            </form>
+          </div>
+          {messages.length ? (
+            <div className="container mt-6">
+              <details className="rounded-2xl border border-ink/10 bg-white/75">
+                <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-ink">我写过的话</summary>
+                <div className="grid gap-3 border-t border-ink/10 p-5">
+                  {messages.map((message) => (
+                    <article key={message.id} className="rounded-2xl bg-cream px-4 py-4">
+                      <div className="flex flex-wrap justify-between gap-2 text-xs font-bold text-sage-dark">
+                        <span>{message.recipient_name}{message.anonymous_to_recipient ? " · 匿名" : ""}</span>
+                        <span>{formatDate(message.created_at)}</span>
+                      </div>
+                      <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-ink">{message.body}</p>
+                    </article>
+                  ))}
+                </div>
+              </details>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {user && !needsPersonalProfile && (isParent || isSupportTeacher || isSchoolLead) && messages.length ? (
+        <section id="inbox" className="section scroll-mt-24">
+          <div className="container">
+            <SectionHeader title={isSchoolLead ? "需要安全跟进的话" : "收到的话"} />
+            <div className="grid gap-4">
+              {messages.map((message) => (
+                <article key={message.id} className="card">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-bold text-ink">{message.sender_name}</h3>
+                      {message.moderation_status === "safety_review" ? (
+                        <span className="rounded-full bg-[#f7e8dc] px-3 py-1 text-xs font-bold text-[#824b2d]">请尽快了解</span>
+                      ) : null}
+                    </div>
+                    <span className="text-xs font-bold text-muted">{formatDate(message.created_at)}</span>
+                  </div>
+                  <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-ink">{message.body}</p>
+                  {message.anonymous_to_recipient && !message.canRevealSender ? (
+                    <p className="mt-3 text-xs leading-6 text-muted">这名学生选择了对老师匿名。</p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {user && !needsPersonalProfile && (isParent || isSupportTeacher) ? (
+        <section
+          id={isSupportTeacher ? "students" : "family-overview"}
+          className="section section-muted scroll-mt-24"
+        >
+          <div className="container">
+            <SectionHeader title={isParent ? "孩子的节律概览" : "我负责的学生"} />
+            {relatedPeople.length ? (
+              <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+                <aside className="card">
+                  <p className="text-sm font-bold text-ink">{isParent ? "选择孩子" : "学生列表"}</p>
+                  <div className="mt-4 grid gap-2">
+                    {relatedPeople.map((person) => {
+                      const personOverview = rhythmOverview(records, isParent ? 28 : 7, person.id);
+                      const selected = person.id === activeRelatedUserId;
+                      return (
+                        <button
+                          key={person.id}
+                          type="button"
+                          className={`rounded-2xl border px-4 py-4 text-left transition ${
+                            selected ? "border-sage bg-mint" : "border-ink/10 bg-white hover:border-sage/60"
+                          }`}
+                          onClick={() => setSelectedRelatedUserId(person.id)}
+                        >
+                          <span className="block font-bold text-ink">{person.display_name}</span>
+                          <span className="mt-1 block text-xs text-muted">
+                            {isParent
+                              ? `近 4 周 ${personOverview.activeDays} 天有记录`
+                              : `近 7 天 ${personOverview.activeDays} 天有记录`}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </aside>
+
+                <div className="card">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="eyebrow">{isParent ? "近 4 周" : "近 7 天"}</p>
+                      <h2 className="mt-2 text-[1.5rem] font-bold text-ink">
+                        {activeRelatedPerson?.display_name || "节律概览"}
+                      </h2>
+                    </div>
+                    <span className="rounded-full bg-cream px-4 py-2 text-sm font-bold text-sage-dark">
+                      {relatedOverview.activeDays} 天有记录
+                    </span>
+                  </div>
+
+                  {relatedOverview.recordCount ? (
+                    <>
+                      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                        {relatedOverview.dimensions.map((dimension) => (
+                          <div key={dimension.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
+                            <p className="text-xs font-bold text-sage">{dimension.label}</p>
+                            <p className="mt-2 text-sm font-bold leading-6 text-ink">{dimension.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-5 rounded-2xl bg-cream px-5 py-5">
+                        <p className="text-xs font-bold text-sage-dark">最近小结</p>
+                        <p className="mt-2 text-sm leading-7 text-muted">
+                          {relatedOverview.latestSummary || "最近一条记录还没有生成小结，可以在下方查看原始回答。"}
+                        </p>
+                      </div>
+                      <a href="#records" className="button-secondary mt-5">
+                        查看原始回答
+                      </a>
+                    </>
+                  ) : (
+                    <p className="mt-6 rounded-2xl bg-cream px-5 py-5 text-sm leading-7 text-muted">
+                      {isParent ? "孩子暂时还没有保存 SWEET 记录。" : "这名学生近 7 天还没有保存 SWEET 记录。"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="card">
+                <p className="font-bold text-ink">
+                  {isParent ? "暂时还没有关联孩子。" : "学校暂时还没有为你分配学生。"}
+                </p>
+                <p className="mt-2 text-sm leading-7 text-muted">
+                  {isParent ? "请联系学校负责人确认亲子关系。" : "分配完成后，学生概览会显示在这里。"}
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      ) : null}
 
       {user && !needsPersonalProfile && !isPlatformAdmin ? (
         <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">

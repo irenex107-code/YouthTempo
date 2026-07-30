@@ -145,6 +145,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);
     const inviteRole = assignmentRole === "家长" ? null : inviteRoleFromLabel(assignmentRole);
+    const teacherUserId = typeof req.body?.teacherUserId === "string" ? req.body.teacherUserId.trim() : "";
+    const guardianUserId = typeof req.body?.guardianUserId === "string" ? req.body.guardianUserId.trim() : "";
 
     if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
     if (!displayName) return res.status(400).json({ error: "请输入成员姓名。" });
@@ -241,6 +243,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("user_id", authUser.id)
         .is("school_id", null);
       if (recordsError) throw recordsError;
+
+      if (teacherUserId) {
+        const { data: teacher, error: teacherError } = await supabase
+          .from("school_members")
+          .select("user_id")
+          .eq("school_id", schoolId)
+          .eq("user_id", teacherUserId)
+          .eq("member_role", "school_support")
+          .eq("status", "active")
+          .maybeSingle();
+        if (teacherError) throw teacherError;
+        if (!teacher) return res.status(400).json({ error: "所选老师不在当前学校，请重新选择。" });
+        const { error: teacherAssignmentError } = await supabase
+          .from("teacher_student_assignments")
+          .upsert({
+            school_id: schoolId,
+            teacher_user_id: teacherUserId,
+            student_user_id: authUser.id,
+            assigned_by: context.user.id,
+            status: "active",
+            revoked_at: null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "school_id,teacher_user_id,student_user_id" });
+        if (teacherAssignmentError) throw teacherAssignmentError;
+      }
+
+      if (guardianUserId) {
+        const { data: guardian, error: guardianError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", guardianUserId)
+          .eq("school_id", schoolId)
+          .eq("role", "家长")
+          .maybeSingle();
+        if (guardianError) throw guardianError;
+        if (!guardian) return res.status(400).json({ error: "所选家长不在当前学校，请重新选择。" });
+        const { error: guardianAssignmentError } = await supabase
+          .from("guardian_student_links")
+          .upsert({
+            school_id: schoolId,
+            guardian_user_id: guardianUserId,
+            student_user_id: authUser.id,
+            confirmed_by: context.user.id,
+            status: "active",
+            revoked_at: null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "school_id,guardian_user_id,student_user_id" });
+        if (guardianAssignmentError) throw guardianAssignmentError;
+      }
     }
 
     if (inviteRole) {

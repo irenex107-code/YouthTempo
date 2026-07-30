@@ -170,6 +170,33 @@ create table if not exists public.school_followups (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.student_messages (
+  id uuid primary key default gen_random_uuid(),
+  school_id uuid references public.schools(id) on delete set null,
+  sender_user_id uuid not null references auth.users(id) on delete cascade,
+  recipient_type text not null check (recipient_type in ('teacher', 'guardian', 'self')),
+  recipient_user_id uuid references auth.users(id) on delete cascade,
+  anonymous_to_recipient boolean not null default false,
+  body text not null check (char_length(body) between 1 and 1000),
+  moderation_status text not null default 'sent' check (moderation_status in ('sent', 'blocked', 'safety_review')),
+  moderation_reason text,
+  read_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (
+    (recipient_type = 'self' and recipient_user_id = sender_user_id and anonymous_to_recipient = false)
+    or (recipient_type in ('teacher', 'guardian') and recipient_user_id is not null)
+  )
+);
+
+create index if not exists student_messages_sender_created_idx
+on public.student_messages (sender_user_id, created_at desc);
+
+create index if not exists student_messages_recipient_created_idx
+on public.student_messages (recipient_user_id, created_at desc);
+
+create index if not exists student_messages_school_created_idx
+on public.student_messages (school_id, created_at desc);
+
 insert into public.admin_roles (email, role, status)
 values
   ('irenexiao107@outlook.com', '管理员', 'active'),
@@ -195,10 +222,12 @@ alter table public.wechat_identities enable row level security;
 alter table public.wechat_bind_sessions enable row level security;
 alter table public.admin_roles enable row level security;
 alter table public.school_followups enable row level security;
+alter table public.student_messages enable row level security;
 
 -- Follow-up notes contain school support context and are only accessed by
 -- authenticated server routes using the service role.
 revoke all privileges on table public.school_followups from anon, authenticated;
+revoke all privileges on table public.student_messages from anon, authenticated;
 
 drop policy if exists "schools_select_member" on public.schools;
 create policy "schools_select_member"
