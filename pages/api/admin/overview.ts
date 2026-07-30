@@ -79,6 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teachers: Array<{ id: string; email: string; display_name: string }>;
       students: Array<{ id: string; email: string; display_name: string }>;
       guardians: Array<{ id: string; email: string; display_name: string }>;
+      professionals: Array<{ id: string; email: string; display_name: string }>;
       assignments: Array<{ teacher_user_id: string; student_user_id: string }>;
       guardianAssignments: Array<{ guardian_user_id: string; student_user_id: string }>;
     }> = [];
@@ -88,6 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         { data: memberships, error: membershipDirectoryError },
         { data: students, error: studentDirectoryError },
         { data: guardians, error: guardianDirectoryError },
+        { data: professionals, error: professionalDirectoryError },
         { data: assignments, error: assignmentDirectoryError },
         { data: guardianAssignments, error: guardianAssignmentDirectoryError },
       ] = await Promise.all([
@@ -108,6 +110,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .in("school_id", directorySchoolIds)
           .eq("role", "家长"),
         supabase
+          .from("profiles")
+          .select("id,email,display_name,school_id")
+          .in("school_id", directorySchoolIds)
+          .eq("role", "专业支持者"),
+        supabase
           .from("teacher_student_assignments")
           .select("school_id,teacher_user_id,student_user_id")
           .in("school_id", directorySchoolIds)
@@ -121,6 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (membershipDirectoryError) throw membershipDirectoryError;
       if (studentDirectoryError) throw studentDirectoryError;
       if (guardianDirectoryError) throw guardianDirectoryError;
+      if (professionalDirectoryError) throw professionalDirectoryError;
       if (assignmentDirectoryError) throw assignmentDirectoryError;
       if (guardianAssignmentDirectoryError) throw guardianAssignmentDirectoryError;
 
@@ -171,6 +179,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               id: guardian.id as string,
               email: guardian.email || "",
               display_name: guardian.display_name || "",
+            })),
+          professionals: (professionals || [])
+            .filter((professional) => professional.school_id === schoolId)
+            .map((professional) => ({
+              id: professional.id as string,
+              email: professional.email || "",
+              display_name: professional.display_name || "",
             })),
           assignments: (assignments || [])
             .filter((assignment) => assignment.school_id === schoolId)

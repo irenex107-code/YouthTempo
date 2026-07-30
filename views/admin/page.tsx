@@ -12,7 +12,7 @@ type School = {
   created_at: string;
 };
 
-type AssignmentRole = "学生" | "家长" | "支持老师" | "学校负责人";
+type AssignmentRole = "学生" | "家长" | "支持老师" | "学校负责人" | "专业支持者";
 
 type AdminOverview = {
   admin: {
@@ -73,6 +73,7 @@ type SchoolRoster = {
   teachers: SchoolPerson[];
   students: SchoolPerson[];
   guardians: SchoolPerson[];
+  professionals: SchoolPerson[];
   assignments: Array<{
     teacher_user_id: string;
     student_user_id: string;
@@ -180,7 +181,7 @@ export default function AdminPage() {
     (directory) => directory.school_id === selectedSchool?.id,
   );
   const roleOptions: AssignmentRole[] = isPlatformAdmin
-    ? ["学校负责人", "支持老师", "学生", "家长"]
+    ? ["学校负责人", "支持老师", "学生", "家长", "专业支持者"]
     : ["学生", "家长", "支持老师"];
   const assignedStudentIdSet = new Set(
     schoolRoster?.assignments.map((assignment) => assignment.student_user_id) || [],
@@ -392,6 +393,7 @@ export default function AdminPage() {
             teachers: [],
             students: [],
             guardians: [],
+            professionals: [],
             assignments: [],
             guardianAssignments: [],
           },
@@ -493,6 +495,7 @@ export default function AdminPage() {
                 teachers: directory.teachers.filter((member) => member.id !== person.id),
                 students: directory.students.filter((member) => member.id !== person.id),
                 guardians: directory.guardians.filter((member) => member.id !== person.id),
+                professionals: directory.professionals.filter((member) => member.id !== person.id),
                 assignments: directory.assignments.filter(
                   (assignment) =>
                     assignment.teacher_user_id !== person.id &&
@@ -700,6 +703,8 @@ export default function AdminPage() {
                           ? "家长姓名"
                         : assignmentRole === "学校负责人"
                           ? "负责人姓名"
+                          : assignmentRole === "专业支持者"
+                            ? "专业支持者姓名"
                           : "老师姓名"
                     }
                     maxLength={50}
@@ -817,6 +822,7 @@ export default function AdminPage() {
                       ["支持老师", selectedDirectory.teachers],
                       ["学生", selectedDirectory.students],
                       ["家长", selectedDirectory.guardians],
+                      ["专业支持者", selectedDirectory.professionals],
                     ] as Array<[AssignmentRole, SchoolPerson[]]>).map(([role, people]) => (
                       <div key={role}>
                         <p className="mb-2 text-xs font-bold text-sage-dark">{role} · {people.length}</p>

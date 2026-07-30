@@ -4,6 +4,7 @@ import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
 function profileRoleLabel(value?: string | null) {
   if (value === "家长") return "家长";
+  if (value === "专业支持者") return "专业支持者";
   if (value === "学校支持人员") return "支持老师";
   return "学生";
 }

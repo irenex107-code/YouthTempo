@@ -47,7 +47,7 @@ set role = case
 end;
 
 alter table public.profiles
-add constraint profiles_role_check check (role in ('学生', '家长', '学校支持人员'));
+add constraint profiles_role_check check (role in ('学生', '家长', '学校支持人员', '专业支持者'));
 
 create table if not exists public.sweet_records (
   id uuid primary key default gen_random_uuid(),
@@ -505,3 +505,101 @@ on public.school_followups(student_user_id, updated_at desc);
 
 create index if not exists school_followups_updated_by_idx
 on public.school_followups(updated_by);
+
+create table if not exists public.community_posts (
+  id uuid primary key default gen_random_uuid(),
+  author_user_id uuid not null references auth.users(id) on delete cascade,
+  author_role text not null check (author_role in ('student', 'guardian', 'teacher', 'professional')),
+  title text not null check (char_length(title) between 1 and 80),
+  body text not null check (char_length(body) between 1 and 3000),
+  viewer_roles text[] not null,
+  commenter_roles text[] not null,
+  moderation_status text not null default 'published' check (moderation_status in ('published', 'safety_review', 'removed')),
+  moderation_reason text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint community_posts_viewer_roles_valid check (
+    cardinality(viewer_roles) > 0
+    and viewer_roles <@ array['student', 'guardian', 'teacher', 'professional']
+  ),
+  constraint community_posts_commenter_roles_valid check (
+    commenter_roles <@ viewer_roles
+    and commenter_roles <@ array['student', 'guardian', 'teacher', 'professional']
+  )
+);
+
+create table if not exists public.community_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.community_posts(id) on delete cascade,
+  author_user_id uuid not null references auth.users(id) on delete cascade,
+  author_role text not null check (author_role in ('student', 'guardian', 'teacher', 'professional')),
+  body text not null check (char_length(body) between 1 and 1200),
+  moderation_status text not null default 'published' check (moderation_status in ('published', 'safety_review', 'removed')),
+  moderation_reason text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.community_reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_user_id uuid not null references auth.users(id) on delete cascade,
+  post_id uuid references public.community_posts(id) on delete cascade,
+  comment_id uuid references public.community_comments(id) on delete cascade,
+  reason text not null check (char_length(reason) between 1 and 500),
+  status text not null default 'new' check (status in ('new', 'reviewing', 'resolved')),
+  created_at timestamptz not null default now(),
+  constraint community_reports_single_target check ((post_id is not null) <> (comment_id is not null))
+);
+
+alter table public.community_posts enable row level security;
+alter table public.community_comments enable row level security;
+alter table public.community_reports enable row level security;
+
+revoke all on table public.community_posts from anon, authenticated;
+revoke all on table public.community_comments from anon, authenticated;
+revoke all on table public.community_reports from anon, authenticated;
+grant all on table public.community_posts to service_role;
+grant all on table public.community_comments to service_role;
+grant all on table public.community_reports to service_role;
+
+create policy community_posts_server_only on public.community_posts
+for all to authenticated using (false) with check (false);
+create policy community_comments_server_only on public.community_comments
+for all to authenticated using (false) with check (false);
+create policy community_reports_server_only on public.community_reports
+for all to authenticated using (false) with check (false);
+
+create index if not exists community_posts_published_created_idx
+on public.community_posts(moderation_status, created_at desc);
+create index if not exists community_posts_author_idx
+on public.community_posts(author_user_id, created_at desc);
+create index if not exists community_posts_viewer_roles_idx
+on public.community_posts using gin(viewer_roles);
+create index if not exists community_comments_post_created_idx
+on public.community_comments(post_id, moderation_status, created_at);
+create index if not exists community_comments_author_idx
+on public.community_comments(author_user_id);
+create index if not exists community_reports_status_created_idx
+on public.community_reports(status, created_at desc);
+create index if not exists community_reports_reporter_idx
+on public.community_reports(reporter_user_id);
+create index if not exists community_reports_post_idx
+on public.community_reports(post_id) where post_id is not null;
+create index if not exists community_reports_comment_idx
+on public.community_reports(comment_id) where comment_id is not null;
+
+create table if not exists public.professional_verifications (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  verified_by uuid references auth.users(id) on delete set null,
+  status text not null default 'active' check (status in ('active', 'revoked')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  revoked_at timestamptz
+);
+
+alter table public.professional_verifications enable row level security;
+revoke all on table public.professional_verifications from anon, authenticated;
+grant all on table public.professional_verifications to service_role;
+create policy professional_verifications_server_only on public.professional_verifications
+for all to authenticated using (false) with check (false);
+create index if not exists professional_verifications_verified_by_idx
+on public.professional_verifications(verified_by) where verified_by is not null;

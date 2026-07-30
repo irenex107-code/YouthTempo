@@ -2,12 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { canManageSchool, canManageSchoolMembers, findAuthUserByEmail, getAdminContext } from "@/lib/adminAccess";
 import { inviteRoleFromLabel, memberRoleFromInvite } from "@/lib/schoolInvites";
 
-const roleLabels = ["学生", "家长", "支持老师", "学校负责人"] as const;
+const roleLabels = ["学生", "家长", "支持老师", "学校负责人", "专业支持者"] as const;
 type AssignmentRole = (typeof roleLabels)[number];
 
 function normalizeRole(value: unknown): AssignmentRole {
   if (value === "学校负责人" || value === "学校管理员") return "学校负责人";
   if (value === "支持老师" || value === "学校支持人员") return "支持老师";
+  if (value === "专业支持者") return "专业支持者";
   if (value === "家长") return "家长";
   return "学生";
 }
@@ -106,6 +107,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .ilike("email", profile.email)
               .in("status", ["active", "applied"]))
           : Promise.resolve(),
+        profile?.role === "专业支持者"
+          ? runMutation(supabase
+              .from("professional_verifications")
+              .update({ status: "revoked", revoked_at: now, updated_at: now })
+              .eq("user_id", memberUserId))
+          : Promise.resolve(),
       ]);
 
       const { data: remainingMemberships, error: remainingMembershipError } = await supabase
@@ -125,7 +132,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           school_id: null,
           updated_at: now,
         };
-        if (profile?.role === "学校支持人员" && !remainingMemberships?.length) {
+        if (
+          ["学校支持人员", "专业支持者"].includes(profile?.role || "") &&
+          !remainingMemberships?.length
+        ) {
           profileUpdates.role = "学生";
         }
         const { error: profileUpdateError } = await supabase
@@ -144,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const displayName = typeof req.body?.name === "string" ? req.body.name.trim() : "";
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);
-    const inviteRole = assignmentRole === "家长" ? null : inviteRoleFromLabel(assignmentRole);
+    const inviteRole = ["家长", "专业支持者"].includes(assignmentRole) ? null : inviteRoleFromLabel(assignmentRole);
     const teacherUserId = typeof req.body?.teacherUserId === "string" ? req.body.teacherUserId.trim() : "";
     const guardianUserId = typeof req.body?.guardianUserId === "string" ? req.body.guardianUserId.trim() : "";
 
@@ -156,6 +166,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!canManageSchoolMembers(context, schoolId)) return res.status(403).json({ error: "只有学校负责人可以添加学校成员。" });
     if (context.kind === "school" && assignmentRole === "学校负责人") {
       return res.status(403).json({ error: "学校负责人不能新增其他学校负责人。如需新增，请联系平台管理员。" });
+    }
+    if (context.kind !== "platform" && assignmentRole === "专业支持者") {
+      return res.status(403).json({ error: "专业支持者身份需要由平台管理员确认。" });
     }
 
     const { data: school, error: schoolError } = await supabase
@@ -228,13 +241,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? "学生"
             : assignmentRole === "家长"
               ? "家长"
-              : "学校支持人员",
+              : assignmentRole === "专业支持者"
+                ? "专业支持者"
+                : "学校支持人员",
         school_id: schoolId,
         updated_at: new Date().toISOString(),
       })
       .select("id,email,display_name,role,school_id")
       .single();
     if (profileError) throw profileError;
+
+    if (assignmentRole === "专业支持者") {
+      const { error: verificationError } = await supabase
+        .from("professional_verifications")
+        .upsert({
+          user_id: authUser.id,
+          verified_by: context.user.id,
+          status: "active",
+          revoked_at: null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+      if (verificationError) throw verificationError;
+    } else {
+      const now = new Date().toISOString();
+      const { error: revokeVerificationError } = await supabase
+        .from("professional_verifications")
+        .update({ status: "revoked", revoked_at: now, updated_at: now })
+        .eq("user_id", authUser.id)
+        .eq("status", "active");
+      if (revokeVerificationError) throw revokeVerificationError;
+    }
 
     if (assignmentRole === "学生") {
       const { error: recordsError } = await supabase

@@ -2,7 +2,37 @@ import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/sweetRecordTypes";
 
-export type UserRole = "学生" | "家长" | "学校支持人员";
+export type UserRole = "学生" | "家长" | "学校支持人员" | "专业支持者";
+
+export type CommunityRole = "student" | "guardian" | "teacher" | "professional";
+
+export type CommunityComment = {
+  id: string;
+  post_id: string;
+  author_user_id: string;
+  author_role: CommunityRole;
+  author_name: string;
+  author_role_label: string;
+  verified_professional: boolean;
+  body: string;
+  created_at: string;
+};
+
+export type CommunityPost = {
+  id: string;
+  author_user_id: string;
+  author_role: CommunityRole;
+  author_name: string;
+  author_role_label: string;
+  verified_professional: boolean;
+  title: string;
+  body: string;
+  viewer_roles: CommunityRole[];
+  commenter_roles: CommunityRole[];
+  can_comment: boolean;
+  created_at: string;
+  comments: CommunityComment[];
+};
 
 export type CloudProfile = {
   id: string;
@@ -78,6 +108,7 @@ export type AccountStatus = {
 };
 
 function normalizeRole(role?: string | null): UserRole {
+  if (role === "专业支持者") return "专业支持者";
   if (role === "家长" || role === "支持者") return "家长";
   if (role === "学校支持人员" || role === "老师" || role === "学校合作方") return "学校支持人员";
   return "学生";
@@ -230,6 +261,59 @@ export async function markStudentMessageRead(id: string) {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "留言状态更新失败。");
+}
+
+async function communityRequest(path: string, init?: RequestInit) {
+  const token = await getAccessToken();
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      authorization: `Bearer ${token}`,
+      ...(init?.body ? { "content-type": "application/json" } : {}),
+      ...(init?.headers || {}),
+    },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "社区暂时不可用。");
+  return data;
+}
+
+export async function listCommunityPosts() {
+  return communityRequest("/api/community/posts") as Promise<{
+    currentUser: { id: string; name: string; role: CommunityRole; roleLabel: string };
+    roles: Record<CommunityRole, string>;
+    posts: CommunityPost[];
+  }>;
+}
+
+export async function createCommunityPost(input: {
+  title: string;
+  body: string;
+  viewerRoles: CommunityRole[];
+  commenterRoles: CommunityRole[];
+}) {
+  return communityRequest("/api/community/posts", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }) as Promise<{ safetyNotice?: boolean }>;
+}
+
+export async function createCommunityComment(postId: string, body: string) {
+  return communityRequest("/api/community/comments", {
+    method: "POST",
+    body: JSON.stringify({ postId, body }),
+  }) as Promise<{ safetyNotice?: boolean }>;
+}
+
+export async function reportCommunityContent(input: {
+  postId?: string;
+  commentId?: string;
+  reason: string;
+}) {
+  return communityRequest("/api/community/reports", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }) as Promise<{ ok: boolean }>;
 }
 
 export async function signOut() {

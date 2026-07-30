@@ -39,3 +39,11 @@ export function moderateStudentMessage(body: string) {
   }
   return { status: "sent" as const, reason: null };
 }
+
+export function moderateCommunityContent(body: string) {
+  const result = moderateStudentMessage(body);
+  if (result.status === "sent") {
+    return { status: "published" as const, reason: null };
+  }
+  return result;
+}
