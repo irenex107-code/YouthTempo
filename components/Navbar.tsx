@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { navItems } from "@/data/site";
 import { getSupabase } from "@/lib/supabaseClient";
 
+const roleEntryHrefs = new Set(["/for-teens", "/for-parents", "/for-teachers"]);
+
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -93,6 +95,21 @@ export function Navbar() {
           : accountRole === "家长"
             ? { href: "/account#records", label: "孩子记录", mobileLabel: "孩子记录" }
             : { href: "/check-in", label: "开始 SWEET 节律", mobileLabel: "记录今天" };
+  const roleEntryHref =
+    accountRole === "学生"
+      ? "/for-teens"
+      : accountRole === "家长"
+        ? "/for-parents"
+        : accountRole === "支持老师" || accountRole === "学校负责人"
+          ? "/for-teachers"
+          : null;
+  const visibleNavItems = !authReady
+    ? navItems.filter((item) => !roleEntryHrefs.has(item.href))
+    : !signedIn
+      ? navItems
+      : navItems.filter(
+          (item) => !roleEntryHrefs.has(item.href) || item.href === roleEntryHref,
+        );
 
   return (
     <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/92 backdrop-blur">
@@ -102,7 +119,7 @@ export function Navbar() {
             YouthTempo
           </Link>
           <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 lg:flex xl:gap-5">
-            {navItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <Link key={item.href} href={item.href} className="whitespace-nowrap transition hover:text-sage-dark">
                 {item.label}
               </Link>
@@ -148,7 +165,7 @@ export function Navbar() {
         {menuOpen ? (
           <div className="container pb-4 sm:hidden">
             <nav className="grid gap-2 rounded-3xl border border-ink/10 bg-white/92 p-3 shadow-soft">
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}

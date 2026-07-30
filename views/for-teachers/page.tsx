@@ -6,7 +6,7 @@ export default function ForTeachersPage() {
   return (
     <>
       <PageHero
-        title="先看见变化，再开始一次对话"
+        title="老师入口"
         subtitle="YouthTempo 帮助老师了解所负责学生近期的生活节律变化，并找到合适的沟通起点。"
         action={
           <>

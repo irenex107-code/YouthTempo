@@ -88,6 +88,12 @@ export default function ForParentsPage() {
       <PageHero
         title="家长入口"
         subtitle="SWEET 帮助家长看见生活节律，AIDET 帮助家长用更安全、不指责的方式开口。"
+        action={
+          <>
+            <Link href="/account" className="button-primary">进入家长工作台</Link>
+            <Link href="/sweet-model" className="button-secondary">了解 SWEET</Link>
+          </>
+        }
       />
 
       <section className="section section-muted">

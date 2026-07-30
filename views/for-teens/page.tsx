@@ -41,7 +41,12 @@ export default function ForTeensPage() {
       <PageHero
         title="青少年入口"
         subtitle="选一个最接近现在需要的入口，不必先把所有事情说清楚。"
-        action={<Link href="/check-in" className="button-primary">开始 SWEET 节律记录</Link>}
+        action={
+          <>
+            <Link href="/account" className="button-primary">进入青少年工作台</Link>
+            <Link href="/sweet-model" className="button-secondary">了解 SWEET</Link>
+          </>
+        }
       />
 
       <section className="section section-muted pt-8 sm:pt-12">
