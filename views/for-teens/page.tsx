@@ -36,7 +36,7 @@ const startCards = [
   {
     title: "我想知道下一步可以怎么做",
     text: "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。",
-    action: "查看支持路径",
+    action: "看看下一步找谁",
     href: "/referral",
   },
 ];
@@ -82,7 +82,7 @@ export default function ForTeensPage() {
             <p className="mt-2 text-sm leading-7 text-muted">先找一个可信任的大人或老师聊一聊，也可以查看适合的支持路径。</p>
           </div>
           <Link href="/referral" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">
-            查看支持路径
+            看看下一步找谁
           </Link>
         </div>
       </section>

@@ -16,7 +16,7 @@ type ResourceGroup = {
 
 const resourceGroups: ResourceGroup[] = [
   {
-    title: "给家长",
+    title: "家长：怎么观察和开口",
     items: [
       {
         title: "先看节律变化",
@@ -39,7 +39,7 @@ const resourceGroups: ResourceGroup[] = [
     ],
   },
   {
-    title: "给学校",
+    title: "老师与学校：怎么回应和跟进",
     items: [
       {
         title: "关注持续变化",
@@ -55,38 +55,30 @@ const resourceGroups: ResourceGroup[] = [
       },
     ],
   },
-  {
-    title: "给学生",
-    items: [
-      {
-        title: "看见今天的节律",
-        text: "用一分钟记录睡眠、起床、饮食、运动和任务参与。",
-        href: "/check-in",
-        action: "开始 SWEET",
-      },
-      {
-        title: "整理说不清的感受",
-        text: "不用一次说清楚，从几个接近当下的情绪词开始。",
-        href: "/mood-journal",
-        action: "开始表达",
-      },
-      {
-        title: "把担心放到明天",
-        text: "睡前分清现在能做的、暂时控制不了的和还不确定的部分。",
-        href: "/worry-time",
-        action: "睡前整理",
-      },
-    ],
-  },
 ];
 
 export default function ResourcesPage() {
   return (
     <>
       <PageHero
-        title="家校资源"
-        subtitle="按角色找到最需要的一条建议或工具。"
+        title="家校陪伴指南"
+        subtitle="给家长和老师的陪伴方法：看什么、怎么开口、怎样回应，以及什么时候需要进一步支持。这里不是学生求助入口。"
       />
+      <section className="section section-muted pb-0">
+        <div className="container grid gap-4 md:grid-cols-2">
+          <div className="card">
+            <p className="eyebrow">日常陪伴</p>
+            <h2 className="mt-2 text-xl font-bold text-ink">想学习怎么理解和支持孩子</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">继续查看下面按家长、老师整理的方法和沟通建议。</p>
+          </div>
+          <div className="card">
+            <p className="eyebrow">当前需要帮助</p>
+            <h2 className="mt-2 text-xl font-bold text-ink">现在不知道下一步该找谁</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">转到支持路径，根据持续时间和影响程度获得下一步建议。</p>
+            <Link href="/referral" className="button-primary mt-5 px-4 py-2 text-xs">判断下一步</Link>
+          </div>
+        </div>
+      </section>
       {resourceGroups.map((group, index) => (
         <section key={group.title} className={`section ${index % 2 === 0 ? "section-muted" : ""}`}>
           <div className="container">
@@ -107,6 +99,15 @@ export default function ResourcesPage() {
           </div>
         </section>
       ))}
+      <section className="section section-muted">
+        <div className="container rounded-2xl border border-sage/25 bg-white/85 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div>
+            <h2 className="text-xl font-bold text-ink">已经明显影响生活或学习？</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">家校方法不能代替及时支持。可以根据当前状态判断下一步找谁。</p>
+          </div>
+          <Link href="/referral" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">进入支持路径</Link>
+        </div>
+      </section>
     </>
   );
 }

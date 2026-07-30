@@ -1,53 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-import { InfoCard, StepCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
-import { SectionHeader } from "@/components/SectionHeader";
-
-const support = [
-  ["可信任的大人", "可以从一句很轻的话开始，让身边可靠的人先知道你最近有点卡住。"],
-  ["学校支持", "如果学习、出勤或校园生活受到影响，可以考虑联系班主任、导师或学校心理老师。"],
-  ["家校资源", "当亲子沟通比较难时，可以先用低冲突材料帮助家长和学校理解你的状态。"],
-  ["专业资源", "如果状态持续影响生活，可以考虑连接专业咨询、线上支持资源或当地支持服务。"],
-];
-
-const layers = [
-  [
-    "日常压力",
-    "最近有压力，但仍能基本学习和生活。",
-    "AI 引导整理、SWEET 节律记录、情绪表达和睡前整理。",
-  ],
-  [
-    "持续低落或焦虑",
-    "情绪压力持续多天，睡眠、学习或日常生活受到影响。",
-    "建议连接可信任的大人、学校心理老师、专业资源或线上支持资源。",
-  ],
-  [
-    "家庭沟通困难",
-    "亲子沟通困难、冲突频繁，用户不知道如何表达。",
-    "提供低冲突表达句式、家长教育内容和家校资源建议。",
-  ],
-  [
-    "需要及时连接支持",
-    "用户状态明显影响安全感、基本生活或持续无法应对。",
-    "建议尽快联系监护人、学校负责人、专业人员或当地支持服务。",
-  ],
-];
-
-const referralSteps = [
-  ["SWEET 节律记录", "记录睡眠、醒来、饮食、运动和任务投入，先看见今天的状态。"],
-  ["AI 引导整理", "把模糊的压力和状态变化整理成更清楚的表达。"],
-  ["支持需求理解", "判断现在更需要自助整理、有人倾听、学校支持还是专业资源。"],
-  ["建议下一步", "给出一个低压力、可执行的下一步，而不是一次性要求用户解决所有问题。"],
-  ["连接可信支持", "在需要时，引导用户联系可信任的大人、学校资源、家校资源或专业支持。"],
-];
-
-const network = [
-  ["家庭", "提供日常理解、陪伴和低冲突沟通。"],
-  ["学校", "更早发现学习、情绪和适应变化，提供校内支持。"],
-  ["专业咨询", "在持续压力、低落或适应困难时提供进一步支持。"],
-  ["当地支持服务", "在需要及时帮助时，连接更可靠、更具体的线下或线上资源。"],
-];
 
 const flowSteps = ["选择当前状态", "生成支持路径建议", "查看下一步入口"];
 
@@ -185,18 +138,18 @@ function getRecommendedPath(answers: Answers) {
     hasAny(answers, "currentState", ["和家人沟通有点困难"]) ||
     hasAny(answers, "affectedAreas", ["家庭沟通"])
   ) {
-    title = "先整理表达，再连接家校资源";
+    title = "先整理表达，再让一个可信任的人知道";
     addLink(links, { label: "情绪表达", href: "/mood-journal", primary: links.length === 0 });
-    addLink(links, { label: "家校资源", href: "/resources" });
+    addLink(links, { label: "写下想说的话", href: "/messages" });
   }
 
   if (
     hasAny(answers, "currentState", ["吃饭或身体状态受到影响"]) ||
     hasAny(answers, "affectedAreas", ["吃饭", "身体状态"])
   ) {
-    title = needsMoreSupport ? "记录节律，并查看家校资源" : "先做 SWEET 节律记录";
+    title = needsMoreSupport ? "记录节律，并让可信任的人知道" : "先做 SWEET 节律记录";
     addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, needsMoreSupport ? { label: "家校资源", href: "/resources" } : { label: "情绪表达", href: "/mood-journal" });
+    addLink(links, needsMoreSupport ? { label: "写下想说的话", href: "/messages" } : { label: "情绪表达", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["只是想先整理一下"]) || hasAny(answers, "supportType", ["自己先整理一下"])) {
@@ -216,13 +169,13 @@ function getRecommendedPath(answers: Answers) {
   }
 
   if (needsMoreSupport) {
-    if (links.some((item) => item.href === "/resources")) {
+    if (links.some((item) => item.href === "/messages")) {
       return { title, links: links.slice(0, 2) };
     }
     if (links.length >= 2) {
-      links[1] = { label: "家校资源", href: "/resources" };
+      links[1] = { label: "告诉老师或家长", href: "/messages" };
     } else {
-      addLink(links, { label: "家校资源", href: "/resources", primary: links.length === 0 });
+      addLink(links, { label: "告诉老师或家长", href: "/messages", primary: links.length === 0 });
     }
   }
 
@@ -343,9 +296,8 @@ export default function ReferralPage() {
   return (
     <>
       <PageHero
-        label="Support Pathway Recommendation"
-        title="支持路径推荐"
-        subtitle="选择当前状态，点击生成支持路径建议，再查看一份温和的下一步建议。"
+        title="下一步找谁"
+        subtitle="当自己整理还不够时，用几道题判断现在适合继续自助、告诉可信任的人，还是尽快连接更多支持。"
       />
       <section className="section section-muted">
         <div className="container">
@@ -501,72 +453,12 @@ export default function ReferralPage() {
       </section>
 
       <section className="section">
-        <div className="container">
-          <SectionHeader
-            label="Layered Support Pathway"
-            title="分层支持路径"
-            description="平台不让 AI 单独处理复杂情况，而是根据支持需求，给出更合适的下一步连接。"
-          />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {layers.map(([title, signs, response]) => (
-              <article key={title} className="card">
-                <h3 className="text-lg font-bold leading-snug text-ink sm:text-xl">{title}</h3>
-                <p className="mt-4 text-xs font-bold text-sage">用户状态</p>
-                <p className="mt-2 text-[0.95rem] leading-7 text-muted">{signs}</p>
-                <p className="mt-4 text-xs font-bold text-sage">平台回应</p>
-                <p className="mt-2 text-[0.95rem] leading-7 text-muted">{response}</p>
-              </article>
-            ))}
+        <div className="container rounded-2xl border border-sage/25 bg-mint/60 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div>
+            <h2 className="text-xl font-bold text-ink">你也可以直接让一个人知道</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。</p>
           </div>
-        </div>
-      </section>
-
-      <section className="section section-muted">
-        <div className="container">
-          <SectionHeader
-            title="转介路径"
-            description="当平台观察到用户可能需要更多帮助时，会优先把支持连接到真实的人和可靠资源。"
-          />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {referralSteps.map(([title, text], index) => (
-              <StepCard key={title} number={index + 1} title={title}>
-                {text}
-              </StepCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <SectionHeader
-            label="Family-School-Professional Support Network"
-            title="家校与专业支持网络"
-            description="YouthTempo 把支持理解为一个协作网络，而不是让年轻人独自面对压力。"
-          />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {network.map(([title, role]) => (
-              <InfoCard key={title} title={title}>
-                {role}
-              </InfoCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section section-muted">
-        <div className="container">
-          <SectionHeader
-            title="可以连接的支持"
-            description="不同情境下，用户可以选择更熟悉、更可获得或更专业的支持来源。"
-          />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {support.map(([title, text]) => (
-              <InfoCard key={title} title={title}>
-                {text}
-              </InfoCard>
-            ))}
-          </div>
+          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">写下想说的话</Link>
         </div>
       </section>
     </>

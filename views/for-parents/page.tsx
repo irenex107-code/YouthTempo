@@ -215,12 +215,12 @@ export default function ForParentsPage() {
             </p>
           </div>
           <div className="card lg:col-span-2">
-            <h3 className="text-xl font-bold text-ink">家校资源</h3>
+            <h3 className="text-xl font-bold text-ink">家校陪伴指南</h3>
             <p className="mt-4 max-w-3xl text-[0.95rem] leading-7 text-muted">
               给家长和学校的支持材料，帮助更早理解青少年的节律、情绪表达和支持需求。
             </p>
             <Link href="/resources" className="button-secondary mt-6">
-              查看家校资源
+              查看陪伴指南
             </Link>
           </div>
         </div>

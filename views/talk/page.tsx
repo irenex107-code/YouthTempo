@@ -177,7 +177,7 @@ export default function TalkPage() {
                 如果已经影响睡眠、吃饭、学习或安全，不用继续和 AI 解释，可以直接找可信任的大人或学校老师。
               </p>
               <Link href="/referral" className="button-secondary mt-5 w-full px-4 py-2 text-xs">
-                查看支持路径
+                看看下一步找谁
               </Link>
             </div>
             {suggestHumanSupport || reachedLimit ? (
