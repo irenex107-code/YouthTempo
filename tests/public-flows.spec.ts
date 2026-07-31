@@ -12,6 +12,9 @@ test("首页明确一期服务对象和 SWEET 主入口", async ({ page }) => {
 test("未登录用户可以看到三个角色入口", async ({ page }) => {
   await page.goto("/");
 
+  const menuButton = page.getByRole("button", { name: "打开导航菜单" });
+  if (await menuButton.isVisible()) await menuButton.click();
+
   await expect(page.getByRole("link", { name: "青少年入口" })).toHaveAttribute("href", "/for-teens");
   await expect(page.getByRole("link", { name: "家长入口" })).toHaveAttribute("href", "/for-parents");
   await expect(page.getByRole("link", { name: "老师入口" })).toHaveAttribute("href", "/for-teachers");
