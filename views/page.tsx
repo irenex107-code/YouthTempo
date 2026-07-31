@@ -10,31 +10,31 @@ const audienceCards = [
     text: "处在学习压力、情绪变化、家庭沟通和自我探索交织的阶段。很多状态变化会先出现在睡眠、饮食、运动、任务投入和情绪表达里。",
   },
   {
-    title: "青年 18-25",
-    label: "Emerging Adults",
-    text: "从学校走向更独立的生活阶段，可能面对身份探索、学业选择、未来压力和关系变化，需要更柔和、更容易开始的支持。",
+    title: "家长",
+    label: "陪伴者",
+    text: "通过孩子的 SWEET 记录和阶段变化了解近况，用更少指责、更容易开口的方式提供支持。",
   },
   {
-    title: "家长与学校",
-    label: "Parents & Schools",
-    text: "作为年轻人身边的重要支持系统，家长和学校可以更早理解状态变化，并用更低冲突的方式连接支持。",
+    title: "老师与学校",
+    label: "支持系统",
+    text: "通过总体趋势和需要了解的变化更早提供支持，在必要时查看记录并连接家庭或专业资源。",
   },
 ];
 
 const supportLayers = [
   {
     title: "第一层：SWEET 节律系统",
-    label: "Daily Rhythm",
+    label: "日常节律",
     text: "从 Sleep、Wake、Eat、Exercise、Task 五个维度看见日常状态的变化。",
   },
   {
     title: "第二层：表达与整理工具",
-    label: "Expression & Organization",
+    label: "表达与整理",
     text: "当状态出现波动时，通过心情拼图和今晚先放下，把模糊压力慢慢理清。",
   },
   {
     title: "第三层：支持路径",
-    label: "Support Pathway",
+    label: "支持连接",
     text: "当自助整理不够时，引导用户连接可信任的大人、学校支持或医疗与专业支持。",
   },
 ];
@@ -163,7 +163,7 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <SectionHeader
-            label="Why Early Support"
+            label="为什么从日常开始"
             title="为什么需要更早支持"
             description="很多年轻人的压力并不是一开始就以明确的“心理问题”出现，而是先体现在睡眠、饮食、运动、任务投入、情绪表达和沟通困难中。YouthTempo 希望在问题变得更难承受之前，提供更低门槛、更容易开始的支持方式。"
           />
@@ -173,9 +173,9 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <SectionHeader
-            label="Who We Support"
-            title="青春期和成年早期，是更早支持的重要窗口。"
-            description="YouthTempo 关注年轻人自身，也关注他们身边的家庭和学校支持系统。"
+            label="第一期学校试点"
+            title="先服务 14–18 岁在校青少年。"
+            description="YouthTempo 第一阶段聚焦在校青少年，以及陪伴他们的家长、老师和学校。18–25 岁青年支持将作为后续独立阶段继续探索。"
           />
           <div className="grid gap-6 md:grid-cols-3">
             {audienceCards.map((item) => (
@@ -190,7 +190,7 @@ export default function Home() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader
-            label="Support Pathway Starting from Daily Rhythm"
+            label="从记录到支持"
             title="从日常节律开始的支持路径"
             description="YouthTempo 从 SWEET 节律记录开始，帮助年轻人看见睡眠、醒来、饮食、运动和任务投入之间的关系，并在需要时打开心情拼图、今晚先放下或判断下一步找谁。"
           />
@@ -212,7 +212,7 @@ export default function Home() {
               让支持在年轻人独自承受之前，更容易被看见，也更容易获得。
             </h2>
           </div>
-          <InfoCard title="项目重点" label="Project focus">
+          <InfoCard title="项目重点" label="第一期重点">
             <ol className="space-y-4 font-bold text-ink/80">
               <li>1. 危机之前的早期支持</li>
               <li>2. 以日常节律作为支持基础</li>

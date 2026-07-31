@@ -6,6 +6,20 @@ import { getSupabase } from "@/lib/supabaseClient";
 
 const roleEntryHrefs = new Set(["/for-teens", "/for-parents", "/for-teachers"]);
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  let timeoutId: number | undefined;
+  try {
+    return await Promise.race<T>([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error("账号状态加载超时。")), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  }
+}
+
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
@@ -24,8 +38,19 @@ export function Navbar() {
 
       let activeSession = session;
       if (activeSession === undefined) {
-        const { data } = await supabase?.auth.getSession() || { data: { session: null } };
-        activeSession = data.session;
+        try {
+          const sessionResult = supabase
+            ? await withTimeout(supabase.auth.getSession(), 4_000)
+            : { data: { session: null } };
+          activeSession = sessionResult.data.session;
+        } catch {
+          if (!mounted || refreshVersion !== refreshVersionRef.current) return;
+          setSignedIn(false);
+          setAccountName("");
+          setAccountRole("");
+          setAuthReady(true);
+          return;
+        }
       }
 
       if (!mounted || refreshVersion !== refreshVersionRef.current) return;
@@ -44,9 +69,12 @@ export function Navbar() {
           : "";
 
       try {
-        const response = await fetch("/api/account/status", {
-          headers: { authorization: `Bearer ${activeSession.access_token}` },
-        });
+        const response = await withTimeout(
+          fetch("/api/account/status", {
+            headers: { authorization: `Bearer ${activeSession.access_token}` },
+          }),
+          8_000,
+        );
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "账号状态加载失败。");
         if (!mounted || refreshVersion !== refreshVersionRef.current) return;

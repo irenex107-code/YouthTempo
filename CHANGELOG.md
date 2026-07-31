@@ -1,36 +1,31 @@
 # Changelog
 
-## V1 Prototype Freeze - 2026-06-28
+## 2026-08-01 · Pilot readiness consolidation
 
-Project: YouthTempo
+- 第一期目标收窄为 14–18 岁在校青少年及其家庭、老师和学校。
+- 腾讯云 CloudBase Run 明确为唯一正式部署目标。
+- 建立统一路线图和试点验收标准。
+- 开始加入 Playwright 端到端测试。
 
-Status: pre-commercial interactive prototype
+## 2026-07-31 · Community interaction upgrade
 
-### Main Completed Features
+- 家校医社区支持发帖、评论和分角色可见/可评论范围。
+- 帖子和评论增加作者及管理员删除能力。
+- 增加举报、安全内容拦截和专业支持者认证。
+- 重构社区卡片、互动区域、发布区和移动端层级。
 
-- Homepage project introduction for YouthTempo.
-- Independent pages for teens, parents, SWEET model, check-in, mood journal, worry time, referral support, and resources.
-- SWEET rhythm check-in covering Sleep, Wake, Eat, Exercise, and Task.
-- Emotion expression flow with emotion word cards, guided reflection, low-conflict expression starters, and AI response support.
-- Worry Time flow with 15-minute timer, worry sorting, small next action, and AI bedtime reflection support.
-- Referral support pathway tool with mixed single-select and multi-select questionnaire logic.
-- Parent and school resource page for family-school-professional support framing.
-- Server-side AI API routes for check-in, mood journal, worry time, and referral support.
-- Local pnpm setup documentation and API key safety guidance.
+## 2026-07-28–30 · Role workspaces and support flows
 
-### Known Limitations
+- 建立家长、老师、学校负责人和平台管理员工作区。
+- 支持老师—学生、家长—孩子关系分配及人员删除。
+- 学校管理台增加按老师查看学生、近四周记录和待了解变化。
+- 家长和学校可按权限查看学生原始记录与 AI 摘要。
+- 新增悄悄话信箱、匿名老师来信和安全拦截。
+- SWEET 支持 AI 一键小结、云端保存、历史查看和删除。
+- 新增浏览器语音输入和最多八轮的“陪我捋一捋”。
 
-- This is a pre-commercial prototype and not a production health service.
-- AI responses depend on a valid `OPENAI_API_KEY` in `.env.local`.
-- The prototype does not include user accounts, persistent storage, analytics, or admin tools.
-- Safety escalation, crisis workflows, and professional referral directories are not production-ready.
-- Linting is not fully configured for V1; build and TypeScript checks are the current verification path.
+## 2026-07 · Infrastructure
 
-### Next-Stage Development Directions
-
-- Add persistence for user records with appropriate privacy and consent design.
-- Expand parent and school resources into real articles, worksheets, and support guides.
-- Improve AI response evaluation, safety boundaries, and handoff guidance.
-- Add accessibility and mobile QA passes across the full user flow.
-- Prepare deployment, monitoring, environment management, and product analytics.
-- Conduct user testing with teens, parents, and school-support stakeholders.
+- 完成腾讯云 CloudBase Run 部署。
+- 完成 Supabase 邮箱 OTP、角色模型、学校关系和版本化迁移。
+- GitHub Actions 自动运行 TypeScript 和生产构建验证。

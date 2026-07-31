@@ -108,7 +108,7 @@ export default function MoodJournalPage() {
   return (
     <>
       <PageHero
-        label="Emotion Expression"
+        label="感受整理"
         title="心情拼图"
         subtitle="当你发现状态有些波动时，可以用情绪词、引导式整理和 AI 回应，把说不清的感受慢慢表达出来。"
       />
@@ -116,7 +116,7 @@ export default function MoodJournalPage() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader
-            label="Emotion Word Cards"
+            label="情绪词卡"
             title="情绪词卡"
             description="如果一开始说不清楚，可以先从几个接近的词开始。"
           />

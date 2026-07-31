@@ -2,12 +2,15 @@
   "name": "youthtempo-prototype",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "next dev",
     "dev:local": "next dev -H 127.0.0.1 -p 3000",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"Lint is not configured for V1 freeze; use build and TypeScript checks.\""
+    "lint": "echo \"Lint is not configured yet; use build and TypeScript checks.\"",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.45.4",
@@ -16,6 +19,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@next/swc-darwin-arm64": "15.5.19",
     "@types/node": "^22.15.0",
     "@types/react": "^19.0.0",

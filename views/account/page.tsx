@@ -94,6 +94,20 @@ function otpErrorMessage(error: unknown) {
   return message || "验证码验证失败，请稍后重试。";
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  let timeoutId: number | undefined;
+  try {
+    return await Promise.race<T>([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error("账户服务响应超时。")), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  }
+}
+
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
@@ -158,7 +172,19 @@ export default function AccountPage() {
     setError("");
     setNotice((currentNotice) => currentNotice || "");
     try {
-      const currentUser = await getCurrentUser();
+      let currentUser: User | null = null;
+      try {
+        currentUser = await withTimeout(getCurrentUser(), 4_000);
+      } catch (authError) {
+        console.warn("Initial auth check timed out", authError);
+        setUser(null);
+        setProfile(null);
+        setAccountStatus(null);
+        setRecords([]);
+        setWechatIdentities([]);
+        setNotice("登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。");
+        return;
+      }
       setUser(currentUser);
       if (!currentUser) {
         setProfile(null);
@@ -230,7 +256,7 @@ export default function AccountPage() {
   useEffect(() => {
     async function loadAccount() {
       try {
-        const handledRedirect = await handleAuthRedirect();
+        const handledRedirect = await withTimeout(handleAuthRedirect(), 8_000);
         if (handledRedirect) setNotice("登录成功，已进入你的账户。");
       } catch (redirectError) {
         setError(redirectError instanceof Error ? redirectError.message : "登录链接处理失败，请重新发送验证码。");

@@ -100,7 +100,7 @@ export default function WorryTimePage() {
   return (
     <>
       <PageHero
-        label="Worry Time"
+        label="睡前整理"
         title="今晚先放下"
         subtitle="这是 SWEET 睡眠维度下的延伸工具。用 15 分钟把反复出现的担心写下来，分清今晚能做什么、什么可以留到明天。"
       />

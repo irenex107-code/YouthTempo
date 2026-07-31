@@ -205,7 +205,7 @@ export default function ForParentsPage() {
 
       <section className="section">
         <div className="container grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-          <InfoCard title="什么时候寻求进一步帮助" label="Next support">
+          <InfoCard title="什么时候寻求进一步帮助" label="连接更多支持">
             如果孩子的压力持续存在，或睡眠、学习、人际和日常生活明显受到影响，家庭可以考虑学校心理老师、专业咨询师，必要时连接医疗或紧急资源。这个过程不需要责备任何人，重点是让孩子获得更合适的支持。
           </InfoCard>
           <div className="card">
