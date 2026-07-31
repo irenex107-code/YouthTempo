@@ -60,5 +60,6 @@ export async function getCommunityIdentity(supabase: SupabaseClient, user: User)
     role,
     roleLabel: communityRoleLabels[role],
     verifiedProfessional: role === "professional",
+    canModerate: Boolean(adminRole),
   };
 }

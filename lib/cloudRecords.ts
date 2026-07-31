@@ -14,6 +14,7 @@ export type CommunityComment = {
   author_name: string;
   author_role_label: string;
   verified_professional: boolean;
+  can_delete: boolean;
   body: string;
   created_at: string;
 };
@@ -25,6 +26,7 @@ export type CommunityPost = {
   author_name: string;
   author_role_label: string;
   verified_professional: boolean;
+  can_delete: boolean;
   title: string;
   body: string;
   viewer_roles: CommunityRole[];
@@ -280,7 +282,7 @@ async function communityRequest(path: string, init?: RequestInit) {
 
 export async function listCommunityPosts() {
   return communityRequest("/api/community/posts") as Promise<{
-    currentUser: { id: string; name: string; role: CommunityRole; roleLabel: string };
+    currentUser: { id: string; name: string; role: CommunityRole; roleLabel: string; canModerate: boolean };
     roles: Record<CommunityRole, string>;
     posts: CommunityPost[];
   }>;
@@ -303,6 +305,20 @@ export async function createCommunityComment(postId: string, body: string) {
     method: "POST",
     body: JSON.stringify({ postId, body }),
   }) as Promise<{ safetyNotice?: boolean }>;
+}
+
+export async function deleteCommunityPost(postId: string) {
+  return communityRequest("/api/community/posts", {
+    method: "DELETE",
+    body: JSON.stringify({ postId }),
+  }) as Promise<{ ok: boolean }>;
+}
+
+export async function deleteCommunityComment(commentId: string) {
+  return communityRequest("/api/community/comments", {
+    method: "DELETE",
+    body: JSON.stringify({ commentId }),
+  }) as Promise<{ ok: boolean }>;
 }
 
 export async function reportCommunityContent(input: {

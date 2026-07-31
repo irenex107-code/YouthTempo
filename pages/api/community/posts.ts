@@ -9,8 +9,8 @@ import {
 import { moderateCommunityContent } from "@/lib/messageSafety";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (!["GET", "POST"].includes(req.method || "")) {
-    res.setHeader("Allow", "GET, POST");
+  if (!["GET", "POST", "DELETE"].includes(req.method || "")) {
+    res.setHeader("Allow", "GET, POST, DELETE");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -19,6 +19,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!user) return res.status(401).json({ error: "请先登录，再进入社区。" });
     const supabase = getSupabaseAdmin();
     const identity = await getCommunityIdentity(supabase, user);
+
+    if (req.method === "DELETE") {
+      const postId = typeof req.body?.postId === "string" ? req.body.postId.trim() : "";
+      if (!postId) return res.status(400).json({ error: "请选择要删除的帖子。" });
+
+      const { data: post, error: postError } = await supabase
+        .from("community_posts")
+        .select("id,author_user_id,moderation_status")
+        .eq("id", postId)
+        .maybeSingle();
+      if (postError) throw postError;
+      if (!post || post.moderation_status === "removed") {
+        return res.status(404).json({ error: "这条帖子已经不存在。" });
+      }
+
+      const email = (user.email || "").trim().toLowerCase();
+      const { data: platformAdmin, error: adminError } = email
+        ? await supabase.from("admin_roles").select("id").eq("email", email).eq("status", "active").maybeSingle()
+        : { data: null, error: null };
+      if (adminError) throw adminError;
+      if (post.author_user_id !== user.id && !platformAdmin) {
+        return res.status(403).json({ error: "只能删除自己发布的帖子。" });
+      }
+
+      const { error: deleteError } = await supabase
+        .from("community_posts")
+        .update({
+          moderation_status: "removed",
+          moderation_reason: post.author_user_id === user.id ? "作者删除" : "平台管理员删除",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", postId)
+        .eq("moderation_status", post.moderation_status);
+      if (deleteError) throw deleteError;
+      return res.status(200).json({ ok: true });
+    }
 
     if (req.method === "POST") {
       const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
@@ -146,6 +182,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           author_role_label: communityRoleLabels[postRole],
           verified_professional:
             postRole === "professional" && verifiedProfessionalIds.has(post.author_user_id as string),
+          can_delete: post.author_user_id === user.id || identity.canModerate,
           can_comment: (post.commenter_roles as string[]).includes(identity.role),
           comments: (comments || [])
             .filter((comment) => comment.post_id === post.id)
@@ -158,6 +195,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 author_role_label: communityRoleLabels[commentRole],
                 verified_professional:
                   commentRole === "professional" && verifiedProfessionalIds.has(comment.author_user_id as string),
+                can_delete: comment.author_user_id === user.id || identity.canModerate,
               };
             }),
         };

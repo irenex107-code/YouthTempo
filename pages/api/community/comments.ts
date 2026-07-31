@@ -4,8 +4,8 @@ import { getCommunityIdentity } from "@/lib/community";
 import { moderateCommunityContent } from "@/lib/messageSafety";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
+  if (!["POST", "DELETE"].includes(req.method || "")) {
+    res.setHeader("Allow", "POST, DELETE");
     return res.status(405).json({ error: "Method not allowed" });
   }
   try {
@@ -13,6 +13,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!user) return res.status(401).json({ error: "请先登录，再参与讨论。" });
     const supabase = getSupabaseAdmin();
     const identity = await getCommunityIdentity(supabase, user);
+
+    if (req.method === "DELETE") {
+      const commentId = typeof req.body?.commentId === "string" ? req.body.commentId.trim() : "";
+      if (!commentId) return res.status(400).json({ error: "请选择要删除的评论。" });
+      const { data: comment, error: commentError } = await supabase
+        .from("community_comments")
+        .select("id,author_user_id,moderation_status")
+        .eq("id", commentId)
+        .maybeSingle();
+      if (commentError) throw commentError;
+      if (!comment || comment.moderation_status === "removed") {
+        return res.status(404).json({ error: "这条评论已经不存在。" });
+      }
+      const email = (user.email || "").trim().toLowerCase();
+      const { data: platformAdmin, error: adminError } = email
+        ? await supabase.from("admin_roles").select("id").eq("email", email).eq("status", "active").maybeSingle()
+        : { data: null, error: null };
+      if (adminError) throw adminError;
+      if (comment.author_user_id !== user.id && !platformAdmin) {
+        return res.status(403).json({ error: "只能删除自己发布的评论。" });
+      }
+      const { error: deleteError } = await supabase
+        .from("community_comments")
+        .update({
+          moderation_status: "removed",
+          moderation_reason: comment.author_user_id === user.id ? "作者删除" : "平台管理员删除",
+        })
+        .eq("id", commentId)
+        .eq("moderation_status", comment.moderation_status);
+      if (deleteError) throw deleteError;
+      return res.status(200).json({ ok: true });
+    }
     const postId = typeof req.body?.postId === "string" ? req.body.postId.trim() : "";
     const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
     if (!postId || !body) return res.status(400).json({ error: "请先写下回复。" });
