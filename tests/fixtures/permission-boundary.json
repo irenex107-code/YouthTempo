@@ -1,0 +1,87 @@
+{
+  "schools": {
+    "a": {
+      "id": "00000000-0000-4000-8000-00000000e2a1",
+      "name": "[E2E] YouthTempo 权限测试学校 A"
+    },
+    "b": {
+      "id": "00000000-0000-4000-8000-00000000e2b1",
+      "name": "[E2E] YouthTempo 权限测试学校 B"
+    }
+  },
+  "users": {
+    "platformAdmin": {
+      "email": "e2e.permission.platform@youthtempo.test",
+      "displayName": "E2E 平台管理员",
+      "role": "学校支持人员"
+    },
+    "schoolLead": {
+      "email": "e2e.permission.lead@youthtempo.test",
+      "displayName": "E2E 学校负责人",
+      "role": "学校支持人员",
+      "school": "a"
+    },
+    "teacherOne": {
+      "email": "e2e.permission.teacher1@youthtempo.test",
+      "displayName": "E2E 老师一",
+      "role": "学校支持人员",
+      "school": "a"
+    },
+    "teacherTwo": {
+      "email": "e2e.permission.teacher2@youthtempo.test",
+      "displayName": "E2E 老师二",
+      "role": "学校支持人员",
+      "school": "a"
+    },
+    "studentOne": {
+      "email": "e2e.permission.student1@youthtempo.test",
+      "displayName": "E2E 学生一",
+      "role": "学生",
+      "school": "a"
+    },
+    "studentTwo": {
+      "email": "e2e.permission.student2@youthtempo.test",
+      "displayName": "E2E 学生二",
+      "role": "学生",
+      "school": "a"
+    },
+    "studentThree": {
+      "email": "e2e.permission.student3@youthtempo.test",
+      "displayName": "E2E 学生三",
+      "role": "学生",
+      "school": "b"
+    },
+    "guardianOne": {
+      "email": "e2e.permission.guardian1@youthtempo.test",
+      "displayName": "E2E 家长一",
+      "role": "家长",
+      "school": "a"
+    },
+    "guardianTwo": {
+      "email": "e2e.permission.guardian2@youthtempo.test",
+      "displayName": "E2E 家长二",
+      "role": "家长",
+      "school": "a"
+    },
+    "professional": {
+      "email": "e2e.permission.professional@youthtempo.test",
+      "displayName": "E2E 专业支持者",
+      "role": "专业支持者",
+      "school": "a"
+    }
+  },
+  "records": {
+    "studentOne": {
+      "id": "00000000-0000-4000-8000-0000e2a00001",
+      "summary": "[E2E] 学生一的权限隔离记录"
+    },
+    "studentTwo": {
+      "id": "00000000-0000-4000-8000-0000e2a00002",
+      "summary": "[E2E] 学生二的权限隔离记录"
+    },
+    "studentThree": {
+      "id": "00000000-0000-4000-8000-0000e2b00003",
+      "summary": "[E2E] 学生三的权限隔离记录"
+    }
+  }
+}

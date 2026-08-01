@@ -41,3 +41,14 @@ jobs:
 
       - name: Run public-flow and safety tests
         run: pnpm test:e2e
+
+      - name: Run authenticated permission-boundary tests when configured
+        env:
+          E2E_PERMISSION_TEST_PASSWORD: ${{ secrets.E2E_PERMISSION_TEST_PASSWORD }}
+          PLAYWRIGHT_BASE_URL: https://youthtempo-web-287026-8-1457638967.sh.run.tcloudbase.com
+        run: |
+          if [ -z "$E2E_PERMISSION_TEST_PASSWORD" ]; then
+            echo "Authenticated permission tests are waiting for the virtual test password."
+            exit 0
+          fi
+          pnpm exec playwright test tests/authenticated-permission-boundary.spec.ts
