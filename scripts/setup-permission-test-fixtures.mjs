@@ -154,6 +154,20 @@ async function createFixtures() {
     "创建虚拟平台管理员",
   );
 
+  assertResult(
+    await supabase.from("professional_verifications").upsert(
+      {
+        user_id: users.professional.id,
+        verified_by: users.platformAdmin.id,
+        status: "active",
+        revoked_at: null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    ),
+    "创建虚拟专业支持者资质",
+  );
+
   const schoolA = fixture.schools.a.id;
   assertResult(
     await supabase.from("school_members").upsert(

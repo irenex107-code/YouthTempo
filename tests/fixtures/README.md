@@ -36,6 +36,7 @@ npm run env:check
 npm run test:fixtures:permissions
 npm run test:e2e:permissions
 npm run test:e2e:sweet
+npm run test:e2e:community
 ```
 
 脚本是幂等的：重复运行会恢复虚拟学校、账号、关系和三条测试记录，不会创建重复数据。权限测试会覆盖伪造跨角色、跨学校、跨学生与留言收件人参数，以及直接调用 Supabase Data API 读取或删除他人记录；还会依次移出虚拟学生、老师和家长，验证测试开始前已经签发的旧会话是否立即失去相应权限。无论撤销测试是否通过，虚拟关系都会在 `finally` 中恢复。Supabase `service_role` 只由本机夹具和撤销测试读取，绝不能放进 `NEXT_PUBLIC_` 变量。
@@ -45,6 +46,8 @@ npm run test:e2e:sweet
 对本地站点或腾讯云 CloudBase 正式地址运行 Playwright。只有配置了 `E2E_PERMISSION_TEST_PASSWORD` 时，真实登录与 RLS 隔离测试才会执行；成员撤销测试还需要 `SUPABASE_SERVICE_ROLE_KEY`，用于在测试后恢复固定虚拟关系。缺少相应变量时，测试会明确标记为跳过。
 
 SWEET 生命周期测试会用虚拟学生在页面中完成五个维度，真实生成 AI 小结并保存，再从账号页重新读取和删除。每条临时记录都带唯一 `[E2E-LIFECYCLE]` 标记，并在 `finally` 中再次清理。
+
+社区可见范围测试会用学生、家长、老师、专业支持者和平台管理员真实登录，验证发帖时选择的查看与评论身份、越权评论、作者删除和管理员删除。临时帖子与评论都带唯一 `[E2E-COMMUNITY]` 标记，并在 `finally` 中再次清理。
 
 ## 清理
 
