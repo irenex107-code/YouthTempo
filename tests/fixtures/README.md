@@ -37,11 +37,11 @@ npm run test:fixtures:permissions
 npm run test:e2e:permissions
 ```
 
-脚本是幂等的：重复运行会恢复虚拟学校、账号、关系和三条测试记录，不会创建重复数据。Supabase `service_role` 只由该服务端脚本读取，绝不能放进 `NEXT_PUBLIC_` 变量。
+脚本是幂等的：重复运行会恢复虚拟学校、账号、关系和三条测试记录，不会创建重复数据。权限测试还会依次移出虚拟学生、老师和家长，验证测试开始前已经签发的旧会话是否立即失去相应权限；无论测试是否通过，虚拟关系都会在 `finally` 中恢复。Supabase `service_role` 只由本机夹具和撤销测试读取，绝不能放进 `NEXT_PUBLIC_` 变量。
 
 ## 验证
 
-对本地站点或腾讯云 CloudBase 正式地址运行 Playwright。只有配置了 `E2E_PERMISSION_TEST_PASSWORD` 时，真实登录与 RLS 测试才会执行；否则会明确标记为跳过。
+对本地站点或腾讯云 CloudBase 正式地址运行 Playwright。只有配置了 `E2E_PERMISSION_TEST_PASSWORD` 时，真实登录与 RLS 隔离测试才会执行；成员撤销测试还需要 `SUPABASE_SERVICE_ROLE_KEY`，用于在测试后恢复固定虚拟关系。缺少相应变量时，测试会明确标记为跳过。
 
 ## 清理
 

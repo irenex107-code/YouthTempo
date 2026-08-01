@@ -11,7 +11,7 @@
     "lint": "echo \"Lint is not configured yet; use build and TypeScript checks.\"",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
-    "test:e2e:permissions": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/authenticated-permission-boundary.spec.ts",
+    "test:e2e:permissions": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/authenticated-permission-boundary.spec.ts tests/membership-revocation.spec.ts",
     "env:check": "node --env-file=.env.local scripts/check-local-env.mjs",
     "test:fixtures:permissions": "node --env-file=.env.local scripts/setup-permission-test-fixtures.mjs",
     "test:fixtures:permissions:cleanup": "node --env-file=.env.local scripts/setup-permission-test-fixtures.mjs --cleanup"
