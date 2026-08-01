@@ -86,6 +86,7 @@ export default function ForParentsPage() {
   return (
     <>
       <PageHero
+        label="给家长"
         title="家长入口"
         subtitle="YouthTempo 帮助家长通过 SWEET 看见孩子的生活节律，并用 AIDET 以更安全、不指责的方式开口。"
         action={

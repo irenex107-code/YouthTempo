@@ -6,6 +6,7 @@ export default function ForTeachersPage() {
   return (
     <>
       <PageHero
+        label="给老师"
         title="老师入口"
         subtitle="YouthTempo 帮助老师通过 SWEET 了解所负责学生近期的生活节律，并以更安全、不贴标签的方式开始沟通。"
         action={

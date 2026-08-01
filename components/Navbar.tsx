@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { navItems } from "@/data/site";
 import { getSupabase } from "@/lib/supabaseClient";
 
@@ -21,6 +22,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
 }
 
 export function Navbar() {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
@@ -140,15 +142,16 @@ export function Navbar() {
         );
 
   return (
-    <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/92 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-ink/[0.07] bg-cream/88 shadow-[0_8px_30px_rgba(32,51,47,0.04)] backdrop-blur-xl">
       <div className="px-4 sm:px-8 lg:px-12">
-        <div className="container flex min-h-[64px] items-center justify-between gap-3 lg:min-h-[68px]">
-          <Link href="/" className="shrink-0 text-[1.05rem] font-extrabold text-ink">
-            YouthTempo
+        <div className="container flex min-h-[68px] items-center justify-between gap-3 lg:min-h-[76px]">
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5 text-[1.05rem] font-extrabold text-ink" aria-label="YouthTempo 首页">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-sage-dark text-sm font-black text-white shadow-button transition group-hover:-rotate-3">Y</span>
+            <span>YouthTempo</span>
           </Link>
           <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 xl:flex xl:gap-5">
             {visibleNavItems.map((item) => (
-              <Link key={item.href} href={item.href} className="whitespace-nowrap transition hover:text-sage-dark">
+              <Link key={item.href} href={item.href} className={`whitespace-nowrap rounded-lg px-2.5 py-2 transition ${router.pathname === item.href ? "bg-mist text-sage-dark" : "hover:bg-white/70 hover:text-sage-dark"}`}>
                 {item.label}
               </Link>
             ))}
@@ -177,7 +180,7 @@ export function Navbar() {
             ) : null}
             <button
               type="button"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-white/75 text-ink shadow-sm"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink/10 bg-paper text-ink shadow-sm"
               aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
@@ -192,12 +195,12 @@ export function Navbar() {
         </div>
         {menuOpen ? (
           <div className="container pb-4 xl:hidden">
-            <nav className="grid gap-2 rounded-3xl border border-ink/10 bg-white/92 p-3 shadow-soft">
+            <nav className="grid gap-2 rounded-[1.5rem] border border-ink/10 bg-paper/95 p-3 shadow-soft">
               {visibleNavItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-2xl px-4 py-3 text-sm font-bold text-ink/80 transition hover:bg-cream hover:text-sage-dark"
+                  className={`rounded-xl px-4 py-3 text-sm font-bold transition ${router.pathname === item.href ? "bg-mist text-sage-dark" : "text-ink/80 hover:bg-cream hover:text-sage-dark"}`}
                   onClick={() => setMenuOpen(false)}
                 >
                   {item.label}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { InfoCard } from "@/components/Cards";
 import { SectionHeader } from "@/components/SectionHeader";
@@ -39,14 +40,6 @@ const supportLayers = [
   },
 ];
 
-const heroSweetItems = [
-  { title: "睡眠", label: "Sleep" },
-  { title: "醒来", label: "Wake" },
-  { title: "饮食", label: "Eat" },
-  { title: "运动", label: "Exercise" },
-  { title: "任务投入", label: "Task" },
-];
-
 const demoOptions = [
   {
     id: "steady",
@@ -74,38 +67,32 @@ export default function Home() {
 
   return (
     <>
-      <section className="section">
-        <div className="container grid items-center gap-12 lg:grid-cols-[1.08fr_0.92fr]">
-          <div>
-            <p className="eyebrow">YouthTempo</p>
-            <h1 className="mt-4 max-w-3xl text-[2.05rem] font-bold leading-[1.17] text-ink sm:text-[2.8rem] lg:text-[3.1rem]">
+      <section className="relative isolate min-h-[650px] overflow-hidden border-b border-ink/5 px-4 py-16 sm:px-8 sm:py-24 lg:flex lg:min-h-[720px] lg:items-center lg:px-12">
+        <Image
+          src="/illustrations/home-rhythm-hero.jpg"
+          alt="学生在明亮的校园阅读空间里记录日常，身边有同伴和可信任的老师"
+          fill
+          priority
+          sizes="100vw"
+          className="-z-20 object-cover object-[58%_center]"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#fffdf9] via-[#fffdf9]/95 to-[#fffdf9]/15 lg:via-[#fffdf9]/82" />
+        <div className="container w-full">
+          <div className="max-w-[42rem] rounded-[2rem] border border-white/80 bg-paper/78 p-6 shadow-soft backdrop-blur-[3px] sm:p-9 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
+            <p className="eyebrow">青少年日常支持平台</p>
+            <h1 className="mt-5 max-w-3xl text-[2.55rem] font-extrabold leading-[1.06] tracking-[-0.045em] text-ink sm:text-[3.8rem] lg:text-[4.55rem]">
               成长不是抢跑，而是找到自己的节奏。
             </h1>
-            <p className="mt-6 max-w-3xl text-base leading-8 text-muted">
+            <p className="mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg sm:leading-9">
               YouthTempo 从日常节律开始，帮助年轻人在压力变得更难承受之前，看见自己的状态、表达感受，并更容易找到可以信任的支持。
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/sweet-model" className="button-secondary">了解 SWEET 模型</Link>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Link href="/check-in" className="button-primary">开始 SWEET 节律记录</Link>
+              <Link href="/sweet-model" className="button-secondary">了解 SWEET 模型</Link>
             </div>
-          </div>
-          <div className="card mx-auto w-full max-w-md p-7">
-            <p className="text-xs font-bold text-sage">SWEET 日常节律</p>
-            <h2 className="mt-2 text-[1.35rem] font-extrabold leading-tight text-ink">从日常节律开始</h2>
-            <div className="mt-6 space-y-3">
-              {heroSweetItems.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between gap-4 rounded-2xl bg-cream px-4 py-3.5 text-sm"
-                >
-                  <span className="font-bold text-ink/80">{item.title}</span>
-                  <span className="text-xs font-bold text-sage-dark">{item.label}</span>
-                </div>
-              ))}
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-bold text-ink/55">
+              <span>不评判</span><span>从日常开始</span><span>需要时连接真人支持</span>
             </div>
-            <p className="mt-5 text-sm font-bold leading-7 text-sage-dark">
-              支持可以从一个更容易观察、也更容易开口的地方开始。
-            </p>
           </div>
         </div>
       </section>

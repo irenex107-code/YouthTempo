@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: #f7f8f3;
-  --foreground: #273633;
+  --background: #f8f6ef;
+  --foreground: #20332f;
+  --focus: #4f947e;
 }
 
 * {
@@ -19,7 +20,11 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background-image:
+    radial-gradient(circle at 8% 2%, rgba(211, 165, 71, 0.08), transparent 26rem),
+    radial-gradient(circle at 92% 12%, rgba(79, 148, 126, 0.09), transparent 30rem);
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
@@ -30,8 +35,19 @@ a {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus) 45%, transparent);
+  outline-offset: 3px;
 }
 
 ::selection {
@@ -41,35 +57,43 @@ textarea {
 
 @layer components {
   .page-shell {
-    @apply min-h-screen bg-cream text-ink;
+    @apply min-h-screen text-ink;
   }
 
   .section {
-    @apply px-4 py-9 sm:px-8 sm:py-16 lg:px-12 lg:py-24;
+    @apply px-4 py-12 sm:px-8 sm:py-20 lg:px-12 lg:py-24;
   }
 
   .section-muted {
-    @apply bg-cream-deep/70;
+    @apply border-y border-ink/5 bg-cream-deep/65;
   }
 
   .container {
-    @apply mx-auto max-w-6xl;
+    @apply mx-auto max-w-[76rem];
   }
 
   .eyebrow {
-    @apply text-sm font-bold text-sage;
+    @apply inline-flex w-fit items-center rounded-full border border-sage/20 bg-mist/75 px-3 py-1.5 text-[0.72rem] font-extrabold tracking-[0.08em] text-sage-dark;
   }
 
   .card {
-    @apply rounded-2xl border border-ink/10 bg-white/80 p-5 shadow-soft sm:p-6;
+    @apply rounded-[1.5rem] border border-ink/[0.08] bg-paper/90 p-5 shadow-soft sm:p-6;
   }
 
   .button-primary {
-    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full bg-sage px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-sage-dark focus:outline-none focus:ring-4 focus:ring-sage/20 sm:px-6;
+    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-xl border border-sage-dark/10 bg-sage-dark px-5 py-3 text-sm font-extrabold text-white shadow-button transition duration-200 hover:-translate-y-0.5 hover:bg-ink active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:px-6;
   }
 
   .button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-sage/50 bg-white/70 px-5 py-3 text-sm font-bold text-sage-dark transition hover:border-sage hover:bg-white focus:outline-none focus:ring-4 focus:ring-sage/15 sm:px-6;
+    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-xl border border-ink/15 bg-paper px-5 py-3 text-sm font-extrabold text-ink shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-sage/60 hover:bg-white active:translate-y-0 sm:px-6;
+  }
+
+  .surface-panel {
+    @apply rounded-[2rem] border border-white/70 bg-paper/85 shadow-soft backdrop-blur-sm;
+  }
+
+  .field-control {
+    @apply w-full rounded-xl border border-ink/15 bg-paper px-4 py-3 text-ink outline-none transition placeholder:text-muted/70 focus:border-sage focus:ring-4 focus:ring-sage/10;
   }
 }
 

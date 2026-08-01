@@ -45,6 +45,7 @@ export default function ForTeensPage() {
   return (
     <>
       <PageHero
+        label="给青少年"
         title="青少年入口"
         subtitle="YouthTempo 帮助青少年看见自己的生活节律、整理说不清的感受，并在需要时更容易向可信任的人开口。"
         action={

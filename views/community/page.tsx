@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   createCommunityComment,
   createCommunityPost,
@@ -250,14 +251,33 @@ export default function CommunityPage() {
   return (
     <>
       <PageHero
+        label="成员社区"
         title="家校医社区"
         subtitle="把真实的困惑说出来，也听听不同位置的人怎么看。你始终可以决定谁能看、谁能回应。"
         action={
           loggedIn === false ? (
             <Link href="/account?next=/community" className="button-primary">登录后进入社区</Link>
-          ) : (
+          ) : loggedIn === true ? (
             <a href="#new-post" className="button-primary">发布新话题</a>
+          ) : (
+            <span className="button-secondary cursor-wait" aria-live="polite">正在确认身份…</span>
           )
+        }
+        aside={
+          <figure className="surface-panel overflow-hidden p-2">
+            <Image
+              src="/illustrations/community-dialogue.jpg"
+              alt="学生、家长、老师和专业支持者围坐交流，认真倾听一位学生发言"
+              width={1536}
+              height={1024}
+              priority
+              sizes="(min-width: 1024px) 44vw, 92vw"
+              className="aspect-[3/2] w-full rounded-[1.55rem] object-cover object-left"
+            />
+            <figcaption className="px-3 pb-2 pt-3 text-xs font-bold leading-5 text-muted">
+              每个人都可以选择自己的内容向谁开放，也可以决定谁能够回应。
+            </figcaption>
+          </figure>
         }
       />
 
