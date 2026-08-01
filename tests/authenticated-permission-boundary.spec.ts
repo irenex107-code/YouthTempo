@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type Session } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 import fixture from "./fixtures/permission-boundary.json";
 
@@ -8,6 +8,8 @@ const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
+const projectRef = new URL(supabaseUrl).hostname.split(".")[0];
+const authStorageKey = `sb-${projectRef}-auth-token`;
 
 type UserKey = keyof typeof fixture.users;
 
@@ -131,5 +133,21 @@ test.describe("真实账号与 RLS 权限隔离", () => {
       });
       expect(response.status()).toBe(403);
     }
+  });
+
+  test("平台管理台显示社区审核入口和待查看列表", async ({ page }) => {
+    const { supabase } = await sessionFor("platformAdmin");
+    const { data } = await supabase.auth.getSession();
+    expect(data.session).not.toBeNull();
+    await page.addInitScript(
+      ({ key, value }: { key: string; value: Session }) => {
+        window.localStorage.setItem(key, JSON.stringify(value));
+      },
+      { key: authStorageKey, value: data.session! },
+    );
+
+    await page.goto("/admin", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("link", { name: /社区审核/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "需要平台查看的内容" })).toBeVisible();
   });
 });
