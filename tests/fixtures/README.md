@@ -4,15 +4,31 @@
 
 ## 初始化
 
-在本地环境中配置以下变量，密码至少 16 个字符且不得提交到仓库：
+在 Supabase Dashboard 打开 YouthTempo 项目：
+
+1. 在 **Connect** 或 **Settings → API Keys** 复制 Project URL。
+2. 在 **Publishable key** 复制 `sb_publishable_...`，供浏览器客户端使用。
+3. 在 **Secret keys** 创建或复制一个 `sb_secret_...`，只供本机脚本和服务端使用。旧版 **Legacy API Keys → service_role** 仍兼容，但不优先使用。
+4. 在本机运行 `openssl rand -base64 24` 生成一段独立的虚拟测试密码；不要使用真实账户密码。
+
+在项目根目录新建 `.env.local` 并配置以下变量。密码至少 16 个字符且不得提交到仓库：
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_...或旧版service_role
 E2E_PERMISSION_TEST_PASSWORD=...
 ```
 
-然后运行：
+收紧文件权限并确认 Git 会忽略它：
+
+```bash
+chmod 600 .env.local
+git check-ignore -v .env.local
+npm run env:check
+```
+
+检查命令只报告配置是否合格，不会回显密钥。然后运行：
 
 ```bash
 npm run test:fixtures:permissions

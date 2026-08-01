@@ -23,12 +23,12 @@ function assertSupabaseServerConfig() {
   }
 
   if (serviceRoleKey.startsWith("sb_publishable_")) {
-    throw new Error("服务端环境变量 SUPABASE_SERVICE_ROLE_KEY 不能使用 publishable key，请改填 Supabase Project Settings 里的 service_role secret key。");
+    throw new Error("服务端环境变量 SUPABASE_SERVICE_ROLE_KEY 不能使用 publishable key，请改填 Supabase API Keys 中的 sb_secret_ 密钥或旧版 service_role key。");
   }
 
   const role = getLegacyJwtRole(serviceRoleKey);
   if (role && role !== "service_role") {
-    throw new Error("服务端环境变量 SUPABASE_SERVICE_ROLE_KEY 现在不是 service_role key，请不要填 anon key，需改填 Supabase Project Settings 里的 service_role secret key。");
+    throw new Error("服务端环境变量 SUPABASE_SERVICE_ROLE_KEY 现在不是 service_role key，请不要填 anon key，需改填 sb_secret_ 密钥或旧版 service_role key。");
   }
 }
 
