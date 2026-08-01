@@ -18,6 +18,8 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_...或旧版service_role
 E2E_PERMISSION_TEST_PASSWORD=...
+# 可选：直接验证腾讯云正式环境；不填则自动启动本地 Next.js
+PLAYWRIGHT_BASE_URL=https://youthtempo-web-287026-8-1457638967.sh.run.tcloudbase.com
 ```
 
 收紧文件权限并确认 Git 会忽略它：
@@ -32,6 +34,7 @@ npm run env:check
 
 ```bash
 npm run test:fixtures:permissions
+npm run test:e2e:permissions
 ```
 
 脚本是幂等的：重复运行会恢复虚拟学校、账号、关系和三条测试记录，不会创建重复数据。Supabase `service_role` 只由该服务端脚本读取，绝不能放进 `NEXT_PUBLIC_` 变量。
