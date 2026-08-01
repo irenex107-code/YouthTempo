@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
+import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
 
@@ -127,6 +128,7 @@ function workspaceActions(overview: AdminOverview) {
       { href: "#schools-overview", label: "学校总览", description: "查看学校、老师、学生与家庭关系" },
       { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
       { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
+      { href: "#community-moderation", label: "社区审核", description: "查看举报与安全待确认内容" },
     ];
   }
 
@@ -651,6 +653,8 @@ export default function AdminPage() {
           ) : null}
         </div>
       </section>
+
+      {isPlatformAdmin && accessToken ? <CommunityModerationQueue accessToken={accessToken} /> : null}
 
       {overview?.admin.canManageMembers ? (
         <section id="member-management" className="section scroll-mt-24">

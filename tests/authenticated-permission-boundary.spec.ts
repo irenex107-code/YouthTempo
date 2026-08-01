@@ -103,4 +103,33 @@ test.describe("真实账号与 RLS 权限隔离", () => {
     const schoolIds = body.schools.map((school: { id: string }) => school.id);
     expect(schoolIds).toEqual(expect.arrayContaining([fixture.schools.a.id, fixture.schools.b.id]));
   });
+
+  test("只有平台管理员可以读取社区审核队列", async ({ request }) => {
+    const [platformAdmin, schoolLead, teacher] = await Promise.all([
+      sessionFor("platformAdmin"),
+      sessionFor("schoolLead"),
+      sessionFor("teacherOne"),
+    ]);
+
+    const platformResponse = await request.get("/api/admin/community-moderation", {
+      headers: { Authorization: `Bearer ${platformAdmin.accessToken}` },
+    });
+    expect(platformResponse.status()).toBe(200);
+    const payload = await platformResponse.json();
+    expect(payload).toMatchObject({
+      counts: {
+        total: expect.any(Number),
+        safetyReview: expect.any(Number),
+        reports: expect.any(Number),
+      },
+      items: expect.any(Array),
+    });
+
+    for (const session of [schoolLead, teacher]) {
+      const response = await request.get("/api/admin/community-moderation", {
+        headers: { Authorization: `Bearer ${session.accessToken}` },
+      });
+      expect(response.status()).toBe(403);
+    }
+  });
 });
