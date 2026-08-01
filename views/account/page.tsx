@@ -623,6 +623,8 @@ export default function AccountPage() {
 
           {!needsPersonalProfile ? <section className="px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
             <div className="container">
+              {notice ? <p className="mb-4 rounded-xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">{notice}</p> : null}
+              {error ? <p className="mb-4 rounded-xl border border-sage/30 bg-white px-4 py-3 text-sm font-bold text-sage-dark">{error}</p> : null}
               <details className="rounded-2xl border border-ink/10 bg-white/70">
                 <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-ink sm:px-6">
                   账户设置
@@ -714,8 +716,6 @@ export default function AccountPage() {
                       </div>
                     )}
                   </div>
-                  {notice ? <p className="mt-5 text-sm font-bold text-sage-dark">{notice}</p> : null}
-                  {error ? <p className="mt-5 text-sm font-bold text-sage-dark">{error}</p> : null}
                 </div>
               </details>
             </div>
