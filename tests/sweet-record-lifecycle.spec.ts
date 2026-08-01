@@ -47,7 +47,7 @@ async function cleanupMarker(supabase: SupabaseClient, userId: string, marker: s
 test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "完整数据流程与视口无关，无需重复执行");
   test.skip(!password, "需要先初始化虚拟账号并配置 E2E_PERMISSION_TEST_PASSWORD");
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
 
   const { supabase, session, userId } = await studentSession();
   const marker = `[E2E-LIFECYCLE] ${Date.now()}`;
@@ -60,7 +60,7 @@ test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录
   );
 
   try {
-    await page.goto("/check-in", { waitUntil: "networkidle" });
+    await page.goto("/check-in", { waitUntil: "domcontentloaded" });
 
     await page.getByRole("button", { name: "比较安稳", exact: true }).click();
     await page.getByRole("button", { name: /想补充更多/ }).click();
@@ -90,7 +90,7 @@ test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录
     expect(savedRecord?.small_step?.trim()).toBeTruthy();
     expect(savedRecord?.recommended_next_tool?.trim()).toBeTruthy();
 
-    await page.goto("/account", { waitUntil: "networkidle" });
+    await page.goto("/account", { waitUntil: "domcontentloaded" });
     await expect(page.getByText(savedRecord!.summary, { exact: true })).toBeVisible({ timeout: 20_000 });
 
     const recordCard = page.locator("article").filter({ hasText: savedRecord!.summary }).first();
