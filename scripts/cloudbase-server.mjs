@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import http from "node:http";
 import net from "node:net";
 import path from "node:path";
@@ -8,7 +8,11 @@ const publicPort = Number(process.env.PORT || 3000);
 const upstreamPort = Number(process.env.NEXT_UPSTREAM_PORT || publicPort + 1);
 const hostname = process.env.HOSTNAME || "0.0.0.0";
 const staticRoot = path.resolve(".next/static");
-const staticPrefix = "/_next/static/";
+const illustrationRoot = path.resolve("public/illustrations");
+const faviconPath = path.resolve("public/favicon.png");
+const oneDayCache = "public, max-age=86400, stale-while-revalidate=604800";
+const immutableCache = "public, max-age=31536000, immutable";
+const assetCache = new Map();
 
 const contentTypes = new Map([
   [".css", "text/css; charset=UTF-8"],
@@ -60,39 +64,66 @@ function waitForNextServer(timeoutMs = 15_000) {
 
 function resolveStaticAsset(requestUrl) {
   const pathname = new URL(requestUrl || "/", "http://localhost").pathname;
-  if (!pathname.startsWith(staticPrefix)) return null;
+
+  if (pathname === "/favicon.png") {
+    return { filePath: faviconPath, cacheControl: oneDayCache };
+  }
+
+  const route = pathname.startsWith("/_next/static/")
+    ? { prefix: "/_next/static/", root: staticRoot, cacheControl: immutableCache }
+    : pathname.startsWith("/illustrations/")
+      ? { prefix: "/illustrations/", root: illustrationRoot, cacheControl: oneDayCache }
+      : null;
+  if (!route) return null;
 
   let relativePath;
   try {
-    relativePath = decodeURIComponent(pathname.slice(staticPrefix.length));
+    relativePath = decodeURIComponent(pathname.slice(route.prefix.length));
   } catch {
     return null;
   }
 
-  const filePath = path.resolve(staticRoot, relativePath);
-  if (!filePath.startsWith(`${staticRoot}${path.sep}`)) return null;
-  return filePath;
+  const filePath = path.resolve(route.root, relativePath);
+  if (!filePath.startsWith(`${route.root}${path.sep}`)) return null;
+  return { filePath, cacheControl: route.cacheControl };
 }
 
-function serveStaticAsset(req, res, filePath) {
+function acceptsGzip(header = "") {
+  return header.split(",").some((value) => {
+    const [encoding, ...parameters] = value.trim().split(";");
+    if (encoding.toLowerCase() !== "gzip") return false;
+    return !parameters.some((parameter) => /^\s*q=0(?:\.0*)?\s*$/i.test(parameter));
+  });
+}
+
+function readCachedAsset(filePath) {
+  let asset = assetCache.get(filePath);
+  if (!asset) {
+    asset = readFileSync(filePath);
+    assetCache.set(filePath, asset);
+  }
+  return asset;
+}
+
+function serveStaticAsset(req, res, asset) {
+  const { filePath, cacheControl } = asset;
   if (!existsSync(filePath) || !statSync(filePath).isFile()) return false;
 
-  const acceptsGzip = /(?:^|,)\s*gzip\s*(?:,|$)/i.test(req.headers["accept-encoding"] || "");
   const gzipPath = `${filePath}.gz`;
-  const selectedPath = acceptsGzip && existsSync(gzipPath) ? gzipPath : filePath;
-  const metadata = statSync(selectedPath);
+  const selectedPath = acceptsGzip(req.headers["accept-encoding"]) && existsSync(gzipPath) ? gzipPath : filePath;
+  const body = readCachedAsset(selectedPath);
   const extension = path.extname(filePath).toLowerCase();
 
   res.statusCode = 200;
-  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-  res.setHeader("Content-Length", String(metadata.size));
+  res.setHeader("Cache-Control", cacheControl);
+  res.setHeader("Content-Length", String(body.byteLength));
   res.setHeader("Content-Type", contentTypes.get(extension) || "application/octet-stream");
   res.setHeader("Vary", "Accept-Encoding");
   res.setHeader("X-Content-Type-Options", "nosniff");
   if (selectedPath === gzipPath) res.setHeader("Content-Encoding", "gzip");
 
   if (req.method === "HEAD") res.end();
-  else createReadStream(selectedPath).pipe(res);
+  else res.end(body);
   return true;
 }
 
