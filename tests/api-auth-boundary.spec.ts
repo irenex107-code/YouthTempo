@@ -5,6 +5,7 @@ const protectedReads = [
   "/api/admin/overview",
   "/api/admin/schools",
   "/api/admin/teacher-student-assignments?schoolId=school-a",
+  "/api/admin/community-moderation",
   "/api/messages",
 ];
 
@@ -50,4 +51,16 @@ test("未登录不能修改跟进状态或发送悄悄话", async ({ request }) 
     data: { recipientType: "self", body: "不应被发送" },
   });
   expect(message.status()).toBe(401);
+});
+
+test("未登录不能处理社区审核内容", async ({ request }) => {
+  const response = await request.post("/api/admin/community-moderation", {
+    data: {
+      contentType: "post",
+      contentId: "00000000-0000-0000-0000-000000000000",
+      action: "remove",
+      note: "不应被保存",
+    },
+  });
+  expect(response.status()).toBe(401);
 });

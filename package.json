@@ -16,7 +16,7 @@
     "test:e2e:install": "playwright install chromium",
     "test:e2e:permissions": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/authenticated-permission-boundary.spec.ts tests/authenticated-api-overreach.spec.ts tests/membership-revocation.spec.ts",
     "test:e2e:sweet": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/sweet-record-lifecycle.spec.ts",
-    "test:e2e:community": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/community-visibility.spec.ts",
+    "test:e2e:community": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/community-visibility.spec.ts tests/community-moderation.spec.ts",
     "env:check": "node --env-file=.env.local scripts/check-local-env.mjs",
     "test:fixtures:permissions": "node --env-file=.env.local scripts/setup-permission-test-fixtures.mjs",
     "test:fixtures:permissions:cleanup": "node --env-file=.env.local scripts/setup-permission-test-fixtures.mjs --cleanup"
