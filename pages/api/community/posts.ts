@@ -3,6 +3,8 @@ import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import {
   type CommunityRole,
   communityRoleLabels,
+  getActiveCommunityMute,
+  getCommunityBlockedUserIds,
   getCommunityIdentity,
   normalizeRoleList,
 } from "@/lib/community";
@@ -57,6 +59,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === "POST") {
+      const activeMute = await getActiveCommunityMute(supabase, user.id);
+      if (activeMute) {
+        return res.status(403).json({
+          error: activeMute.ends_at
+            ? `你的社区发布功能暂时受限，到 ${new Date(activeMute.ends_at).toLocaleString("zh-CN")} 后恢复。`
+            : "你的社区发布功能目前受限，请联系平台了解处理情况。",
+          muted: true,
+          mutedUntil: activeMute.ends_at,
+        });
+      }
       const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
       const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
       const viewerRoles = normalizeRoleList(req.body?.viewerRoles);
@@ -97,6 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    const blockedUserIds = await getCommunityBlockedUserIds(supabase, user.id);
     const postFields = "id,author_user_id,author_role,title,body,viewer_roles,commenter_roles,created_at";
     const [
       { data: visiblePosts, error: postsError },
@@ -108,20 +121,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("moderation_status", "published")
         .contains("viewer_roles", [identity.role])
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(100),
       supabase
         .from("community_posts")
         .select(postFields)
         .eq("moderation_status", "published")
         .eq("author_user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(100),
     ]);
     if (postsError) throw postsError;
     if (ownPostsError) throw ownPostsError;
     const posts = Array.from(
       new Map([...(visiblePosts || []), ...(ownPosts || [])].map((post) => [post.id as string, post])).values(),
     )
+      .filter((post) => !blockedUserIds.has(post.author_user_id as string))
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 50);
 
@@ -185,7 +199,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           can_delete: post.author_user_id === user.id || identity.canModerate,
           can_comment: (post.commenter_roles as string[]).includes(identity.role),
           comments: (comments || [])
-            .filter((comment) => comment.post_id === post.id)
+            .filter((comment) => comment.post_id === post.id && !blockedUserIds.has(comment.author_user_id as string))
             .map((comment) => {
               const commentRole = comment.author_role as CommunityRole;
               const commentAuthor = profileById.get(comment.author_user_id as string);

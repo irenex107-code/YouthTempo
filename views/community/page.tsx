@@ -3,11 +3,15 @@ import Link from "next/link";
 import {
   createCommunityComment,
   createCommunityPost,
+  blockCommunityMember,
   deleteCommunityComment,
   deleteCommunityPost,
   getCurrentUser,
   listCommunityPosts,
+  listCommunityBlocks,
   reportCommunityContent,
+  unblockCommunityMember,
+  type CommunityBlock,
   type CommunityPost,
   type CommunityRole,
 } from "@/lib/cloudRecords";
@@ -107,6 +111,8 @@ export default function CommunityPage() {
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [currentRole, setCurrentRole] = useState<CommunityRole>("student");
+  const [currentUserId, setCurrentUserId] = useState("");
+  const [blockedMembers, setBlockedMembers] = useState<CommunityBlock[]>([]);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [viewerRoles, setViewerRoles] = useState<CommunityRole[]>(["student", "guardian", "teacher", "professional"]);
@@ -123,9 +129,11 @@ export default function CommunityPage() {
       const user = await getCurrentUser();
       setLoggedIn(Boolean(user));
       if (!user) return;
-      const data = await listCommunityPosts();
+      const [data, blockData] = await Promise.all([listCommunityPosts(), listCommunityBlocks()]);
       setPosts(data.posts);
       setCurrentRole(data.currentUser.role);
+      setCurrentUserId(data.currentUser.id);
+      setBlockedMembers(blockData.blocks);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "社区内容加载失败。");
     }
@@ -236,6 +244,29 @@ export default function CommunityPage() {
     }
   }
 
+  async function blockMember(targetUserId: string, name: string) {
+    if (!window.confirm(`屏蔽“${name}”后，你们将无法在社区看到彼此的帖子和回应，也不能继续互动。其他 YouthTempo 功能不会受到影响。\n\n确定继续吗？`)) return;
+    setError("");
+    try {
+      await blockCommunityMember(targetUserId);
+      setNotice(`已屏蔽 ${name}。你们的社区内容已互相隐藏。`);
+      await load();
+    } catch (blockError) {
+      setError(blockError instanceof Error ? blockError.message : "屏蔽设置保存失败。");
+    }
+  }
+
+  async function unblockMember(targetUserId: string, name: string) {
+    setError("");
+    try {
+      await unblockCommunityMember(targetUserId);
+      setNotice(`已解除对 ${name} 的屏蔽。`);
+      await load();
+    } catch (blockError) {
+      setError(blockError instanceof Error ? blockError.message : "解除屏蔽失败。");
+    }
+  }
+
   return (
     <>
       <PageHero
@@ -293,6 +324,25 @@ export default function CommunityPage() {
                 </div>
                 <a href="#new-post" className="button-secondary shrink-0 px-4 py-2 text-xs">写一个新话题</a>
               </div>
+
+              {blockedMembers.length ? (
+                <details className="mb-6 rounded-[1.5rem] border border-ink/10 bg-white px-5 py-4 shadow-sm">
+                  <summary className="cursor-pointer text-sm font-bold text-ink">已屏蔽成员（{blockedMembers.length}）</summary>
+                  <p className="mt-3 text-xs leading-6 text-muted">你们不会在社区中看到彼此的帖子和回应。解除后，仍需遵守原帖设置的查看和回应范围。</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {blockedMembers.map((member) => (
+                      <button
+                        key={member.user_id}
+                        type="button"
+                        className="rounded-full border border-ink/10 bg-cream px-3 py-2 text-xs font-bold text-ink hover:border-sage"
+                        onClick={() => void unblockMember(member.user_id, member.name)}
+                      >
+                        {member.name} · 解除屏蔽
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
 
               {notice ? <p role="status" className="mb-4 rounded-2xl border border-sage/20 bg-mist px-5 py-4 text-sm font-bold text-sage-dark">{notice}</p> : null}
               {error ? <p role="alert" className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">{error}</p> : null}
@@ -354,6 +404,11 @@ export default function CommunityPage() {
                         <button type="button" onClick={() => void report(post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
                           举报
                         </button>
+                        {post.author_user_id !== currentUserId ? (
+                          <button type="button" onClick={() => void blockMember(post.author_user_id, post.author_name)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
+                            屏蔽该成员
+                          </button>
+                        ) : null}
                         {post.can_delete ? (
                           <button type="button" onClick={() => setDeleteTarget({ type: "post", id: post.id })} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-rose-700 hover:bg-rose-50">
                             删除帖子
@@ -379,6 +434,9 @@ export default function CommunityPage() {
                                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted">{comment.body}</p>
                                 <div className="mt-3 flex flex-wrap items-center gap-1">
                                   <button type="button" onClick={() => void report(undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">举报</button>
+                                  {comment.author_user_id !== currentUserId ? (
+                                    <button type="button" onClick={() => void blockMember(comment.author_user_id, comment.author_name)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">屏蔽该成员</button>
+                                  ) : null}
                                   {comment.can_delete ? (
                                     <button type="button" onClick={() => setDeleteTarget({ type: "comment", id: comment.id, postId: post.id })} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-rose-700 hover:bg-rose-50">删除评论</button>
                                   ) : null}

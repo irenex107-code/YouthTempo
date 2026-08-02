@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
-import { getCommunityIdentity } from "@/lib/community";
+import { getActiveCommunityMute, getCommunityBlockedUserIds, getCommunityIdentity } from "@/lib/community";
 import { moderateCommunityContent } from "@/lib/messageSafety";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -45,6 +45,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (deleteError) throw deleteError;
       return res.status(200).json({ ok: true });
     }
+    const activeMute = await getActiveCommunityMute(supabase, user.id);
+    if (activeMute) {
+      return res.status(403).json({
+        error: activeMute.ends_at
+          ? `你的社区回应功能暂时受限，到 ${new Date(activeMute.ends_at).toLocaleString("zh-CN")} 后恢复。`
+          : "你的社区回应功能目前受限，请联系平台了解处理情况。",
+        muted: true,
+        mutedUntil: activeMute.ends_at,
+      });
+    }
     const postId = typeof req.body?.postId === "string" ? req.body.postId.trim() : "";
     const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
     if (!postId || !body) return res.status(400).json({ error: "请先写下回复。" });
@@ -61,6 +71,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       post.moderation_status !== "published" ||
       (post.author_user_id !== user.id && !post.viewer_roles.includes(identity.role))
     ) return res.status(404).json({ error: "这条内容不存在，或你没有查看权限。" });
+    const blockedUserIds = await getCommunityBlockedUserIds(supabase, user.id);
+    if (post.author_user_id !== user.id && blockedUserIds.has(post.author_user_id as string)) {
+      return res.status(404).json({ error: "这条内容不存在，或你没有查看权限。" });
+    }
     if (!post.commenter_roles.includes(identity.role)) {
       return res.status(403).json({ error: "发布者没有向你的身份开放评论。" });
     }

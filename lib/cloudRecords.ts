@@ -36,6 +36,13 @@ export type CommunityPost = {
   comments: CommunityComment[];
 };
 
+export type CommunityBlock = {
+  user_id: string;
+  name: string;
+  role: string;
+  created_at: string;
+};
+
 export type CloudProfile = {
   id: string;
   email: string | null;
@@ -329,6 +336,24 @@ export async function reportCommunityContent(input: {
   return communityRequest("/api/community/reports", {
     method: "POST",
     body: JSON.stringify(input),
+  }) as Promise<{ ok: boolean }>;
+}
+
+export async function listCommunityBlocks() {
+  return communityRequest("/api/community/blocks") as Promise<{ blocks: CommunityBlock[] }>;
+}
+
+export async function blockCommunityMember(targetUserId: string) {
+  return communityRequest("/api/community/blocks", {
+    method: "POST",
+    body: JSON.stringify({ targetUserId }),
+  }) as Promise<{ ok: boolean }>;
+}
+
+export async function unblockCommunityMember(targetUserId: string) {
+  return communityRequest("/api/community/blocks", {
+    method: "DELETE",
+    body: JSON.stringify({ targetUserId }),
   }) as Promise<{ ok: boolean }>;
 }
 

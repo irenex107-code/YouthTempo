@@ -63,3 +63,32 @@ export async function getCommunityIdentity(supabase: SupabaseClient, user: User)
     canModerate: Boolean(adminRole),
   };
 }
+
+export async function getCommunityBlockedUserIds(supabase: SupabaseClient, userId: string) {
+  const { data, error } = await supabase
+    .from("community_blocks")
+    .select("blocker_user_id,blocked_user_id")
+    .or(`blocker_user_id.eq.${userId},blocked_user_id.eq.${userId}`);
+  if (error) throw error;
+  return new Set(
+    (data || []).map((block) =>
+      block.blocker_user_id === userId ? block.blocked_user_id as string : block.blocker_user_id as string,
+    ),
+  );
+}
+
+export async function getActiveCommunityMute(supabase: SupabaseClient, userId: string) {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("community_restrictions")
+    .select("id,reason,ends_at")
+    .eq("user_id", userId)
+    .eq("restriction_type", "mute")
+    .eq("status", "active")
+    .or(`ends_at.is.null,ends_at.gt.${now}`)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data as { id: string; reason: string; ends_at: string | null } | null;
+}

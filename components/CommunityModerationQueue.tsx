@@ -4,6 +4,7 @@ type ModerationItem = {
   id: string;
   content_id: string;
   content_type: "post" | "comment";
+  author_user_id: string;
   title: string;
   body: string;
   author_name: string;
@@ -12,6 +13,17 @@ type ModerationItem = {
   moderation_reason: string | null;
   created_at: string;
   reports: Array<{ id: string; reason: string; status: string; created_at: string }>;
+};
+
+type CommunityRestriction = {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_role: string;
+  reason: string;
+  starts_at: string;
+  ends_at: string | null;
+  created_at: string;
 };
 
 type ModerationHistoryItem = {
@@ -52,18 +64,27 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
   const [notice, setNotice] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState("");
+  const [restrictions, setRestrictions] = useState<CommunityRestriction[]>([]);
+  const [muteDurations, setMuteDurations] = useState<Record<string, string>>({});
 
   async function loadQueue() {
     if (!accessToken) return;
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/community-moderation", {
-        headers: { authorization: `Bearer ${accessToken}` },
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "社区审核队列加载失败。");
-      setPayload(body as ModerationPayload);
+      const [queueResponse, restrictionsResponse] = await Promise.all([
+        fetch("/api/admin/community-moderation", {
+          headers: { authorization: `Bearer ${accessToken}` },
+        }),
+        fetch("/api/admin/community-restrictions", {
+          headers: { authorization: `Bearer ${accessToken}` },
+        }),
+      ]);
+      const [queueBody, restrictionsBody] = await Promise.all([queueResponse.json(), restrictionsResponse.json()]);
+      if (!queueResponse.ok) throw new Error(queueBody.error || "社区审核队列加载失败。");
+      if (!restrictionsResponse.ok) throw new Error(restrictionsBody.error || "社区禁言名单加载失败。");
+      setPayload(queueBody as ModerationPayload);
+      setRestrictions(restrictionsBody.restrictions as CommunityRestriction[]);
     } catch (queueError) {
       setError(queueError instanceof Error ? queueError.message : "社区审核队列加载失败。");
     } finally {
@@ -117,6 +138,60 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
     const note = window.prompt("请说明恢复显示的原因（会写入审核记录）：", "复核后确认可以恢复显示");
     if (note === null) return;
     await moderate(item.content_type, item.content_id, "publish", note, `history:${item.id}`);
+  }
+
+  async function muteAuthor(item: ModerationItem) {
+    const note = (notes[item.id] || "").trim();
+    if (!note) {
+      setError("请先填写处理说明，再决定是否禁言账号。");
+      return;
+    }
+    const durationValue = muteDurations[item.id] || "1440";
+    setSavingId(`mute:${item.id}`);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/admin/community-restrictions", {
+        method: "POST",
+        headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          targetUserId: item.author_user_id,
+          durationMinutes: durationValue === "indefinite" ? null : Number(durationValue),
+          reason: note,
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "账号禁言失败。");
+      setNotice(body.notice || "账号已禁言。");
+      await loadQueue();
+    } catch (restrictionError) {
+      setError(restrictionError instanceof Error ? restrictionError.message : "账号禁言失败。");
+    } finally {
+      setSavingId("");
+    }
+  }
+
+  async function unmute(restriction: CommunityRestriction) {
+    const reason = window.prompt("请说明解除禁言的原因（会保留在处理记录中）：", "复核后解除社区发布限制");
+    if (!reason?.trim()) return;
+    setSavingId(`unmute:${restriction.id}`);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/admin/community-restrictions", {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
+        body: JSON.stringify({ targetUserId: restriction.user_id, reason: reason.trim() }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "解除禁言失败。");
+      setNotice(body.notice || "禁言已解除。");
+      await loadQueue();
+    } catch (restrictionError) {
+      setError(restrictionError instanceof Error ? restrictionError.message : "解除禁言失败。");
+    } finally {
+      setSavingId("");
+    }
   }
 
   return (
@@ -202,6 +277,30 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
                     {savingId === item.id ? "保存中…" : "移除内容"}
                   </button>
                 </div>
+                <div className="flex flex-col gap-3 border-t border-sage/20 pt-4 sm:flex-row sm:items-end">
+                  <label className="grid flex-1 gap-2 text-xs font-bold text-ink">
+                    必要时限制该账号发布
+                    <select
+                      className="rounded-xl border border-ink/10 bg-white px-3 py-2.5 text-sm outline-none focus:border-sage"
+                      value={muteDurations[item.id] || "1440"}
+                      onChange={(event) => setMuteDurations((current) => ({ ...current, [item.id]: event.target.value }))}
+                    >
+                      <option value="1440">禁言 24 小时</option>
+                      <option value="10080">禁言 7 天</option>
+                      <option value="43200">禁言 30 天</option>
+                      <option value="indefinite">长期禁言</option>
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    className="button-secondary shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={Boolean(savingId) || !(notes[item.id] || "").trim()}
+                    onClick={() => void muteAuthor(item)}
+                  >
+                    {savingId === `mute:${item.id}` ? "保存中…" : "禁言该账号"}
+                  </button>
+                </div>
+                <p className="text-xs leading-5 text-muted">禁言只限制社区发帖和回应，不影响查看、举报、删除自己的内容或其他功能。</p>
               </div>
             </article>
           ))}
@@ -241,6 +340,37 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
             </div>
           </div>
         ) : null}
+
+        <div className="mt-12">
+          <p className="eyebrow">账号限制</p>
+          <h3 className="mt-3 text-[1.35rem] font-bold text-ink">当前禁言名单</h3>
+          <p className="mt-2 text-sm leading-7 text-muted">到期后自动恢复；平台也可以提前解除。所有历史保留在数据库中。</p>
+          {!restrictions.length ? (
+            <div className="card mt-5 text-sm font-bold text-muted">当前没有处于禁言状态的社区成员。</div>
+          ) : (
+            <div className="mt-5 grid gap-3">
+              {restrictions.map((restriction) => (
+                <article key={restriction.id} className="rounded-2xl border border-ink/10 bg-white px-5 py-4 shadow-sm">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-ink">{restriction.user_name}</p>
+                      <p className="mt-1 text-xs text-muted">{restriction.user_role} · {restriction.ends_at ? `限制至 ${formatDate(restriction.ends_at)}` : "长期限制"}</p>
+                      <p className="mt-3 text-sm leading-6 text-muted">原因：{restriction.reason}</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="button-secondary shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={Boolean(savingId)}
+                      onClick={() => void unmute(restriction)}
+                    >
+                      {savingId === `unmute:${restriction.id}` ? "解除中…" : "解除禁言"}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

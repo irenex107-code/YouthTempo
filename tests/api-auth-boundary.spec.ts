@@ -6,6 +6,8 @@ const protectedReads = [
   "/api/admin/schools",
   "/api/admin/teacher-student-assignments?schoolId=school-a",
   "/api/admin/community-moderation",
+  "/api/admin/community-restrictions",
+  "/api/community/blocks",
   "/api/messages",
 ];
 
@@ -63,4 +65,20 @@ test("未登录不能处理社区审核内容", async ({ request }) => {
     },
   });
   expect(response.status()).toBe(401);
+});
+
+test("未登录不能屏蔽成员或禁言账号", async ({ request }) => {
+  const block = await request.post("/api/community/blocks", {
+    data: { targetUserId: "00000000-0000-0000-0000-000000000000" },
+  });
+  expect(block.status()).toBe(401);
+
+  const mute = await request.post("/api/admin/community-restrictions", {
+    data: {
+      targetUserId: "00000000-0000-0000-0000-000000000000",
+      durationMinutes: 1440,
+      reason: "不应被保存",
+    },
+  });
+  expect(mute.status()).toBe(401);
 });

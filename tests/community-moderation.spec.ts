@@ -19,7 +19,7 @@ async function sessionFor(key: UserKey) {
     password,
   });
   if (error || !data.session) throw error || new Error(`无法登录 ${key}`);
-  return { accessToken: data.session.access_token };
+  return { accessToken: data.session.access_token, userId: data.user.id };
 }
 
 function auth(accessToken: string) {
@@ -31,16 +31,16 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
   test.skip(!password || !serviceRoleKey, "需要虚拟账号密码和服务端测试密钥");
   test.setTimeout(120_000);
 
-  const [platformAdmin, guardian, student, schoolLead] = await Promise.all([
+  const [platformAdmin, guardian, schoolLead] = await Promise.all([
     sessionFor("platformAdmin"),
     sessionFor("guardianOne"),
-    sessionFor("studentOne"),
     sessionFor("schoolLead"),
   ]);
   const admin = createClient(supabaseUrl, serviceRoleKey!, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   let postId = "";
+  let unmutedPostId = "";
 
   try {
     const forbiddenQueue = await request.get("/api/admin/community-moderation", {
@@ -59,12 +59,6 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
     });
     expect(createPost.status()).toBe(202);
     postId = (await createPost.json()).post.id as string;
-
-    const report = await request.post("/api/community/reports", {
-      headers: auth(student.accessToken),
-      data: { postId, reason: "自动化验收：请平台复核这条内容。" },
-    });
-    expect(report.status()).toBe(201);
 
     const queue = await request.get("/api/admin/community-moderation", {
       headers: auth(platformAdmin.accessToken),
@@ -86,6 +80,23 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
     });
     expect(publish.status()).toBe(200);
 
+    const selfReport = await request.post("/api/community/reports", {
+      headers: auth(guardian.accessToken),
+      data: { postId, reason: "不应允许举报自己。" },
+    });
+    expect(selfReport.status()).toBe(400);
+
+    const report = await request.post("/api/community/reports", {
+      headers: auth(schoolLead.accessToken),
+      data: { postId, reason: "自动化验收：请平台复核这条内容。" },
+    });
+    expect(report.status()).toBe(201);
+    const duplicateReport = await request.post("/api/community/reports", {
+      headers: auth(schoolLead.accessToken),
+      data: { postId, reason: "自动化验收：重复举报不应成功。" },
+    });
+    expect(duplicateReport.status()).toBe(409);
+
     const remove = await request.post("/api/admin/community-moderation", {
       headers: auth(platformAdmin.accessToken),
       data: { contentType: "post", contentId: postId, action: "remove", note: "复测移除与恢复流程" },
@@ -106,6 +117,54 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
     });
     expect(restore.status()).toBe(200);
 
+    const forbiddenMute = await request.post("/api/admin/community-restrictions", {
+      headers: auth(schoolLead.accessToken),
+      data: { targetUserId: guardian.userId, durationMinutes: 1440, reason: "不应成功" },
+    });
+    expect(forbiddenMute.status()).toBe(403);
+
+    const mute = await request.post("/api/admin/community-restrictions", {
+      headers: auth(platformAdmin.accessToken),
+      data: { targetUserId: guardian.userId, durationMinutes: 1440, reason: "自动化验收禁言" },
+    });
+    expect(mute.status()).toBe(200);
+    const mutedPost = await request.post("/api/community/posts", {
+      headers: auth(guardian.accessToken),
+      data: {
+        title: "禁言期间不应发布",
+        body: "这条内容不应被写入数据库。",
+        viewerRoles: ["guardian"],
+        commenterRoles: [],
+      },
+    });
+    expect(mutedPost.status()).toBe(403);
+    expect(await mutedPost.json()).toMatchObject({ muted: true });
+
+    const restrictions = await request.get("/api/admin/community-restrictions", {
+      headers: auth(platformAdmin.accessToken),
+    });
+    expect(restrictions.status()).toBe(200);
+    expect((await restrictions.json()).restrictions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ user_id: guardian.userId, reason: "自动化验收禁言" }),
+    ]));
+
+    const unmute = await request.delete("/api/admin/community-restrictions", {
+      headers: auth(platformAdmin.accessToken),
+      data: { targetUserId: guardian.userId, reason: "自动化验收解除禁言" },
+    });
+    expect(unmute.status()).toBe(200);
+    const createAfterUnmute = await request.post("/api/community/posts", {
+      headers: auth(guardian.accessToken),
+      data: {
+        title: `[E2E-解除禁言] ${Date.now()}`,
+        body: "解除限制后可以正常发布。",
+        viewerRoles: ["guardian"],
+        commenterRoles: [],
+      },
+    });
+    expect(createAfterUnmute.status()).toBe(201);
+    unmutedPostId = (await createAfterUnmute.json()).post.id as string;
+
     const [{ data: post }, { data: reports }, { data: actions }] = await Promise.all([
       admin.from("community_posts").select("moderation_status").eq("id", postId).single(),
       admin.from("community_reports").select("status,resolved_at,resolved_by").eq("post_id", postId),
@@ -120,5 +179,7 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
       await admin.from("community_moderation_actions").delete().eq("content_id", postId);
       await admin.from("community_posts").delete().eq("id", postId);
     }
+    if (unmutedPostId) await admin.from("community_posts").delete().eq("id", unmutedPostId);
+    await admin.from("community_restrictions").delete().eq("user_id", guardian.userId);
   }
 });

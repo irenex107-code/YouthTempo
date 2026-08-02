@@ -10,7 +10,7 @@ const supabaseAnonKey =
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
 
 type UserKey = keyof typeof fixture.users;
-type Session = { accessToken: string };
+type Session = { accessToken: string; userId: string };
 type CommunityPost = {
   id: string;
   can_comment: boolean;
@@ -27,7 +27,7 @@ async function sessionFor(key: UserKey): Promise<Session> {
     password,
   });
   if (error || !data.session) throw error || new Error(`无法登录 ${key}`);
-  return { accessToken: data.session.access_token };
+  return { accessToken: data.session.access_token, userId: data.user.id };
 }
 
 function auth(session: Session) {
@@ -165,6 +165,38 @@ test.describe("社区帖子与评论可见范围", () => {
       });
       expect(guardianCommentAttemptOnOwnPost.status()).toBe(403);
 
+      const selfBlock = await request.post("/api/community/blocks", {
+        headers: auth(guardianOne),
+        data: { targetUserId: guardianOne.userId },
+      });
+      expect(selfBlock.status()).toBe(400);
+
+      const blockTeacher = await request.post("/api/community/blocks", {
+        headers: auth(guardianOne),
+        data: { targetUserId: teacherOne.userId },
+      });
+      expect(blockTeacher.status()).toBe(201);
+      const blockList = await request.get("/api/community/blocks", { headers: auth(guardianOne) });
+      expect(blockList.status()).toBe(200);
+      expect((await blockList.json()).blocks).toEqual(expect.arrayContaining([
+        expect.objectContaining({ user_id: teacherOne.userId }),
+      ]));
+
+      const teacherAfterBlock = await listCommunity(request, teacherOne);
+      expect(findPost(teacherAfterBlock.posts, guardianPostId)).toBeUndefined();
+      const blockedComment = await request.post("/api/community/comments", {
+        headers: auth(teacherOne),
+        data: { postId: guardianPostId, body: `${marker} 屏蔽后不应发送` },
+      });
+      expect(blockedComment.status()).toBe(404);
+
+      const unblockTeacher = await request.delete("/api/community/blocks", {
+        headers: auth(guardianOne),
+        data: { targetUserId: teacherOne.userId },
+      });
+      expect(unblockTeacher.status()).toBe(200);
+      expect(findPost((await listCommunity(request, teacherOne)).posts, guardianPostId)).toBeDefined();
+
       const studentAfterComments = await listCommunity(request, studentTwo);
       expect(findPost(studentAfterComments.posts, studentPostId)?.comments.map(({ id }) => id)).toContain(
         professionalCommentId,
@@ -209,6 +241,10 @@ test.describe("社区帖子与评论可见范围", () => {
       expect(findPost(finalStudentView.posts, studentPostId)).toBeUndefined();
       expect(findPost(finalGuardianView.posts, guardianPostId)).toBeUndefined();
     } finally {
+      await request.delete("/api/community/blocks", {
+        headers: auth(guardianOne),
+        data: { targetUserId: teacherOne.userId },
+      });
       for (const commentId of createdCommentIds) {
         await request.delete("/api/community/comments", {
           headers: auth(platformAdmin),
