@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev --webpack",
     "dev:local": "next dev --webpack -H 127.0.0.1 -p 3000",
-    "build": "next build --webpack",
+    "build": "next build --webpack && node scripts/precompress-next-assets.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"Lint is not configured yet; use build and TypeScript checks.\"",
     "test:e2e": "playwright test",
