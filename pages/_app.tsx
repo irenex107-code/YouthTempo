@@ -37,7 +37,7 @@ export default function App({ Component, pageProps }: AppProps) {
           name="description"
           content="YouthTempo 从日常节律开始，帮助青少年看见状态、表达感受，并更容易连接可信任的支持。"
         />
-        <link rel="icon" type="image/png" href="/illustrations/system/feature-mood-puzzle.png" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
         <meta name="theme-color" content="#fbf7ed" />
       </Head>
       <div className="page-shell">

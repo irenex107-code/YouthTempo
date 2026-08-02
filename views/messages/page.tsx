@@ -113,7 +113,7 @@ export default function MessagesPage() {
         action={<Link href="/account" className="button-secondary">返回工作台</Link>}
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-mailbox.png"
+            src="/illustrations/system/feature-mailbox.webp"
             alt="装着一封信的绿色悄悄话信箱插画"
             priority
           />

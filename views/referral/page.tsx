@@ -301,7 +301,7 @@ export default function ReferralPage() {
         subtitle="当自己整理还不够时，用几道题判断现在适合继续自助、告诉可信任的人，还是尽快连接更多支持。"
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-progress-path.png"
+            src="/illustrations/system/feature-progress-path.webp"
             alt="穿过自然山丘、逐步靠近支持的路径插画"
             priority
           />

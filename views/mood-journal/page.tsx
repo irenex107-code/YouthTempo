@@ -114,7 +114,7 @@ export default function MoodJournalPage() {
         subtitle="当你发现状态有些波动时，可以用情绪词、引导式整理和 AI 回应，把说不清的感受慢慢表达出来。"
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-mood-puzzle.png"
+            src="/illustrations/system/feature-mood-puzzle.webp"
             alt="由不同颜色与表情组成的心情拼图插画"
             priority
           />

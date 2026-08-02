@@ -254,7 +254,7 @@ export default function CommunityPage() {
         aside={
           <div>
             <IllustrationPanel
-              src="/illustrations/system/feature-community.png"
+              src="/illustrations/system/feature-community.webp"
               alt="学生、家长、老师和专业支持者围坐交流，认真倾听一位学生发言"
               priority
             />

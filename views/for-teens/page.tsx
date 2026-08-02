@@ -9,7 +9,7 @@ const startCards = [
     text: "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。",
     action: "做 SWEET 节律记录",
     href: "/check-in",
-    illustration: "/illustrations/system/feature-sweet-rhythm-v2.png",
+    illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp",
     illustrationAlt: "睡眠、醒来、饮食、运动和任务投入组成的日常节律",
   },
   {
@@ -17,7 +17,7 @@ const startCards = [
     text: "先不用解释清楚，可以从情绪词、引导式整理和 AI 回应开始表达。",
     action: "打开心情拼图",
     href: "/mood-journal",
-    illustration: "/illustrations/system/feature-mood-puzzle.png",
+    illustration: "/illustrations/system/feature-mood-puzzle.webp",
     illustrationAlt: "不同颜色组成的心情拼图",
   },
   {
@@ -25,7 +25,7 @@ const startCards = [
     text: "从眼前最卡住的一件事开始，和 AI 简短聊几轮，把想法理清一点。",
     action: "陪我捋一捋",
     href: "/talk",
-    illustration: "/illustrations/system/feature-talk.png",
+    illustration: "/illustrations/system/feature-talk.webp",
     illustrationAlt: "把打结的感受慢慢整理清楚",
   },
   {
@@ -33,7 +33,7 @@ const startCards = [
     text: "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。",
     action: "打开悄悄话信箱",
     href: "/messages",
-    illustration: "/illustrations/system/feature-mailbox.png",
+    illustration: "/illustrations/system/feature-mailbox.webp",
     illustrationAlt: "装着信件的绿色信箱",
   },
   {
@@ -41,7 +41,7 @@ const startCards = [
     text: "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。",
     action: "今晚先放下",
     href: "/worry-time",
-    illustration: "/illustrations/system/feature-worry-time.png",
+    illustration: "/illustrations/system/feature-worry-time.webp",
     illustrationAlt: "在月光下把担心暂时安放好",
   },
   {
@@ -49,7 +49,7 @@ const startCards = [
     text: "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。",
     action: "看看下一步找谁",
     href: "/referral",
-    illustration: "/illustrations/system/feature-progress-path.png",
+    illustration: "/illustrations/system/feature-progress-path.webp",
     illustrationAlt: "沿着温和路径逐步找到合适支持",
   },
 ];
@@ -69,7 +69,7 @@ export default function ForTeensPage() {
         }
         aside={
           <IllustrationPanel
-            src="/illustrations/system/role-student-v2.png"
+            src="/illustrations/system/role-student-v2.webp"
             alt="手持笔记本、准备按照自己节奏开始记录的女学生插画"
             priority
           />

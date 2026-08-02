@@ -66,7 +66,7 @@ export default function ResourcesPage() {
         subtitle="给家长和老师的陪伴方法：看什么、怎么开口、怎样回应，以及什么时候需要进一步支持。这里不是学生求助入口。"
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-resources.png"
+            src="/illustrations/system/feature-resources.webp"
             alt="家长和老师一起查看陪伴指南的插画"
             priority
           />

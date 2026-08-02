@@ -106,7 +106,7 @@ export default function WorryTimePage() {
         subtitle="这是 SWEET 睡眠维度下的延伸工具。用 15 分钟把反复出现的担心写下来，分清今晚能做什么、什么可以留到明天。"
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-worry-time.png"
+            src="/illustrations/system/feature-worry-time.webp"
             alt="在月光下把担心暂时收好、留给明天处理的插画"
             priority
           />

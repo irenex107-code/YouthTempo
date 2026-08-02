@@ -335,7 +335,7 @@ export default function CheckInPage() {
         subtitle="约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。"
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-sweet-rhythm-v2.png"
+            src="/illustrations/system/feature-sweet-rhythm-v2.webp"
             alt="SWEET 五个日常节律组成的循环插画"
             priority
           />
@@ -508,7 +508,7 @@ export default function CheckInPage() {
                     <p className="mt-4 text-base leading-8 text-muted">{aiResult.summary}</p>
                   </div>
                   <FeatureIllustration
-                    src="/illustrations/system/feature-ai-summary.png"
+                    src="/illustrations/system/feature-ai-summary.webp"
                     alt="AI 帮助把记录整理成清晰小结的插画"
                   />
                 </div>

@@ -77,10 +77,10 @@ const phrases = [
   "我先不评价，你说说最近最累的是哪一块。",
 ];
 const parentStarts = [
-  { title: "先观察 SWEET", text: "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。", illustration: "/illustrations/system/parent-observe-sweet-v3.png", alt: "爸爸和女儿按顺序一起观察 SWEET 五项生活节律" },
-  { title: "先降低防御", text: "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。", illustration: "/illustrations/system/parent-safe-listening.png", alt: "家长放下评判并安静倾听孩子" },
-  { title: "用 AIDET 开口", text: "用看见感受、说明来意、约定时间、解释原因和表达感谢的方式，让沟通更安全。", illustration: "/illustrations/system/parent-aidet-conversation.png", alt: "家长和孩子循序渐进地进行安全对话" },
-  { title: "需要时连接支持", text: "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。", illustration: "/illustrations/system/parent-connect-support.png", alt: "家长为孩子连接学校和专业支持" },
+  { title: "先观察 SWEET", text: "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。", illustration: "/illustrations/system/parent-observe-sweet-v3.webp", alt: "爸爸和女儿按顺序一起观察 SWEET 五项生活节律" },
+  { title: "先降低防御", text: "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。", illustration: "/illustrations/system/parent-safe-listening.webp", alt: "家长放下评判并安静倾听孩子" },
+  { title: "用 AIDET 开口", text: "用看见感受、说明来意、约定时间、解释原因和表达感谢的方式，让沟通更安全。", illustration: "/illustrations/system/parent-aidet-conversation.webp", alt: "家长和孩子循序渐进地进行安全对话" },
+  { title: "需要时连接支持", text: "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。", illustration: "/illustrations/system/parent-connect-support.webp", alt: "家长为孩子连接学校和专业支持" },
 ];
 
 export default function ForParentsPage() {
@@ -98,7 +98,7 @@ export default function ForParentsPage() {
         }
         aside={
           <IllustrationPanel
-            src="/illustrations/system/role-parent.png"
+            src="/illustrations/system/role-parent.webp"
             alt="平静倾听、准备陪伴孩子的家长插画"
             priority
           />

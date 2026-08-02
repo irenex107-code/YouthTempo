@@ -86,7 +86,7 @@ export default function Home() {
         }
         aside={
           <IllustrationPanel
-            src="/illustrations/system/hero-home-journey.png"
+            src="/illustrations/system/hero-home-journey.webp"
             alt="青少年按照自己的节奏向前，并获得家长、老师和专业支持者陪伴的插画"
             priority
           />

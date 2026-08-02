@@ -13,7 +13,7 @@ export default function SweetModelPage() {
         subtitle="YouthTempo 从生活节律开始，为年轻人提供更早、更容易获得的支持。"
         aside={
           <IllustrationPanel
-            src="/illustrations/system/feature-sweet-rhythm-v2.png"
+            src="/illustrations/system/feature-sweet-rhythm-v2.webp"
             alt="睡眠、醒来、饮食、运动和任务投入组成的日常节律循环插画"
             priority
           />
