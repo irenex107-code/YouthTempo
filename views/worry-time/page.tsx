@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 type AiWorryResult = {
@@ -103,6 +104,13 @@ export default function WorryTimePage() {
         label="睡前整理"
         title="今晚先放下"
         subtitle="这是 SWEET 睡眠维度下的延伸工具。用 15 分钟把反复出现的担心写下来，分清今晚能做什么、什么可以留到明天。"
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/feature-worry-time.png"
+            alt="在月光下把担心暂时收好、留给明天处理的插画"
+            priority
+          />
+        }
       />
 
       <section className="section section-muted">

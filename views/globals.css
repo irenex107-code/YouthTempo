@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8f6ef;
-  --foreground: #20332f;
-  --focus: #4f947e;
+  --background: #fbf7ed;
+  --foreground: #1f3934;
+  --focus: #5b927d;
 }
 
 * {
@@ -20,9 +20,6 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  background-image:
-    radial-gradient(circle at 8% 2%, rgba(211, 165, 71, 0.08), transparent 26rem),
-    radial-gradient(circle at 92% 12%, rgba(79, 148, 126, 0.09), transparent 30rem);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -65,7 +62,7 @@ a {
   }
 
   .section-muted {
-    @apply border-y border-ink/5 bg-cream-deep/65;
+    @apply border-y border-ink/5 bg-mist/35;
   }
 
   .container {
@@ -73,27 +70,35 @@ a {
   }
 
   .eyebrow {
-    @apply inline-flex w-fit items-center rounded-full border border-sage/20 bg-mist/75 px-3 py-1.5 text-[0.72rem] font-extrabold tracking-[0.08em] text-sage-dark;
+    @apply inline-flex w-fit items-center rounded-full border border-sage/20 bg-paper px-3.5 py-1.5 text-[0.72rem] font-extrabold tracking-[0.08em] text-sage-dark shadow-sm;
   }
 
   .card {
-    @apply rounded-[1.5rem] border border-ink/[0.08] bg-paper/90 p-5 shadow-soft sm:p-6;
+    @apply rounded-[1.75rem] border border-ink/[0.08] bg-paper p-5 shadow-soft sm:p-6;
   }
 
   .button-primary {
-    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-xl border border-sage-dark/10 bg-sage-dark px-5 py-3 text-sm font-extrabold text-white shadow-button transition duration-200 hover:-translate-y-0.5 hover:bg-ink active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:px-6;
+    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full border border-sage-dark/10 bg-sage-dark px-5 py-3 text-sm font-extrabold text-white shadow-button transition duration-200 hover:-translate-y-0.5 hover:bg-ink active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:px-6;
   }
 
   .button-secondary {
-    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-xl border border-ink/15 bg-paper px-5 py-3 text-sm font-extrabold text-ink shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-sage/60 hover:bg-white active:translate-y-0 sm:px-6;
+    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full border border-sage/30 bg-paper px-5 py-3 text-sm font-extrabold text-sage-dark shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-sage hover:bg-mist/40 active:translate-y-0 sm:px-6;
   }
 
   .surface-panel {
-    @apply rounded-[2rem] border border-white/70 bg-paper/85 shadow-soft backdrop-blur-sm;
+    @apply rounded-[2rem] border border-ink/[0.07] bg-paper shadow-soft;
   }
 
   .field-control {
-    @apply w-full rounded-xl border border-ink/15 bg-paper px-4 py-3 text-ink outline-none transition placeholder:text-muted/70 focus:border-sage focus:ring-4 focus:ring-sage/10;
+    @apply w-full rounded-2xl border border-ink/15 bg-paper px-4 py-3 text-ink outline-none transition placeholder:text-muted/70 focus:border-sage focus:ring-4 focus:ring-sage/10;
+  }
+
+  .illustration-panel {
+    @apply relative mx-auto flex min-h-[19rem] w-full max-w-xl items-center justify-center overflow-hidden rounded-[2.25rem] border border-ink/[0.07] bg-paper p-4 shadow-soft sm:min-h-[24rem] sm:p-6;
+  }
+
+  .feature-illustration {
+    @apply relative overflow-hidden rounded-[1.75rem] border border-ink/[0.07] bg-paper shadow-soft;
   }
 }
 

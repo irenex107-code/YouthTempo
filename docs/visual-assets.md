@@ -6,6 +6,16 @@
 
 以下文件由 OpenAI 内置图像生成工具为 YouthTempo 原创生成，不属于医疗证据、科普资料或任何权威机构内容；页面会以“插画”方式使用，不暗示真实人物或机构背书。
 
+### `public/illustrations/system/`
+
+- 用途：全站角色入口、功能页主视觉与模块插画。
+- 在用文件：`hero-home-journey.png`、`role-student-v2.png`、`role-parent.png`、`role-teacher.png`、`parent-observe-sweet-v3.png`、`parent-safe-listening.png`、`parent-aidet-conversation.png`、`parent-connect-support.png`、`teacher-overview-v2.png`、`teacher-student-view-v3.png`、`feature-mood-puzzle.png`、`feature-mailbox.png`、`feature-community.png`、`feature-sweet-rhythm-v2.png`、`feature-progress-path.png`、`feature-ai-summary.png`、`feature-talk.png`、`feature-worry-time.png`、`feature-resources.png`。
+- SWEET 完整五项一旦同时出现在画面中，必须按从左到右的固定顺序呈现：睡眠 → 按时起床 → 健康饮食 → 运动 → 任务参与；不得使用会模糊起点的环形排列。
+- 风格：深森林青绿为品牌锚点，搭配雾蓝、柔黄、珊瑚粉和淡紫；现代编辑插画、纸切层次与柔和 risograph 纹理。
+- 生成约束：无文字、无机构标识，不作为医学图示或诊断依据；角色为原创虚构人物。
+- 人物呈现：不把青少年、照护者、老师或专业角色固定为某一性别；单人主视觉保持清爽，在需要互动的功能场景中才使用两人或多人，并让不同性别、发型和穿着自然分布。颜色、姿态和职业能力不按性别编码。
+- 技术格式：透明背景或暖象牙白纸面 PNG，按页面槽位独立生成，不从整张样稿裁切。
+
 ### `public/illustrations/home-rhythm-hero.jpg`
 
 - 用途：首页主视觉。

@@ -145,9 +145,8 @@ export function Navbar() {
     <header className="sticky top-0 z-30 border-b border-ink/[0.07] bg-cream/88 shadow-[0_8px_30px_rgba(32,51,47,0.04)] backdrop-blur-xl">
       <div className="px-4 sm:px-8 lg:px-12">
         <div className="container flex min-h-[68px] items-center justify-between gap-3 lg:min-h-[76px]">
-          <Link href="/" className="group flex shrink-0 items-center gap-2.5 text-[1.05rem] font-extrabold text-ink" aria-label="YouthTempo 首页">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-sage-dark text-sm font-black text-white shadow-button transition group-hover:-rotate-3">Y</span>
-            <span>YouthTempo</span>
+          <Link href="/" className="shrink-0 text-[1.2rem] font-black tracking-[-0.035em] text-ink transition hover:text-sage-dark" aria-label="YouthTempo 首页">
+            YouthTempo
           </Link>
           <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 xl:flex xl:gap-5">
             {visibleNavItems.map((item) => (

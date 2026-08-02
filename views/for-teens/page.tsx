@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
+import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 
 const startCards = [
   {
@@ -8,36 +9,48 @@ const startCards = [
     text: "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。",
     action: "做 SWEET 节律记录",
     href: "/check-in",
+    illustration: "/illustrations/system/feature-sweet-rhythm-v2.png",
+    illustrationAlt: "睡眠、醒来、饮食、运动和任务投入组成的日常节律",
   },
   {
     title: "我有点说不清自己的感受",
     text: "先不用解释清楚，可以从情绪词、引导式整理和 AI 回应开始表达。",
     action: "打开心情拼图",
     href: "/mood-journal",
+    illustration: "/illustrations/system/feature-mood-puzzle.png",
+    illustrationAlt: "不同颜色组成的心情拼图",
   },
   {
     title: "我想先找个地方说说",
     text: "从眼前最卡住的一件事开始，和 AI 简短聊几轮，把想法理清一点。",
     action: "陪我捋一捋",
     href: "/talk",
+    illustration: "/illustrations/system/feature-talk.png",
+    illustrationAlt: "把打结的感受慢慢整理清楚",
   },
   {
     title: "我有些话想告诉老师或家长",
     text: "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。",
     action: "打开悄悄话信箱",
     href: "/messages",
+    illustration: "/illustrations/system/feature-mailbox.png",
+    illustrationAlt: "装着信件的绿色信箱",
   },
   {
     title: "我睡前总是想很多",
     text: "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。",
     action: "今晚先放下",
     href: "/worry-time",
+    illustration: "/illustrations/system/feature-worry-time.png",
+    illustrationAlt: "在月光下把担心暂时安放好",
   },
   {
     title: "我想知道下一步可以怎么做",
     text: "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。",
     action: "看看下一步找谁",
     href: "/referral",
+    illustration: "/illustrations/system/feature-progress-path.png",
+    illustrationAlt: "沿着温和路径逐步找到合适支持",
   },
 ];
 
@@ -54,6 +67,13 @@ export default function ForTeensPage() {
             <Link href="/sweet-model" className="button-secondary">了解 SWEET</Link>
           </>
         }
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/role-student-v2.png"
+            alt="手持笔记本、准备按照自己节奏开始记录的女学生插画"
+            priority
+          />
+        }
       />
 
       <section className="section section-muted pt-8 sm:pt-12">
@@ -65,6 +85,11 @@ export default function ForTeensPage() {
           <div className="grid gap-5 md:grid-cols-2">
             {startCards.map((card) => (
               <article key={card.title} className="card flex flex-col p-5 sm:min-h-60">
+                {card.illustration ? (
+                  <div className="mb-5">
+                    <FeatureIllustration src={card.illustration} alt={card.illustrationAlt || ""} />
+                  </div>
+                ) : null}
                 <h3 className="text-lg font-bold leading-snug text-ink sm:text-xl">{card.title}</h3>
                 <p className="mt-3 text-[0.95rem] leading-7 text-muted">{card.text}</p>
                 <Link href={card.href} className="button-primary mt-5 w-fit px-4 py-2 text-xs">
@@ -77,7 +102,7 @@ export default function ForTeensPage() {
       </section>
 
       <section className="section">
-        <div className="container rounded-2xl border border-sage/25 bg-mint/60 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+        <div className="container rounded-[1.75rem] border border-sage/25 bg-mist/60 p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>
             <h2 className="text-lg font-bold text-ink">最近一直很难撑住？</h2>
             <p className="mt-2 text-sm leading-7 text-muted">先找一个可信任的大人或老师聊一聊，也可以查看适合的支持路径。</p>

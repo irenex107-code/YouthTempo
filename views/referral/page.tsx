@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 
 const flowSteps = ["选择当前状态", "生成支持路径建议", "查看下一步入口"];
 
@@ -298,6 +299,13 @@ export default function ReferralPage() {
       <PageHero
         title="下一步找谁"
         subtitle="当自己整理还不够时，用几道题判断现在适合继续自助、告诉可信任的人，还是尽快连接更多支持。"
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/feature-progress-path.png"
+            alt="穿过自然山丘、逐步靠近支持的路径插画"
+            priority
+          />
+        }
       />
       <section className="section section-muted">
         <div className="container">

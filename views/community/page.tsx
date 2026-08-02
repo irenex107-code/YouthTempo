@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   createCommunityComment,
   createCommunityPost,
@@ -13,6 +12,7 @@ import {
   type CommunityRole,
 } from "@/lib/cloudRecords";
 import { PageHero } from "@/components/PageHero";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 
 const roleOptions: Array<{ key: CommunityRole; label: string; hint: string }> = [
   { key: "student", label: "学生", hint: "同龄人之间交流和回应" },
@@ -48,20 +48,9 @@ function Avatar({ name, professional = false }: { name: string; professional?: b
 function RoleBadge({ label, verified }: { label: string; verified?: boolean }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-mist px-2.5 py-1 text-[0.7rem] font-bold text-sage-dark">
-      {verified ? <span aria-hidden="true">✓</span> : null}
       {label}{verified ? " · 已认证" : ""}
     </span>
   );
-}
-
-function ActionIcon({ type }: { type: "reply" | "report" | "delete" }) {
-  if (type === "reply") {
-    return <span aria-hidden="true" className="text-base">↩</span>;
-  }
-  if (type === "delete") {
-    return <span aria-hidden="true" className="text-sm">⌫</span>;
-  }
-  return <span aria-hidden="true" className="text-sm">◇</span>;
 }
 
 function DeleteDialog({
@@ -94,7 +83,6 @@ function DeleteDialog({
         aria-labelledby="delete-community-title"
         className="w-full max-w-md rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7"
       >
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-rose-50 text-lg text-rose-700" aria-hidden="true">⌫</span>
         <h2 id="delete-community-title" className="mt-5 text-xl font-bold text-ink">删除这条{label}？</h2>
         <p className="mt-3 text-sm leading-7 text-muted">
           删除后，这条{label}会立即从社区中消失，无法由你自行恢复。
@@ -264,20 +252,16 @@ export default function CommunityPage() {
           )
         }
         aside={
-          <figure className="surface-panel overflow-hidden p-2">
-            <Image
-              src="/illustrations/community-dialogue.jpg"
+          <div>
+            <IllustrationPanel
+              src="/illustrations/system/feature-community.png"
               alt="学生、家长、老师和专业支持者围坐交流，认真倾听一位学生发言"
-              width={1536}
-              height={1024}
               priority
-              sizes="(min-width: 1024px) 44vw, 92vw"
-              className="aspect-[3/2] w-full rounded-[1.55rem] object-cover object-left"
             />
-            <figcaption className="px-3 pb-2 pt-3 text-xs font-bold leading-5 text-muted">
+            <p className="mt-3 px-3 text-xs font-bold leading-5 text-muted">
               每个人都可以选择自己的内容向谁开放，也可以决定谁能够回应。
-            </figcaption>
-          </figure>
+            </p>
+          </div>
         }
       />
 
@@ -365,14 +349,14 @@ export default function CommunityPage() {
 
                       <div className="flex flex-wrap items-center gap-2 border-y border-ink/5 bg-cream/55 px-5 py-3 sm:px-6">
                         <a href={`#reply-${post.id}`} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-sage-dark hover:bg-mist">
-                          <ActionIcon type="reply" /> 回应
+                          回应
                         </a>
                         <button type="button" onClick={() => void report(post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
-                          <ActionIcon type="report" /> 举报
+                          举报
                         </button>
                         {post.can_delete ? (
                           <button type="button" onClick={() => setDeleteTarget({ type: "post", id: post.id })} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-rose-700 hover:bg-rose-50">
-                            <ActionIcon type="delete" /> 删除帖子
+                            删除帖子
                           </button>
                         ) : null}
                       </div>

@@ -6,7 +6,7 @@ export function Footer() {
     <footer className="border-t border-ink/10 bg-ink px-5 py-12 text-white sm:px-8 lg:px-12 lg:py-16">
       <div className="container grid gap-10 md:grid-cols-[1.3fr_1fr]">
         <div>
-          <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-sage text-sm font-black">Y</span><p className="text-lg font-extrabold">YouthTempo</p></div>
+          <p className="text-lg font-black tracking-[-0.03em]">YouthTempo</p>
           <p className="mt-4 max-w-xl text-sm leading-7 text-white/65">
             YouthTempo 面向青少年、家庭、学校和专业支持者，提供容易开始的成长支持。我们从日常节律、感受整理和可信任的人际连接开始，让年轻人更早获得帮助。
           </p>

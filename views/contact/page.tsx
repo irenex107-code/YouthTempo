@@ -4,15 +4,15 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 
 const contactReasons = [
-  ["学校试点合作", "如果你来自学校、社团或心理健康相关项目，可以联系 YouthTempo 讨论小范围试用。"],
+  ["学校合作", "如果你来自学校、社团或心理健康相关项目，可以联系 YouthTempo 了解合作与使用方式。"],
   ["家长与学生反馈", "如果你在使用中发现内容不清楚、不够友好或有需要补充的地方，可以把具体页面和感受告诉我们。"],
-  ["隐私与数据问题", "如果你想了解登录、数据保存、记录删除或试点授权方式，可以优先说明你的角色和问题。"],
+  ["隐私与数据问题", "如果你想了解登录、数据保存、记录删除或学校权限配置，可以优先说明你的角色和问题。"],
   ["校园推广团队", "如果你希望参与校园推广、用户测试或反馈收集，可以留下学校、年级和可参与方式。"],
 ];
 
 const messageTips = [
   "你是谁：学生、家长、老师、学校负责人或合作伙伴。",
-  "你想咨询什么：页面内容、试点合作、隐私数据、校园推广或产品反馈。",
+  "你想咨询什么：页面内容、学校合作、隐私数据、校园推广或产品反馈。",
   "你希望我们如何回复：邮件、微信或后续会议。",
 ];
 
@@ -48,7 +48,7 @@ export default function ContactPage() {
             <p className="mt-5 text-[0.95rem] leading-7 text-muted">请通过邀请你使用 YouthTempo 的学校联系人或项目负责人 Irene 取得联系。</p>
             <div className="mt-6 grid gap-3 text-sm font-bold text-ink/80">
               <p className="rounded-2xl bg-cream px-4 py-3">负责人：Irene</p>
-              <p className="rounded-2xl bg-cream px-4 py-3">用途：试点合作、产品反馈、隐私与数据问题</p>
+              <p className="rounded-2xl bg-cream px-4 py-3">用途：学校合作、产品反馈、隐私与数据问题</p>
             </div>
           </div>
 
@@ -68,12 +68,12 @@ export default function ContactPage() {
       <section className="section section-muted">
         <div className="container grid gap-6 lg:grid-cols-[1fr_0.7fr]">
           <InfoCard title="关于数据与登录" label="Privacy & account">
-            如果你的问题和用户登录、数据保存、记录删除或学校试点授权有关，可以先查看隐私与安全页面。
+            如果你的问题和用户登录、数据保存、记录删除或学校权限配置有关，可以先查看隐私与安全页面。
           </InfoCard>
           <div className="card">
             <h3 className="text-xl font-bold text-ink">查看隐私与安全说明</h3>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              我们会把账号、数据保存和试点反馈收集尽量设计得清楚、克制、可解释。
+              我们会把账号、数据保存和反馈收集尽量设计得清楚、克制、可解释。
             </p>
             <Link href="/privacy-safety" className="button-secondary mt-6">
               隐私与安全

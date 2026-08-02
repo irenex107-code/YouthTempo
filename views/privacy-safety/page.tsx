@@ -7,7 +7,7 @@ const principles = [
   ["不贴标签", "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。"],
   ["最少必要", "只收集完成记录、生成回应和改进服务所需要的信息，避免收集无关隐私。"],
   ["安全优先", "当用户表达明显危险或无法保证安全时，系统会优先引导连接可信任的大人、学校或紧急资源。"],
-  ["透明可控", "登录后可以查看账号和历史记录；学校关系由试点负责人配置，并按角色限制访问。"],
+  ["透明可控", "登录后可以查看账号和历史记录；学校关系由学校管理员配置，并按角色限制访问。"],
 ];
 
 const accountPlan = [
@@ -84,7 +84,7 @@ export default function PrivacySafetyPage() {
           </InfoCard>
           <div className="card">
             <h3 className="text-xl font-bold text-ink">有隐私或安全问题？</h3>
-            <p className="mt-4 text-[0.95rem] leading-7 text-muted">如果你正在参与试点，或想了解数据如何使用，可以通过联系我们页面说明具体问题。</p>
+            <p className="mt-4 text-[0.95rem] leading-7 text-muted">如果你正在通过学校使用 YouthTempo，或想了解数据如何使用，可以通过联系我们页面说明具体问题。</p>
             <Link href="/contact" className="button-secondary mt-6">联系我们</Link>
           </div>
         </div>

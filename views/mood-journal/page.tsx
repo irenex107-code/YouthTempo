@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 
 const emotionGroups = [
   ["压力类", ["紧张", "焦虑", "压迫", "不安"]],
@@ -111,6 +112,13 @@ export default function MoodJournalPage() {
         label="感受整理"
         title="心情拼图"
         subtitle="当你发现状态有些波动时，可以用情绪词、引导式整理和 AI 回应，把说不清的感受慢慢表达出来。"
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/feature-mood-puzzle.png"
+            alt="由不同颜色与表情组成的心情拼图插画"
+            priority
+          />
+        }
       />
 
       <section className="section section-muted">

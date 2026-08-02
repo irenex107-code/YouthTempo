@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 type TalkMessage = {
@@ -87,6 +88,13 @@ export default function TalkPage() {
       <PageHero
         title="陪我捋一捋"
         subtitle="不用一次说清楚。可以先写下眼前最卡住的一件事，AI 会陪你整理几轮。"
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/feature-talk.png"
+            alt="把打结的感受慢慢整理成清晰路径的插画"
+            priority
+          />
+        }
       />
 
       <section className="section section-muted pt-8 sm:pt-12">

@@ -205,7 +205,7 @@ export default function AdminPage() {
       const { data, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       const token = data.session?.access_token;
-      if (!token) throw new Error("请先登录管理员账号，再进入试点管理台。");
+      if (!token) throw new Error("请先登录管理员账号，再进入学校管理台。");
       setAccessToken(token);
 
       const response = await fetch("/api/admin/overview", {
@@ -646,7 +646,7 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校空间</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schools}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "已创建试点学校。" : "你可管理的学校。"}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "已创建的学校。" : "你可管理的学校。"}</p>
                 </div>
               </div>
             </div>

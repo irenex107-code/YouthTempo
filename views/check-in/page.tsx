@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
@@ -333,12 +334,11 @@ export default function CheckInPage() {
         title="SWEET 节律记录"
         subtitle="约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。"
         aside={
-          <div className="card">
-            <h2 className="text-2xl font-bold">这不是测试，也不是正式评估。</h2>
-            <p className="mt-3 text-[0.95rem] leading-7 text-muted">
-              SWEET 帮助你看见今天的生活节奏。AI 可以帮你理清当前状态，并提示可以尝试的下一步；需要更多帮助时，请联系可信任的大人或专业人员。
-            </p>
-          </div>
+          <IllustrationPanel
+            src="/illustrations/system/feature-sweet-rhythm-v2.png"
+            alt="SWEET 五个日常节律组成的循环插画"
+            priority
+          />
         }
       />
 
@@ -502,8 +502,16 @@ export default function CheckInPage() {
 
             {aiResult ? (
               <section ref={resultRef} className="mt-8 scroll-mt-24 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:scroll-mt-28 sm:p-8">
-                <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今日 SWEET 节律小结</h2>
-                <p className="mt-4 text-base leading-8 text-muted">{aiResult.summary}</p>
+                <div className="grid items-center gap-6 lg:grid-cols-[1fr_18rem]">
+                  <div>
+                    <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今日 SWEET 节律小结</h2>
+                    <p className="mt-4 text-base leading-8 text-muted">{aiResult.summary}</p>
+                  </div>
+                  <FeatureIllustration
+                    src="/illustrations/system/feature-ai-summary.png"
+                    alt="AI 帮助把记录整理成清晰小结的插画"
+                  />
+                </div>
                 <div className="mt-6 grid gap-4">
                   {mainAffectedAreas ? (
                     <p className="text-sm font-bold text-sage-dark">今天可以多留意：{mainAffectedAreas}</p>

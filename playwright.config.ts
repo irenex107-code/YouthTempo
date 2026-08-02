@@ -29,7 +29,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
-        command: "./node_modules/.bin/next dev -H 127.0.0.1 -p 3000",
+        command: "npm run dev:local",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

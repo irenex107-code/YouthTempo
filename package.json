@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=20.9.0 <27"
+  },
   "scripts": {
-    "dev": "next dev",
-    "dev:local": "next dev -H 127.0.0.1 -p 3000",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "dev:local": "next dev --webpack -H 127.0.0.1 -p 3000",
+    "build": "next build --webpack",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"Lint is not configured yet; use build and TypeScript checks.\"",
     "test:e2e": "playwright test",
@@ -20,13 +23,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.45.4",
-    "next": "^15.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
-    "@next/swc-darwin-arm64": "15.5.19",
     "@types/node": "^22.15.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

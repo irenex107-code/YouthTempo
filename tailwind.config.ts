@@ -10,23 +10,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#f8f6ef",
-        "cream-deep": "#eeeade",
+        cream: "#fbf7ed",
+        "cream-deep": "#f1eadb",
         paper: "#fffdf8",
-        ink: "#20332f",
-        muted: "#687772",
-        sage: "#4f947e",
-        "sage-dark": "#2f6f5e",
-        mist: "#dfece5",
-        clay: "#bd6f50",
-        "clay-soft": "#f3dfd5",
-        gold: "#d3a547",
-        "sky-soft": "#dce8ed"
+        ink: "#1f3934",
+        muted: "#667a73",
+        sage: "#5b927d",
+        "sage-dark": "#285f53",
+        mist: "#dceae5",
+        mint: "#e8f2ed",
+        clay: "#d97862",
+        "clay-soft": "#f5d8cf",
+        gold: "#e9b648",
+        "sky-soft": "#d9e8ef",
+        lavender: "#ddd5eb"
       },
       boxShadow: {
-        soft: "0 22px 70px rgba(32, 51, 47, 0.09)",
-        lift: "0 16px 38px rgba(32, 51, 47, 0.13)",
-        button: "0 8px 22px rgba(47, 111, 94, 0.22)"
+        soft: "0 18px 54px rgba(31, 57, 52, 0.08)",
+        lift: "0 18px 42px rgba(31, 57, 52, 0.12)",
+        button: "0 9px 22px rgba(40, 95, 83, 0.22)"
       }
     },
   },

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { InfoCard } from "@/components/Cards";
+import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 
@@ -76,10 +77,10 @@ const phrases = [
   "我先不评价，你说说最近最累的是哪一块。",
 ];
 const parentStarts = [
-  ["先观察 SWEET", "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。"],
-  ["先降低防御", "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。"],
-  ["用 AIDET 开口", "用看见感受、说明来意、约定时间、解释原因和表达感谢的方式，让沟通更安全。"],
-  ["需要时连接支持", "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。"],
+  { title: "先观察 SWEET", text: "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。", illustration: "/illustrations/system/parent-observe-sweet-v3.png", alt: "爸爸和女儿按顺序一起观察 SWEET 五项生活节律" },
+  { title: "先降低防御", text: "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。", illustration: "/illustrations/system/parent-safe-listening.png", alt: "家长放下评判并安静倾听孩子" },
+  { title: "用 AIDET 开口", text: "用看见感受、说明来意、约定时间、解释原因和表达感谢的方式，让沟通更安全。", illustration: "/illustrations/system/parent-aidet-conversation.png", alt: "家长和孩子循序渐进地进行安全对话" },
+  { title: "需要时连接支持", text: "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。", illustration: "/illustrations/system/parent-connect-support.png", alt: "家长为孩子连接学校和专业支持" },
 ];
 
 export default function ForParentsPage() {
@@ -94,6 +95,13 @@ export default function ForParentsPage() {
             <Link href="/account" className="button-primary">进入家长工作台</Link>
             <Link href="/sweet-model" className="button-secondary">了解 SWEET</Link>
           </>
+        }
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/role-parent.png"
+            alt="平静倾听、准备陪伴孩子的家长插画"
+            priority
+          />
         }
       />
 
@@ -115,10 +123,12 @@ export default function ForParentsPage() {
             description="先选择一个最具体、最不容易引发冲突的入口。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {parentStarts.map(([title, text]) => (
-              <InfoCard key={title} title={title}>
-                {text}
-              </InfoCard>
+            {parentStarts.map((item) => (
+              <article key={item.title} className="card flex h-full flex-col">
+                <FeatureIllustration src={item.illustration} alt={item.alt} compact />
+                <h3 className="mt-5 text-[1.05rem] font-bold leading-snug text-ink sm:text-[1.18rem]">{item.title}</h3>
+                <p className="mt-3 text-[0.95rem] leading-7 text-muted">{item.text}</p>
+              </article>
             ))}
           </div>
         </div>
@@ -144,16 +154,17 @@ export default function ForParentsPage() {
             {sweetObservations.map((item) => (
               <article
                 key={item.title}
-                className="group flex flex-col rounded-2xl border border-sage/15 bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white lg:min-h-[17rem]"
+                className="group flex flex-col rounded-[1.75rem] border border-ink/[0.08] bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white hover:shadow-lift lg:min-h-[19rem]"
               >
-                <div className="mb-5 flex items-start gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mist text-xl font-extrabold text-sage-dark">
-                    {item.letter}
-                  </div>
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="flex h-12 min-w-12 items-center justify-center rounded-2xl bg-mist px-3 text-xl font-extrabold text-sage-dark">{item.letter}</span>
+                  <span className="text-xs font-extrabold tracking-[0.16em] text-sage-dark">SWEET</span>
                 </div>
                 <h3 className="text-[1.05rem] font-extrabold leading-snug text-ink">{item.title}</h3>
-                <p className="mt-5 text-[1rem] font-bold leading-7 text-ink/85">{item.question}</p>
-                <p className="mt-3 text-[0.92rem] leading-7 text-muted">{item.text}</p>
+                <p className="mt-3 text-[0.95rem] font-bold leading-7 text-sage-dark">{item.question}</p>
+                <div className="mt-5 flex-1 rounded-2xl bg-mist/55 p-4">
+                  <p className="text-[0.92rem] leading-7 text-ink/75">{item.text}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -170,17 +181,16 @@ export default function ForParentsPage() {
             {aidetSteps.map((item) => (
               <article
                 key={item.title}
-                className="flex flex-col rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft lg:min-h-[18rem]"
+                className="group flex flex-col rounded-[1.75rem] border border-ink/[0.08] bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white hover:shadow-lift lg:min-h-[19rem]"
               >
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <span className="text-sm font-extrabold text-sage">{item.step}</span>
-                  <span className="h-px flex-1 bg-sage/20" />
-                  <span className="text-[0.7rem] font-bold text-sage-dark">AIDET</span>
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="flex h-12 min-w-12 items-center justify-center rounded-2xl bg-cream-deep/75 px-3 text-sm font-extrabold text-sage-dark">{item.step}</span>
+                  <span className="text-xs font-extrabold tracking-[0.16em] text-sage-dark">AIDET</span>
                 </div>
-                <h3 className="text-[1.08rem] font-extrabold leading-snug text-ink">{item.title}</h3>
-                <p className="mt-2 text-sm font-bold leading-6 text-sage-dark">{item.label}</p>
-                <div className="mt-6 rounded-2xl bg-cream-deep/70 p-4">
-                  <p className="text-[0.95rem] font-bold leading-7 text-ink/80">“{item.example}”</p>
+                <h3 className="text-[1.05rem] font-extrabold leading-snug text-ink">{item.title}</h3>
+                <p className="mt-3 text-[0.95rem] font-bold leading-7 text-sage-dark">{item.label}</p>
+                <div className="mt-5 flex-1 rounded-2xl bg-cream-deep/65 p-4">
+                  <p className="text-[0.92rem] font-bold leading-7 text-ink/75">“{item.example}”</p>
                 </div>
               </article>
             ))}

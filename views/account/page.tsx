@@ -79,10 +79,10 @@ function recordsDescription(role: string, hasSchool: boolean) {
 
 function emptyRecordsDescription(role: string) {
   if (role === "学生") return "完成一次 SWEET 节律记录并保存后，会显示在这里。";
-  if (role === "家长") return "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由试点学校确认。";
+  if (role === "家长") return "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由学校管理员确认。";
   if (role === "支持老师") return "学校负责人分配学生后，这里会显示你负责学生的记录。";
   if (role === "学校负责人") return "本校学生保存 SWEET 记录后，会显示在这里。";
-  return "试点产生记录后，会显示在这里。";
+  return "保存记录后，会显示在这里。";
 }
 
 function otpErrorMessage(error: unknown) {
@@ -537,7 +537,7 @@ export default function AccountPage() {
                       : isParent
                         ? linkedChildren.length
                           ? `已关联 ${linkedChildren.map((child) => child.display_name).join("、")}，可以查看学校确认范围内的节律记录。`
-                          : "亲子关系由试点学校确认。关联完成后，这里会直接显示孩子的节律记录。"
+                          : "亲子关系由学校管理员确认。关联完成后，这里会直接显示孩子的节律记录。"
                         : recordsDescription(displayRole, hasSchool)}
                   </p>
                 </div>
@@ -613,7 +613,7 @@ export default function AccountPage() {
                     <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
                       <p className="text-xs font-bold text-sage">学校空间</p>
                       <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : hasSchool ? "已加入" : "未加入"}</p>
-                      <p className="mt-2 text-sm text-muted">由试点学校配置</p>
+                      <p className="mt-2 text-sm text-muted">由学校管理员配置</p>
                     </div>
                   )}
                 </div>
@@ -637,7 +637,7 @@ export default function AccountPage() {
                       className={`rounded-lg px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                       onClick={() => setAccountTab("profile")}
                     >
-                      {isExternallyManagedRole ? "试点身份" : "账号资料"}
+                      {isExternallyManagedRole ? "学校身份" : "账号资料"}
                     </button>
                     <button
                       type="button"

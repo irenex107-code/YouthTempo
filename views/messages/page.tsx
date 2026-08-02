@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 import {
   AccountStatus,
   StudentMessage,
@@ -110,6 +111,13 @@ export default function MessagesPage() {
         title="悄悄话信箱"
         subtitle={isStudent ? "有些话不容易当面说，可以先写给老师、家长或自己。" : "在这里查看学生认真写下、希望你知道的话。"}
         action={<Link href="/account" className="button-secondary">返回工作台</Link>}
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/feature-mailbox.png"
+            alt="装着一封信的绿色悄悄话信箱插画"
+            priority
+          />
+        }
       />
 
       {loading ? (

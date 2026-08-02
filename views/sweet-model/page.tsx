@@ -1,4 +1,5 @@
 import { InfoCard } from "@/components/Cards";
+import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { sweetModules } from "@/data/site";
@@ -10,7 +11,13 @@ export default function SweetModelPage() {
         label="SWEET Framework"
         title="SWEET 模型"
         subtitle="YouthTempo 从生活节律开始，为年轻人提供更早、更容易获得的支持。"
-        aside={<InfoCard title="睡眠、醒来、饮食、运动、任务投入" label="Sleep, Wake, Eat, Exercise, Task Engagement" showLabel>SWEET 不用来判断一个年轻人“有没有问题”，而是帮助我们从日常变化中，更早发现他是否需要支持。</InfoCard>}
+        aside={
+          <IllustrationPanel
+            src="/illustrations/system/feature-sweet-rhythm-v2.png"
+            alt="睡眠、醒来、饮食、运动和任务投入组成的日常节律循环插画"
+            priority
+          />
+        }
       />
       <section className="section section-muted">
         <div className="container">
@@ -19,7 +26,7 @@ export default function SweetModelPage() {
             {sweetModules.map((item) => (
               <InfoCard key={item.key} title={item.title} label={item.label} showLabel>
                 <p>{item.summary}</p>
-                <p className="mt-4 font-bold text-ink/80">产品示例：{item.example}</p>
+                <p className="mt-4 font-bold text-ink/80">你可以这样观察：{item.example}</p>
               </InfoCard>
             ))}
           </div>
