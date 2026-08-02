@@ -13,6 +13,9 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL,
+    launchOptions: {
+      args: ["--no-proxy-server"],
+    },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
