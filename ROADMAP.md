@@ -70,7 +70,7 @@
 - [x] AI 请求增加上游超时、输入长度上限和明确的限流提示
 - [x] 建立可从空项目恢复数据库的 Supabase baseline migration（单文件已在 `$0/月` 新加坡空白项目 `sebtakwjwubvdqdswtdi` 验证：25 张业务表、30 条 RLS policy、94 个索引、核心函数与每日清理任务）
 - [x] 增加 CSP、frame 防护、Referrer Policy 等全站安全响应头（生产环境禁用 `unsafe-eval`，页面与 API 自动化测试通过）
-- [ ] 🟡 CI 覆盖真实权限越权、成员撤销和社区流程测试（GitHub Actions Secrets 已配置，工作流已改为缺少密钥即失败；正在完成首次真实 CI 运行）
+- [x] CI 覆盖真实权限越权、成员撤销和社区流程测试（GitHub Actions Secrets 已配置，缺少密钥时 CI 会失败；首次完整运行公开流程 72 passed / 34 skipped by design，真实权限组 19 passed / 5 skipped by design）
 
 ## P1 · 试点体验
 
