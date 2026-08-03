@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { fail, generateJson, missing, requirePost, shortText } from "./_shared";
+import { fail, generateJson, missing, requireAiInputSize, requireAiRateLimit, requirePost, shortText } from "./_shared";
 
 type ReferralResult = {
   recommendedSupport?: unknown;
@@ -39,6 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!currentStates.length || !duration || !impact || !adultWillingnessValue || !preferredSupportList.length || !mainNeedValue) {
     return missing(res);
   }
+  if (!requireAiInputSize(req, res)) return;
+  if (!(await requireAiRateLimit(req, res))) return;
 
   try {
     const result = (await generateJson({
@@ -74,6 +76,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     console.error(error);
-    fail(res);
+    fail(res, error);
   }
 }
+
+export const config = {
+  api: { bodyParser: { sizeLimit: "32kb" } },
+};

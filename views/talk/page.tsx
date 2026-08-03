@@ -64,8 +64,12 @@ export default function TalkPage() {
         },
       ]);
       setSuggestHumanSupport(data.suggestHumanSupport === true);
-    } catch {
-      setError("这次没有连接成功，可以稍后再试，或先转到支持路径。");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "这次没有连接成功，可以稍后再试，或先转到支持路径。",
+      );
     } finally {
       setLoading(false);
     }

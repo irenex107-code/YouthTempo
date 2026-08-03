@@ -375,13 +375,11 @@ export async function getProfile(user: User) {
 export async function saveProfile(user: User, displayName: string, role: string) {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Supabase is not configured.");
-  const existingProfile = await getProfile(user);
   const payload = {
     id: user.id,
     email: user.email || null,
     display_name: displayName,
     role: normalizeRole(role),
-    school_id: existingProfile?.school_id || null,
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await supabase.from("profiles").upsert(payload).select("*").single();

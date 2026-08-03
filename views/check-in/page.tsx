@@ -297,8 +297,8 @@ export default function CheckInPage() {
     try {
       const result = await requestSummary();
       setAiResult(result);
-    } catch {
-      setError("暂时无法生成回应，请稍后再试。");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "暂时无法生成回应，请稍后再试。");
     } finally {
       setLoading(false);
     }
@@ -319,8 +319,12 @@ export default function CheckInPage() {
       const result = await requestSummary();
       setAiResult(result);
       await saveCurrentRecord(result);
-    } catch {
-      setError("AI 小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "AI 小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。",
+      );
       await saveCurrentRecord(null);
     } finally {
       setLoading(false);

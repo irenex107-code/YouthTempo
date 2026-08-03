@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { getActiveCommunityMute, getCommunityBlockedUserIds, getCommunityIdentity } from "@/lib/community";
 import { moderateCommunityContent } from "@/lib/messageSafety";
+import { enforceUserRateLimit } from "@/lib/rateLimit";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["POST", "DELETE"].includes(req.method || "")) {
@@ -83,6 +84,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (moderation.status === "blocked") {
       return res.status(422).json({ error: moderation.reason, blocked: true });
     }
+    if (!(await enforceUserRateLimit({
+      supabase,
+      userId: user.id,
+      action: "community_comment_create",
+      limit: 20,
+      windowSeconds: 10 * 60,
+      res,
+      message: "回应得有些频繁，请稍等一会儿再试。你写下的内容仍保留在当前页面。",
+    }))) return;
     const { data: comment, error } = await supabase
       .from("community_comments")
       .insert({
@@ -105,3 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: message });
   }
 }
+
+export const config = {
+  api: { bodyParser: { sizeLimit: "8kb" } },
+};

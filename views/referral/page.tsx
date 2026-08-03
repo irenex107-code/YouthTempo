@@ -287,8 +287,8 @@ export default function ReferralPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "AI request failed");
       setAiResult(data);
-    } catch {
-      setError("暂时无法生成回应，请稍后再试。");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "暂时无法生成回应，请稍后再试。");
     } finally {
       setLoading(false);
     }

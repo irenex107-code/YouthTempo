@@ -206,4 +206,39 @@ test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校
       fixture.records.studentTwo.id,
     ]);
   });
+
+  await test.step("用户不能通过 Data API 篡改自己的学校归属", async () => {
+    const { data: before, error: beforeError } = await studentOne.supabase
+      .from("profiles")
+      .select("school_id")
+      .eq("id", studentOne.userId)
+      .single();
+    expect(beforeError).toBeNull();
+    expect(before?.school_id).toBe(fixture.schools.a.id);
+
+    const { data: unchanged, error: unchangedError } = await studentOne.supabase
+      .from("profiles")
+      .update({ school_id: fixture.schools.a.id })
+      .eq("id", studentOne.userId)
+      .select("school_id")
+      .single();
+    expect(unchangedError).toBeNull();
+    expect(unchanged?.school_id).toBe(fixture.schools.a.id);
+
+    const { data: changed, error: changeError } = await studentOne.supabase
+      .from("profiles")
+      .update({ school_id: fixture.schools.b.id })
+      .eq("id", studentOne.userId)
+      .select("school_id");
+    expect(changeError).not.toBeNull();
+    expect(changed).toBeNull();
+
+    const { data: after, error: afterError } = await studentOne.supabase
+      .from("profiles")
+      .select("school_id")
+      .eq("id", studentOne.userId)
+      .single();
+    expect(afterError).toBeNull();
+    expect(after?.school_id).toBe(fixture.schools.a.id);
+  });
 });

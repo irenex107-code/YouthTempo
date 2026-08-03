@@ -9,6 +9,7 @@ import {
   normalizeRoleList,
 } from "@/lib/community";
 import { moderateCommunityContent } from "@/lib/messageSafety";
+import { enforceUserRateLimit } from "@/lib/rateLimit";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "DELETE"].includes(req.method || "")) {
@@ -86,6 +87,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (moderation.status === "blocked") {
         return res.status(422).json({ error: moderation.reason, blocked: true });
       }
+      if (!(await enforceUserRateLimit({
+        supabase,
+        userId: user.id,
+        action: "community_post_create",
+        limit: 5,
+        windowSeconds: 10 * 60,
+        res,
+        message: "发布得有些频繁，请稍等一会儿再发。你写下的内容仍保留在当前页面。",
+      }))) return;
 
       const { data: post, error } = await supabase
         .from("community_posts")
@@ -220,3 +230,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: message });
   }
 }
+
+export const config = {
+  api: { bodyParser: { sizeLimit: "16kb" } },
+};

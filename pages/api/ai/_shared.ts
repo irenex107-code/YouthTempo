@@ -1,9 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { enforceAiRateLimit } from "@/lib/rateLimit";
+import { getSupabaseAdmin } from "@/lib/supabaseServer";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 const baseUrl = (process.env.OPENAI_BASE_URL || "https://api.openai.com").replace(/\/+$/, "");
+const maxInputCharacters = 20_000;
+
+class AiInputTooLargeError extends Error {}
+
+function requestTimeoutMs() {
+  const configured = Number(process.env.AI_REQUEST_TIMEOUT_MS || 20_000);
+  return Number.isFinite(configured) ? Math.min(60_000, Math.max(5_000, configured)) : 20_000;
+}
 
 export function requirePost(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") return true;
@@ -18,6 +28,23 @@ export function missing(res: NextApiResponse, message = "请先完成必要问�
 
 export function shortText(value: unknown, fallback: string) {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+export function requireAiInputSize(req: NextApiRequest, res: NextApiResponse) {
+  const serializedBody = JSON.stringify(req.body || {});
+  if (serializedBody.length <= maxInputCharacters) return true;
+  res.status(413).json({ error: "填写的内容有些长，请精简后再生成。" });
+  return false;
+}
+
+export async function requireAiRateLimit(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    return await enforceAiRateLimit(req, res, getSupabaseAdmin());
+  } catch (error) {
+    console.error("AI rate limit check failed", error);
+    res.status(503).json({ error: "生成服务暂时不可用，请稍后再试。" });
+    return false;
+  }
 }
 
 export async function generateJson<T extends JsonValue>({
@@ -45,7 +72,11 @@ export async function generateJson<T extends JsonValue>({
     "",
     "【输出】每个字段只完成一个任务，通常一句，最多两句。先说用户此刻最需要知道的内容，再给一个能执行的小动作；不堆砌、不重复、不使用报告式小结。严格只返回 JSON，不要使用 Markdown，不要加 ``` 代码块围栏，不要在 JSON 之外写任何说明文字。",
   ].join("\n");
-  const userMessage = `${task}\n\n请严格返回 JSON，不要返回 Markdown。\nJSON 字段要求：${schema}\n\n用户输入：${JSON.stringify(input)}`;
+  const serializedInput = JSON.stringify(input);
+  if (serializedInput.length > maxInputCharacters) {
+    throw new AiInputTooLargeError("AI input is too large.");
+  }
+  const userMessage = `${task}\n\n请严格返回 JSON，不要返回 Markdown。\nJSON 字段要求：${schema}\n\n用户输入：${serializedInput}`;
 
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -69,6 +100,7 @@ export async function generateJson<T extends JsonValue>({
             },
           ],
         }),
+        signal: AbortSignal.timeout(requestTimeoutMs()),
       });
     } catch (error) {
       lastError = error;
@@ -77,7 +109,7 @@ export async function generateJson<T extends JsonValue>({
     }
 
     if (!response.ok) {
-      const text = await response.text();
+      const text = (await response.text()).slice(0, 500);
       lastError = new Error(`OpenAI request failed: ${response.status} ${text}`);
       if (attempt === 0 && (response.status === 429 || response.status >= 500)) continue;
       throw lastError;
@@ -107,6 +139,14 @@ export async function generateJson<T extends JsonValue>({
   throw lastError instanceof Error ? lastError : new Error("OpenAI response was not valid JSON.");
 }
 
-export function fail(res: NextApiResponse) {
+export function fail(res: NextApiResponse, error?: unknown) {
+  if (error instanceof AiInputTooLargeError) {
+    res.status(413).json({ error: "填写的内容有些长，请精简后再生成。" });
+    return;
+  }
+  if (error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name)) {
+    res.status(504).json({ error: "生成等待时间有些长，请稍后再试。" });
+    return;
+  }
   res.status(500).json({ error: "暂时无法生成回应，请稍后再试。" });
 }
