@@ -118,6 +118,7 @@ export default function CheckInPage() {
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sensitiveConsentAccepted, setSensitiveConsentAccepted] = useState(false);
   const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
@@ -165,6 +166,7 @@ export default function CheckInPage() {
     setValidation("");
     setSaveStatus("");
     setSavedRecordKey("");
+    setSensitiveConsentAccepted(false);
     setAiResult(null);
   }
 
@@ -271,6 +273,7 @@ export default function CheckInPage() {
   async function requestSummary(): Promise<AiResult> {
     const payload = {
       currentDate: new Date().toISOString(),
+      sensitiveConsentAccepted,
       records: getRecordPayload().map((item) => ({ ...item, dimension: `${item.label} ${item.title}` })),
     };
     const response = await fetch("/api/ai/check-in", {
@@ -473,6 +476,13 @@ export default function CheckInPage() {
 
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
 
+              {currentStep === steps.length - 1 ? (
+                <label className="mt-7 flex items-start gap-3 rounded-2xl border border-sage/25 bg-mist/60 px-4 py-4 text-sm leading-6 text-muted">
+                  <input type="checkbox" className="mt-1" checked={sensitiveConsentAccepted} onChange={(event) => setSensitiveConsentAccepted(event.target.checked)} />
+                  <span>我知道本次 SWEET 回答会发送给 AI 生成小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次回应而处理这些内容。<Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">查看说明</Link></span>
+                </label>
+              ) : null}
+
               <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
                 <button type="button" className="button-secondary w-full sm:w-auto" disabled={currentStep === 0} onClick={() => goToStep(currentStep - 1)}>
                   上一步
@@ -482,7 +492,7 @@ export default function CheckInPage() {
                     下一步
                   </button>
                 ) : (
-                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading || saving} onClick={generateAndSave}>
+                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || !sensitiveConsentAccepted || loading || saving} onClick={generateAndSave}>
                     {loading || saving ? "正在生成并保存..." : "生成小结并保存"}
                   </button>
                 )}

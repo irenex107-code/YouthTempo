@@ -45,11 +45,14 @@ function compactRecords(records: unknown[]) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!requirePost(req, res)) return;
-  const { records, currentDate } = req.body || {};
+  const { records, currentDate, sensitiveConsentAccepted } = req.body || {};
   if (!Array.isArray(records) || records.length < 5 || records.some((record) => !Array.isArray(record?.fields))) {
     return missing(res);
   }
   if (!requireAiInputSize(req, res)) return;
+  if (sensitiveConsentAccepted !== true) {
+    return res.status(400).json({ error: "请先阅读并确认本次 AI 处理说明。" });
+  }
   if (!(await requireAiRateLimit(req, res))) return;
 
   try {

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { moderateStudentMessage } from "@/lib/messageSafety";
+import { requireActiveStudentConsent } from "@/lib/studentConsent";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "PATCH"].includes(req.method || "")) {
@@ -14,6 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const supabase = getSupabaseAdmin();
 
     if (req.method === "POST") {
+      await requireActiveStudentConsent(supabase, user.id);
       const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
       const recipientType = req.body?.recipientType;
       const requestedRecipientId =
@@ -162,6 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "留言服务暂时不可用。";
-    return res.status(500).json({ error: message });
+    const statusCode = error && typeof error === "object" && "statusCode" in error ? Number(error.statusCode) : 500;
+    return res.status(statusCode).json({ error: message });
   }
 }

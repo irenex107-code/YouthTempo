@@ -17,6 +17,13 @@ const accountPlan = [
   ["删除记录", "学生可以在“账号”中删除自己保存的 SWEET 记录。"],
 ];
 
+const consentSteps = [
+  ["学生先确认", "学生阅读数据范围、用途、可见角色和撤回方式，只选择年龄范围，不填写具体生日。"],
+  ["监护人再确认", "14–17 岁学生参加学校试点时，由学校已确认关联的监护人在自己的账户中完成确认。"],
+  ["敏感处理单独提示", "生成 AI 小结前会再次提示本次回答可能包含敏感生活与健康信息，由用户主动勾选。"],
+  ["随时可以撤回", "学生或监护人可在账户页撤回；撤回后停止新的云端记录、留言和社区发布。"],
+];
+
 const dataTypes = [
   ["SWEET 节律记录", "睡眠、起床、饮食、运动、任务参与等日常节律信息。"],
   ["账号资料", "邮箱、显示名称和用户选择的身份，用于登录和区分支持角色。"],
@@ -81,6 +88,32 @@ export default function PrivacySafetyPage() {
               <InfoCard key={title} title={title}>{text}</InfoCard>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section id="student-consent" className="section section-muted scroll-mt-24">
+        <div className="container">
+          <SectionHeader
+            title="未成年人及监护人知情同意"
+            description="YouthTempo 当前试点面向 14–18 岁在校青少年。学生本人需要清楚知道数据如何使用；14–17 岁学校试点学生还需要已核验监护人确认。"
+          />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {consentSteps.map(([title, text]) => <InfoCard key={title} title={title}>{text}</InfoCard>)}
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-sage/20 bg-white/80 px-5 py-5 text-sm leading-7 text-muted">
+              <p className="font-bold text-ink">同意覆盖什么</p>
+              <p className="mt-2">账号资料、SWEET 日常节律回答、AI 生成小结、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。</p>
+            </div>
+            <div className="rounded-2xl border border-sage/20 bg-white/80 px-5 py-5 text-sm leading-7 text-muted">
+              <p className="font-bold text-ink">撤回后会怎样</p>
+              <p className="mt-2">撤回不影响紧急帮助、公开安全说明和查看自己已有内容；系统会停止新的敏感数据处理。已有数据的删除、导出与保存期限在下一项账户数据规则中进一步明确。</p>
+            </div>
+          </div>
+          <p className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
+            法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是更严格的产品准入规则。查看
+            <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMi9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>。
+          </p>
         </div>
       </section>
 

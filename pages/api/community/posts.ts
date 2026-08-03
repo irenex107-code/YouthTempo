@@ -10,6 +10,7 @@ import {
 } from "@/lib/community";
 import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
+import { requireActiveStudentConsent } from "@/lib/studentConsent";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "DELETE"].includes(req.method || "")) {
@@ -60,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === "POST") {
+      await requireActiveStudentConsent(supabase, user.id);
       const activeMute = await getActiveCommunityMute(supabase, user.id);
       if (activeMute) {
         return res.status(403).json({
@@ -227,7 +229,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "社区暂时不可用。";
-    return res.status(500).json({ error: message });
+    const statusCode = error && typeof error === "object" && "statusCode" in error ? Number(error.statusCode) : 500;
+    return res.status(statusCode).json({ error: message });
   }
 }
 

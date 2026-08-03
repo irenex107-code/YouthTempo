@@ -130,6 +130,26 @@ export type AccountStatus = {
   inviteSyncError?: string | null;
 };
 
+export type StudentConsentSummary = {
+  studentUserId: string;
+  studentName: string;
+  ageBand: "under_14" | "14_17" | "18_plus" | null;
+  policyVersion: string;
+  status: "not_started" | "pending_guardian" | "active" | "withdrawn" | "ineligible";
+  studentAssentedAt: string | null;
+  guardianUserId: string | null;
+  guardianConsentedAt: string | null;
+  withdrawnAt: string | null;
+  hasLinkedGuardian: boolean;
+};
+
+export type StudentConsentResponse = {
+  role: "student" | "guardian" | "other";
+  policyVersion: string;
+  consent: StudentConsentSummary | null;
+  children: StudentConsentSummary[];
+};
+
 function normalizeRole(role?: string | null): UserRole {
   if (role === "专业支持者") return "专业支持者";
   if (role === "家长" || role === "支持者") return "家长";
@@ -240,6 +260,52 @@ export async function getAccountStatus() {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "账户身份加载失败。");
   return data as AccountStatus;
+}
+
+export async function getStudentConsentStatus() {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/consent", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "知情同意状态加载失败。");
+  return data as StudentConsentResponse;
+}
+
+export async function submitStudentAssent(ageBand: "under_14" | "14_17" | "18_plus") {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/consent", {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ action: "student_assent", ageBand }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "学生确认提交失败。");
+  return data as StudentConsentResponse;
+}
+
+export async function submitGuardianConsent(studentUserId: string) {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/consent", {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ action: "guardian_consent", studentUserId }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "监护人确认提交失败。");
+  return data as StudentConsentResponse;
+}
+
+export async function withdrawStudentConsent(studentUserId?: string) {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/consent", {
+    method: "DELETE",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ studentUserId }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "撤回确认失败。");
+  return data as StudentConsentResponse;
 }
 
 export async function listStudentMessages() {
@@ -432,6 +498,12 @@ export async function saveCloudSweetRecord(record: {
   const user = await getCurrentUser();
   if (!user) throw new Error("请先登录，再保存到云端记录。");
   const profile = await getProfile(user);
+  if (profile?.role === "学生") {
+    const consent = await getStudentConsentStatus();
+    if (consent.consent?.status !== "active") {
+      throw new Error("请先在账户页完成学生确认和监护人知情同意，再保存记录。");
+    }
+  }
   const { data: latestRecord, error: latestError } = await supabase
     .from("sweet_records")
     .select("id,user_id,school_id,records,summary,small_step,recommended_next_tool,created_at")

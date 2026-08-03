@@ -6,6 +6,7 @@ import {
   AccountStatus,
   CloudProfile,
   CloudSweetRecord,
+  StudentConsentResponse,
   WechatBindSession,
   WechatIdentity,
   checkWechatBindSession,
@@ -14,13 +15,17 @@ import {
   getAccountStatus,
   getCurrentUser,
   getProfile,
+  getStudentConsentStatus,
   handleAuthRedirect,
   listCloudSweetRecords,
   listWechatIdentities,
   saveProfile,
   sendEmailOtp,
   signOut,
+  submitGuardianConsent,
+  submitStudentAssent,
   verifyEmailOtp,
+  withdrawStudentConsent,
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { rhythmOverview } from "@/lib/rhythmInsights";
@@ -131,6 +136,10 @@ export default function AccountPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [selectedRelatedUserId, setSelectedRelatedUserId] = useState("");
+  const [consentStatus, setConsentStatus] = useState<StudentConsentResponse | null>(null);
+  const [consentLoading, setConsentLoading] = useState(false);
+  const [ageBand, setAgeBand] = useState<"under_14" | "14_17" | "18_plus">("14_17");
+  const [consentRead, setConsentRead] = useState(false);
 
   const isIdentityLoading = Boolean(user && identityChecking);
   const displayRole = isIdentityLoading ? "正在确认" : accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
@@ -182,6 +191,7 @@ export default function AccountPage() {
         setAccountStatus(null);
         setRecords([]);
         setWechatIdentities([]);
+        setConsentStatus(null);
         setNotice("登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。");
         return;
       }
@@ -199,6 +209,7 @@ export default function AccountPage() {
       setAccountStatus(null);
       setRecords([]);
       setWechatIdentities([]);
+      setConsentStatus(null);
       setAccountTab("profile");
 
       let nextAccountStatus: AccountStatus | null = null;
@@ -222,7 +233,7 @@ export default function AccountPage() {
         }
       }
 
-      const [nextRecords, nextWechatIdentities] = await Promise.all([
+      const [nextRecords, nextWechatIdentities, nextConsentStatus] = await Promise.all([
         listCloudSweetRecords().catch((recordsError) => {
           console.warn("Cloud records failed", recordsError);
           nonFatalNotice = nonFatalNotice || "记录暂时没有加载出来，请稍后刷新。";
@@ -232,6 +243,10 @@ export default function AccountPage() {
           console.warn("Wechat identities failed", wechatError);
           return [] as WechatIdentity[];
         }),
+        getStudentConsentStatus().catch((consentError) => {
+          console.warn("Student consent status failed", consentError);
+          return null;
+        }),
       ]);
 
       setAccountStatus(nextAccountStatus);
@@ -240,6 +255,7 @@ export default function AccountPage() {
       setRole(profileRoleLabel(nextProfile?.role));
       setRecords(nextRecords);
       setWechatIdentities(nextWechatIdentities);
+      setConsentStatus(nextConsentStatus);
       if (nextAccountStatus?.inviteSyncError) {
         setNotice("账户身份已加载，但学校邀请同步需要稍后再试。");
       } else if (nonFatalNotice) {
@@ -399,8 +415,51 @@ export default function AccountPage() {
     setWechatBindSession(null);
     setWechatStatus("");
     setAccountStatus(null);
+    setConsentStatus(null);
     setAccountTab("profile");
     await refreshAccount();
+  }
+
+  async function handleStudentAssent() {
+    setConsentLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      setConsentStatus(await submitStudentAssent(ageBand));
+      setNotice(ageBand === "under_14" ? "当前试点暂不接收 14 岁以下学生，请联系学校负责人。" : ageBand === "18_plus" ? "知情确认已完成。" : "学生确认已记录，下一步请已关联的监护人登录完成确认。");
+    } catch (consentError) {
+      setError(consentError instanceof Error ? consentError.message : "学生确认提交失败。");
+    } finally {
+      setConsentLoading(false);
+    }
+  }
+
+  async function handleGuardianConsent(studentUserId: string) {
+    setConsentLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      setConsentStatus(await submitGuardianConsent(studentUserId));
+      setNotice("监护人确认已记录，孩子可以使用云端保存和社区发布功能。");
+    } catch (consentError) {
+      setError(consentError instanceof Error ? consentError.message : "监护人确认提交失败。");
+    } finally {
+      setConsentLoading(false);
+    }
+  }
+
+  async function handleWithdrawConsent(studentUserId?: string) {
+    setConsentLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      setConsentStatus(await withdrawStudentConsent(studentUserId));
+      setNotice("确认已撤回。新的云端记录、留言和社区发布已停止；已有数据将按保存与删除规则另行处理。");
+    } catch (consentError) {
+      setError(consentError instanceof Error ? consentError.message : "撤回确认失败。");
+    } finally {
+      setConsentLoading(false);
+    }
   }
 
   async function handleCreateWechatBindSession() {
@@ -620,6 +679,73 @@ export default function AccountPage() {
               )}
             </div>
           </section>
+
+          {!needsPersonalProfile && consentStatus && ["student", "guardian"].includes(consentStatus.role) ? (
+            <section className="px-4 pb-2 pt-6 sm:px-8 lg:px-12">
+              <div className="container">
+                <div className="rounded-2xl border border-sage/25 bg-mist/55 p-5 shadow-soft sm:p-7">
+                  <p className="eyebrow">试点知情同意</p>
+                  <h2 className="mt-2 text-2xl font-bold text-ink">学生本人和监护人都清楚数据如何使用</h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
+                    SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和学校支持，不用于广告或公开展示；学生或监护人可随时撤回。完整说明见
+                    <Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">隐私与安全</Link>。
+                  </p>
+
+                  {consentStatus.role === "student" && consentStatus.consent ? (
+                    <div className="mt-6 rounded-2xl bg-white/85 p-5">
+                      {consentStatus.consent.status === "active" ? (
+                        <>
+                          <p className="font-bold text-sage-dark">已完成知情确认</p>
+                          <p className="mt-2 text-sm leading-6 text-muted">当前版本：{consentStatus.policyVersion}。可以保存 SWEET 记录、发送留言和参与社区发布。</p>
+                          <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>撤回确认</button>
+                        </>
+                      ) : consentStatus.consent.status === "pending_guardian" ? (
+                        <>
+                          <p className="font-bold text-ink">学生确认已完成，等待监护人确认</p>
+                          <p className="mt-2 text-sm leading-6 text-muted">{consentStatus.consent.hasLinkedGuardian ? "请已关联家长登录自己的账户完成确认。" : "当前还没有学校确认的监护人关联，请联系学校负责人。"}</p>
+                          <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>撤回学生确认</button>
+                        </>
+                      ) : (
+                        <>
+                          {consentStatus.consent.status === "ineligible" ? <p className="mb-4 rounded-xl bg-cream px-4 py-3 text-sm font-bold text-sage-dark">当前试点面向 14–18 岁在校青少年。14 岁以下请由监护人联系学校负责人。</p> : null}
+                          <label className="grid max-w-md gap-2 text-sm font-bold text-ink">
+                            你的年龄范围（不收集具体生日）
+                            <select className="rounded-xl border border-ink/15 bg-white px-4 py-3" value={ageBand} onChange={(event) => setAgeBand(event.target.value as typeof ageBand)}>
+                              <option value="14_17">14–17 岁</option>
+                              <option value="18_plus">已满 18 岁</option>
+                              <option value="under_14">未满 14 岁</option>
+                            </select>
+                          </label>
+                          <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-muted">
+                            <input type="checkbox" className="mt-1" checked={consentRead} onChange={(event) => setConsentRead(event.target.checked)} />
+                            <span>我已阅读说明，理解会处理哪些信息、用途、谁能查看以及如何撤回，并自愿确认。</span>
+                          </label>
+                          <button type="button" className="button-primary mt-4 disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={consentLoading || !consentRead} onClick={handleStudentAssent}>{consentLoading ? "正在提交…" : "完成学生确认"}</button>
+                        </>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {consentStatus.role === "guardian" ? (
+                    <div className="mt-6 grid gap-4">
+                      {consentStatus.children.length ? consentStatus.children.map((child) => (
+                        <div key={child.studentUserId} className="rounded-2xl bg-white/85 p-5">
+                          <p className="font-bold text-ink">{child.studentName}</p>
+                          {child.status === "active" ? (
+                            <><p className="mt-2 text-sm text-muted">学生与监护人确认均已完成。</p><button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent(child.studentUserId)}>撤回监护人确认</button></>
+                          ) : child.status === "pending_guardian" ? (
+                            <><p className="mt-2 text-sm leading-6 text-muted">孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。</p><button type="button" className="button-primary mt-4" disabled={consentLoading} onClick={() => handleGuardianConsent(child.studentUserId)}>{consentLoading ? "正在提交…" : "同意孩子参加试点"}</button></>
+                          ) : (
+                            <p className="mt-2 text-sm text-muted">等待孩子先登录自己的账户阅读说明并完成学生确认。</p>
+                          )}
+                        </div>
+                      )) : <p className="rounded-xl bg-white/80 px-4 py-3 text-sm text-muted">尚未关联孩子。亲子关系需由学校负责人确认。</p>}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           {!needsPersonalProfile ? <section className="px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
             <div className="container">

@@ -26,6 +26,19 @@ async function studentSession() {
   return { supabase, session: data.session, userId: data.user.id };
 }
 
+async function guardianSession() {
+  if (!password) throw new Error("缺少 E2E_PERMISSION_TEST_PASSWORD");
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: fixture.users.guardianOne.email,
+    password,
+  });
+  if (error || !data.session || !data.user) throw error || new Error("无法登录 SWEET 生命周期虚拟家长");
+  return { session: data.session };
+}
+
 async function findRecordByMarker(supabase: SupabaseClient, userId: string, marker: string) {
   const { data, error } = await supabase
     .from("sweet_records")
@@ -44,13 +57,25 @@ async function cleanupMarker(supabase: SupabaseClient, userId: string, marker: s
   if (error) throw error;
 }
 
-test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录", async ({ page }, testInfo) => {
+test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录", async ({ page, request }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "完整数据流程与视口无关，无需重复执行");
   test.skip(!password, "需要先初始化虚拟账号并配置 E2E_PERMISSION_TEST_PASSWORD");
   test.setTimeout(120_000);
 
   const { supabase, session, userId } = await studentSession();
+  const guardian = await guardianSession();
   const marker = `[E2E-LIFECYCLE] ${Date.now()}`;
+
+  const studentHeaders = { Authorization: `Bearer ${session.access_token}` };
+  const guardianHeaders = { Authorization: `Bearer ${guardian.session.access_token}` };
+  expect((await request.post("/api/account/consent", {
+    headers: studentHeaders,
+    data: { action: "student_assent", ageBand: "14_17" },
+  })).status()).toBe(200);
+  expect((await request.post("/api/account/consent", {
+    headers: guardianHeaders,
+    data: { action: "guardian_consent", studentUserId: userId },
+  })).status()).toBe(200);
 
   await page.addInitScript(
     ({ key, value }: { key: string; value: Session }) => {
@@ -77,6 +102,7 @@ test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录
     await page.getByRole("button", { name: "下一步", exact: true }).click();
 
     await page.getByRole("button", { name: "能完成基本任务", exact: true }).click();
+    await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "生成小结并保存", exact: true }).click();
 
     await expect(page.getByRole("heading", { name: "今日 SWEET 节律小结" })).toBeVisible({
@@ -101,5 +127,6 @@ test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录
     expect(await findRecordByMarker(supabase, userId, marker)).toBeNull();
   } finally {
     await cleanupMarker(supabase, userId, marker);
+    await request.delete("/api/account/consent", { headers: studentHeaders });
   }
 });
