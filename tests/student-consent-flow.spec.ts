@@ -34,12 +34,25 @@ test("14–17 岁学生与已关联监护人完成双向确认并可撤回", asy
   ]);
   const initial = await consentStatus(request, student.accessToken);
   const initiallyActive = initial.consent?.status === "active";
+  const directClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: auth(student.accessToken) },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const recordMarker = `[E2E-CONSENT] ${Date.now()}`;
+  let createdRecordId = "";
 
   try {
     if (initial.consent?.status && initial.consent.status !== "not_started") {
       const withdraw = await request.delete("/api/account/consent", { headers: auth(student.accessToken) });
       expect(withdraw.status()).toBe(200);
     }
+
+    const { error: blockedRecordError } = await directClient.from("sweet_records").insert({
+      user_id: student.userId,
+      school_id: null,
+      records: [{ id: "consent-test", fields: [{ id: "marker", value: recordMarker }] }],
+    });
+    expect(blockedRecordError?.message).toContain("student_consent_required");
 
     const studentAssent = await request.post("/api/account/consent", {
       headers: auth(student.accessToken),
@@ -68,12 +81,17 @@ test("14–17 岁学生与已关联监护人完成双向确认并可撤回", asy
     });
     expect(passedConsentGate.status()).toBe(400);
 
-    const directClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: auth(student.accessToken) },
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
     const { error: directReadError } = await directClient.from("student_consents").select("student_user_id").limit(1);
     expect(directReadError).not.toBeNull();
+
+    const { data: allowedRecord, error: allowedRecordError } = await directClient.from("sweet_records").insert({
+      user_id: student.userId,
+      school_id: null,
+      records: [{ id: "consent-test", fields: [{ id: "marker", value: recordMarker }] }],
+    }).select("id").single();
+    expect(allowedRecordError).toBeNull();
+    expect(allowedRecord?.id).toBeTruthy();
+    createdRecordId = allowedRecord?.id || "";
 
     const withdraw = await request.delete("/api/account/consent", {
       headers: auth(guardian.accessToken),
@@ -82,7 +100,15 @@ test("14–17 岁学生与已关联监护人完成双向确认并可撤回", asy
     expect(withdraw.status()).toBe(200);
     const withdrawnChild = (await withdraw.json()).children.find((item: { studentUserId: string }) => item.studentUserId === student.userId);
     expect(withdrawnChild?.status).toBe("withdrawn");
+
+    const { error: blockedAfterWithdrawError } = await directClient.from("sweet_records").insert({
+      user_id: student.userId,
+      school_id: null,
+      records: [{ id: "consent-test-after-withdraw", fields: [{ id: "marker", value: recordMarker }] }],
+    });
+    expect(blockedAfterWithdrawError?.message).toContain("student_consent_required");
   } finally {
+    if (createdRecordId) await directClient.from("sweet_records").delete().eq("id", createdRecordId);
     if (initiallyActive) {
       await request.post("/api/account/consent", {
         headers: auth(student.accessToken),
