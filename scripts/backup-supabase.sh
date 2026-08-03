@@ -23,10 +23,14 @@ timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 backup_dir="${backup_root%/}/${timestamp}"
 mkdir -p "$backup_dir"
 
-cli=(pnpm dlx supabase@2.53.6 db dump --db-url "$SUPABASE_DB_URL")
+cli_version="${SUPABASE_CLI_VERSION:-2.111.0}"
+cli=(pnpm dlx "supabase@${cli_version}" db dump --db-url "$SUPABASE_DB_URL")
 "${cli[@]}" --role-only --file "$backup_dir/roles.sql"
 "${cli[@]}" --file "$backup_dir/schema.sql"
-"${cli[@]}" --data-only --use-copy --file "$backup_dir/data.sql"
+"${cli[@]}" --data-only --use-copy \
+  --exclude storage.buckets_vectors \
+  --exclude storage.vector_indexes \
+  --file "$backup_dir/data.sql"
 
 (
   cd "$backup_dir"
@@ -36,7 +40,7 @@ cli=(pnpm dlx supabase@2.53.6 db dump --db-url "$SUPABASE_DB_URL")
 cat > "$backup_dir/metadata.txt" <<EOF
 created_at_utc=$timestamp
 source_project_ref=saqkzfsmabsgbwdvuras
-cli_version=2.53.6
+cli_version=$cli_version
 format=roles-schema-data-sql
 EOF
 

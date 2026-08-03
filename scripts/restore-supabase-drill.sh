@@ -2,6 +2,7 @@
 set -euo pipefail
 
 production_ref="saqkzfsmabsgbwdvuras"
+recovery_ref="sebtakwjwubvdqdswtdi"
 backup_dir="${1:-}"
 
 if [[ -z "$backup_dir" || ! -d "$backup_dir" ]]; then
@@ -14,6 +15,10 @@ if [[ -z "${RESTORE_TARGET_DB_URL:-}" ]]; then
 fi
 if [[ "$RESTORE_TARGET_DB_URL" == *"$production_ref"* ]]; then
   echo "拒绝操作：恢复演练目标指向 YouthTempo 正式 Supabase。" >&2
+  exit 1
+fi
+if [[ "$RESTORE_TARGET_DB_URL" != *"$recovery_ref"* ]]; then
+  echo "拒绝操作：恢复演练仅允许指向已登记的隔离项目 $recovery_ref。" >&2
   exit 1
 fi
 if [[ "${ALLOW_EMPTY_RESTORE_TARGET:-}" != "I_HAVE_VERIFIED_THIS_IS_DISPOSABLE" ]]; then
@@ -37,9 +42,14 @@ done
   shasum -a 256 -c SHA256SUMS
 )
 
-psql "$RESTORE_TARGET_DB_URL" --set ON_ERROR_STOP=on --single-transaction --file "$backup_dir/roles.sql"
-psql "$RESTORE_TARGET_DB_URL" --set ON_ERROR_STOP=on --single-transaction --file "$backup_dir/schema.sql"
-psql "$RESTORE_TARGET_DB_URL" --set ON_ERROR_STOP=on --single-transaction --file "$backup_dir/data.sql"
+psql \
+  --dbname "$RESTORE_TARGET_DB_URL" \
+  --variable ON_ERROR_STOP=1 \
+  --single-transaction \
+  --file "$backup_dir/roles.sql" \
+  --file "$backup_dir/schema.sql" \
+  --command 'SET session_replication_role = replica' \
+  --file "$backup_dir/data.sql"
 
 psql "$RESTORE_TARGET_DB_URL" --set ON_ERROR_STOP=on --tuples-only --command \
   "select 'schools=' || count(*) from public.schools union all select 'profiles=' || count(*) from public.profiles union all select 'sweet_records=' || count(*) from public.sweet_records;"
