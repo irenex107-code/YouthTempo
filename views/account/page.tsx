@@ -31,6 +31,11 @@ import {
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
+import {
+  emailOtpLength,
+  otpRequestErrorMessage,
+  otpVerificationErrorMessage,
+} from "@/lib/emailOtp";
 import { rhythmOverview } from "@/lib/rhythmInsights";
 
 function formatDate(value: string) {
@@ -91,15 +96,6 @@ function emptyRecordsDescription(role: string) {
   if (role === "支持老师") return "学校负责人分配学生后，这里会显示你负责学生的记录。";
   if (role === "学校负责人") return "本校学生保存 SWEET 记录后，会显示在这里。";
   return "保存记录后，会显示在这里。";
-}
-
-function otpErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : "验证码验证失败。";
-  const lower = message.toLowerCase();
-  if (lower.includes("token") || lower.includes("otp") || lower.includes("invalid") || lower.includes("expired")) {
-    return "验证码不正确或已过期，请重新输入，或重新发送。";
-  }
-  return message || "验证码验证失败，请稍后重试。";
 }
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
@@ -340,7 +336,7 @@ export default function AccountPage() {
       setNotice("验证码已发送。请查看邮箱。");
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_send", loginError);
-      setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
+      setError(otpRequestErrorMessage(loginError));
     } finally {
       otpRequestInFlight.current = false;
       setAuthLoading(false);
@@ -351,8 +347,8 @@ export default function AccountPage() {
     event.preventDefault();
     setNotice("");
     setError("");
-    if (otp.trim().length < 8) {
-      setError("请输入完整的 8 位验证码。");
+    if (otp.trim().length !== emailOtpLength) {
+      setError(`请输入完整的 ${emailOtpLength} 位验证码。`);
       return;
     }
     setAuthLoading(true);
@@ -364,7 +360,7 @@ export default function AccountPage() {
       await refreshAccount();
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_verify", loginError);
-      setError(otpErrorMessage(loginError));
+      setError(otpVerificationErrorMessage(loginError));
     } finally {
       setAuthLoading(false);
     }
@@ -383,7 +379,7 @@ export default function AccountPage() {
       setNotice("新的验证码已发送。");
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_send", loginError);
-      setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
+      setError(otpRequestErrorMessage(loginError));
     } finally {
       otpRequestInFlight.current = false;
       setAuthLoading(false);
@@ -560,7 +556,7 @@ export default function AccountPage() {
             <div className="w-full rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft sm:p-7 lg:max-w-lg lg:justify-self-end">
               <p className="eyebrow">{otpSent ? "验证码已发送" : "邮箱登录"}</p>
               <h2 className="mt-2 text-[1.45rem] font-bold leading-tight text-ink sm:text-[1.7rem]">
-                {otpSent ? "输入 8 位验证码" : "欢迎回来"}
+                {otpSent ? `输入 ${emailOtpLength} 位验证码` : "欢迎回来"}
               </h2>
 
               {!isSupabaseConfigured() ? (
@@ -578,6 +574,7 @@ export default function AccountPage() {
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="name@example.com"
                       type="email"
+                      autoComplete="email"
                       disabled={otpSent || authLoading}
                     />
                   </label>
@@ -587,8 +584,9 @@ export default function AccountPage() {
                       <input
                         className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-center text-lg font-bold tracking-[0.22em] outline-none transition focus:border-sage focus:ring-4 focus:ring-sage/10"
                         value={otp}
-                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 8))}
+                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, emailOtpLength))}
                         placeholder="12345678"
+                        maxLength={emailOtpLength}
                         inputMode="numeric"
                         autoComplete="one-time-code"
                       />
