@@ -42,7 +42,7 @@ baseline migration 用来从空项目重建数据库结构、函数、索引、R
 - 已验证文件：`supabase/baseline/20260803143336_youthtempo_baseline_20260803.sql`
 - 验证日期：2026-08-03
 - 隔离项目：`YouthTempo Recovery Drill`（`sebtakwjwubvdqdswtdi`，新加坡，`$0/月`）
-- 验证结果：25 张业务表、30 条 RLS policy、94 个索引、核心限流/审核/学校退出函数及每日清理任务均成功创建；所有业务表初始为空。
+- 验证结果：25 张业务表、30 条 RLS policy、94 个索引、核心限流/审核/学校退出函数及每日清理任务均成功创建；除两条平台管理员引导角色外，不包含业务数据或 Auth 用户。
 - 后续要求：每次正式 schema 变更后同步更新 `supabase/schema.sql`；需要重做 baseline 时必须通过 Supabase CLI 生成新文件，并再次在空项目验证。
 
 baseline 已完成空库验证，但只有真实备份数据也能在隔离环境恢复并通过应用验收后，才能把数据库备份恢复演练标为完成。
