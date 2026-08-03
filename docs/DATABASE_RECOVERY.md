@@ -6,7 +6,7 @@
 
 正式 Supabase 项目 `saqkzfsmabsgbwdvuras` 当前为 Free 套餐。Free 套餐不提供平台自动每日备份，因此不能把 Dashboard 中的时间点恢复视为已具备能力。试点开始前应建立每日加密导出、异地保存和定期隔离恢复。
 
-当前状态：备份与恢复脚本、校验和及正式库误操作防护已经落库；真实导出和隔离恢复尚未完成。本机还缺 Docker、`psql` 以及数据库连接密码，所以 ROADMAP 中的“数据库备份和恢复演练”不得勾选完成。
+当前状态：备份与恢复脚本、校验和及正式库误操作防护已经落库；baseline 已在独立空白 Supabase 项目验证。真实业务数据导出和隔离恢复尚未完成，本机还缺 Docker、`psql` 以及数据库连接密码，所以 ROADMAP 中的“数据库备份和恢复演练”不得勾选完成。
 
 ## 目标
 
@@ -37,6 +37,14 @@
 
 ## 与 baseline migration 的分工
 
-baseline migration 用来从空项目重建数据库结构、函数、索引、RLS 和权限；数据库备份用来恢复真实业务数据。两者都通过隔离环境验证后，才可以把 ROADMAP 对应事项标为完成。
+baseline migration 用来从空项目重建数据库结构、函数、索引、RLS 和权限；数据库备份用来恢复真实业务数据。
+
+- 已验证文件：`supabase/baseline/20260803143336_youthtempo_baseline_20260803.sql`
+- 验证日期：2026-08-03
+- 隔离项目：`YouthTempo Recovery Drill`（`sebtakwjwubvdqdswtdi`，新加坡，`$0/月`）
+- 验证结果：25 张业务表、30 条 RLS policy、94 个索引、核心限流/审核/学校退出函数及每日清理任务均成功创建；所有业务表初始为空。
+- 后续要求：每次正式 schema 变更后同步更新 `supabase/schema.sql`；需要重做 baseline 时必须通过 Supabase CLI 生成新文件，并再次在空项目验证。
+
+baseline 已完成空库验证，但只有真实备份数据也能在隔离环境恢复并通过应用验收后，才能把数据库备份恢复演练标为完成。
 
 参考：[Supabase Database Backups](https://supabase.com/docs/guides/platform/backups)。

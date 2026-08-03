@@ -68,9 +68,9 @@
 - [x] 客户端不得直接修改 `profiles.school_id`，并覆盖 Data API 字段篡改测试
 - [x] 修复生产依赖安全公告并完成构建与回归测试
 - [x] AI 请求增加上游超时、输入长度上限和明确的限流提示
-- [ ] 建立可从空项目恢复数据库的 Supabase baseline migration（需与真实隔离恢复一起验证，避免改写已应用迁移历史后未经空库演练）
+- [x] 建立可从空项目恢复数据库的 Supabase baseline migration（单文件已在 `$0/月` 新加坡空白项目 `sebtakwjwubvdqdswtdi` 验证：25 张业务表、30 条 RLS policy、94 个索引、核心函数与每日清理任务）
 - [x] 增加 CSP、frame 防护、Referrer Policy 等全站安全响应头（生产环境禁用 `unsafe-eval`，页面与 API 自动化测试通过）
-- [ ] 🟡 CI 覆盖真实权限越权、成员撤销和社区流程测试（工作流与本机正式 Supabase 虚拟数据回归已通过；等待显式授权写入 GitHub Actions Secrets 后启用）
+- [ ] 🟡 CI 覆盖真实权限越权、成员撤销和社区流程测试（GitHub Actions Secrets 已配置，工作流已改为缺少密钥即失败；正在完成首次真实 CI 运行）
 
 ## P1 · 试点体验
 

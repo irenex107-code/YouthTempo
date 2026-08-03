@@ -22,8 +22,8 @@
     "db:backup": "./scripts/backup-supabase.sh",
     "db:restore:drill": "./scripts/restore-supabase-drill.sh",
     "env:check": "node --env-file=.env.local scripts/check-local-env.mjs",
-    "test:fixtures:permissions": "node --env-file=.env.local scripts/setup-permission-test-fixtures.mjs",
-    "test:fixtures:permissions:cleanup": "node --env-file=.env.local scripts/setup-permission-test-fixtures.mjs --cleanup"
+    "test:fixtures:permissions": "node --env-file-if-exists=.env.local scripts/setup-permission-test-fixtures.mjs",
+    "test:fixtures:permissions:cleanup": "node --env-file-if-exists=.env.local scripts/setup-permission-test-fixtures.mjs --cleanup"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.50.0",
