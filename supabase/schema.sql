@@ -1,4 +1,5 @@
 create extension if not exists "pgcrypto";
+create extension if not exists pg_cron with schema pg_catalog;
 
 create table if not exists public.schools (
   id uuid primary key default gen_random_uuid(),
@@ -1012,6 +1013,34 @@ grant all on table public.api_rate_limits to service_role;
 create policy api_rate_limits_server_only on public.api_rate_limits
 for all to authenticated using (false) with check (false);
 create index if not exists api_rate_limits_window_idx on public.api_rate_limits(window_started_at);
+
+create table if not exists public.account_deletion_audits (
+  id uuid primary key default gen_random_uuid(),
+  subject_hash text not null check (subject_hash ~ '^[0-9a-f]{64}$'),
+  email_hash text not null check (email_hash ~ '^[0-9a-f]{64}$'),
+  account_role text not null check (char_length(account_role) between 1 and 50),
+  deletion_summary jsonb not null default '{}'::jsonb,
+  status text not null default 'completed' check (status in ('completed', 'cleanup_required')),
+  completed_at timestamptz not null default now(),
+  expires_at timestamptz not null default (now() + interval '24 months')
+);
+
+alter table public.account_deletion_audits enable row level security;
+revoke all on table public.account_deletion_audits from anon, authenticated;
+grant all on table public.account_deletion_audits to service_role;
+create policy account_deletion_audits_server_only on public.account_deletion_audits
+for all to authenticated using (false) with check (false);
+create index if not exists account_deletion_audits_expires_idx
+on public.account_deletion_audits(expires_at);
+
+grant usage on schema cron to postgres;
+grant all privileges on all tables in schema cron to postgres;
+
+select cron.schedule(
+  'youthtempo-purge-expired-account-deletion-audits',
+  '17 3 * * *',
+  $$delete from public.account_deletion_audits where expires_at <= now()$$
+);
 
 create or replace function public.consume_api_rate_limit(
   p_identifier_hash text,

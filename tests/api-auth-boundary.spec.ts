@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const protectedReads = [
+  "/api/account/data",
   "/api/account/status",
   "/api/admin/overview",
   "/api/admin/schools",
@@ -11,6 +12,13 @@ const protectedReads = [
   "/api/community/reports",
   "/api/messages",
 ];
+
+test("未登录不能注销账号", async ({ request }) => {
+  const response = await request.delete("/api/account/data", {
+    data: { confirmationEmail: "nobody@example.com", acknowledge: true },
+  });
+  expect(response.status()).toBe(401);
+});
 
 for (const path of protectedReads) {
   test(`未登录不能读取 ${path}`, async ({ request }) => {

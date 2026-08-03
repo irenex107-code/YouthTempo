@@ -262,6 +262,40 @@ export async function getAccountStatus() {
   return data as AccountStatus;
 }
 
+export async function downloadAccountDataExport() {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/data", {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "账户数据导出失败。");
+  }
+  const blob = await response.blob();
+  const disposition = response.headers.get("content-disposition") || "";
+  const filename = disposition.match(/filename="([^"]+)"/)?.[1] || "YouthTempo-data-export.json";
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function deleteAccountPermanently(confirmationEmail: string) {
+  const token = await getAccessToken();
+  const response = await fetch("/api/account/data", {
+    method: "DELETE",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ confirmationEmail, acknowledge: true }),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "账户注销失败。");
+  return data as { deleted: true; cleanupPending?: boolean };
+}
+
 export async function getStudentConsentStatus() {
   const token = await getAccessToken();
   const response = await fetch("/api/account/consent", {

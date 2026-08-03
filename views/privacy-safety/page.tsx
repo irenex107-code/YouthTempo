@@ -2,6 +2,7 @@ import Link from "next/link";
 import { InfoCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
+import { accountDataRetention } from "@/lib/accountDataPolicy";
 
 const principles = [
   ["不贴标签", "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。"],
@@ -15,6 +16,14 @@ const accountPlan = [
   ["云端保存", "登录用户主动保存的 SWEET 记录会进入个人历史记录。"],
   ["学校访问", "学校负责人可查看本校学生记录；支持老师只查看由学校分配给自己的学生。"],
   ["删除记录", "学生可以在“账号”中删除自己保存的 SWEET 记录。"],
+  ["导出与注销", "登录后可即时下载自己的数据副本，或永久注销账号。平台不保存导出文件。"],
+];
+
+const retentionRules = [
+  ["账号存续期间", accountDataRetention.activeAccount],
+  ["注销立即执行", accountDataRetention.accountDeletion],
+  ["安全审计 · 最长 24 个月", accountDataRetention.safetyAudit],
+  ["灾难恢复副本", accountDataRetention.backups],
 ];
 
 const consentSteps = [
@@ -45,7 +54,7 @@ export default function PrivacySafetyPage() {
             title="我们如何看待安全"
             description="心理健康相关产品首先要让用户感到安全。这里的安全包括情绪安全、信息安全，也包括在必要时连接真实支持。"
           />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             {principles.map(([title, text]) => (
               <InfoCard key={title} title={title}>{text}</InfoCard>
             ))}
@@ -107,12 +116,40 @@ export default function PrivacySafetyPage() {
             </div>
             <div className="rounded-2xl border border-sage/20 bg-white/80 px-5 py-5 text-sm leading-7 text-muted">
               <p className="font-bold text-ink">撤回后会怎样</p>
-              <p className="mt-2">撤回不影响紧急帮助、公开安全说明和查看自己已有内容；系统会停止新的敏感数据处理。已有数据的删除、导出与保存期限在下一项账户数据规则中进一步明确。</p>
+              <p className="mt-2">撤回不影响紧急帮助、公开安全说明和查看自己已有内容；系统会停止新的敏感数据处理。用户仍可下载已有数据、逐条删除自己的记录，或注销账号并删除关联数据。</p>
             </div>
           </div>
           <p className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
             法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是更严格的产品准入规则。查看
             <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMi9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>。
+          </p>
+        </div>
+      </section>
+
+      <section id="account-data" className="section scroll-mt-24">
+        <div className="container">
+          <SectionHeader
+            title="数据导出、注销与保存期限"
+            description="用户可以在账户设置中直接行使这些权利，不需要先联系学校或平台说明理由。导出只包含当前账号的数据，不会额外打包关联孩子、学生或其他用户的私密记录。"
+          />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {retentionRules.map(([title, text]) => <InfoCard key={title} title={title}>{text}</InfoCard>)}
+          </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-2xl border border-sage/20 bg-mint/35 px-5 py-5 text-sm leading-7 text-muted">
+              <p className="font-bold text-ink">注销会删除什么</p>
+              <p className="mt-2">账号资料、SWEET 记录、留言、学校与监护关系、知情同意记录、微信绑定、个人社区内容和举报会随账号删除。涉及该账号的社区审核动作仅保留去标识化的安全记录。</p>
+            </div>
+            <div className="rounded-2xl border border-sage/20 bg-white/80 px-5 py-5 text-sm leading-7 text-muted">
+              <p className="font-bold text-ink">特殊权限保护</p>
+              <p className="mt-2">普通学校身份可直接注销并解除关系。平台管理员需先由另一位管理员撤销平台权限，以免管理权限残留或平台失去必要管理账号。</p>
+            </div>
+          </div>
+          <p className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
+            《个人信息保护法》规定个人有权查阅、复制个人信息，并在处理目的已实现、停止提供服务、保存期限届满或撤回同意等情形请求删除；《网络数据安全管理条例》要求提供便捷的复制、删除、限制处理、注销账号和撤回同意方法。查看
+            <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>
+            <span>和</span>
+            <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.cac.gov.cn/2024-09/30/c_1729384452307680.htm" target="_blank" rel="noreferrer">《网络数据安全管理条例》</a>。
           </p>
         </div>
       </section>

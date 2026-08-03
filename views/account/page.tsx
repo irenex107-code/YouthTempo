@@ -11,7 +11,9 @@ import {
   WechatIdentity,
   checkWechatBindSession,
   createWechatBindSession,
+  deleteAccountPermanently,
   deleteCloudSweetRecord,
+  downloadAccountDataExport,
   getAccountStatus,
   getCurrentUser,
   getProfile,
@@ -130,7 +132,10 @@ export default function AccountPage() {
   const otpRequestInFlight = useRef(false);
   const [name, setName] = useState("");
   const [role, setRole] = useState("学生");
-  const [accountTab, setAccountTab] = useState<"profile" | "wechat">("profile");
+  const [accountTab, setAccountTab] = useState<"profile" | "wechat" | "data">("profile");
+  const [accountActionLoading, setAccountActionLoading] = useState(false);
+  const [deletionEmail, setDeletionEmail] = useState("");
+  const [deletionAcknowledged, setDeletionAcknowledged] = useState(false);
   const [loading, setLoading] = useState(true);
   const [identityChecking, setIdentityChecking] = useState(true);
   const [notice, setNotice] = useState("");
@@ -418,6 +423,48 @@ export default function AccountPage() {
     setConsentStatus(null);
     setAccountTab("profile");
     await refreshAccount();
+  }
+
+  async function handleDataExport() {
+    setAccountActionLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      await downloadAccountDataExport();
+      setNotice("数据导出已开始下载。文件只保存在你的设备上。");
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : "账户数据导出失败。");
+    } finally {
+      setAccountActionLoading(false);
+    }
+  }
+
+  async function handleAccountDeletion() {
+    if (!user?.email || !deletionAcknowledged || deletionEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+      setError("请输入当前登录邮箱，并勾选不可恢复确认。");
+      return;
+    }
+    setAccountActionLoading(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await deleteAccountPermanently(deletionEmail);
+      await signOut().catch(() => undefined);
+      setUser(null);
+      setProfile(null);
+      setAccountStatus(null);
+      setRecords([]);
+      setConsentStatus(null);
+      setDeletionEmail("");
+      setDeletionAcknowledged(false);
+      setNotice(result.cleanupPending
+        ? "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。"
+        : "账号及关联数据已注销，当前设备也已退出登录。");
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "账户注销失败。");
+    } finally {
+      setAccountActionLoading(false);
+    }
   }
 
   async function handleStudentAssent() {
@@ -754,10 +801,10 @@ export default function AccountPage() {
               <details className="rounded-2xl border border-ink/10 bg-white/70">
                 <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-ink sm:px-6">
                   账户设置
-                  <span className="ml-2 font-normal text-muted">资料、微信绑定与退出</span>
+                  <span className="ml-2 font-normal text-muted">资料、数据导出、注销与退出</span>
                 </summary>
                 <div className="border-t border-ink/10 px-5 py-6 sm:px-6">
-                  <div className="inline-flex rounded-xl bg-cream p-1 text-sm font-bold">
+                  <div className="inline-flex max-w-full flex-wrap rounded-xl bg-cream p-1 text-sm font-bold">
                     <button
                       type="button"
                       className={`rounded-lg px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
@@ -771,6 +818,13 @@ export default function AccountPage() {
                       onClick={() => setAccountTab("wechat")}
                     >
                       微信绑定
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-lg px-4 py-2 transition ${accountTab === "data" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
+                      onClick={() => setAccountTab("data")}
+                    >
+                      数据与注销
                     </button>
                   </div>
 
@@ -815,7 +869,7 @@ export default function AccountPage() {
                           </div>
                         </form>
                       )
-                    ) : (
+                    ) : accountTab === "wechat" ? (
                       <div className="grid gap-4">
                         <p className="text-[0.95rem] leading-7 text-muted">
                           绑定后，可以在小程序中使用同一个 YouthTempo 账号。
@@ -839,6 +893,52 @@ export default function AccountPage() {
                           {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
                         </button>
                         {wechatStatus ? <p className="text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
+                      </div>
+                    ) : (
+                      <div className="grid gap-6">
+                        <div className="rounded-2xl border border-sage/20 bg-mint/35 p-5">
+                          <p className="font-bold text-ink">下载我的数据</p>
+                          <p className="mt-2 text-sm leading-7 text-muted">
+                            下载账号资料、你自己的 SWEET 记录、留言、社区内容、同意记录和学校关系。文件为 JSON，服务器不会保存导出副本。
+                          </p>
+                          <button type="button" className="button-secondary mt-4" disabled={accountActionLoading} onClick={handleDataExport}>
+                            {accountActionLoading ? "正在处理…" : "下载数据副本"}
+                          </button>
+                        </div>
+
+                        <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5">
+                          <p className="font-bold text-ink">永久注销账号</p>
+                          <p className="mt-2 text-sm leading-7 text-muted">
+                            注销后，账号、SWEET 记录、留言、学校关系、微信绑定和社区内容会从生产数据库删除，无法恢复。建议先下载数据副本。平台管理员需先由另一位管理员撤销平台权限。
+                          </p>
+                          <label className="mt-4 grid gap-2 text-sm font-bold text-ink">
+                            输入当前登录邮箱确认
+                            <input
+                              className="rounded-xl border border-red-200 bg-white px-4 py-3 text-sm outline-none focus:border-red-400"
+                              type="email"
+                              value={deletionEmail}
+                              onChange={(event) => setDeletionEmail(event.target.value)}
+                              placeholder={user.email || "name@example.com"}
+                              autoComplete="off"
+                            />
+                          </label>
+                          <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-muted">
+                            <input type="checkbox" className="mt-1" checked={deletionAcknowledged} onChange={(event) => setDeletionAcknowledged(event.target.checked)} />
+                            <span>我理解注销会永久删除账号关联数据，且无法撤销。</span>
+                          </label>
+                          <button
+                            type="button"
+                            className="mt-4 rounded-xl border border-red-300 bg-white px-5 py-3 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-45"
+                            disabled={accountActionLoading || !deletionAcknowledged || deletionEmail.trim().toLowerCase() !== user.email?.trim().toLowerCase()}
+                            onClick={handleAccountDeletion}
+                          >
+                            {accountActionLoading ? "正在处理…" : "永久注销账号"}
+                          </button>
+                        </div>
+                        <p className="text-sm leading-7 text-muted">
+                          具体保存期限、注销后的最小安全审计和备份处理说明见
+                          <Link href="/privacy-safety#account-data" className="ml-1 font-bold text-sage-dark underline underline-offset-4">隐私与安全</Link>。
+                        </p>
                       </div>
                     )}
                   </div>
