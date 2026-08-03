@@ -1,4 +1,10 @@
 import { useEffect, useState } from "react";
+import {
+  communityReportCategory,
+  communityReportPriorityLabels,
+  type CommunityReportCategory,
+  type CommunityReportPriority,
+} from "@/lib/communityReports";
 
 type ModerationItem = {
   id: string;
@@ -12,7 +18,18 @@ type ModerationItem = {
   moderation_status: "published" | "safety_review" | "removed";
   moderation_reason: string | null;
   created_at: string;
-  reports: Array<{ id: string; reason: string; status: string; created_at: string }>;
+  priority: CommunityReportPriority;
+  target_review_at: string;
+  overdue: boolean;
+  reports: Array<{
+    id: string;
+    reason: string;
+    category: CommunityReportCategory;
+    priority: CommunityReportPriority;
+    status: string;
+    created_at: string;
+    target_review_at: string;
+  }>;
 };
 
 type CommunityRestriction = {
@@ -234,17 +251,30 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
                   <h3 className="mt-2 text-lg font-bold text-ink">{item.title}</h3>
                   <p className="mt-1 text-xs text-muted">{item.author_name} · {formatDate(item.created_at)}</p>
                 </div>
-                <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${item.moderation_status === "safety_review" ? "bg-amber-100 text-amber-800" : item.moderation_status === "removed" ? "bg-ink/10 text-muted" : "bg-mint text-sage-dark"}`}>
-                  {item.moderation_status === "safety_review" ? "安全待确认" : item.moderation_status === "removed" ? "已移除" : "已发布"}
-                </span>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${item.overdue ? "bg-red-100 text-red-800" : item.priority === "urgent" ? "bg-amber-100 text-amber-800" : "bg-mist text-sage-dark"}`}>
+                    {item.overdue ? "已超过目标时间" : communityReportPriorityLabels[item.priority]}
+                  </span>
+                  <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${item.moderation_status === "safety_review" ? "bg-amber-100 text-amber-800" : item.moderation_status === "removed" ? "bg-ink/10 text-muted" : "bg-mint text-sage-dark"}`}>
+                    {item.moderation_status === "safety_review" ? "安全待确认" : item.moderation_status === "removed" ? "已移除" : "已发布"}
+                  </span>
+                </div>
               </div>
+              <p className={`mt-3 text-xs font-bold ${item.overdue ? "text-red-700" : "text-muted"}`}>
+                目标首次复核：{formatDate(item.target_review_at)}
+              </p>
               <p className="mt-4 whitespace-pre-wrap rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-ink">{item.body}</p>
               {item.moderation_reason ? <p className="mt-3 text-sm font-bold text-amber-800">系统提示：{item.moderation_reason}</p> : null}
               {item.reports.length ? (
                 <div className="mt-4 rounded-2xl border border-ink/10 px-4 py-4">
                   <p className="text-xs font-bold text-sage-dark">用户举报（{item.reports.length}）</p>
                   <ul className="mt-2 grid gap-2 text-sm leading-6 text-muted">
-                    {item.reports.map((report) => <li key={report.id}>“{report.reason}” · {formatDate(report.created_at)}</li>)}
+                    {item.reports.map((report) => (
+                      <li key={report.id}>
+                        <strong className="text-ink">{communityReportCategory(report.category).label}</strong>
+                        {report.reason ? ` · “${report.reason}”` : ""} · {formatDate(report.created_at)}提交 · 目标 {formatDate(report.target_review_at)}首次复核
+                      </li>
+                    ))}
                   </ul>
                 </div>
               ) : null}

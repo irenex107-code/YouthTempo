@@ -574,8 +574,11 @@ create table if not exists public.community_reports (
   post_id uuid references public.community_posts(id) on delete cascade,
   comment_id uuid references public.community_comments(id) on delete cascade,
   reason text not null check (char_length(reason) between 1 and 500),
+  category text not null default 'other',
+  priority text not null default 'standard',
   status text not null default 'new' check (status in ('new', 'reviewing', 'resolved')),
   created_at timestamptz not null default now(),
+  target_review_at timestamptz not null default (now() + interval '72 hours'),
   resolved_at timestamptz,
   resolved_by uuid references auth.users(id) on delete set null,
   constraint community_reports_single_target check ((post_id is not null) <> (comment_id is not null))
@@ -583,6 +586,44 @@ create table if not exists public.community_reports (
 
 alter table public.community_reports add column if not exists resolved_at timestamptz;
 alter table public.community_reports add column if not exists resolved_by uuid references auth.users(id) on delete set null;
+alter table public.community_reports add column if not exists category text default 'other';
+alter table public.community_reports add column if not exists priority text default 'standard';
+alter table public.community_reports add column if not exists target_review_at timestamptz default (now() + interval '72 hours');
+alter table public.community_reports drop constraint if exists community_reports_category_check;
+alter table public.community_reports add constraint community_reports_category_check check (
+  category in ('immediate_danger', 'sexual_harm', 'bullying_threat', 'privacy_exposure', 'harmful_content', 'fraud_spam', 'other')
+);
+alter table public.community_reports drop constraint if exists community_reports_priority_check;
+alter table public.community_reports add constraint community_reports_priority_check check (priority in ('urgent', 'high', 'standard'));
+alter table public.community_reports alter column category set not null;
+alter table public.community_reports alter column priority set not null;
+alter table public.community_reports alter column target_review_at set not null;
+
+create or replace function public.assign_community_report_service_level()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  new.priority := case
+    when new.category in ('immediate_danger', 'sexual_harm') then 'urgent'
+    when new.category in ('bullying_threat', 'privacy_exposure', 'harmful_content') then 'high'
+    else 'standard'
+  end;
+  new.target_review_at := coalesce(new.created_at, now()) + case new.priority
+    when 'urgent' then interval '2 hours'
+    when 'high' then interval '24 hours'
+    else interval '72 hours'
+  end;
+  return new;
+end;
+$$;
+revoke all on function public.assign_community_report_service_level() from public, anon, authenticated;
+drop trigger if exists assign_community_report_service_level on public.community_reports;
+create trigger assign_community_report_service_level
+before insert or update of category, created_at on public.community_reports
+for each row execute function public.assign_community_report_service_level();
 
 create table if not exists public.community_moderation_actions (
   id uuid primary key default gen_random_uuid(),
@@ -672,6 +713,9 @@ create index if not exists community_reports_comment_idx
 on public.community_reports(comment_id) where comment_id is not null;
 create index if not exists community_reports_resolved_by_idx
 on public.community_reports(resolved_by);
+create index if not exists community_reports_open_deadline_idx
+on public.community_reports(priority, target_review_at)
+where status in ('new', 'reviewing');
 create unique index if not exists community_reports_open_post_once_idx
 on public.community_reports(reporter_user_id, post_id)
 where post_id is not null and status in ('new', 'reviewing');

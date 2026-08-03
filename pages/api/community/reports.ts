@@ -1,23 +1,45 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { getCommunityBlockedUserIds, getCommunityIdentity } from "@/lib/community";
+import {
+  communityReportCategory,
+  isCommunityReportCategory,
+  type CommunityReportCategory,
+} from "@/lib/communityReports";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
+  if (!["GET", "POST"].includes(req.method || "")) {
+    res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: "请先登录。" });
+    const supabase = getSupabaseAdmin();
+
+    if (req.method === "GET") {
+      const { data, error } = await supabase
+        .from("community_reports")
+        .select("id,post_id,comment_id,reason,category,priority,status,created_at,target_review_at,resolved_at")
+        .eq("reporter_user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return res.status(200).json({ reports: data || [] });
+    }
+
     const postId = typeof req.body?.postId === "string" ? req.body.postId.trim() : null;
     const commentId = typeof req.body?.commentId === "string" ? req.body.commentId.trim() : null;
-    const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+    const category: CommunityReportCategory = isCommunityReportCategory(req.body?.category)
+      ? req.body.category
+      : "other";
+    const details = typeof req.body?.details === "string" ? req.body.details.trim() : "";
+    const legacyReason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+    const reason = details || legacyReason || communityReportCategory(category).label;
     if ((!postId && !commentId) || (postId && commentId)) {
       return res.status(400).json({ error: "请选择要举报的内容。" });
     }
-    if (!reason) return res.status(400).json({ error: "请简单说明原因。" });
-    const supabase = getSupabaseAdmin();
+    if (reason.length > 500) return res.status(400).json({ error: "补充说明请控制在 500 字以内。" });
     const identity = await getCommunityIdentity(supabase, user);
     const blockedUserIds = await getCommunityBlockedUserIds(supabase, user.id);
     let targetAuthorUserId = "";
@@ -73,14 +95,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: duplicate, error: duplicateError } = await duplicateQuery.maybeSingle();
     if (duplicateError) throw duplicateError;
     if (duplicate) return res.status(409).json({ error: "你已经举报过这条内容，平台正在查看。" });
-    const { error } = await supabase.from("community_reports").insert({
-      reporter_user_id: user.id,
-      post_id: postId,
-      comment_id: commentId,
-      reason: reason.slice(0, 500),
-    });
+    const { data: report, error } = await supabase
+      .from("community_reports")
+      .insert({
+        reporter_user_id: user.id,
+        post_id: postId,
+        comment_id: commentId,
+        category,
+        reason,
+      })
+      .select("id,post_id,comment_id,reason,category,priority,status,created_at,target_review_at,resolved_at")
+      .single();
     if (error) throw error;
-    return res.status(201).json({ ok: true });
+    const serviceLevel = communityReportCategory(category);
+    return res.status(201).json({
+      ok: true,
+      report,
+      notice: `举报已进入${serviceLevel.priority === "urgent" ? "紧急" : serviceLevel.priority === "high" ? "优先" : "常规"}队列，目标在 ${serviceLevel.targetHours} 小时内完成首次复核。`,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "举报暂时无法提交。";
     if (message.includes("community_reports_open_")) {
@@ -89,3 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: message });
   }
 }
+
+export const config = {
+  api: { bodyParser: { sizeLimit: "8kb" } },
+};

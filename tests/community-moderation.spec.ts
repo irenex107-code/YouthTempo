@@ -88,9 +88,31 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
 
     const report = await request.post("/api/community/reports", {
       headers: auth(schoolLead.accessToken),
-      data: { postId, reason: "自动化验收：请平台复核这条内容。" },
+      data: {
+        postId,
+        category: "privacy_exposure",
+        details: "自动化验收：请平台复核这条内容。",
+      },
     });
-    expect(report.status()).toBe(201);
+    const reportText = await report.text();
+    expect(report.status(), reportText).toBe(201);
+    const reportBody = JSON.parse(reportText);
+    expect(reportBody.report).toMatchObject({
+      category: "privacy_exposure",
+      priority: "high",
+      status: "new",
+      target_review_at: expect.any(String),
+    });
+    expect(new Date(reportBody.report.target_review_at).getTime() - new Date(reportBody.report.created_at).getTime())
+      .toBe(24 * 60 * 60 * 1000);
+
+    const ownReports = await request.get("/api/community/reports", {
+      headers: auth(schoolLead.accessToken),
+    });
+    expect(ownReports.status()).toBe(200);
+    expect((await ownReports.json()).reports).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: reportBody.report.id, category: "privacy_exposure", priority: "high" }),
+    ]));
     const duplicateReport = await request.post("/api/community/reports", {
       headers: auth(schoolLead.accessToken),
       data: { postId, reason: "自动化验收：重复举报不应成功。" },

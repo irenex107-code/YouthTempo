@@ -8,8 +8,11 @@ type ReportRow = {
   post_id: string | null;
   comment_id: string | null;
   reason: string;
+  category: string;
+  priority: "urgent" | "high" | "standard";
   status: "new" | "reviewing" | "resolved";
   created_at: string;
+  target_review_at: string;
 };
 
 type PostRow = {
@@ -87,9 +90,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [reportsResult, flaggedPostsResult, flaggedCommentsResult, actionsResult] = await Promise.all([
       supabase
         .from("community_reports")
-        .select("id,reporter_user_id,post_id,comment_id,reason,status,created_at")
+        .select("id,reporter_user_id,post_id,comment_id,reason,category,priority,status,created_at,target_review_at")
         .in("status", ["new", "reviewing"])
-        .order("created_at", { ascending: false })
+        .order("target_review_at", { ascending: true })
         .limit(100),
       supabase
         .from("community_posts")
@@ -209,8 +212,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .map((report) => ({
           id: report.id,
           reason: report.reason,
+          category: report.category,
+          priority: report.priority,
           status: report.status,
           created_at: report.created_at,
+          target_review_at: report.target_review_at,
         }));
     const authorDetails = (userId: string, role: CommunityRole) => {
       const profile = profileById.get(userId);
@@ -220,8 +226,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     };
 
+    const withServiceLevel = <T extends { moderation_status: string; created_at: string }>(
+      item: T,
+      itemReports: ReturnType<typeof reportsFor>,
+    ) => {
+      const priorityRank = { urgent: 0, high: 1, standard: 2 } as const;
+      const highestReport = [...itemReports].sort(
+        (a, b) => priorityRank[a.priority] - priorityRank[b.priority],
+      )[0];
+      const priority = highestReport?.priority || (item.moderation_status === "safety_review" ? "urgent" : "standard");
+      const targetReviewAt = highestReport?.target_review_at || new Date(
+        new Date(item.created_at).getTime() + (priority === "urgent" ? 2 : priority === "high" ? 24 : 72) * 60 * 60 * 1000,
+      ).toISOString();
+      return {
+        ...item,
+        reports: itemReports,
+        priority,
+        target_review_at: targetReviewAt,
+        overdue: new Date(targetReviewAt).getTime() < Date.now(),
+      };
+    };
+
     const items = [
-      ...posts.map((post) => ({
+      ...posts.map((post) => withServiceLevel({
         id: `post:${post.id}`,
         content_id: post.id,
         content_type: "post" as const,
@@ -231,10 +258,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         moderation_status: post.moderation_status,
         moderation_reason: post.moderation_reason,
         created_at: post.created_at,
-        reports: reportsFor("post", post.id),
         ...authorDetails(post.author_user_id, post.author_role),
-      })),
-      ...comments.map((comment) => ({
+      }, reportsFor("post", post.id))),
+      ...comments.map((comment) => withServiceLevel({
         id: `comment:${comment.id}`,
         content_id: comment.id,
         content_type: "comment" as const,
@@ -244,10 +270,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         moderation_status: comment.moderation_status,
         moderation_reason: comment.moderation_reason,
         created_at: comment.created_at,
-        reports: reportsFor("comment", comment.id),
         ...authorDetails(comment.author_user_id, comment.author_role),
-      })),
-    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      }, reportsFor("comment", comment.id))),
+    ].sort((a, b) => new Date(a.target_review_at).getTime() - new Date(b.target_review_at).getTime());
 
     const actionPostById = new Map(actionPosts.map((post) => [post.id, post]));
     const actionCommentById = new Map(actionComments.map((comment) => [comment.id, comment]));

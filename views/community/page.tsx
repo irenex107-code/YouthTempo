@@ -7,14 +7,23 @@ import {
   deleteCommunityComment,
   deleteCommunityPost,
   getCurrentUser,
+  listCommunityReports,
   listCommunityPosts,
   listCommunityBlocks,
   reportCommunityContent,
   unblockCommunityMember,
   type CommunityBlock,
   type CommunityPost,
+  type CommunityReport,
   type CommunityRole,
 } from "@/lib/cloudRecords";
+import {
+  communityReportCategories,
+  communityReportCategory,
+  communityReportPriorityLabels,
+  communityReportStatusLabel,
+  type CommunityReportCategory,
+} from "@/lib/communityReports";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
 
@@ -26,6 +35,14 @@ const roleOptions: Array<{ key: CommunityRole; label: string; hint: string }> = 
 ];
 
 type DeleteTarget = { type: "post" | "comment"; id: string; postId?: string } | null;
+type ReportTarget = { postId?: string; commentId?: string } | null;
+
+const communityRules = [
+  ["尊重，不欺凌", "不辱骂、威胁、诽谤、围攻或恶意损害他人形象；不同意见也要具体、友善地表达。"],
+  ["保护自己和他人", "不公开真实姓名、学校班级、住址、联系方式、账号、定位或未经同意的私密经历与影像。"],
+  ["不传播危险内容", "不发布色情、暴力、赌博、违法内容，不鼓励自伤自杀，也不诱导他人模仿不安全行为。"],
+  ["真实且不牟利", "不冒充专业人士，不诈骗、索要钱款、发布可疑链接、刷屏或借社区营销。"],
+];
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -54,6 +71,68 @@ function RoleBadge({ label, verified }: { label: string; verified?: boolean }) {
     <span className="inline-flex items-center gap-1 rounded-full bg-mist px-2.5 py-1 text-[0.7rem] font-bold text-sage-dark">
       {label}{verified ? " · 已认证" : ""}
     </span>
+  );
+}
+
+function ReportDialog({
+  target,
+  category,
+  details,
+  busy,
+  onCategoryChange,
+  onDetailsChange,
+  onCancel,
+  onConfirm,
+}: {
+  target: ReportTarget;
+  category: CommunityReportCategory;
+  details: string;
+  busy: boolean;
+  onCategoryChange: (value: CommunityReportCategory) => void;
+  onDetailsChange: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  useEffect(() => {
+    if (!target) return undefined;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !busy) onCancel();
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [target, busy, onCancel]);
+
+  if (!target) return null;
+  const selected = communityReportCategory(category);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/35 px-4 py-8 backdrop-blur-sm" role="presentation">
+      <div role="dialog" aria-modal="true" aria-labelledby="report-community-title" className="w-full max-w-xl rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7">
+        <p className="eyebrow">社区安全</p>
+        <h2 id="report-community-title" className="mt-3 text-xl font-bold text-ink">举报这条内容</h2>
+        <p className="mt-3 text-sm leading-7 text-muted">请选择最接近的情况。举报人身份不会向内容作者公开。</p>
+        <div className="mt-5 grid gap-2">
+          {communityReportCategories.map((item) => (
+            <label key={item.value} className={`cursor-pointer rounded-2xl border px-4 py-3 ${category === item.value ? "border-sage/45 bg-mint/55" : "border-ink/10"}`}>
+              <span className="flex items-start gap-3">
+                <input type="radio" name="report-category" value={item.value} checked={category === item.value} onChange={() => onCategoryChange(item.value)} className="mt-1 accent-sage" />
+                <span><strong className="block text-sm text-ink">{item.label}</strong><span className="mt-1 block text-xs leading-5 text-muted">{item.hint}</span></span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <label className="mt-5 grid gap-2 text-sm font-bold text-ink">
+          补充说明（选填）
+          <textarea value={details} onChange={(event) => onDetailsChange(event.target.value)} maxLength={500} rows={3} className="resize-y rounded-2xl border border-ink/10 px-4 py-3 font-normal leading-7 outline-none focus:border-sage" placeholder="不用重复粘贴内容，可以说明你担心什么。" />
+        </label>
+        <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted">
+          该类型目标在 <strong className="text-ink">{selected.targetHours} 小时内完成首次复核</strong>。这不是紧急救助渠道；如有人正处于即时危险中，请立刻联系可信任的成年人，并拨打 110 或 120。
+        </p>
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onCancel} disabled={busy} className="button-secondary">取消</button>
+          <button type="button" onClick={onConfirm} disabled={busy} className="button-primary">{busy ? "正在提交…" : "提交举报"}</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -113,6 +192,7 @@ export default function CommunityPage() {
   const [currentRole, setCurrentRole] = useState<CommunityRole>("student");
   const [currentUserId, setCurrentUserId] = useState("");
   const [blockedMembers, setBlockedMembers] = useState<CommunityBlock[]>([]);
+  const [reports, setReports] = useState<CommunityReport[]>([]);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [viewerRoles, setViewerRoles] = useState<CommunityRole[]>(["student", "guardian", "teacher", "professional"]);
@@ -123,17 +203,26 @@ export default function CommunityPage() {
   const [busy, setBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [deleting, setDeleting] = useState(false);
+  const [reportTarget, setReportTarget] = useState<ReportTarget>(null);
+  const [reportCategory, setReportCategory] = useState<CommunityReportCategory>("bullying_threat");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reportBusy, setReportBusy] = useState(false);
 
   async function load() {
     try {
       const user = await getCurrentUser();
       setLoggedIn(Boolean(user));
       if (!user) return;
-      const [data, blockData] = await Promise.all([listCommunityPosts(), listCommunityBlocks()]);
+      const [data, blockData, reportData] = await Promise.all([
+        listCommunityPosts(),
+        listCommunityBlocks(),
+        listCommunityReports(),
+      ]);
       setPosts(data.posts);
       setCurrentRole(data.currentUser.role);
       setCurrentUserId(data.currentUser.id);
       setBlockedMembers(blockData.blocks);
+      setReports(reportData.reports);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "社区内容加载失败。");
     }
@@ -233,14 +322,29 @@ export default function CommunityPage() {
     }
   }
 
-  async function report(postId?: string, commentId?: string) {
-    const reason = window.prompt("请简单说明举报原因（例如：辱骂、泄露隐私或不当建议）");
-    if (!reason?.trim()) return;
+  function openReport(postId?: string, commentId?: string) {
+    setReportTarget({ postId, commentId });
+    setReportCategory("bullying_threat");
+    setReportDetails("");
+    setError("");
+  }
+
+  async function submitReport() {
+    if (!reportTarget || reportBusy) return;
+    setReportBusy(true);
     try {
-      await reportCommunityContent({ postId, commentId, reason: reason.trim() });
-      setNotice("举报已收到，平台会查看这条内容。");
+      const result = await reportCommunityContent({
+        ...reportTarget,
+        category: reportCategory,
+        details: reportDetails.trim() || undefined,
+      });
+      setReports((current) => [result.report, ...current]);
+      setNotice(result.notice);
+      setReportTarget(null);
     } catch (reportError) {
       setError(reportError instanceof Error ? reportError.message : "举报提交失败。");
+    } finally {
+      setReportBusy(false);
     }
   }
 
@@ -296,6 +400,35 @@ export default function CommunityPage() {
         }
       />
 
+      <section id="community-rules" className="section pb-8 sm:pb-10">
+        <div className="container">
+          <div className="rounded-[2rem] border border-sage/20 bg-white p-6 shadow-soft sm:p-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="eyebrow">未成年人社区规则</p>
+                <h2 className="mt-3 text-2xl font-bold text-ink sm:text-3xl">先保护人，再讨论问题</h2>
+                <p className="mt-3 text-sm leading-7 text-muted">规则适用于帖子和回应。平台会结合系统识别与人工复核，必要时隐藏内容、限制发布或依法报告。</p>
+              </div>
+              <Link href="/privacy-safety#community-safety" className="button-secondary shrink-0">查看完整安全说明</Link>
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {communityRules.map(([title, text]) => (
+                <div key={title} className="rounded-2xl bg-cream px-4 py-4">
+                  <h3 className="text-sm font-extrabold text-ink">{title}</h3>
+                  <p className="mt-2 text-xs leading-6 text-muted">{text}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 grid gap-3 md:grid-cols-3">
+              <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-6 text-amber-900"><strong>紧急优先：</strong>目标 2 小时内首次复核</p>
+              <p className="rounded-2xl border border-sage/20 bg-mist px-4 py-3 text-xs leading-6 text-sage-dark"><strong>欺凌、隐私等：</strong>目标 24 小时内首次复核</p>
+              <p className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-xs leading-6 text-muted"><strong>其他违规：</strong>目标 72 小时内首次复核</p>
+            </div>
+            <p className="mt-4 text-xs leading-6 text-muted">以上是平台服务目标，不是紧急救助时限。有人正处于即时危险时，不要等待平台处理，请联系可信任的成年人并拨打 110 或 120。</p>
+          </div>
+        </div>
+      </section>
+
       <section className="section section-muted pt-8 sm:pt-10">
         <div className="container">
           {loggedIn === null ? (
@@ -339,6 +472,25 @@ export default function CommunityPage() {
                       >
                         {member.name} · 解除屏蔽
                       </button>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+
+              {reports.length ? (
+                <details className="mb-6 rounded-[1.5rem] border border-ink/10 bg-white px-5 py-4 shadow-sm">
+                  <summary className="cursor-pointer text-sm font-bold text-ink">我的举报进度（{reports.length}）</summary>
+                  <p className="mt-3 text-xs leading-6 text-muted">这里显示最近 30 条举报。目标时间指首次复核，复杂情况可能需要更长时间完成调查。</p>
+                  <div className="mt-4 grid gap-3">
+                    {reports.map((report) => (
+                      <div key={report.id} className="rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <strong className="text-ink">{communityReportCategory(report.category).label}</strong>
+                          <span className="rounded-full bg-white px-2.5 py-1 font-bold text-sage-dark">{communityReportStatusLabel(report.status)}</span>
+                        </div>
+                        <p className="mt-2">{report.post_id ? "帖子" : "回应"} · {formatTime(report.created_at)}提交 · {communityReportPriorityLabels[report.priority]}</p>
+                        <p>目标首次复核：{formatTime(report.target_review_at)}{report.resolved_at ? ` · ${formatTime(report.resolved_at)}已完成` : ""}</p>
+                      </div>
                     ))}
                   </div>
                 </details>
@@ -401,9 +553,11 @@ export default function CommunityPage() {
                         <a href={`#reply-${post.id}`} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-sage-dark hover:bg-mist">
                           回应
                         </a>
-                        <button type="button" onClick={() => void report(post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
-                          举报
-                        </button>
+                        {post.author_user_id !== currentUserId ? (
+                          <button type="button" onClick={() => openReport(post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
+                            举报
+                          </button>
+                        ) : null}
                         {post.author_user_id !== currentUserId ? (
                           <button type="button" onClick={() => void blockMember(post.author_user_id, post.author_name)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
                             屏蔽该成员
@@ -433,7 +587,9 @@ export default function CommunityPage() {
                                 </div>
                                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted">{comment.body}</p>
                                 <div className="mt-3 flex flex-wrap items-center gap-1">
-                                  <button type="button" onClick={() => void report(undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">举报</button>
+                                  {comment.author_user_id !== currentUserId ? (
+                                    <button type="button" onClick={() => openReport(undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">举报</button>
+                                  ) : null}
                                   {comment.author_user_id !== currentUserId ? (
                                     <button type="button" onClick={() => void blockMember(comment.author_user_id, comment.author_name)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">屏蔽该成员</button>
                                   ) : null}
@@ -539,6 +695,16 @@ export default function CommunityPage() {
       </section>
 
       <DeleteDialog target={deleteTarget} busy={deleting} onCancel={() => setDeleteTarget(null)} onConfirm={() => void confirmDelete()} />
+      <ReportDialog
+        target={reportTarget}
+        category={reportCategory}
+        details={reportDetails}
+        busy={reportBusy}
+        onCategoryChange={setReportCategory}
+        onDetailsChange={setReportDetails}
+        onCancel={() => setReportTarget(null)}
+        onConfirm={() => void submitReport()}
+      />
     </>
   );
 }

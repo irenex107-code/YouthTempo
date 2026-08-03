@@ -38,6 +38,9 @@ test("未登录访问社区时不会显示发布表单", async ({ page }) => {
   await page.goto("/community");
 
   await expect(page.getByRole("heading", { level: 1, name: "家校医社区" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "先保护人，再讨论问题" })).toBeVisible();
+  await expect(page.getByText("紧急优先：")).toBeVisible();
+  await expect(page.getByText("目标 2 小时内首次复核")).toBeVisible();
   await expect(page.getByText("登录后才能阅读和参与讨论")).toBeVisible();
   await expect(page.locator("#new-post")).toHaveCount(0);
 });

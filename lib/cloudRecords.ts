@@ -1,6 +1,7 @@
 import type { EmailOtpType, User } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/sweetRecordTypes";
+import type { CommunityReportCategory, CommunityReportPriority } from "@/lib/communityReports";
 
 export type UserRole = "学生" | "家长" | "学校支持人员" | "专业支持者";
 
@@ -41,6 +42,19 @@ export type CommunityBlock = {
   name: string;
   role: string;
   created_at: string;
+};
+
+export type CommunityReport = {
+  id: string;
+  post_id: string | null;
+  comment_id: string | null;
+  reason: string;
+  category: CommunityReportCategory;
+  priority: CommunityReportPriority;
+  status: "new" | "reviewing" | "resolved";
+  created_at: string;
+  target_review_at: string;
+  resolved_at: string | null;
 };
 
 export type CloudProfile = {
@@ -331,12 +345,17 @@ export async function deleteCommunityComment(commentId: string) {
 export async function reportCommunityContent(input: {
   postId?: string;
   commentId?: string;
-  reason: string;
+  category: CommunityReportCategory;
+  details?: string;
 }) {
   return communityRequest("/api/community/reports", {
     method: "POST",
     body: JSON.stringify(input),
-  }) as Promise<{ ok: boolean }>;
+  }) as Promise<{ ok: boolean; report: CommunityReport; notice: string }>;
+}
+
+export async function listCommunityReports() {
+  return communityRequest("/api/community/reports") as Promise<{ reports: CommunityReport[] }>;
 }
 
 export async function listCommunityBlocks() {

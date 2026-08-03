@@ -46,6 +46,30 @@ export default function PrivacySafetyPage() {
         </div>
       </section>
 
+      <section id="community-safety" className="section">
+        <div className="container">
+          <SectionHeader
+            title="未成年人社区安全与举报处理"
+            description="社区规则适用于帖子和回应。举报人身份不会向内容作者公开；平台按照风险程度安排首次复核，而不是简单按提交顺序处理。"
+          />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <InfoCard title="紧急优先 · 目标 2 小时" label="首次复核">
+              明确的即时危险、鼓励自伤自杀、涉未成年人色情或性侵害进入紧急队列。有人正处于危险时，请不要等待平台处理，立即联系可信任的成年人并拨打 110 或 120。
+            </InfoCard>
+            <InfoCard title="优先处理 · 目标 24 小时" label="首次复核">
+              欺凌、辱骂、威胁、泄露个人信息及其他明显危险或不适宜内容优先复核，并视情况隐藏内容、限制账号或保留必要记录。
+            </InfoCard>
+            <InfoCard title="常规处理 · 目标 72 小时" label="首次复核">
+              诈骗、广告、刷屏及其他规则问题进入常规队列。复杂情况完成调查可能超过首次复核目标，状态会在社区的“我的举报进度”中更新。
+            </InfoCard>
+          </div>
+          <div className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
+            YouthTempo 依据最有利于未成年人的原则设置规则、举报入口、屏蔽功能和审核流程。法律要求平台显著公布便捷举报方式、及时受理处理，并建立网络欺凌识别与处置机制；上述 2/24/72 小时是 YouthTempo 的试点服务目标，不代表法律统一规定的固定时限。查看
+            <a className="ml-1 font-bold text-sage-dark underline decoration-sage/40 underline-offset-4" href="https://www.gov.cn/zhengce/content/202310/content_6911288.htm" target="_blank" rel="noreferrer">《未成年人网络保护条例》</a>。
+          </div>
+        </div>
+      </section>
+
       <section className="section">
         <div className="container">
           <SectionHeader

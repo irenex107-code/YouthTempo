@@ -8,6 +8,7 @@ const protectedReads = [
   "/api/admin/community-moderation",
   "/api/admin/community-restrictions",
   "/api/community/blocks",
+  "/api/community/reports",
   "/api/messages",
 ];
 
