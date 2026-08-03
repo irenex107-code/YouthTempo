@@ -53,7 +53,7 @@ jobs:
             exit 1
           fi
           pnpm test:fixtures:permissions
-          pnpm exec playwright test \
+          pnpm exec playwright test --workers=1 \
             tests/authenticated-permission-boundary.spec.ts \
             tests/authenticated-api-overreach.spec.ts \
             tests/membership-revocation.spec.ts \

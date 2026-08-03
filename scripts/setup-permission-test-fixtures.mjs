@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
@@ -126,6 +127,21 @@ async function createFixtures() {
   );
 
   const users = await ensureUsers();
+  const fixtureUserIds = Object.values(users).map((user) => user.id);
+  const identifierHashes = fixtureUserIds.map((userId) =>
+    createHmac("sha256", process.env.RATE_LIMIT_SECRET || serviceRoleKey)
+      .update(`user:${userId}`)
+      .digest("hex"),
+  );
+  assertResult(
+    await supabase.from("api_rate_limits").delete().in("identifier_hash", identifierHashes),
+    "清理虚拟账号限流计数",
+  );
+  assertResult(
+    await supabase.from("community_restrictions").delete().in("user_id", fixtureUserIds),
+    "清理虚拟账号社区限制",
+  );
+
   assertResult(
     await supabase.from("profiles").upsert(
       Object.entries(fixture.users).map(([key, definition]) => ({
