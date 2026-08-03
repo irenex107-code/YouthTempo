@@ -5,6 +5,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
+import { findStudentRelationshipGaps } from "@/lib/schoolRelationshipGaps";
 
 type School = {
   id: string;
@@ -965,6 +966,7 @@ export default function AdminPage() {
                 const studentsById = new Map(
                   directory.students.map((student) => [student.id, student]),
                 );
+                const relationshipGaps = findStudentRelationshipGaps(directory);
 
                 return (
                   <article key={school.id} className="card">
@@ -980,6 +982,45 @@ export default function AdminPage() {
                         <span className="rounded-full bg-mint px-3 py-2">家长 {directory.guardians.length}</span>
                       </div>
                     </div>
+
+                    {relationshipGaps.withoutTeacher.length || relationshipGaps.withoutGuardian.length ? (
+                      <div className="mt-5 rounded-2xl border border-[#d7a76f]/35 bg-[#fff8ed] px-4 py-4 sm:px-5">
+                        <p className="font-bold text-ink">关系待补充</p>
+                        <p className="mt-1 text-sm leading-6 text-muted">
+                          及时补充分工和家庭关系，避免学生记录暂时没有对应的支持老师或家长查看。
+                        </p>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-xl bg-white/80 px-4 py-3">
+                            <p className="text-xs font-bold text-[#8a5b2f]">
+                              未分配老师 {relationshipGaps.withoutTeacher.length} 人
+                            </p>
+                            <p className="mt-2 text-sm text-ink">
+                              {relationshipGaps.withoutTeacher.length
+                                ? relationshipGaps.withoutTeacher
+                                    .map((student) => student.display_name || student.email)
+                                    .join("、")
+                                : "全部学生均已分配"}
+                            </p>
+                          </div>
+                          <div className="rounded-xl bg-white/80 px-4 py-3">
+                            <p className="text-xs font-bold text-[#8a5b2f]">
+                              未关联家长 {relationshipGaps.withoutGuardian.length} 人
+                            </p>
+                            <p className="mt-2 text-sm text-ink">
+                              {relationshipGaps.withoutGuardian.length
+                                ? relationshipGaps.withoutGuardian
+                                    .map((student) => student.display_name || student.email)
+                                    .join("、")
+                                : "全部学生均已关联"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-5 rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">
+                        所有学生都已有负责老师和关联家长。
+                      </p>
+                    )}
 
                     <div className="mt-6 grid gap-6 border-t border-ink/10 pt-6 lg:grid-cols-[0.7fr_1.3fr]">
                       <div>
