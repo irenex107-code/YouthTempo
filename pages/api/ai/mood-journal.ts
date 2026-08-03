@@ -57,8 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       supportReminder: shortText(result.supportReminder, "不用一次说清楚，先说出一点点就可以。"),
     });
   } catch (error) {
-    console.error(error);
-    fail(res, error);
+    await fail(req, res, error, "mood_journal_generate");
   }
 }
 

@@ -1,6 +1,7 @@
 import { createHmac, randomUUID } from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { reportOperationalError } from "@/lib/operationalMonitoring";
 
 type RateLimitResult = {
   allowed: boolean;
@@ -77,6 +78,7 @@ function applyHeaders(
 
 export async function enforceUserRateLimit({
   supabase,
+  req,
   userId,
   action,
   limit,
@@ -85,6 +87,7 @@ export async function enforceUserRateLimit({
   message,
 }: {
   supabase: SupabaseClient;
+  req: NextApiRequest;
   userId: string;
   action: string;
   limit: number;
@@ -105,7 +108,13 @@ export async function enforceUserRateLimit({
     res.status(429).json({ error: message, rateLimited: true, retryAfterSeconds });
     return false;
   } catch (error) {
-    console.error("Community rate limit check failed", error);
+    await reportOperationalError({
+      req,
+      area: "community",
+      operation: `${action}_rate_limit`,
+      error,
+      statusCode: 503,
+    });
     res.status(503).json({ error: "社区服务暂时不可用，请稍后再试。" });
     return false;
   }

@@ -75,8 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       supportReminder: shortText(result.supportReminder, "你不需要一次解决全部问题，可以先让一个人知道。"),
     });
   } catch (error) {
-    console.error(error);
-    fail(res, error);
+    await fail(req, res, error, "referral_generate");
   }
 }
 

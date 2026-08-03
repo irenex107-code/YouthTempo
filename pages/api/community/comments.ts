@@ -4,6 +4,7 @@ import { getActiveCommunityMute, getCommunityBlockedUserIds, getCommunityIdentit
 import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
+import { reportOperationalError } from "@/lib/operationalMonitoring";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["POST", "DELETE"].includes(req.method || "")) {
@@ -88,6 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (!(await enforceUserRateLimit({
       supabase,
+      req,
       userId: user.id,
       action: "community_comment_create",
       limit: 20,
@@ -113,8 +115,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       safetyNotice: moderation.status === "safety_review",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "回复暂时无法发送。";
     const statusCode = error && typeof error === "object" && "statusCode" in error ? Number(error.statusCode) : 500;
+    if (statusCode >= 500 || !Number.isFinite(statusCode)) {
+      await reportOperationalError({ req, area: "community", operation: "comments", error, statusCode: 500 });
+      return res.status(500).json({ error: "回复暂时无法发送，请稍后再试。" });
+    }
+    const message = error instanceof Error ? error.message : "回复暂时无法发送。";
     return res.status(statusCode).json({ error: message });
   }
 }

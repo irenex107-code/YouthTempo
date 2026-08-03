@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
+import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
 type FieldType = "single" | "multi" | "text";
@@ -263,6 +264,7 @@ export default function CheckInPage() {
       setSavedRecordKey(recordKey);
       setSaveStatus("已保存，可以在“账号”中查看。");
     } catch (saveError) {
+      reportClientOperationFailure("save", "sweet_record_save", saveError);
       console.error("SWEET record save failed", saveError);
       setSaveStatus(recordSaveErrorMessage(saveError));
     } finally {

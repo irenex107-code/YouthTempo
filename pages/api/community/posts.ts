@@ -11,6 +11,7 @@ import {
 import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
+import { reportOperationalError } from "@/lib/operationalMonitoring";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "DELETE"].includes(req.method || "")) {
@@ -91,6 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (!(await enforceUserRateLimit({
         supabase,
+        req,
         userId: user.id,
         action: "community_post_create",
         limit: 5,
@@ -228,8 +230,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "社区暂时不可用。";
     const statusCode = error && typeof error === "object" && "statusCode" in error ? Number(error.statusCode) : 500;
+    if (statusCode >= 500 || !Number.isFinite(statusCode)) {
+      await reportOperationalError({ req, area: "community", operation: "posts", error, statusCode: 500 });
+      return res.status(500).json({ error: "社区暂时不可用，请稍后再试。" });
+    }
+    const message = error instanceof Error ? error.message : "社区请求无法完成。";
     return res.status(statusCode).json({ error: message });
   }
 }

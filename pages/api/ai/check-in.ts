@@ -88,8 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       supportReminder: shortText(result.supportReminder, "不用一次解决所有事情，先照顾好今天就可以。"),
     });
   } catch (error) {
-    console.error(error);
-    fail(res, error);
+    await fail(req, res, error, "check_in_generate");
   }
 }
 

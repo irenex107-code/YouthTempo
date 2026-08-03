@@ -87,8 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       suggestHumanSupport: result.suggestHumanSupport === true || urgent,
     });
   } catch (error) {
-    console.error(error);
-    fail(res, error);
+    await fail(req, res, error, "talk_generate");
   }
 }
 

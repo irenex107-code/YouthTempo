@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { enforceAiRateLimit } from "@/lib/rateLimit";
 import { getSupabaseAdmin } from "@/lib/supabaseServer";
+import { reportOperationalError } from "@/lib/operationalMonitoring";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
@@ -41,7 +42,7 @@ export async function requireAiRateLimit(req: NextApiRequest, res: NextApiRespon
   try {
     return await enforceAiRateLimit(req, res, getSupabaseAdmin());
   } catch (error) {
-    console.error("AI rate limit check failed", error);
+    await reportOperationalError({ req, area: "ai", operation: "rate_limit", error, statusCode: 503 });
     res.status(503).json({ error: "生成服务暂时不可用，请稍后再试。" });
     return false;
   }
@@ -139,14 +140,16 @@ export async function generateJson<T extends JsonValue>({
   throw lastError instanceof Error ? lastError : new Error("OpenAI response was not valid JSON.");
 }
 
-export function fail(res: NextApiResponse, error?: unknown) {
+export async function fail(req: NextApiRequest, res: NextApiResponse, error: unknown, operation: string) {
   if (error instanceof AiInputTooLargeError) {
     res.status(413).json({ error: "填写的内容有些长，请精简后再生成。" });
     return;
   }
   if (error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name)) {
+    await reportOperationalError({ req, area: "ai", operation, error, statusCode: 504 });
     res.status(504).json({ error: "生成等待时间有些长，请稍后再试。" });
     return;
   }
+  await reportOperationalError({ req, area: "ai", operation, error, statusCode: 500 });
   res.status(500).json({ error: "暂时无法生成回应，请稍后再试。" });
 }

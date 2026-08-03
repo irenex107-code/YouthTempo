@@ -30,6 +30,7 @@ import {
   withdrawStudentConsent,
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
+import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 import { rhythmOverview } from "@/lib/rhythmInsights";
 
 function formatDate(value: string) {
@@ -190,6 +191,7 @@ export default function AccountPage() {
       try {
         currentUser = await withTimeout(getCurrentUser(), 4_000);
       } catch (authError) {
+        reportClientOperationFailure("auth", "auth_session", authError);
         console.warn("Initial auth check timed out", authError);
         setUser(null);
         setProfile(null);
@@ -280,6 +282,7 @@ export default function AccountPage() {
         const handledRedirect = await withTimeout(handleAuthRedirect(), 8_000);
         if (handledRedirect) setNotice("登录成功，已进入你的账户。");
       } catch (redirectError) {
+        reportClientOperationFailure("auth", "auth_redirect", redirectError);
         setError(redirectError instanceof Error ? redirectError.message : "登录链接处理失败，请重新发送验证码。");
       } finally {
         await refreshAccount();
@@ -336,6 +339,7 @@ export default function AccountPage() {
       setResendCooldown(60);
       setNotice("验证码已发送。请查看邮箱。");
     } catch (loginError) {
+      reportClientOperationFailure("auth", "auth_otp_send", loginError);
       setError(loginError instanceof Error ? loginError.message : "验证码发送失败。");
     } finally {
       otpRequestInFlight.current = false;
@@ -359,6 +363,7 @@ export default function AccountPage() {
       setNotice("登录成功。");
       await refreshAccount();
     } catch (loginError) {
+      reportClientOperationFailure("auth", "auth_otp_verify", loginError);
       setError(otpErrorMessage(loginError));
     } finally {
       setAuthLoading(false);
@@ -377,6 +382,7 @@ export default function AccountPage() {
       setResendCooldown(60);
       setNotice("新的验证码已发送。");
     } catch (loginError) {
+      reportClientOperationFailure("auth", "auth_otp_send", loginError);
       setError(loginError instanceof Error ? loginError.message : "验证码重新发送失败。");
     } finally {
       otpRequestInFlight.current = false;

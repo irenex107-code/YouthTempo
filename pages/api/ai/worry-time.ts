@@ -43,8 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       supportReminder: shortText(result.supportReminder, "现在不用继续想答案，先让身体慢慢休息。"),
     });
   } catch (error) {
-    console.error(error);
-    fail(res, error);
+    await fail(req, res, error, "worry_time_generate");
   }
 }
 
