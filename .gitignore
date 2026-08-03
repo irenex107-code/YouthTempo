@@ -24,3 +24,4 @@ next-env.d.ts
 
 # 本地备份包
 outputs/*.tar.gz
+backups/

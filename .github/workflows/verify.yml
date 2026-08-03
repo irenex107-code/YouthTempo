@@ -42,13 +42,21 @@ jobs:
       - name: Run public-flow and safety tests
         run: pnpm test:e2e
 
-      - name: Run authenticated permission-boundary tests when configured
+      - name: Run authenticated permission, revocation, and community tests when configured
         env:
+          NEXT_PUBLIC_SUPABASE_URL: https://saqkzfsmabsgbwdvuras.supabase.co
           E2E_PERMISSION_TEST_PASSWORD: ${{ secrets.E2E_PERMISSION_TEST_PASSWORD }}
-          PLAYWRIGHT_BASE_URL: https://youthtempo-web-287026-8-1457638967.sh.run.tcloudbase.com
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$E2E_PERMISSION_TEST_PASSWORD" ]; then
-            echo "Authenticated permission tests are waiting for the virtual test password."
+          if [ -z "$E2E_PERMISSION_TEST_PASSWORD" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Authenticated workflow tests require both E2E_PERMISSION_TEST_PASSWORD and SUPABASE_SERVICE_ROLE_KEY."
             exit 0
           fi
-          pnpm exec playwright test tests/authenticated-permission-boundary.spec.ts
+          pnpm test:fixtures:permissions
+          pnpm exec playwright test \
+            tests/authenticated-permission-boundary.spec.ts \
+            tests/authenticated-api-overreach.spec.ts \
+            tests/membership-revocation.spec.ts \
+            tests/school-exit.spec.ts \
+            tests/community-visibility.spec.ts \
+            tests/community-moderation.spec.ts

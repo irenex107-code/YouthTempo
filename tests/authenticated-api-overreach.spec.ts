@@ -84,6 +84,17 @@ test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校
       403,
     );
     await expectStatus(
+      await request.patch("/api/admin/schools", {
+        headers: headers(teacherOne.accessToken),
+        data: {
+          schoolId: fixture.schools.a.id,
+          confirmationName: fixture.schools.a.name,
+          reason: "普通学校角色不应能让学校退出试点。",
+        },
+      }),
+      403,
+    );
+    await expectStatus(
       await request.delete("/api/admin/school-assignments", {
         headers: headers(teacherOne.accessToken),
         data: { schoolId: fixture.schools.a.id, userId: studentOne.userId },

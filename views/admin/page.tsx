@@ -161,6 +161,9 @@ export default function AdminPage() {
   const [newStudentGuardianId, setNewStudentGuardianId] = useState("");
   const [actionNotice, setActionNotice] = useState("");
   const [creatingSchool, setCreatingSchool] = useState(false);
+  const [archiveReason, setArchiveReason] = useState("");
+  const [archiveConfirmation, setArchiveConfirmation] = useState("");
+  const [archivingSchool, setArchivingSchool] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState("");
   const [recordSchoolFilter, setRecordSchoolFilter] = useState("all");
@@ -178,7 +181,8 @@ export default function AdminPage() {
   const [error, setError] = useState("");
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
-  const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || overview?.schools[0];
+  const activeSchools = overview?.schools.filter((school) => school.status === "active") || [];
+  const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || activeSchools[0] || overview?.schools[0];
   const selectedDirectory = overview?.schoolDirectories.find(
     (directory) => directory.school_id === selectedSchool?.id,
   );
@@ -223,7 +227,11 @@ export default function AdminPage() {
           ]),
         ),
       );
-      setSelectedSchoolId((current) => current || nextOverview.schools[0]?.id || "");
+      setSelectedSchoolId((current) =>
+        nextOverview.schools.some((school) => school.id === current && school.status === "active")
+          ? current
+          : nextOverview.schools.find((school) => school.status === "active")?.id || nextOverview.schools[0]?.id || "",
+      );
       setAssignmentRole((current) =>
         nextOverview.admin.scope === "school" && current === "学校负责人" ? "学生" : current,
       );
@@ -450,6 +458,41 @@ export default function AdminPage() {
       setError(assignmentError instanceof Error ? assignmentError.message : "学校成员添加失败。");
     } finally {
       setAddingMember(false);
+    }
+  }
+
+  async function handleArchiveSchool(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!accessToken || !selectedSchool || selectedSchool.status !== "active") return;
+    setArchivingSchool(true);
+    setActionNotice("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/schools", {
+        method: "PATCH",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          schoolId: selectedSchool.id,
+          confirmationName: archiveConfirmation,
+          reason: archiveReason,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "学校退出试点失败。");
+      const archivedName = selectedSchool.name;
+      const nextSchoolId = activeSchools.find((school) => school.id !== selectedSchool.id)?.id || "";
+      setArchiveReason("");
+      setArchiveConfirmation("");
+      setSelectedSchoolId(nextSchoolId);
+      setActionNotice(`${archivedName} 已退出试点，学校访问权限和关系已解除。`);
+      await loadAdminOverview();
+    } catch (archiveError) {
+      setError(archiveError instanceof Error ? archiveError.message : "学校退出试点失败。");
+    } finally {
+      setArchivingSchool(false);
     }
   }
 
@@ -690,7 +733,7 @@ export default function AdminPage() {
                     学校
                     <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={selectedSchoolId} onChange={(event) => setSelectedSchoolId(event.target.value)}>
                       <option value="">选择学校</option>
-                      {overview.schools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
+                      {activeSchools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
                     </select>
                   </label>
                 ) : null}
@@ -858,6 +901,43 @@ export default function AdminPage() {
                     ))}
                   </div>
                 </div>
+              ) : null}
+
+              {isPlatformAdmin && selectedSchool?.status === "active" ? (
+                <form className="mt-7 border-t border-[#b8644d]/25 pt-6" onSubmit={handleArchiveSchool}>
+                  <p className="eyebrow text-[#8a4634]">退出试点</p>
+                  <h3 className="mt-2 text-xl font-bold text-ink">关闭 {selectedSchool.name} 的学校访问</h3>
+                  <p className="mt-3 text-sm leading-7 text-muted">
+                    生效后，学校成员和负责关系立即解除，学校跟进笔记与未完成邀请删除；个人账号、个人记录和社区内容不会因此删除。
+                  </p>
+                  <label className="mt-4 grid gap-2 text-sm font-bold text-ink">
+                    退出原因
+                    <textarea
+                      className="min-h-24 rounded-2xl border border-[#b8644d]/25 bg-white px-4 py-3 text-sm outline-none focus:border-[#b8644d]"
+                      value={archiveReason}
+                      onChange={(event) => setArchiveReason(event.target.value)}
+                      placeholder="说明退出日期、学校确认情况和后续联系人（10–500 字）"
+                      maxLength={500}
+                    />
+                  </label>
+                  <label className="mt-4 grid gap-2 text-sm font-bold text-ink">
+                    输入完整学校名称确认
+                    <input
+                      className="rounded-2xl border border-[#b8644d]/25 bg-white px-4 py-3 text-sm outline-none focus:border-[#b8644d]"
+                      value={archiveConfirmation}
+                      onChange={(event) => setArchiveConfirmation(event.target.value)}
+                      placeholder={selectedSchool.name}
+                      autoComplete="off"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="mt-4 rounded-xl border border-[#b8644d]/35 bg-white px-4 py-3 text-sm font-bold text-[#8a4634] transition hover:bg-[#f9eee9] disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled={archivingSchool || archiveReason.trim().length < 10 || archiveConfirmation.trim() !== selectedSchool.name}
+                  >
+                    {archivingSchool ? "正在退出…" : "确认退出试点"}
+                  </button>
+                </form>
               ) : null}
             </div>
           </div>

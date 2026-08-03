@@ -35,6 +35,17 @@ test("未登录不能创建学校", async ({ request }) => {
   expect(response.status()).toBe(401);
 });
 
+test("未登录不能让学校退出试点", async ({ request }) => {
+  const response = await request.patch("/api/admin/schools", {
+    data: {
+      schoolId: "00000000-0000-0000-0000-000000000000",
+      confirmationName: "不应被操作的学校",
+      reason: "未登录请求不应进入学校退出流程。",
+    },
+  });
+  expect(response.status()).toBe(401);
+});
+
 test("未登录不能分配老师、确认亲子关系或移出成员", async ({ request }) => {
   const teacherAssignment = await request.post("/api/admin/teacher-student-assignments", {
     data: { schoolId: "school-a", teacherUserId: "teacher-a", studentUserIds: ["student-a"] },

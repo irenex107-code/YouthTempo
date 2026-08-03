@@ -226,6 +226,30 @@ async function createFixtures() {
     "创建虚拟亲子关系",
   );
 
+  const consentedAt = new Date().toISOString();
+  assertResult(
+    await supabase.from("student_consents").upsert(
+      [
+        ["studentOne", "guardianOne"],
+        ["studentTwo", "guardianTwo"],
+      ].map(([studentKey, guardianKey]) => ({
+        student_user_id: users[studentKey].id,
+        school_id: schoolA,
+        age_band: "14_17",
+        policy_version: "2026-08-03",
+        status: "active",
+        student_assented_at: consentedAt,
+        guardian_user_id: users[guardianKey].id,
+        guardian_consented_at: consentedAt,
+        withdrawn_at: null,
+        withdrawn_by: null,
+        updated_at: consentedAt,
+      })),
+      { onConflict: "student_user_id" },
+    ),
+    "创建虚拟学生知情同意",
+  );
+
   assertResult(
     await supabase.from("sweet_records").upsert(
       Object.entries(fixture.records).map(([studentKey, record]) => ({

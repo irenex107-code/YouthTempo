@@ -3,6 +3,7 @@ import { InfoCard } from "@/components/Cards";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { accountDataRetention } from "@/lib/accountDataPolicy";
+import { schoolExitRules } from "@/lib/schoolExitPolicy";
 
 const principles = [
   ["不贴标签", "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。"],
@@ -24,6 +25,13 @@ const retentionRules = [
   ["注销立即执行", accountDataRetention.accountDeletion],
   ["安全审计 · 最长 24 个月", accountDataRetention.safetyAudit],
   ["灾难恢复副本", accountDataRetention.backups],
+];
+
+const schoolExitItems = [
+  ["学校权限立即停止", schoolExitRules.access],
+  ["个人账号继续保留", schoolExitRules.personalData],
+  ["解除学校关系", schoolExitRules.relationships],
+  ["删除学校协作数据", schoolExitRules.schoolNotes],
 ];
 
 const consentSteps = [
@@ -147,6 +155,24 @@ export default function PrivacySafetyPage() {
           </div>
           <p className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
             《个人信息保护法》规定个人有权查阅、复制个人信息，并在处理目的已实现、停止提供服务、保存期限届满或撤回同意等情形请求删除；《网络数据安全管理条例》要求提供便捷的复制、删除、限制处理、注销账号和撤回同意方法。查看
+            <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>
+            <span>和</span>
+            <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.cac.gov.cn/2024-09/30/c_1729384452307680.htm" target="_blank" rel="noreferrer">《网络数据安全管理条例》</a>。
+          </p>
+        </div>
+      </section>
+
+      <section id="school-exit" className="section section-muted scroll-mt-24">
+        <div className="container">
+          <SectionHeader
+            title="学校退出试点后的数据处理"
+            description="学校退出不会替学生或家长注销个人账号，也不会让学校继续保留访问权限。平台管理员依据学校确认执行退出，并记录不含学生内容的最小操作审计。"
+          />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {schoolExitItems.map(([title, text]) => <InfoCard key={title} title={title}>{text}</InfoCard>)}
+          </div>
+          <p className="mt-6 rounded-2xl border border-sage/20 bg-white/80 px-5 py-4 text-sm leading-7 text-muted">
+            学校退出后，YouthTempo 不再以该学校关系为依据向学校角色提供学生信息。个人仍可依法查阅、复制、删除或注销自己的数据；作为受托处理方的合作终止时，应按照约定返还或删除个人信息，不得继续保留。查看
             <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>
             <span>和</span>
             <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.cac.gov.cn/2024-09/30/c_1729384452307680.htm" target="_blank" rel="noreferrer">《网络数据安全管理条例》</a>。
