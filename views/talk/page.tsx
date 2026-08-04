@@ -54,7 +54,7 @@ export default function TalkPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "AI request failed");
+      if (!response.ok) throw new Error(data.error || "这次没有连接成功，请稍后再试。");
       setMessages((current) => [
         ...current,
         {
@@ -91,7 +91,7 @@ export default function TalkPage() {
     <>
       <PageHero
         title="陪我捋一捋"
-        subtitle="不用一次说清楚。可以先写下眼前最卡住的一件事，AI 会陪你整理几轮。"
+        subtitle="不用一次说清楚。先写下眼前最卡住的一件事，再一问一答地把它捋清一点。"
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-talk.webp"
@@ -107,7 +107,7 @@ export default function TalkPage() {
             <div className="border-b border-ink/10 px-5 py-4 sm:px-6">
               <p className="font-bold text-ink">本次对话</p>
               <p className="mt-1 text-xs leading-6 text-muted">
-                内容只保留在当前页面，刷新或离开后会清空。AI 不能代替真人或专业支持。
+                内容只保留在当前页面，刷新或离开后会清空。这里的文字整理不能代替真人或专业支持。
               </p>
             </div>
 
@@ -186,7 +186,7 @@ export default function TalkPage() {
             <div className="rounded-2xl border border-ink/10 bg-white/80 p-5">
               <p className="font-bold text-ink">什么时候转向真人支持</p>
               <p className="mt-3 text-sm leading-7 text-muted">
-                如果已经影响睡眠、吃饭、学习或安全，不用继续和 AI 解释，可以直接找可信任的大人或学校老师。
+                如果已经影响睡眠、吃饭、学习或安全，不用继续在这里解释，可以直接找可信任的大人或学校老师。
               </p>
               <Link href="/referral" className="button-secondary mt-5 w-full px-4 py-2 text-xs">
                 看看下一步找谁

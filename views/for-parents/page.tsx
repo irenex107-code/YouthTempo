@@ -77,9 +77,9 @@ const phrases = [
   "我先不评价，你说说最近最累的是哪一块。",
 ];
 const parentStarts = [
-  { title: "先观察 SWEET", text: "从睡眠、按时起床、健康饮食、运动和任务参与，看见孩子最近的生活节律变化。", illustration: "/illustrations/system/parent-observe-sweet-v3.webp", alt: "爸爸和女儿按顺序一起观察 SWEET 五项生活节律" },
+  { title: "先看看最近的生活", text: "从睡眠、起床、吃饭、运动和学习开始，留意孩子最近有没有持续变化。", illustration: "/illustrations/system/parent-observe-sweet-v3.webp", alt: "爸爸和女儿按顺序一起观察 SWEET 五项生活节律" },
   { title: "先降低防御", text: "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。", illustration: "/illustrations/system/parent-safe-listening.webp", alt: "家长放下评判并安静倾听孩子" },
-  { title: "用 AIDET 开口", text: "用看见感受、说明来意、约定时间、解释原因和表达感谢的方式，让沟通更安全。", illustration: "/illustrations/system/parent-aidet-conversation.webp", alt: "家长和孩子循序渐进地进行安全对话" },
+  { title: "找一句容易开口的话", text: "先说你看见了什么、为什么关心，再约一个不被打扰的时间聊一会儿。", illustration: "/illustrations/system/parent-aidet-conversation.webp", alt: "家长和孩子循序渐进地进行安全对话" },
   { title: "需要时连接支持", text: "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。", illustration: "/illustrations/system/parent-connect-support.webp", alt: "家长为孩子连接学校和专业支持" },
 ];
 
@@ -89,7 +89,7 @@ export default function ForParentsPage() {
       <PageHero
         label="给家长"
         title="家长入口"
-        subtitle="YouthTempo 帮助家长通过 SWEET 看见孩子的生活节律，并用 AIDET 以更安全、不指责的方式开口。"
+        subtitle="先看看孩子最近睡得、吃得、动得怎么样，再找一个不指责、比较容易开口的方式聊聊。"
         action={
           <>
             <Link href="/account" className="button-primary">进入家长工作台</Link>
@@ -107,11 +107,11 @@ export default function ForParentsPage() {
 
       <section className="section section-muted">
         <div className="container grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <InfoCard title="家长是观察者和支持者">
-            家长可以关注持续变化、提供稳定陪伴并在需要时连接学校或专业支持。家长不会自动看到所有学生信息，只能查看由学校确认关联的孩子记录，也不需要根据一次记录给孩子下结论。
+          <InfoCard title="你能看到哪些内容">
+            你只能查看学校已经确认关联的孩子记录，不会看到其他学生的信息。一次记录不能说明全部情况，更适合用来了解近况、开始一次对话。
           </InfoCard>
-          <InfoCard title="从节律开始，不急着追问原因">
-            对很多孩子来说，直接回答“你到底怎么了”很难。SWEET 提供的是观察内容，AIDET 提供的是沟通方式，帮助家长先从更具体、更低压力的地方靠近孩子。
+          <InfoCard title="先说具体变化，不急着追问原因">
+            对很多孩子来说，直接回答“你到底怎么了”很难。可以先从最近睡不好、早上起不来或学习很难开始这些具体变化聊起。
           </InfoCard>
         </div>
       </section>
@@ -148,7 +148,7 @@ export default function ForParentsPage() {
         <div className="container">
           <SectionHeader
             title="SWEET：家长可以观察什么"
-            description="SWEET 是内容框架，帮助家长知道可以观察哪些生活节律。这些变化不一定意味着严重问题，但如果持续出现，就值得被温和、具体地看见。"
+            description="SWEET 把日常分成五个容易观察的部分。这些变化不一定代表出了严重问题；如果持续出现，就值得找孩子聊一聊。"
           />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {sweetObservations.map((item) => (
@@ -175,7 +175,7 @@ export default function ForParentsPage() {
         <div className="container">
           <SectionHeader
             title="AIDET：家长可以怎么开口谈"
-            description="AIDET 是亲子沟通框架，帮助家长围绕这些生活节律，用更不指责、更有安全感的方式开口。"
+            description="AIDET 把一次对话分成五步。不用照着术语念，照着顺序把关心说清楚就可以。"
           />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             {aidetSteps.map((item) => (
@@ -222,7 +222,7 @@ export default function ForParentsPage() {
           <div className="card">
             <h3 className="text-xl font-bold text-ink">家长可以先做的一件事</h3>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              选择一个 SWEET 里的具体变化开始谈，比如睡眠、起床或任务参与，再用 AIDET 的方式说明你只是想先理解孩子的状态。
+              选一个最具体的变化开始，比如最近睡不好、早上起不来或学习很难开始。先说明你只是想了解近况，再听孩子怎么说。
             </p>
           </div>
           <div className="card lg:col-span-2">

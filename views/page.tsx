@@ -15,35 +15,35 @@ const audienceCards = [
   },
   {
     title: "我是家长",
-    label: "理解与陪伴",
-    text: "通过孩子的 SWEET 记录了解近况，用更少指责、更容易开口的方式靠近孩子。",
+    label: "先了解近况",
+    text: "看看孩子最近的睡眠、吃饭、运动和学习状态，再找一个更容易开口的方式聊聊。",
     href: "/for-parents",
     action: "进入家长入口",
   },
   {
     title: "我是老师",
-    label: "看见与支持",
+    label: "留意变化",
     text: "先看负责学生的总体变化，在需要时了解具体情况，并连接家庭或专业支持。",
     href: "/for-teachers",
     action: "进入老师入口",
   },
 ];
 
-const supportLayers = [
+const supportSteps = [
   {
-    title: "第一层：SWEET 节律系统",
-    label: "日常节律",
-    text: "从 Sleep、Wake、Eat、Exercise、Task 五个维度看见日常状态的变化。",
+    title: "先记下最近的日常",
+    label: "睡眠、吃饭、运动和学习",
+    text: "不用一次说清所有事，从最近几天最明显的变化开始就可以。",
   },
   {
-    title: "第二层：表达与整理工具",
-    label: "表达与整理",
-    text: "当状态出现波动时，通过心情拼图和今晚先放下，把模糊压力慢慢理清。",
+    title: "再把感受说清一点",
+    label: "心情和压力",
+    text: "可以选几个接近的情绪词，也可以把反复担心的事先写下来。",
   },
   {
-    title: "第三层：支持路径",
-    label: "支持连接",
-    text: "当自助整理不够时，引导用户连接可信任的大人、学校支持或医疗与专业支持。",
+    title: "需要时找人一起想办法",
+    label: "家人、老师或专业帮助",
+    text: "如果一个人很难撑住，可以把近况告诉信任的人，再决定下一步找谁。",
   },
 ];
 
@@ -57,7 +57,7 @@ const demoOptions = [
   {
     id: "slow",
     label: "有点费力",
-    summary: "今天早晨启动有点费力。这是状态线索，不是对能力的判断。",
+    summary: "今天早晨开始一天有点费力。先记下来，不用急着责怪自己。",
     step: "先选一件最小的事开始，例如洗漱、喝水或收好书包。",
   },
   {
@@ -76,8 +76,8 @@ export default function Home() {
     <>
       <PageHero
         label="青少年日常支持平台"
-        title="成长不是抢跑，而是找到自己的节奏。"
-        subtitle="YouthTempo 从日常节律开始，帮助年轻人在压力变得更难承受之前，看见自己的状态、表达感受，并更容易找到可以信任的支持。"
+        title="最近过得怎么样？"
+        subtitle="从睡眠、吃饭、运动、学习和心情开始，把最近的状态记下来。需要的时候，也更容易和信任的人说清楚。"
         action={
           <>
             <Link href="/check-in" className="button-primary">开始 SWEET 节律记录</Link>
@@ -98,10 +98,10 @@ export default function Home() {
           <div>
             <p className="eyebrow">SWEET 记录示例</p>
             <h2 className="mt-3 max-w-2xl text-[1.8rem] font-bold leading-[1.25] text-ink sm:text-[2.35rem]">
-              选一个状态，看看它会怎样被整理
+              选一个最接近的状态，看看整理后的样子
             </h2>
             <p className="mt-4 max-w-2xl text-[0.95rem] leading-7 text-muted">
-              下面只是体验，不会保存。你先选择今天早晨最接近的状态，YouthTempo 会整理成一句不评判的小结，再给出一个容易开始的下一步。
+              这里可以直接体验，不会保存。选好后，你会看到一句简单的小结和一个可以马上试试的小步骤。
             </p>
             <ol className="mt-6 grid gap-3 text-sm font-bold text-ink/80 sm:grid-cols-3 lg:grid-cols-1">
               <li className="rounded-2xl bg-white/75 px-4 py-3"><span className="mr-2 text-sage">1</span>选择最接近的状态</li>
@@ -150,8 +150,8 @@ export default function Home() {
         <div className="container">
           <SectionHeader
             label="为什么从日常开始"
-            title="为什么需要更早支持"
-            description="很多年轻人的压力并不是一开始就以明确的“心理问题”出现，而是先体现在睡眠、饮食、运动、任务投入、情绪表达和沟通困难中。YouthTempo 希望在问题变得更难承受之前，提供更低门槛、更容易开始的支持方式。"
+            title="很多变化，最先出现在日常里"
+            description="睡不好、吃不下、不想动、学习很难开始，常常比一句“我压力很大”更早出现。先把这些变化记下来，就更容易知道自己需要休息、聊一聊，还是找人帮忙。"
           />
         </div>
       </section>
@@ -180,11 +180,11 @@ export default function Home() {
         <div className="container">
           <SectionHeader
             label="从记录到支持"
-            title="从日常节律开始的支持路径"
-            description="YouthTempo 从 SWEET 节律记录开始，帮助年轻人看见睡眠、醒来、饮食、运动和任务投入之间的关系，并在需要时打开心情拼图、今晚先放下或判断下一步找谁。"
+            title="按生活里的顺序，一步一步来"
+            description="先看看最近的生活，再整理当下的感受。一个人处理不动时，就找信任的人一起想办法。"
           />
           <div className="grid gap-6 md:grid-cols-3">
-            {supportLayers.map((item) => (
+            {supportSteps.map((item) => (
               <InfoCard key={item.title} title={item.title} label={item.label}>
                 {item.text}
               </InfoCard>
@@ -198,13 +198,13 @@ export default function Home() {
           <div>
             <p className="eyebrow">我们的原则</p>
             <h2 className="mt-3 max-w-3xl text-[1.8rem] font-bold leading-[1.25] text-ink sm:text-[2.35rem]">
-              先理解正在发生什么，再一起找到合适的支持。
+              记录是为了把近况说清楚，不是给谁下结论。
             </h2>
           </div>
           <InfoCard title="使用 YouthTempo 时" label="你可以放心">
             <ol className="space-y-4 font-bold text-ink/80">
               <li>1. 不会用一次记录给你下结论</li>
-              <li>2. AI 只帮助整理，不代替真人判断</li>
+              <li>2. 小结只整理你写下的内容</li>
               <li>3. 需要时会提示你联系可信任的人</li>
             </ol>
           </InfoCard>

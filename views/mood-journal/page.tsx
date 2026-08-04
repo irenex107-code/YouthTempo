@@ -97,7 +97,7 @@ export default function MoodJournalPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "AI request failed");
+      if (!response.ok) throw new Error(data.error || "这次没有连接成功，请稍后再试。");
       setAiResult(data);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "暂时无法生成回应，请稍后再试。");
@@ -111,7 +111,7 @@ export default function MoodJournalPage() {
       <PageHero
         label="感受整理"
         title="心情拼图"
-        subtitle="当你发现状态有些波动时，可以用情绪词、引导式整理和 AI 回应，把说不清的感受慢慢表达出来。"
+        subtitle="如果一时说不清感受，可以先选几个接近的情绪词，再慢慢补充发生了什么、身体有什么感觉。"
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-mood-puzzle.webp"
@@ -184,7 +184,7 @@ export default function MoodJournalPage() {
                 <VoiceInputButton value={support} onChange={setSupport} />
               </label>
               <button type="button" className="button-primary w-fit" onClick={generateAiResponse} disabled={loading}>
-                {loading ? "生成中，请稍等……" : "生成 AI 情绪回应"}
+                {loading ? "正在整理，请稍等……" : "整理我的感受"}
               </button>
               {validation ? <p className="text-sm font-bold text-sage-dark">{validation}</p> : null}
               {error ? <p className="text-sm font-bold text-sage-dark">{error}</p> : null}
@@ -224,7 +224,7 @@ export default function MoodJournalPage() {
         {aiResult ? (
           <div className="container mt-8">
             <div className="rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">AI 情绪回应</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">把现在的感受说清一点</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
                   <h3 className="text-lg font-bold text-ink">你今天可能正在经历的情绪</h3>

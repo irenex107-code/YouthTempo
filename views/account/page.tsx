@@ -489,7 +489,7 @@ export default function AccountPage() {
     setNotice("");
     try {
       setConsentStatus(await submitGuardianConsent(studentUserId));
-      setNotice("监护人确认已记录，孩子可以使用云端保存和社区发布功能。");
+      setNotice("监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。");
     } catch (consentError) {
       setError(consentError instanceof Error ? consentError.message : "监护人确认提交失败。");
     } finally {
@@ -503,7 +503,7 @@ export default function AccountPage() {
     setNotice("");
     try {
       setConsentStatus(await withdrawStudentConsent(studentUserId));
-      setNotice("确认已撤回。新的云端记录、留言和社区发布已停止；已有数据将按保存与删除规则另行处理。");
+      setNotice("确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。");
     } catch (consentError) {
       setError(consentError instanceof Error ? consentError.message : "撤回确认失败。");
     } finally {
@@ -542,14 +542,14 @@ export default function AccountPage() {
             <div className="max-w-xl">
               <p className="eyebrow">YouthTempo 账号</p>
               <h1 className="mt-3 text-[2rem] font-bold leading-tight text-ink sm:text-[2.7rem]">
-                登录后继续记录
+                登录后，记录会一直在
               </h1>
               <p className="mt-4 max-w-lg text-[0.95rem] leading-7 text-muted sm:text-base sm:leading-8">
-                使用邮箱验证码登录。你的 SWEET 记录会保存在云端，换设备后仍可查看。
+                使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。
               </p>
               <div className="mt-7 grid gap-3 text-sm leading-6 text-muted sm:grid-cols-2">
-                <p className="border-l-2 border-sage/45 pl-4">无需设置密码</p>
-                <p className="border-l-2 border-sage/45 pl-4">首次登录会自动创建账号</p>
+                <p className="border-l-2 border-sage/45 pl-4">不用记密码</p>
+                <p className="border-l-2 border-sage/45 pl-4">第一次使用这个邮箱也可以直接登录</p>
               </div>
             </div>
 
@@ -735,8 +735,8 @@ export default function AccountPage() {
             <section className="px-4 pb-2 pt-6 sm:px-8 lg:px-12">
               <div className="container">
                 <div className="rounded-2xl border border-sage/25 bg-mist/55 p-5 shadow-soft sm:p-7">
-                  <p className="eyebrow">试点知情同意</p>
-                  <h2 className="mt-2 text-2xl font-bold text-ink">学生本人和监护人都清楚数据如何使用</h2>
+                  <p className="eyebrow">使用前确认</p>
+                  <h2 className="mt-2 text-2xl font-bold text-ink">先了解哪些内容会被保存、谁可以看到</h2>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
                     SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和学校支持，不用于广告或公开展示；学生或监护人可随时撤回。完整说明见
                     <Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">隐私与安全</Link>。
@@ -913,7 +913,7 @@ export default function AccountPage() {
                         <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5">
                           <p className="font-bold text-ink">永久注销账号</p>
                           <p className="mt-2 text-sm leading-7 text-muted">
-                            注销后，账号、SWEET 记录、留言、学校关系、微信绑定和社区内容会从生产数据库删除，无法恢复。建议先下载数据副本。平台管理员需先由另一位管理员撤销平台权限。
+                            注销后，账号、SWEET 记录、留言、学校关系、微信绑定和社区内容都会被永久删除，无法恢复。建议先下载一份自己的数据。
                           </p>
                           <label className="mt-4 grid gap-2 text-sm font-bold text-ink">
                             输入当前登录邮箱确认
@@ -940,7 +940,7 @@ export default function AccountPage() {
                           </button>
                         </div>
                         <p className="text-sm leading-7 text-muted">
-                          具体保存期限、注销后的最小安全审计和备份处理说明见
+                          具体保存期限、注销后的安全处理记录和备份说明见
                           <Link href="/privacy-safety#account-data" className="ml-1 font-bold text-sage-dark underline underline-offset-4">隐私与安全</Link>。
                         </p>
                       </div>

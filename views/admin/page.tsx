@@ -240,7 +240,7 @@ export default function AdminPage() {
     try {
       await handleAuthRedirect();
       const supabase = getSupabase();
-      if (!supabase) throw new Error("Supabase 还没有配置完成。");
+      if (!supabase) throw new Error("管理服务暂时不可用，请稍后再试。");
       const { data, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       const token = data.session?.access_token;
@@ -719,7 +719,7 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="text-xs font-bold text-sage">SWEET 记录</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.sweetRecords}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "全平台云端记录。" : "本校学生记录。"}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "所有学校的近期记录。" : "本校学生记录。"}</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校空间</p>
@@ -1736,7 +1736,7 @@ export default function AdminPage() {
               )) : (
                 <div className="card">
                   <p className="font-bold text-ink">
-                    {recordSchoolFilter === "all" ? "还没有云端 SWEET 记录。" : "这所学校还没有 SWEET 记录。"}
+                    {recordSchoolFilter === "all" ? "还没有 SWEET 记录。" : "这所学校还没有 SWEET 记录。"}
                   </p>
                   {recordSchoolFilter !== "all" ? (
                     <button

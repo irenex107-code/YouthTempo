@@ -219,7 +219,7 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
             <p className="eyebrow">社区安全</p>
             <h2 className="mt-3 text-[1.6rem] font-bold text-ink">需要平台查看的内容</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-              汇总用户举报和系统识别为需要安全确认的帖子与回复。
+              汇总用户举报和其他需要安全确认的帖子与回复。
             </p>
           </div>
           <button type="button" className="button-secondary" onClick={() => void loadQueue()} disabled={loading}>
@@ -264,7 +264,7 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
                 目标首次复核：{formatDate(item.target_review_at)}
               </p>
               <p className="mt-4 whitespace-pre-wrap rounded-2xl bg-cream px-4 py-4 text-sm leading-7 text-ink">{item.body}</p>
-              {item.moderation_reason ? <p className="mt-3 text-sm font-bold text-amber-800">系统提示：{item.moderation_reason}</p> : null}
+              {item.moderation_reason ? <p className="mt-3 text-sm font-bold text-amber-800">需要留意：{item.moderation_reason}</p> : null}
               {item.reports.length ? (
                 <div className="mt-4 rounded-2xl border border-ink/10 px-4 py-4">
                   <p className="text-xs font-bold text-sage-dark">用户举报（{item.reports.length}）</p>
@@ -374,7 +374,7 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
         <div className="mt-12">
           <p className="eyebrow">账号限制</p>
           <h3 className="mt-3 text-[1.35rem] font-bold text-ink">当前禁言名单</h3>
-          <p className="mt-2 text-sm leading-7 text-muted">到期后自动恢复；平台也可以提前解除。所有历史保留在数据库中。</p>
+          <p className="mt-2 text-sm leading-7 text-muted">到期后会自动恢复，也可以根据复核结果提前解除。处理经过会保留在记录中。</p>
           {!restrictions.length ? (
             <div className="card mt-5 text-sm font-bold text-muted">当前没有处于禁言状态的社区成员。</div>
           ) : (

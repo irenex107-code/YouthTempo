@@ -8,9 +8,9 @@ export function Footer() {
         <div>
           <p className="text-lg font-black tracking-[-0.03em]">YouthTempo</p>
           <p className="mt-4 max-w-xl text-sm leading-7 text-white/65">
-            YouthTempo 面向青少年、家庭、学校和专业支持者，提供容易开始的成长支持。我们从日常节律、感受整理和可信任的人际连接开始，让年轻人更早获得帮助。
+            青少年可以记录近况、整理感受；家长和老师可以在获得授权后了解变化。需要的时候，大家也能更快找到合适的帮助。
           </p>
-          <p className="mt-5 text-xs font-bold text-white/45">先看见节律，再找到支持。</p>
+          <p className="mt-5 text-xs font-bold text-white/45">从最近的生活开始聊。</p>
         </div>
         <div className="flex flex-wrap content-start gap-x-5 gap-y-3 text-sm font-bold text-white/70 md:justify-end">
           {footerLinks.map((item) => (

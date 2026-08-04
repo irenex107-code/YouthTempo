@@ -407,7 +407,7 @@ export default function CommunityPage() {
               <div className="max-w-3xl">
                 <p className="eyebrow">未成年人社区规则</p>
                 <h2 className="mt-3 text-2xl font-bold text-ink sm:text-3xl">先保护人，再讨论问题</h2>
-                <p className="mt-3 text-sm leading-7 text-muted">规则适用于帖子和回应。平台会结合系统识别与人工复核，必要时隐藏内容、限制发布或依法报告。</p>
+                <p className="mt-3 text-sm leading-7 text-muted">规则适用于帖子和回应。发现可能伤害他人的内容时，我们会尽快查看，并根据情况隐藏内容、限制发布或依法报告。</p>
               </div>
               <Link href="/privacy-safety#community-safety" className="button-secondary shrink-0">查看完整安全说明</Link>
             </div>
@@ -424,7 +424,7 @@ export default function CommunityPage() {
               <p className="rounded-2xl border border-sage/20 bg-mist px-4 py-3 text-xs leading-6 text-sage-dark"><strong>欺凌、隐私等：</strong>目标 24 小时内首次复核</p>
               <p className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-xs leading-6 text-muted"><strong>其他违规：</strong>目标 72 小时内首次复核</p>
             </div>
-            <p className="mt-4 text-xs leading-6 text-muted">以上是平台服务目标，不是紧急救助时限。有人正处于即时危险时，不要等待平台处理，请联系可信任的成年人并拨打 110 或 120。</p>
+            <p className="mt-4 text-xs leading-6 text-muted">以上时间是我们争取完成首次查看的时间，不是紧急救助时限。有人正处于即时危险时，不要等待社区回复，请联系可信任的成年人并拨打 110 或 120。</p>
           </div>
         </div>
       </section>
@@ -441,7 +441,7 @@ export default function CommunityPage() {
               <p className="eyebrow">成员社区</p>
               <h2 className="mt-3 text-2xl font-bold text-ink">登录后才能阅读和参与讨论</h2>
               <p className="mt-4 text-sm leading-7 text-muted">
-                登录用于确认学生、家长、老师或专业支持者身份；加入社区不会改变任何 SWEET 记录的查看权限。
+                登录后，我们会按你的身份显示可以阅读和回应的内容。加入社区不会让其他人看到你的个人记录。
               </p>
               <Link href="/account?next=/community" className="button-primary mt-6">登录或创建账户</Link>
             </div>
@@ -452,7 +452,7 @@ export default function CommunityPage() {
                   <Avatar name={currentRoleLabel} professional={currentRole === "professional"} />
                   <div>
                     <p className="text-sm font-bold text-ink">你正在以“{currentRoleLabel}”身份参与</p>
-                    <p className="mt-1 text-xs leading-5 text-muted">只显示向这个身份开放的内容；SWEET 记录不会出现在这里。</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">这里只显示向这个身份开放的内容，你的个人记录不会出现在社区里。</p>
                   </div>
                 </div>
                 <a href="#new-post" className="button-secondary shrink-0 px-4 py-2 text-xs">写一个新话题</a>

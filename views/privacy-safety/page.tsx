@@ -7,14 +7,14 @@ import { schoolExitRules } from "@/lib/schoolExitPolicy";
 
 const principles = [
   ["不贴标签", "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。"],
-  ["最少必要", "只收集完成记录、生成回应和改进服务所需要的信息，避免收集无关隐私。"],
-  ["安全优先", "当用户表达明显危险或无法保证安全时，系统会优先引导连接可信任的大人、学校或紧急资源。"],
-  ["透明可控", "登录后可以查看账号和历史记录；学校关系由学校管理员配置，并按角色限制访问。"],
+  ["只保存需要的内容", "只保存完成记录和提供服务所需要的信息，不收集无关隐私。"],
+  ["安全优先", "当用户表达明显危险或无法保证安全时，会优先提醒联系可信任的大人、学校或紧急资源。"],
+  ["自己可以管理", "登录后可以查看、下载或删除自己的内容；不同身份只能看到获得授权的记录。"],
 ];
 
 const accountPlan = [
   ["邮箱登录", "使用邮箱验证码登录，不需要设置或记住密码。"],
-  ["云端保存", "登录用户主动保存的 SWEET 记录会进入个人历史记录。"],
+  ["保存记录", "登录后主动保存的 SWEET 记录会进入个人历史记录。"],
   ["学校访问", "学校负责人可查看本校学生记录；支持老师只查看由学校分配给自己的学生。"],
   ["删除记录", "学生可以在“账号”中删除自己保存的 SWEET 记录。"],
   ["导出与注销", "登录后可即时下载自己的数据副本，或永久注销账号。平台不保存导出文件。"],
@@ -23,8 +23,8 @@ const accountPlan = [
 const retentionRules = [
   ["账号存续期间", accountDataRetention.activeAccount],
   ["注销立即执行", accountDataRetention.accountDeletion],
-  ["安全审计 · 最长 24 个月", accountDataRetention.safetyAudit],
-  ["灾难恢复副本", accountDataRetention.backups],
+  ["安全处理记录 · 最长 24 个月", accountDataRetention.safetyAudit],
+  ["备份副本", accountDataRetention.backups],
 ];
 
 const schoolExitItems = [
@@ -37,15 +37,15 @@ const schoolExitItems = [
 const consentSteps = [
   ["学生先确认", "学生阅读数据范围、用途、可见角色和撤回方式，只选择年龄范围，不填写具体生日。"],
   ["监护人再确认", "14–17 岁学生参加学校试点时，由学校已确认关联的监护人在自己的账户中完成确认。"],
-  ["敏感处理单独提示", "生成 AI 小结前会再次提示本次回答可能包含敏感生活与健康信息，由用户主动勾选。"],
-  ["随时可以撤回", "学生或监护人可在账户页撤回；撤回后停止新的云端记录、留言和社区发布。"],
+  ["生成小结前再确认", "生成小结前会再次说明本次回答可能包含敏感生活与健康信息，由用户主动勾选。"],
+  ["随时可以撤回", "学生或监护人可在账户页撤回；撤回后不能继续保存新记录、发送留言或在社区发布。"],
 ];
 
 const dataTypes = [
   ["SWEET 节律记录", "睡眠、起床、饮食、运动、任务参与等日常节律信息。"],
   ["账号资料", "邮箱、显示名称和用户选择的身份，用于登录和区分支持角色。"],
   ["学校关系", "学校、学生、支持老师及师生分配关系，用于限制记录的可见范围。"],
-  ["AI 生成回应", "系统根据用户输入生成的整理建议、沟通句式和下一步提示。"],
+  ["整理后的小结", "根据用户主动填写的内容生成的小结、沟通句式和下一步提示。"],
 ];
 
 export default function PrivacySafetyPage() {
@@ -59,8 +59,8 @@ export default function PrivacySafetyPage() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader
-            title="我们如何看待安全"
-            description="心理健康相关产品首先要让用户感到安全。这里的安全包括情绪安全、信息安全，也包括在必要时连接真实支持。"
+            title="你可以怎么保护自己的信息"
+            description="这里说明会保存什么、谁能看到，以及需要帮助或想删除数据时可以怎么做。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             {principles.map(([title, text]) => (
@@ -74,7 +74,7 @@ export default function PrivacySafetyPage() {
         <div className="container">
           <SectionHeader
             title="未成年人社区安全与举报处理"
-            description="社区规则适用于帖子和回应。举报人身份不会向内容作者公开；平台按照风险程度安排首次复核，而不是简单按提交顺序处理。"
+            description="社区规则适用于帖子和回应。举报人身份不会告诉内容作者；越可能伤害到人的情况，会越早查看。"
           />
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             <InfoCard title="紧急优先 · 目标 2 小时" label="首次复核">
@@ -88,7 +88,7 @@ export default function PrivacySafetyPage() {
             </InfoCard>
           </div>
           <div className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
-            YouthTempo 依据最有利于未成年人的原则设置规则、举报入口、屏蔽功能和审核流程。法律要求平台显著公布便捷举报方式、及时受理处理，并建立网络欺凌识别与处置机制；上述 2/24/72 小时是 YouthTempo 的试点服务目标，不代表法律统一规定的固定时限。查看
+            上述 2/24/72 小时是我们争取完成首次查看的时间，并不是法律规定的统一时限。有人正处于危险时，请不要等待社区处理。社区规则依据
             <a className="ml-1 font-bold text-sage-dark underline decoration-sage/40 underline-offset-4" href="https://www.gov.cn/zhengce/content/202310/content_6911288.htm" target="_blank" rel="noreferrer">《未成年人网络保护条例》</a>。
           </div>
         </div>
@@ -124,11 +124,11 @@ export default function PrivacySafetyPage() {
             </div>
             <div className="rounded-2xl border border-sage/20 bg-white/80 px-5 py-5 text-sm leading-7 text-muted">
               <p className="font-bold text-ink">撤回后会怎样</p>
-              <p className="mt-2">撤回不影响紧急帮助、公开安全说明和查看自己已有内容；系统会停止新的敏感数据处理。用户仍可下载已有数据、逐条删除自己的记录，或注销账号并删除关联数据。</p>
+              <p className="mt-2">撤回后不能继续保存新记录、发送留言或在社区发布。已有内容仍可查看、下载或逐条删除，也可以注销账号并删除关联数据。</p>
             </div>
           </div>
           <p className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
-            法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是更严格的产品准入规则。查看
+            法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是我们增加的一层保护。查看
             <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMi9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>。
           </p>
         </div>
@@ -143,14 +143,10 @@ export default function PrivacySafetyPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {retentionRules.map(([title, text]) => <InfoCard key={title} title={title}>{text}</InfoCard>)}
           </div>
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="mt-6">
             <div className="rounded-2xl border border-sage/20 bg-mint/35 px-5 py-5 text-sm leading-7 text-muted">
               <p className="font-bold text-ink">注销会删除什么</p>
               <p className="mt-2">账号资料、SWEET 记录、留言、学校与监护关系、知情同意记录、微信绑定、个人社区内容和举报会随账号删除。涉及该账号的社区审核动作仅保留去标识化的安全记录。</p>
-            </div>
-            <div className="rounded-2xl border border-sage/20 bg-white/80 px-5 py-5 text-sm leading-7 text-muted">
-              <p className="font-bold text-ink">特殊权限保护</p>
-              <p className="mt-2">普通学校身份可直接注销并解除关系。平台管理员需先由另一位管理员撤销平台权限，以免管理权限残留或平台失去必要管理账号。</p>
             </div>
           </div>
           <p className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-4 text-sm leading-7 text-muted">
@@ -166,13 +162,13 @@ export default function PrivacySafetyPage() {
         <div className="container">
           <SectionHeader
             title="学校退出试点后的数据处理"
-            description="学校退出不会替学生或家长注销个人账号，也不会让学校继续保留访问权限。平台管理员依据学校确认执行退出，并记录不含学生内容的最小操作审计。"
+            description="学校退出后，学校不能再查看相关学生信息；学生和家长的个人账号不会因此被注销。"
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {schoolExitItems.map(([title, text]) => <InfoCard key={title} title={title}>{text}</InfoCard>)}
           </div>
           <p className="mt-6 rounded-2xl border border-sage/20 bg-white/80 px-5 py-4 text-sm leading-7 text-muted">
-            学校退出后，YouthTempo 不再以该学校关系为依据向学校角色提供学生信息。个人仍可依法查阅、复制、删除或注销自己的数据；作为受托处理方的合作终止时，应按照约定返还或删除个人信息，不得继续保留。查看
+            学校退出后，学校负责人和老师不能再通过原有学校关系查看学生信息。个人仍可依法查阅、复制、删除或注销自己的数据。详细权利可查看
             <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.npc.gov.cn/WZWSREL25wYy9jMzA4MzQvMjAyMTA4L3QyMDIxMDgyMF8zMTMwODguaHRtbD9yZWY9aW1i" target="_blank" rel="noreferrer">《个人信息保护法》</a>
             <span>和</span>
             <a className="ml-1 font-bold text-sage-dark underline underline-offset-4" href="https://www.cac.gov.cn/2024-09/30/c_1729384452307680.htm" target="_blank" rel="noreferrer">《网络数据安全管理条例》</a>。
@@ -186,7 +182,7 @@ export default function PrivacySafetyPage() {
             <p className="eyebrow">数据范围</p>
             <h2 className="mt-3 text-[1.8rem] font-bold leading-[1.25] text-ink sm:text-[2.2rem]">哪些数据可能被保存？</h2>
             <p className="mt-4 text-base leading-8 text-muted">
-              数据保存的目标是帮助用户和支持者更早看见节律变化，而不是建立标签、排名或判断。保存范围包括用户主动提交的 SWEET 记录、账号资料和学校支持关系。
+              只保存用户主动提交的记录、账号资料和提供学校支持所需的关联信息。这些内容不会用来给人贴标签或排名。
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">

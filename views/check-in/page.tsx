@@ -233,7 +233,7 @@ export default function CheckInPage() {
     if (normalized.includes("fetch") || normalized.includes("network") || normalized.includes("failed to")) {
       return "网络连接不稳定，请检查网络后重新保存。";
     }
-    return "云端保存失败，请稍后重新保存。";
+    return "这次没有保存成功，请稍后再试。";
   }
 
   async function saveCurrentRecord(result: AiResult | null = aiResult) {
@@ -284,7 +284,7 @@ export default function CheckInPage() {
       body: JSON.stringify(payload),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "AI request failed");
+    if (!response.ok) throw new Error(data.error || "这次没有完成小结，请稍后再试。");
     return data as AiResult;
   }
 
@@ -328,7 +328,7 @@ export default function CheckInPage() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "AI 小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。",
+          : "小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。",
       );
       await saveCurrentRecord(null);
     } finally {
@@ -525,7 +525,7 @@ export default function CheckInPage() {
                   </div>
                   <FeatureIllustration
                     src="/illustrations/system/feature-ai-summary.webp"
-                    alt="AI 帮助把记录整理成清晰小结的插画"
+                    alt="把记录整理成清晰小结的插画"
                   />
                 </div>
                 <div className="mt-6 grid gap-4">

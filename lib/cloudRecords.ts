@@ -164,7 +164,7 @@ function authRedirectTo() {
 
 async function getAccessToken() {
   const supabase = getSupabase();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
   const token = data.session?.access_token;
@@ -215,7 +215,7 @@ export async function getCurrentUser() {
 
 export async function sendEmailOtp(email: string) {
   const supabase = getSupabase();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
@@ -228,7 +228,7 @@ export async function sendEmailOtp(email: string) {
 
 export async function verifyEmailOtp(email: string, token: string) {
   const supabase = getSupabase();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const { data, error } = await supabase.auth.verifyOtp({
     email: email.trim(),
     token: token.trim(),
@@ -493,7 +493,7 @@ export async function getProfile(user: User) {
 
 export async function saveProfile(user: User, displayName: string, role: string) {
   const supabase = getSupabase();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const payload = {
     id: user.id,
     email: user.email || null,
@@ -528,9 +528,9 @@ export async function saveCloudSweetRecord(record: {
   recommendedNextTool?: string;
 }) {
   const supabase = getSupabase();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const user = await getCurrentUser();
-  if (!user) throw new Error("请先登录，再保存到云端记录。");
+  if (!user) throw new Error("请先登录，再保存这次记录。");
   const profile = await getProfile(user);
   if (profile?.role === "学生") {
     const consent = await getStudentConsentStatus();
@@ -589,7 +589,7 @@ export async function listPermissions() {
 
 export async function createPermission(granteeEmail: string, permissionType: string) {
   const supabase = getSupabase();
-  if (!supabase) throw new Error("Supabase is not configured.");
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const user = await getCurrentUser();
   if (!user) throw new Error("请先登录，再管理授权。");
   const { data, error } = await supabase

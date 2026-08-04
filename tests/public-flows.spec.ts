@@ -4,7 +4,7 @@ test("首页提供青少年日常支持和 SWEET 主入口", async ({ page }) =>
   await page.goto("/");
 
   await expect(page).toHaveTitle(/YouthTempo/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("找到自己的节奏");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("最近过得怎么样");
   await expect(page.getByText("青少年日常支持平台", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "开始 SWEET 节律记录" })).toHaveAttribute("href", "/check-in");
 });
@@ -48,9 +48,31 @@ test("未登录访问社区时不会显示发布表单", async ({ page }) => {
 test("未登录进入账户页时显示邮箱验证码登录", async ({ page }) => {
   await page.goto("/account");
 
-  await expect(page.getByRole("heading", { level: 1, name: "登录后继续记录" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "登录后，记录会一直在" })).toBeVisible();
   await expect(page.getByLabel("邮箱")).toBeVisible();
   await expect(page.getByRole("button", { name: "发送验证码" })).toBeVisible();
+});
+
+test("公开页面不展示生产端处理方式", async ({ page }) => {
+  const productionPhrases = [
+    "系统识别",
+    "AI 简短聊几轮",
+    "自动创建账号",
+    "生产数据库",
+    "平台管理员需先由另一位管理员",
+    "最小操作审计",
+    "第一层：",
+    "第二层：",
+    "第三层：",
+  ];
+
+  for (const path of ["/", "/for-teens", "/for-parents", "/for-teachers", "/community", "/account", "/privacy-safety"]) {
+    await page.goto(path);
+    const body = await page.locator("body").innerText();
+    for (const phrase of productionPhrases) {
+      expect(body, `${path} 不应显示“${phrase}”`).not.toContain(phrase);
+    }
+  }
 });
 
 test("关键公开页面没有横向溢出", async ({ page }) => {

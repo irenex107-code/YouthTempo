@@ -9,7 +9,7 @@ export default function ForTeachersPage() {
       <PageHero
         label="给老师"
         title="老师入口"
-        subtitle="YouthTempo 帮助老师通过 SWEET 了解所负责学生近期的生活节律，并以更安全、不贴标签的方式开始沟通。"
+        subtitle="先看看负责学生最近有没有持续变化，需要时再了解具体情况，和学生一起决定是否要联系家庭或更多支持。"
         action={
           <>
             <Link href="/account" className="button-primary">进入老师工作台</Link>
@@ -30,8 +30,8 @@ export default function ForTeachersPage() {
           <SectionHeader title="老师可以在这里做什么" />
           <div className="grid gap-5 md:grid-cols-3">
             {[
-              { title: "看概览", description: "查看负责学生近 7 天的 SWEET 完成情况与最近变化，不必先翻阅每一条记录。", illustration: "/illustrations/system/teacher-overview-v2.webp", alt: "女老师查看所负责学生的总体变化概览" },
-              { title: "看学生", description: "进入单个学生页面后，再查看阶段摘要和必要的原始记录。", illustration: "/illustrations/system/teacher-student-view-v3.webp", alt: "男老师和女学生按顺序一起查看 SWEET 五项生活节律" },
+              { title: "先看最近一周", description: "先了解哪些学生最近有记录、哪些日常状态出现了持续变化。", illustration: "/illustrations/system/teacher-overview-v2.webp", alt: "女老师查看所负责学生的总体变化概览" },
+              { title: "再了解具体情况", description: "需要时查看学生最近的小结和本人记录，带着具体变化开始沟通。", illustration: "/illustrations/system/teacher-student-view-v3.webp", alt: "男老师和女学生按顺序一起查看 SWEET 五项生活节律" },
               { title: "听学生说", description: "查看学生不容易当面说出口、选择写给老师的话。", illustration: "/illustrations/system/feature-mailbox.webp", alt: "查看学生写来的悄悄话" },
             ].map((item) => (
               <article key={item.title} className="card flex h-full flex-col border-t-4 border-t-sage/50">
@@ -46,7 +46,7 @@ export default function ForTeachersPage() {
 
       <section className="section section-muted">
         <div className="container max-w-4xl">
-          <SectionHeader title="记录是沟通线索，不是给学生下结论" />
+          <SectionHeader title="把记录当作一次谈话的开头" />
           <div className="card">
             <p className="text-base leading-8 text-muted">
               当睡眠、饮食、活动或任务投入出现持续变化时，可以先问一句：“最近是不是有什么事情让你比较累？”

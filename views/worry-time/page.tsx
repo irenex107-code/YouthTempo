@@ -89,10 +89,10 @@ export default function WorryTimePage() {
         body: JSON.stringify({ worries, controls, action }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "AI request failed");
+      if (!response.ok) throw new Error(data.error || "这次没有连接成功，请稍后再试。");
       setAiResult(data);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "暂时无法生成 AI 整理，请稍后再试。");
+      setError(requestError instanceof Error ? requestError.message : "暂时无法完成整理，请稍后再试。");
     } finally {
       setLoading(false);
     }
@@ -222,7 +222,7 @@ export default function WorryTimePage() {
             </article>
             <article className="card flex flex-col justify-center">
               <button type="button" className="button-primary w-full" onClick={generateAiResponse} disabled={loading}>
-                {loading ? "正在生成……" : "生成 AI 整理"}
+                {loading ? "正在整理……" : "帮我分一分"}
               </button>
               <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
                 完成整理
@@ -237,7 +237,7 @@ export default function WorryTimePage() {
 
           {aiResult ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">AI 帮你分一分</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">先把担心分一分</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
                   <h3 className="text-lg font-bold text-ink">可以先做一点点的部分</h3>

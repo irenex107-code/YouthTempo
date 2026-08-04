@@ -3,7 +3,7 @@ export const ACCOUNT_DELETION_AUDIT_RETENTION_MONTHS = 24;
 
 export const accountDataRetention = {
   activeAccount: "账号存续期间，仅为提供服务、展示历史和履行安全责任而保存。用户可逐条删除自己的 SWEET 记录，也可随时注销账号。",
-  accountDeletion: "注销确认后，生产数据库中的账号及关联个人数据立即删除；导出文件由浏览器直接下载，服务器不保存副本。",
-  safetyAudit: "社区审核动作和不含明文邮箱、用户编号的最小注销审计最多保存 24 个月，用于安全复核和证明删除已经执行，到期清理。",
-  backups: "灾难恢复副本中的删除到期规则将在数据库备份与恢复演练完成后核验并公布；恢复时必须重新执行已登记的删除要求。",
+  accountDeletion: "注销确认后，账号及关联个人数据会立即删除；下载的数据副本不会由 YouthTempo 另行保存。",
+  safetyAudit: "不含明文邮箱和用户编号的安全处理记录最多保存 24 个月，用于复核安全问题和确认删除已经完成，到期后清理。",
+  backups: "备份副本的具体保存期限仍在确认，确认后会在本页公布。恢复服务时，已登记的删除要求仍会执行。",
 } as const;
