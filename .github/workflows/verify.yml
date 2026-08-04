@@ -36,11 +36,14 @@ jobs:
       - name: Build production app
         run: pnpm build
 
-      - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Install Playwright mobile browser engines
+        run: pnpm exec playwright install --with-deps chromium webkit
 
       - name: Run public-flow and safety tests
         run: pnpm test:e2e
+
+      - name: Run mobile Chrome, Safari, and WeChat WebView checks
+        run: pnpm test:e2e:mobile-browsers
 
       - name: Run authenticated permission, revocation, and community tests when configured
         env:

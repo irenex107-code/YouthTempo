@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo \"Lint is not configured yet; use build and TypeScript checks.\"",
     "test:e2e": "playwright test",
+    "test:e2e:mobile-browsers": "playwright test --config=playwright.mobile-browsers.config.ts",
     "test:e2e:install": "playwright install chromium",
     "test:e2e:permissions": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/authenticated-permission-boundary.spec.ts tests/authenticated-api-overreach.spec.ts tests/membership-revocation.spec.ts",
     "test:e2e:sweet": "node --env-file=.env.local node_modules/@playwright/test/cli.js test tests/sweet-record-lifecycle.spec.ts",
