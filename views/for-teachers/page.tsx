@@ -60,6 +60,13 @@ export default function ForTeachersPage() {
           </div>
         </div>
       </section>
+
+      <section className="section pt-8 sm:pt-12">
+        <div className="container rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div><h2 className="text-lg font-bold text-ink">哪些地方还不够顺手？</h2><p className="mt-2 text-sm leading-7 text-muted">花两分钟说说实际使用感受，帮助我们调整试点。</p></div>
+          <Link href="/feedback" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">填写老师反馈</Link>
+        </div>
+      </section>
     </>
   );
 }

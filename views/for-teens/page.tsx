@@ -112,6 +112,13 @@ export default function ForTeensPage() {
           </Link>
         </div>
       </section>
+
+      <section className="section section-muted pt-8 sm:pt-12">
+        <div className="container rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div><h2 className="text-lg font-bold text-ink">用过之后，有哪里想改？</h2><p className="mt-2 text-sm leading-7 text-muted">花两分钟告诉我们哪里顺手、哪里卡住。</p></div>
+          <Link href="/feedback" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">说说我的感受</Link>
+        </div>
+      </section>
     </>
   );
 }

@@ -53,6 +53,14 @@ test("未登录进入账户页时显示邮箱验证码登录", async ({ page }) 
   await expect(page.getByRole("button", { name: "发送验证码" })).toBeVisible();
 });
 
+test("未登录进入试点反馈页时只显示登录入口", async ({ page }) => {
+  await page.goto("/feedback");
+
+  await expect(page.getByRole("heading", { level: 1, name: "这次用起来怎么样？" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "登录后再填写" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "提交反馈" })).toHaveCount(0);
+});
+
 test("公开页面不展示生产端处理方式", async ({ page }) => {
   const productionPhrases = [
     "系统识别",
@@ -66,7 +74,7 @@ test("公开页面不展示生产端处理方式", async ({ page }) => {
     "第三层：",
   ];
 
-  for (const path of ["/", "/for-teens", "/for-parents", "/for-teachers", "/community", "/account", "/privacy-safety"]) {
+  for (const path of ["/", "/for-teens", "/for-parents", "/for-teachers", "/community", "/account", "/feedback", "/privacy-safety"]) {
     await page.goto(path);
     const body = await page.locator("body").innerText();
     for (const phrase of productionPhrases) {
@@ -76,7 +84,7 @@ test("公开页面不展示生产端处理方式", async ({ page }) => {
 });
 
 test("关键公开页面没有横向溢出", async ({ page }) => {
-  for (const path of ["/", "/for-teens", "/for-parents", "/for-teachers", "/community", "/account"]) {
+  for (const path of ["/", "/for-teens", "/for-parents", "/for-teachers", "/community", "/account", "/feedback"]) {
     await page.goto(path);
     const sizes = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,

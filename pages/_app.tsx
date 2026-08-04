@@ -22,6 +22,7 @@ const pageTitles: Record<string, string> = {
   "/privacy-safety": "隐私与安全 | YouthTempo",
   "/contact": "联系我们 | YouthTempo",
   "/account": "账号 | YouthTempo",
+  "/feedback": "试点反馈 | YouthTempo",
   "/admin": "管理工作台 | YouthTempo",
 };
 

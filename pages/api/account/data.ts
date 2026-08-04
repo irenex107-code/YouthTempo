@@ -43,6 +43,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     communityRestrictions,
     professionalVerifications,
     schoolInvites,
+    pilotFeedback,
   ] = await Promise.all([
     rows(supabase.from("profiles").select("id,email,display_name,role,school_id,created_at,updated_at").eq("id", user.id)),
     rows(supabase.from("sweet_records").select("id,user_id,school_id,records,summary,small_step,recommended_next_tool,created_at").eq("user_id", user.id).order("created_at")),
@@ -64,6 +65,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     rows(supabase.from("community_restrictions").select("id,user_id,restriction_type,reason,starts_at,ends_at,status,revoked_at,revoked_reason,created_at").eq("user_id", user.id)),
     rows(supabase.from("professional_verifications").select("user_id,status,created_at,updated_at,revoked_at").eq("user_id", user.id)),
     email ? rows(supabase.from("school_invites").select("id,school_id,display_name,assignment_role,status,created_at,updated_at,applied_at,revoked_at").eq("email", email)) : Promise.resolve([]),
+    rows(supabase.from("pilot_feedback").select("id,role,form_version,overall_experience,clarity,safety,most_helpful,hard_to_use,suggestion,may_contact,created_at,updated_at").eq("user_id", user.id).order("created_at")),
   ]);
 
   return {
@@ -104,6 +106,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
       communityRestrictions,
       professionalVerifications,
       schoolInvites,
+      pilotFeedback,
     },
   };
 }

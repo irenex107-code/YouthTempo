@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
+import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
 import { findStudentRelationshipGaps } from "@/lib/schoolRelationshipGaps";
@@ -733,6 +734,8 @@ export default function AdminPage() {
       </section>
 
       {isPlatformAdmin && accessToken ? <CommunityModerationQueue accessToken={accessToken} /> : null}
+
+      {isPlatformAdmin && accessToken ? <PilotFeedbackOverview accessToken={accessToken} /> : null}
 
       {overview?.admin.canManageMembers ? (
         <section id="member-management" className="section scroll-mt-24">

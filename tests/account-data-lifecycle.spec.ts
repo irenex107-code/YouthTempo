@@ -52,6 +52,20 @@ test("账号可导出自己的数据并在双重确认后永久注销", async ({
     });
     expect(recordError).toBeNull();
 
+    const { error: feedbackError } = await admin.from("pilot_feedback").insert({
+      user_id: userId,
+      role: "guardian",
+      form_version: "2026-08",
+      overall_experience: 4,
+      clarity: 5,
+      safety: 5,
+      most_helpful: marker,
+      hard_to_use: "",
+      suggestion: "",
+      may_contact: false,
+    });
+    expect(feedbackError).toBeNull();
+
     const { data: sessionData, error: signInError } = await browserClient.auth.signInWithPassword({ email, password });
     expect(signInError).toBeNull();
     const accessToken = sessionData.session?.access_token || "";
@@ -67,6 +81,8 @@ test("账号可导出自己的数据并在双重确认后永久注销", async ({
     expect(payload.data.profile).toHaveLength(1);
     expect(payload.data.sweetRecords).toHaveLength(1);
     expect(payload.data.sweetRecords[0].summary).toBe(marker);
+    expect(payload.data.pilotFeedback).toHaveLength(1);
+    expect(payload.data.pilotFeedback[0].most_helpful).toBe(marker);
     expect(JSON.stringify(payload)).not.toContain(serviceRoleKey);
 
     const rejected = await request.delete("/api/account/data", {

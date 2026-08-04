@@ -11,6 +11,8 @@ const protectedReads = [
   "/api/community/blocks",
   "/api/community/reports",
   "/api/messages",
+  "/api/pilot-feedback",
+  "/api/admin/pilot-feedback",
 ];
 
 test("未登录不能注销账号", async ({ request }) => {
@@ -73,6 +75,14 @@ test("未登录不能修改跟进状态或发送悄悄话", async ({ request }) 
     data: { recipientType: "self", body: "不应被发送" },
   });
   expect(message.status()).toBe(401);
+});
+
+test("未登录不能提交试点反馈", async ({ request }) => {
+  const response = await request.post("/api/pilot-feedback", {
+    data: { overallExperience: 5, clarity: 5, safety: 5 },
+  });
+  expect(response.status()).toBe(401);
+  await expect(response.json()).resolves.toMatchObject({ error: expect.stringContaining("登录") });
 });
 
 test("未登录不能处理社区审核内容", async ({ request }) => {
