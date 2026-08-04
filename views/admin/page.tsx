@@ -58,6 +58,36 @@ type AdminOverview = {
     followup_note: string;
     followup_updated_at: string | null;
   }>;
+  teacherWeeklySummaries: Array<{
+    school_id: string;
+    teacher_user_id: string;
+    teacher_name: string;
+    student_count: number;
+    current_record_count: number;
+    previous_record_count: number;
+    record_change: number;
+    active_student_count: number;
+    attention_student_count: number;
+    latest_record_at: string | null;
+    period_start: string;
+    period_end: string;
+  }>;
+  schoolMonthlyTrends: Array<{
+    school_id: string;
+    school_name: string;
+    student_count: number;
+    record_count: number;
+    active_student_count: number;
+    period_start: string;
+    period_end: string;
+    weeks: Array<{
+      label: string;
+      start: string;
+      end: string;
+      record_count: number;
+      active_student_count: number;
+    }>;
+  }>;
 };
 
 type FollowupDraft = {
@@ -126,6 +156,8 @@ function adminSubtitle(overview: AdminOverview | null) {
 function workspaceActions(overview: AdminOverview) {
   if (overview.admin.scope === "platform") {
     return [
+      { href: "#monthly-trends", label: "月度趋势", description: "按学校查看近 4 周参与变化" },
+      { href: "#weekly-summary", label: "老师摘要", description: "按老师查看最近 7 天负责学生情况" },
       { href: "#schools-overview", label: "学校总览", description: "查看学校、老师、学生与家庭关系" },
       { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
       { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
@@ -135,6 +167,7 @@ function workspaceActions(overview: AdminOverview) {
 
   if (overview.admin.role === "支持老师") {
     return [
+      { href: "#weekly-summary", label: "本周摘要", description: "查看负责学生最近 7 天的参与变化" },
       { href: "#recent-changes", label: "需要了解", description: "先看负责学生的近期变化" },
       { href: "#recent-records", label: "学生记录", description: "查看负责学生的完整记录" },
       { href: "/referral", label: "支持路径", description: "需要时连接更多支持" },
@@ -142,6 +175,7 @@ function workspaceActions(overview: AdminOverview) {
   }
 
   return [
+    { href: "#monthly-trends", label: "月度趋势", description: "查看本校近 4 周总体参与变化" },
     { href: "#schools-overview", label: "学校概览", description: "按老师查看近 4 周总体情况" },
     { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
     { href: "#member-management", label: "成员管理", description: "登记老师、学生和家长" },
@@ -946,7 +980,112 @@ export default function AdminPage() {
       ) : null}
 
       {overview && overview.admin.role !== "支持老师" ? (
-        <section id="schools-overview" className="section section-muted scroll-mt-24">
+        <section id="monthly-trends" className="section scroll-mt-24">
+          <div className="container">
+            <SectionHeader
+              title={isPlatformAdmin ? "学校近 4 周总体趋势" : "本校近 4 周总体趋势"}
+              description="按滚动周查看 SWEET 记录参与情况，只用于了解试点节奏，不代表学生状态评价。"
+            />
+            <div className="grid gap-5 lg:grid-cols-2">
+              {overview.schoolMonthlyTrends.map((trend) => {
+                const maxRecords = Math.max(1, ...trend.weeks.map((week) => week.record_count));
+                return (
+                  <article key={trend.school_id} className="card">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">滚动近 4 周</p>
+                        <h2 className="mt-2 text-[1.35rem] font-bold text-ink">{trend.school_name}</h2>
+                      </div>
+                      <div className="text-right text-sm text-muted">
+                        <p><strong className="text-2xl text-ink">{trend.record_count}</strong> 条记录</p>
+                        <p className="mt-1">{trend.active_student_count}/{trend.student_count} 名学生参与</p>
+                      </div>
+                    </div>
+                    <div className="mt-6 grid gap-4" aria-label={`${trend.school_name}近四周记录趋势`}>
+                      {trend.weeks.map((week) => (
+                        <div key={week.start} className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 text-sm">
+                          <span className="font-bold text-ink">{week.label}</span>
+                          <span className="h-3 overflow-hidden rounded-full bg-cream">
+                            <span
+                              className="block h-full rounded-full bg-sage"
+                              style={{ width: `${Math.max(week.record_count ? 10 : 0, (week.record_count / maxRecords) * 100)}%` }}
+                            />
+                          </span>
+                          <span className="min-w-[5.5rem] text-right text-xs text-muted">
+                            {week.record_count} 条 · {week.active_student_count} 人
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {overview ? (
+        <section id="weekly-summary" className="section section-muted scroll-mt-24">
+          <div className="container">
+            <SectionHeader
+              title={overview.admin.role === "支持老师" ? "我的每周阶段摘要" : "老师每周阶段摘要"}
+              description="最近 7 天与此前 7 天对比，帮助安排沟通节奏；记录数量变化不等于状态变好或变差。"
+            />
+            <div className="grid gap-4 lg:grid-cols-2">
+              {overview.teacherWeeklySummaries.length ? overview.teacherWeeklySummaries.map((summary) => (
+                <article key={`${summary.school_id}-${summary.teacher_user_id}`} className="card">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="eyebrow">最近 7 天</p>
+                      <h2 className="mt-2 text-[1.25rem] font-bold text-ink">
+                        {overview.admin.role === "支持老师" ? "我的负责学生" : summary.teacher_name}
+                      </h2>
+                    </div>
+                    <span className="rounded-full bg-mint px-3 py-2 text-xs font-bold text-sage-dark">
+                      负责 {summary.student_count} 人
+                    </span>
+                  </div>
+                  <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <p className="text-xs text-muted">本周记录</p>
+                      <p className="mt-1 text-2xl font-bold text-ink">{summary.current_record_count}</p>
+                    </div>
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <p className="text-xs text-muted">参与学生</p>
+                      <p className="mt-1 text-2xl font-bold text-ink">{summary.active_student_count}</p>
+                    </div>
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <p className="text-xs text-muted">较前 7 天</p>
+                      <p className="mt-1 text-2xl font-bold text-ink">
+                        {summary.record_change > 0 ? `+${summary.record_change}` : summary.record_change}
+                      </p>
+                    </div>
+                    <div className={`rounded-2xl px-3 py-3 ${summary.attention_student_count ? "bg-[#f7e8dc]" : "bg-mint"}`}>
+                      <p className="text-xs text-muted">建议了解</p>
+                      <p className="mt-1 text-2xl font-bold text-ink">{summary.attention_student_count}</p>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-muted">
+                    {summary.latest_record_at
+                      ? `最近一条记录：${formatDate(summary.latest_record_at)}。`
+                      : "近 4 周暂时没有新记录。"}
+                    本周记录变化只反映填写频次，请结合实际情况理解。
+                  </p>
+                </article>
+              )) : (
+                <div className="card">
+                  <p className="font-bold text-ink">暂时没有可生成摘要的老师负责关系。</p>
+                  <p className="mt-2 text-sm text-muted">完成老师与学生分配后，这里会自动出现每周摘要。</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {overview && overview.admin.role !== "支持老师" ? (
+        <section id="schools-overview" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader
               title={isPlatformAdmin ? "学校与人员总览" : "学校近 4 周概览"}

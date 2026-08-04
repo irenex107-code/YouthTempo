@@ -77,6 +77,12 @@ test.describe("真实账号与 RLS 权限隔离", () => {
     expect(body.recentRecords.map((record: { id: string }) => record.id)).not.toContain(
       fixture.records.studentThree.id,
     );
+    expect(body.schoolMonthlyTrends.map((trend: { school_id: string }) => trend.school_id)).toEqual([
+      fixture.schools.a.id,
+    ]);
+    expect(body.teacherWeeklySummaries.every(
+      (summary: { school_id: string }) => summary.school_id === fixture.schools.a.id,
+    )).toBe(true);
   });
 
   test("老师工作台 API 也不会返回未分配学生", async ({ request }) => {
@@ -91,6 +97,9 @@ test.describe("真实账号与 RLS 权限隔离", () => {
     expect(recordIds).toContain(fixture.records.studentOne.id);
     expect(recordIds).not.toContain(fixture.records.studentTwo.id);
     expect(recordIds).not.toContain(fixture.records.studentThree.id);
+    expect(body.teacherWeeklySummaries).toHaveLength(1);
+    expect(body.teacherWeeklySummaries[0].school_id).toBe(fixture.schools.a.id);
+    expect(body.schoolMonthlyTrends).toEqual([]);
   });
 
   test("平台管理员工作台可以查看两所虚拟学校", async ({ request }) => {
@@ -148,6 +157,8 @@ test.describe("真实账号与 RLS 权限隔离", () => {
 
     await page.goto("/admin", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("link", { name: /社区审核/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "学校近 4 周总体趋势" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "老师每周阶段摘要" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "需要平台查看的内容" })).toBeVisible();
   });
 });

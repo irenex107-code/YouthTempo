@@ -1,11 +1,45 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAdminContext } from "@/lib/adminAccess";
 import { assessSweetRecord } from "@/lib/attentionSignals";
+import {
+  buildSchoolMonthlyTrends,
+  buildTeacherWeeklySummaries,
+  type InsightTeacher,
+} from "@/lib/schoolDashboardInsights";
 
 async function getCount(query: PromiseLike<{ count: number | null; error: unknown }>) {
   const { count, error } = await query;
   if (error) throw error;
   return count || 0;
+}
+
+async function getInsightRecords(
+  supabase: SupabaseClient,
+  since: string,
+  schoolIds: string[] | null,
+  studentIds: string[] | null,
+) {
+  const pageSize = 1000;
+  const maxRecords = 10_000;
+  const records: Array<{ user_id: string; school_id: string; created_at: string }> = [];
+
+  for (let from = 0; from < maxRecords; from += pageSize) {
+    let query = supabase
+      .from("sweet_records")
+      .select("user_id,school_id,created_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (schoolIds) query = query.in("school_id", schoolIds);
+    if (studentIds) query = query.in("user_id", studentIds);
+    const { data, error } = await query;
+    if (error) throw error;
+    records.push(...(data || []));
+    if ((data || []).length < pageSize) return records;
+  }
+
+  throw new Error("近四周记录量超出当前汇总上限，请联系平台负责人处理。");
 }
 
 function recordPreview(records: unknown) {
@@ -350,6 +384,60 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       };
     });
 
+    const insightSince = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString();
+    const insightRecords =
+      isSupportOnly && assignedStudentIds.length === 0
+        ? []
+        : await getInsightRecords(
+            supabase,
+            insightSince,
+            context.kind === "school" ? schoolIds : null,
+            isSupportOnly ? assignedStudentIds : null,
+          );
+
+    let insightTeachers: InsightTeacher[] = schoolDirectories.flatMap((directory) => directory.teachers.map((teacher) => ({
+      school_id: directory.school_id,
+      teacher_user_id: teacher.id,
+      teacher_name: teacher.display_name || teacher.email,
+      student_ids: directory.assignments
+        .filter((assignment) => assignment.teacher_user_id === teacher.id)
+        .map((assignment) => assignment.student_user_id),
+    })));
+    const ownSupportSchoolIds = context.kind === "school"
+      ? schoolIds.filter((schoolId) => context.schoolRoles[schoolId] === "school_support")
+      : [];
+    if (ownSupportSchoolIds.length > 0) {
+      const { data: ownAssignments, error: ownAssignmentsError } = await supabase
+        .from("teacher_student_assignments")
+        .select("school_id,student_user_id")
+        .eq("teacher_user_id", context.user.id)
+        .eq("status", "active")
+        .in("school_id", ownSupportSchoolIds);
+      if (ownAssignmentsError) throw ownAssignmentsError;
+      insightTeachers = insightTeachers.concat(ownSupportSchoolIds.map((schoolId) => ({
+        school_id: schoolId,
+        teacher_user_id: context.user.id,
+        teacher_name: context.email,
+        student_ids: (ownAssignments || [])
+          .filter((assignment) => assignment.school_id === schoolId)
+          .map((assignment) => assignment.student_user_id as string),
+      })));
+    }
+
+    const teacherWeeklySummaries = buildTeacherWeeklySummaries(
+      insightRecords,
+      insightTeachers,
+      attentionQueue.map((item) => item.user_id),
+    );
+    const schoolMonthlyTrends = buildSchoolMonthlyTrends(
+      insightRecords,
+      (schools || []).filter((school) => directorySchoolIds.includes(school.id as string)).map((school) => ({
+        school_id: school.id as string,
+        school_name: school.name as string,
+        student_count: schoolDirectories.find((directory) => directory.school_id === school.id)?.students.length || 0,
+      })),
+    );
+
     return res.status(200).json({
       admin: {
         email: context.email,
@@ -370,6 +458,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       schoolDirectories,
       recentRecords: recentRecordItems,
       attentionQueue,
+      teacherWeeklySummaries,
+      schoolMonthlyTrends,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "管理员概览加载失败。";
