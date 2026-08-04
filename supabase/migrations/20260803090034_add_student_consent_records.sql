@@ -1,0 +1,3 @@
+-- Production migration history marker.
+-- This version is already represented by the complete schema in
+-- 20260718172309_youthtempo_baseline.sql and intentionally has no statements.

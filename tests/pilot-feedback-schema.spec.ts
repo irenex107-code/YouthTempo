@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 
 test("试点反馈表默认不向浏览器 Data API 开放", async () => {
   const migration = await readFile(
-    path.join(process.cwd(), "supabase/migrations/20260804045038_add_pilot_feedback.sql"),
+    path.join(process.cwd(), "supabase/migrations/20260804045916_add_pilot_feedback.sql"),
     "utf8",
   );
 

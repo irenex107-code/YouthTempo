@@ -1,3 +1,8 @@
+-- YouthTempo production-compatible baseline.
+-- The version matches the earliest entry in the production migration history.
+-- Later history-marker files through 20260803124004 are intentionally no-ops
+-- because their final schema is already included here.
+
 create extension if not exists "pgcrypto";
 create extension if not exists pg_cron with schema pg_catalog;
 

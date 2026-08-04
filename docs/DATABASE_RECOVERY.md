@@ -39,7 +39,7 @@
 
 baseline migration 用来从空项目重建数据库结构、函数、索引、RLS 和权限；数据库备份用来恢复真实业务数据。
 
-- 已验证文件：`supabase/baseline/20260803143336_youthtempo_baseline_20260803.sql`
+- 已验证文件：`supabase/migrations/20260718172309_youthtempo_baseline.sql`
 - 验证日期：2026-08-03
 - 隔离项目：`YouthTempo Recovery Drill`（`sebtakwjwubvdqdswtdi`，新加坡，`$0/月`）
 - 验证结果：25 张业务表、30 条 RLS policy、94 个索引、核心限流/审核/学校退出函数及每日清理任务均成功创建；除两条平台管理员引导角色外，不包含业务数据或 Auth 用户。
