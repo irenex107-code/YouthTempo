@@ -1,0 +1,26 @@
+<view class="page">
+  <text class="eyebrow">SWEET</text>
+  <view class="title">看看今天的生活节奏</view>
+  <view class="subtitle">五个维度各选一个最接近的状态。没有标准答案，也不用把今天变得完美。</view>
+
+  <view wx:for="{{steps}}" wx:key="id" class="card">
+    <view class="card-title">{{index + 1}} · {{item.title}}</view>
+    <view class="muted" style="margin-top:10rpx;">{{item.question}}</view>
+    <view class="options">
+      <button wx:for="{{item.options}}" wx:for-item="option" wx:key="*this" class="option {{answers[item.id] === option ? 'selected' : ''}}" data-step="{{item.id}}" data-value="{{option}}" bindtap="selectAnswer">{{option}}</button>
+    </view>
+  </view>
+
+  <label class="card consent"><checkbox checked="{{consentAccepted}}" bindtap="toggleConsent" color="#315f51" /><text>我同意把这次填写的内容发送给 AI 生成小结。内容只用于本次回应和保存记录，不用于广告。</text></label>
+  <button class="primary" bindtap="generateAndSave" disabled="{{submitting || completed < 5 || !consentAccepted}}">{{submitting ? '正在整理并保存…' : '生成小结并保存'}}</button>
+  <view wx:if="{{message}}" class="notice {{isError ? 'error' : ''}}">{{message}}</view>
+
+  <view wx:if="{{result}}" class="card result">
+    <view class="card-title">今天的小结</view>
+    <view class="summary">{{result.summary}}</view>
+    <view class="result-row"><text>可以先做：</text>{{result.smallStep}}</view>
+    <view class="result-row"><text>接下来：</text>{{result.recommendedNextTool}}</view>
+    <view class="muted" style="margin-top:20rpx;">{{result.supportReminder}}</view>
+    <button class="secondary" bindtap="reset">再记一次</button>
+  </view>
+</view>

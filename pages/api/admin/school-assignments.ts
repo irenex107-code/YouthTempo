@@ -155,8 +155,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const assignmentRole = normalizeRole(req.body?.role);
     const inviteRole = ["家长", "专业支持者"].includes(assignmentRole) ? null : inviteRoleFromLabel(assignmentRole);
-    const teacherUserId = typeof req.body?.teacherUserId === "string" ? req.body.teacherUserId.trim() : "";
-    const guardianUserId = typeof req.body?.guardianUserId === "string" ? req.body.guardianUserId.trim() : "";
+    let teacherUserId = typeof req.body?.teacherUserId === "string" ? req.body.teacherUserId.trim() : "";
+    let guardianUserId = typeof req.body?.guardianUserId === "string" ? req.body.guardianUserId.trim() : "";
+    const teacherEmail = typeof req.body?.teacherEmail === "string" ? req.body.teacherEmail.trim().toLowerCase() : "";
+    const guardianEmail = typeof req.body?.guardianEmail === "string" ? req.body.guardianEmail.trim().toLowerCase() : "";
 
     if (!schoolId) return res.status(400).json({ error: "请选择学校空间。" });
     if (!displayName) return res.status(400).json({ error: "请输入成员姓名。" });
@@ -171,6 +173,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: "专业支持者身份需要由平台管理员确认。" });
     }
 
+    if (assignmentRole === "学生" && teacherEmail && !teacherUserId) {
+      const teacher = await findAuthUserByEmail(supabase, teacherEmail);
+      if (!teacher) return res.status(400).json({ error: `找不到老师邮箱 ${teacherEmail}，请先添加老师。` });
+      teacherUserId = teacher.id;
+    }
+    if (assignmentRole === "学生" && guardianEmail && !guardianUserId) {
+      const guardian = await findAuthUserByEmail(supabase, guardianEmail);
+      if (!guardian) return res.status(400).json({ error: `找不到家长邮箱 ${guardianEmail}，请先添加家长。` });
+      guardianUserId = guardian.id;
+    }
+
     const { data: school, error: schoolError } = await supabase
       .from("schools")
       .select("id,name,status")
@@ -179,6 +192,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .maybeSingle();
     if (schoolError) throw schoolError;
     if (!school) return res.status(404).json({ error: "找不到这个学校空间。" });
+
+    if (assignmentRole === "学生" && teacherUserId) {
+      const { data: teacher, error: teacherError } = await supabase
+        .from("school_members")
+        .select("user_id")
+        .eq("school_id", schoolId)
+        .eq("user_id", teacherUserId)
+        .eq("member_role", "school_support")
+        .eq("status", "active")
+        .maybeSingle();
+      if (teacherError) throw teacherError;
+      if (!teacher) return res.status(400).json({ error: "所选老师不在当前学校，请重新选择。" });
+    }
+    if (assignmentRole === "学生" && guardianUserId) {
+      const { data: guardian, error: guardianError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", guardianUserId)
+        .eq("school_id", schoolId)
+        .eq("role", "家长")
+        .maybeSingle();
+      if (guardianError) throw guardianError;
+      if (!guardian) return res.status(400).json({ error: "所选家长不在当前学校，请重新选择。" });
+    }
 
     let authUser = await findAuthUserByEmail(supabase, email);
     let status: "active" | "created" | "confirmed" = "active";
@@ -281,16 +318,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (recordsError) throw recordsError;
 
       if (teacherUserId) {
-        const { data: teacher, error: teacherError } = await supabase
-          .from("school_members")
-          .select("user_id")
-          .eq("school_id", schoolId)
-          .eq("user_id", teacherUserId)
-          .eq("member_role", "school_support")
-          .eq("status", "active")
-          .maybeSingle();
-        if (teacherError) throw teacherError;
-        if (!teacher) return res.status(400).json({ error: "所选老师不在当前学校，请重新选择。" });
         const { error: teacherAssignmentError } = await supabase
           .from("teacher_student_assignments")
           .upsert({
@@ -306,15 +333,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       if (guardianUserId) {
-        const { data: guardian, error: guardianError } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", guardianUserId)
-          .eq("school_id", schoolId)
-          .eq("role", "家长")
-          .maybeSingle();
-        if (guardianError) throw guardianError;
-        if (!guardian) return res.status(400).json({ error: "所选家长不在当前学校，请重新选择。" });
         const { error: guardianAssignmentError } = await supabase
           .from("guardian_student_links")
           .upsert({

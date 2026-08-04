@@ -4,9 +4,15 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
 import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
+import { SchoolOperationsOverview } from "@/components/SchoolOperationsOverview";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
 import { findStudentRelationshipGaps } from "@/lib/schoolRelationshipGaps";
+import {
+  parseSchoolRosterCsv,
+  rosterImportTemplate,
+  type RosterImportRow,
+} from "@/lib/schoolRosterImport";
 
 type School = {
   id: string;
@@ -201,6 +207,12 @@ export default function AdminPage() {
   const [archiveConfirmation, setArchiveConfirmation] = useState("");
   const [archivingSchool, setArchivingSchool] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
+  const [batchRows, setBatchRows] = useState<RosterImportRow[]>([]);
+  const [batchErrors, setBatchErrors] = useState<string[]>([]);
+  const [batchFileName, setBatchFileName] = useState("");
+  const [batchImporting, setBatchImporting] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [batchResults, setBatchResults] = useState<string[]>([]);
   const [removingMemberId, setRemovingMemberId] = useState("");
   const [recordSchoolFilter, setRecordSchoolFilter] = useState("all");
   const [followupDrafts, setFollowupDrafts] = useState<Record<string, FollowupDraft>>({});
@@ -497,6 +509,90 @@ export default function AdminPage() {
     }
   }
 
+  function downloadRosterTemplate() {
+    const blob = new Blob([`\uFEFF${rosterImportTemplate()}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "YouthTempo-学校成员导入模板.csv";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function readRosterFile(file: File | undefined) {
+    setBatchResults([]);
+    setBatchProgress(0);
+    if (!file) {
+      setBatchFileName("");
+      setBatchRows([]);
+      setBatchErrors([]);
+      return;
+    }
+    if (file.size > 512 * 1024) {
+      setBatchFileName(file.name);
+      setBatchRows([]);
+      setBatchErrors(["文件不能超过 512 KB。"]);
+      return;
+    }
+    const result = parseSchoolRosterCsv(await file.text());
+    setBatchFileName(file.name);
+    setBatchRows(result.rows);
+    setBatchErrors(result.errors);
+  }
+
+  async function importRosterRows() {
+    if (!accessToken || !selectedSchoolId || !batchRows.length || batchErrors.length) return;
+    setBatchImporting(true);
+    setBatchProgress(0);
+    setBatchResults([]);
+    setActionNotice("");
+    setError("");
+
+    const orderedRows = [...batchRows].sort((left, right) => {
+      const priority = (row: RosterImportRow) => row.role === "学生" ? 1 : 0;
+      return priority(left) - priority(right) || left.rowNumber - right.rowNumber;
+    });
+    const results: string[] = [];
+
+    for (const [index, row] of orderedRows.entries()) {
+      try {
+        const response = await fetch("/api/admin/school-assignments", {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            schoolId: selectedSchoolId,
+            name: row.name,
+            email: row.email,
+            role: row.role,
+            teacherEmail: row.teacherEmail,
+            guardianEmail: row.guardianEmail,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "添加失败");
+        results.push(`第 ${row.rowNumber} 行 · ${row.name}：已添加`);
+      } catch (rowError) {
+        const message = rowError instanceof Error ? rowError.message : "添加失败";
+        results.push(`第 ${row.rowNumber} 行 · ${row.name}：${message}`);
+      }
+      setBatchProgress(index + 1);
+      setBatchResults([...results]);
+    }
+
+    const failedCount = results.filter((result) => !result.endsWith("已添加")).length;
+    setActionNotice(
+      failedCount
+        ? `批量登记完成：成功 ${results.length - failedCount} 人，未完成 ${failedCount} 人。请按下方提示修正后单独补充。`
+        : `批量登记完成，共 ${results.length} 人。`,
+    );
+    await loadAdminOverview();
+    await loadSchoolRoster(selectedSchoolId, accessToken);
+    setBatchImporting(false);
+  }
+
   async function handleArchiveSchool(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accessToken || !selectedSchool || selectedSchool.status !== "active") return;
@@ -737,6 +833,14 @@ export default function AdminPage() {
 
       {isPlatformAdmin && accessToken ? <PilotFeedbackOverview accessToken={accessToken} /> : null}
 
+      {isPlatformAdmin && overview ? (
+        <SchoolOperationsOverview
+          directories={overview.schoolDirectories}
+          trends={overview.schoolMonthlyTrends}
+          attentionQueue={overview.attentionQueue}
+        />
+      ) : null}
+
       {overview?.admin.canManageMembers ? (
         <section id="member-management" className="section scroll-mt-24">
           <div className="container grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
@@ -857,6 +961,85 @@ export default function AdminPage() {
                   {addingMember ? "添加中…" : "添加成员"}
                 </button>
               </form>
+
+              <details className="group mt-7 border-t border-ink/10 pt-6">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl bg-cream px-4 py-4">
+                  <span>
+                    <span className="block text-sm font-bold text-ink">一次登记多名成员</span>
+                    <span className="mt-1 block text-xs leading-5 text-muted">上传 CSV，先检查再登记，最多 100 人</span>
+                  </span>
+                  <span className="text-sm font-bold text-sage-dark group-open:hidden">展开</span>
+                  <span className="hidden text-sm font-bold text-sage-dark group-open:inline">收起</span>
+                </summary>
+                <div className="mt-4 grid gap-4 rounded-2xl border border-ink/10 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-ink">准备名单</p>
+                      <p className="mt-1 text-xs leading-5 text-muted">必填：姓名、邮箱、身份。学生还可填写老师邮箱和家长邮箱。</p>
+                    </div>
+                    <button type="button" className="button-secondary" onClick={downloadRosterTemplate}>
+                      下载 CSV 模板
+                    </button>
+                  </div>
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    选择名单文件
+                    <input
+                      type="file"
+                      accept=".csv,text/csv"
+                      className="field-control text-sm file:mr-3 file:rounded-full file:border-0 file:bg-mint file:px-3 file:py-2 file:font-bold file:text-sage-dark"
+                      disabled={batchImporting}
+                      onChange={(event) => readRosterFile(event.target.files?.[0])}
+                    />
+                  </label>
+                  {batchFileName ? <p className="text-xs text-muted">已读取：{batchFileName}</p> : null}
+                  {batchErrors.length ? (
+                    <div className="rounded-2xl border border-[#b8644d]/25 bg-[#f9eee9] px-4 py-4" role="alert">
+                      <p className="text-sm font-bold text-[#8a4634]">请先修正文件</p>
+                      <ul className="mt-2 grid gap-1 text-xs leading-5 text-[#8a4634]">
+                        {batchErrors.slice(0, 12).map((message) => <li key={message}>· {message}</li>)}
+                      </ul>
+                      {batchErrors.length > 12 ? <p className="mt-2 text-xs text-[#8a4634]">另有 {batchErrors.length - 12} 条提示。</p> : null}
+                    </div>
+                  ) : null}
+                  {batchRows.length > 0 && !batchErrors.length ? (
+                    <div className="overflow-hidden rounded-2xl border border-sage/25 bg-mint/35">
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                        <p className="text-sm font-bold text-sage-dark">检查通过，共 {batchRows.length} 人</p>
+                        <p className="text-xs text-muted">老师和家长会先登记，再建立学生关系</p>
+                      </div>
+                      <div className="max-h-56 overflow-auto border-t border-sage/20 bg-white">
+                        {batchRows.map((row) => (
+                          <div key={`${row.rowNumber}-${row.email}`} className="grid gap-1 border-b border-ink/5 px-4 py-3 text-xs last:border-0 sm:grid-cols-[3rem_1fr_1.2fr_auto] sm:items-center">
+                            <span className="text-muted">{row.rowNumber} 行</span>
+                            <span className="font-bold text-ink">{row.name}</span>
+                            <span className="break-all text-muted">{row.email}</span>
+                            <span className="font-bold text-sage-dark">{row.role}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {batchImporting ? (
+                    <p className="text-sm font-bold text-sage-dark" aria-live="polite">
+                      正在登记 {batchProgress}/{batchRows.length}…
+                    </p>
+                  ) : null}
+                  {batchResults.length ? (
+                    <div className="max-h-48 overflow-auto rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted" aria-live="polite">
+                      {batchResults.map((result) => <p key={result}>{result}</p>)}
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="button-primary w-full sm:w-fit"
+                    disabled={batchImporting || !batchRows.length || Boolean(batchErrors.length) || !selectedSchoolId}
+                    onClick={importRosterRows}
+                  >
+                    {batchImporting ? "正在登记…" : `确认登记 ${batchRows.length || 0} 人`}
+                  </button>
+                  <p className="text-xs leading-5 text-muted">如果个别行失败，已成功的成员会保留，下方会逐行说明，避免整份名单反复提交。</p>
+                </div>
+              </details>
               {actionNotice ? <p className="mt-4 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
               {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
             </div>

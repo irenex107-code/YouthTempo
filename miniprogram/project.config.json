@@ -1,0 +1,13 @@
+{
+  "description": "YouthTempo 微信小程序第一版",
+  "miniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true,
+    "urlCheck": true
+  },
+  "appid": "touristappid",
+  "projectname": "YouthTempo"
+}

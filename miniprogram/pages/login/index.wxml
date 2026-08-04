@@ -1,0 +1,13 @@
+<view class="page">
+  <text class="eyebrow">邮箱验证码登录</text>
+  <view class="title">把记录留在自己的账号里</view>
+  <view class="subtitle">验证码会发到你的邮箱。YouthTempo 不会向你索要密码。</view>
+  <view class="card">
+    <input class="field" type="text" placeholder="邮箱" value="{{email}}" bindinput="setEmail" />
+    <button class="secondary" bindtap="sendCode" disabled="{{sending || countdown > 0}}">{{countdown > 0 ? countdown + ' 秒后可重发' : sending ? '正在发送…' : '发送验证码'}}</button>
+    <input wx:if="{{codeSent}}" class="field" type="number" maxlength="8" placeholder="8 位验证码" value="{{token}}" bindinput="setToken" />
+    <button wx:if="{{codeSent}}" class="primary" bindtap="verifyCode" disabled="{{verifying || token.length !== 8}}">{{verifying ? '正在登录…' : '登录'}}</button>
+    <view wx:if="{{message}}" class="notice {{isError ? 'error' : ''}}">{{message}}</view>
+  </view>
+  <view class="muted" style="margin-top: 28rpx;">未满 18 岁的用户还需要本人确认和已关联监护人确认；已满 18 岁可以独立确认。</view>
+</view>

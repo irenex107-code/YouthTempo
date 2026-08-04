@@ -747,7 +747,12 @@ export default function AccountPage() {
                       {consentStatus.consent.status === "active" ? (
                         <>
                           <p className="font-bold text-sage-dark">已完成知情确认</p>
-                          <p className="mt-2 text-sm leading-6 text-muted">当前版本：{consentStatus.policyVersion}。可以保存 SWEET 记录、发送留言和参与社区发布。</p>
+                          <p className="mt-2 text-sm leading-6 text-muted">
+                            {consentStatus.consent.ageBand === "18_plus"
+                              ? "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。"
+                              : "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。"}
+                            当前版本：{consentStatus.policyVersion}。
+                          </p>
                           <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>撤回确认</button>
                         </>
                       ) : consentStatus.consent.status === "pending_guardian" ? (

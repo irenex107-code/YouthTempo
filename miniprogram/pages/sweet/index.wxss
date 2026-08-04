@@ -1,0 +1,8 @@
+.options { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 24rpx; }
+.option { width: auto; min-height: 72rpx; margin: 0; padding: 14rpx 22rpx; border: 1rpx solid rgba(31,57,52,.14); border-radius: 999rpx; background: #fff; color: #52645f; font-size: 26rpx; line-height: 1.45; }
+.option.selected { border-color: #5b927d; background: #e4f0eb; color: #315f51; font-weight: 800; }
+.consent { display: flex; align-items: flex-start; color: #667873; font-size: 26rpx; line-height: 1.7; }
+.consent checkbox { margin-right: 14rpx; }
+.summary { margin-top: 24rpx; font-size: 32rpx; font-weight: 700; line-height: 1.65; }
+.result-row { margin-top: 24rpx; padding: 24rpx; border-radius: 24rpx; background: #f4f1e8; line-height: 1.65; }
+.result-row text { display: block; margin-bottom: 8rpx; color: #315f51; font-weight: 800; }

@@ -13,6 +13,8 @@ const protectedReads = [
   "/api/messages",
   "/api/pilot-feedback",
   "/api/admin/pilot-feedback",
+  "/api/mini/profile",
+  "/api/mini/records",
 ];
 
 test("未登录不能注销账号", async ({ request }) => {

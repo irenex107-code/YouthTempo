@@ -19,6 +19,7 @@ export function IllustrationPanel({
         width={800}
         height={800}
         priority={priority}
+        loading={priority ? "eager" : "lazy"}
         className="h-auto max-h-[22rem] w-full object-contain sm:max-h-[28rem]"
       />
     </div>

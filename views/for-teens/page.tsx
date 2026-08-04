@@ -101,6 +101,13 @@ export default function ForTeensPage() {
         </div>
       </section>
 
+      <section className="section pt-8 sm:pt-12">
+        <div className="container rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div><h2 className="text-lg font-bold text-ink">已经满 18 岁，想独立使用？</h2><p className="mt-2 text-sm leading-7 text-muted">18–25 岁可以自己完成知情确认，不需要学校或监护人加入。</p></div>
+          <Link href="/for-young-adults" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">查看独立使用入口</Link>
+        </div>
+      </section>
+
       <section className="section">
         <div className="container rounded-[1.75rem] border border-sage/25 bg-mist/60 p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>

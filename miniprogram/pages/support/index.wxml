@@ -1,0 +1,8 @@
+<view class="page">
+  <text class="eyebrow">需要支持时</text>
+  <view class="title">先分清现在有多紧急</view>
+  <view class="subtitle">这里不是急救或诊断服务。你不需要独自判断得很准确，先让一个真实的人知道也可以。</view>
+  <view class="card urgent"><view class="card-title">如果你或别人正面临立即危险</view><view class="muted" style="margin-top:16rpx;">马上联系身边能到场的人，并拨打当地急救或报警电话。在中国大陆可拨打 120 或 110。</view><button class="primary" bindtap="callEmergency">拨打 120</button><button class="secondary" bindtap="callPolice">拨打 110</button></view>
+  <view class="card"><view class="card-title">今天很难撑住，但没有立即危险</view><view class="muted" style="margin-top:16rpx;">告诉一位可信任的朋友、家人、老师或同事：“我今天状态不太好，能陪我待一会儿吗？”</view></view>
+  <view class="card"><view class="card-title">想找更长期的支持</view><view class="muted" style="margin-top:16rpx;">可以查看 YouthTempo 网页中的支持路径，了解校内支持、医院和专业服务分别适合什么情况。</view><button class="secondary" bindtap="copySupportLink">复制支持页面地址</button></view>
+</view>

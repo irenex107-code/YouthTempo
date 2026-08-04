@@ -1,0 +1,28 @@
+<view class="page">
+  <text class="eyebrow">今天先做一点</text>
+  <view class="title">{{profile ? '你好，' + profile.display_name : '找到自己的节奏'}}</view>
+  <view class="subtitle">不用每天都记录。想看看最近状态时，再从五个日常维度开始。</view>
+
+  <view wx:if="{{loading}}" class="card muted">正在确认账号状态…</view>
+  <view wx:elif="{{!profile}}" class="card">
+    <view class="card-title">第一次使用，先完成个人确认</view>
+    <input class="field" placeholder="希望我们怎么称呼你" value="{{displayName}}" bindinput="setName" maxlength="50" />
+    <picker mode="selector" range="{{ageOptions}}" range-key="label" value="{{ageIndex}}" bindchange="setAge">
+      <view class="field">{{ageOptions[ageIndex].label}}</view>
+    </picker>
+    <label class="muted" style="display:flex;margin-top:24rpx;"><checkbox checked="{{agreed}}" bindtap="toggleAgreement" color="#315f51" /><text>我已阅读数据说明，理解会保存 SWEET 回答和 AI 小结，也知道如何撤回和删除。</text></label>
+    <button class="primary" bindtap="completeProfile" disabled="{{saving || !displayName || !agreed}}">{{saving ? '正在保存…' : '完成确认'}}</button>
+  </view>
+  <view wx:elif="{{!ready}}" class="card">
+    <view class="card-title">等待监护人确认</view>
+    <view class="muted" style="margin-top:16rpx;">你的个人确认已保存。请让学校已经关联的监护人登录 YouthTempo 网页账户完成确认，之后就能保存记录。</view>
+  </view>
+  <view wx:else class="card">
+    <view class="card-title">现在最想做什么？</view>
+    <button class="primary" bindtap="openSweet">做一次 SWEET 记录</button>
+    <button class="secondary" bindtap="openHistory">看看以前的记录</button>
+    <button class="secondary" bindtap="openSupport">我想找支持</button>
+  </view>
+  <view wx:if="{{message}}" class="notice {{isError ? 'error' : ''}}">{{message}}</view>
+  <button class="secondary" bindtap="logout">退出当前账号</button>
+</view>
