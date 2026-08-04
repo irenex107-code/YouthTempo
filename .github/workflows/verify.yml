@@ -57,6 +57,8 @@ jobs:
             tests/authenticated-permission-boundary.spec.ts \
             tests/authenticated-api-overreach.spec.ts \
             tests/membership-revocation.spec.ts \
+            tests/account-data-lifecycle.spec.ts \
+            tests/pilot-feedback-lifecycle.spec.ts \
             tests/school-exit.spec.ts \
             tests/community-visibility.spec.ts \
             tests/community-moderation.spec.ts
