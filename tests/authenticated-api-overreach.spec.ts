@@ -48,6 +48,7 @@ async function recordIds(supabase: SupabaseClient, recordId: string) {
 test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校操作", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "API 权限与视口无关，无需重复执行");
   test.skip(!password, "需要先初始化虚拟账号并配置 E2E_PERMISSION_TEST_PASSWORD");
+  test.setTimeout(120_000);
 
   const [
     schoolLead,

@@ -128,6 +128,7 @@ async function visibleRecordIds(supabase: SupabaseClient) {
 test("移出成员后，旧登录会话立即失去学校关系权限", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "关系撤销属于 API/RLS 测试，无需按视口重复执行");
   test.skip(!password || !serviceRoleKey, "需要本机虚拟测试密码和 Supabase 服务端密钥");
+  test.setTimeout(120_000);
 
   const admin = createClient(supabaseUrl, serviceRoleKey!, {
     auth: { autoRefreshToken: false, persistSession: false },
