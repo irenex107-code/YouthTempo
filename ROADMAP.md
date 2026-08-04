@@ -71,7 +71,7 @@
 - [x] 建立可从空项目恢复数据库的 Supabase baseline migration（单文件已在 `$0/月` 新加坡空白项目 `sebtakwjwubvdqdswtdi` 验证：25 张业务表、30 条 RLS policy、94 个索引、核心函数与每日清理任务）
 - [x] 增加 CSP、frame 防护、Referrer Policy 等全站安全响应头（生产环境禁用 `unsafe-eval`，页面与 API 自动化测试通过）
 - [x] CI 覆盖真实权限越权、成员撤销和社区流程测试（GitHub Actions Secrets 已配置，缺少密钥时 CI 会失败；首次完整运行公开流程 72 passed / 34 skipped by design，真实权限组 19 passed / 5 skipped by design）
-- [ ] 🟡 Supabase Preview 迁移历史与仓库对齐（正式库保持零修改；仓库已按正式库 37 个历史版本重新基线化，等待空白预览库重建和 GitHub Preview 检查通过后收口）
+- [x] Supabase Preview 迁移历史与仓库对齐（正式库零修改；仓库已按正式库 37 个历史版本重新基线化，隔离恢复项目完成 baseline + 最新增量验证，Supabase 保护分支检查确认 `All migrations are up to date`）
 
 ## P1 · 试点体验
 
