@@ -634,6 +634,11 @@
   },
   "messages": {
     "metadata": { "title": "悄悄话信箱 | YouthTempo" },
-    "visitor": { "hero": { "title": "悄悄话信箱", "description": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" }, "loading": "正在加载…", "title": "登录后使用这个功能", "description": "这样才能确认你可以写给谁，或查看哪些话。", "action": "前往登录" }
+    "visitor": { "hero": { "title": "悄悄话信箱", "description": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" }, "loading": "正在加载…", "title": "登录后使用这个功能", "description": "这样才能确认你可以写给谁，或查看哪些话。", "action": "前往登录" },
+    "member": { "hero": { "title": "悄悄话信箱", "studentDescription": "有些话不容易当面说，可以先写给老师、家长或自己。", "supporterDescription": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" } },
+    "compose": { "title": "先写下来，再决定给谁看", "description": "写给老师时可以匿名。若内容涉及明确的安全危险，获授权的学校负责人可以确认来源并及时提供帮助。", "recipientType": "写给谁", "recipientOptions": { "self": "写给自己", "teacher": "写给老师", "guardian": "写给家长" }, "recipient": "收件人", "selectRecipient": "请选择", "message": "想说的话", "placeholder": "不用组织得很完整，先写下最想让对方知道的事情。", "anonymousDescription": "对老师匿名。只有出现明确安全危险时，获授权的学校负责人才能确认来源。", "sending": "正在送出…", "saveForSelf": "保存给自己", "send": "送出这段话" },
+    "lists": { "sentTitle": "我写过的话", "safetyTitle": "需要安全跟进的话", "receivedTitle": "收到的话", "sentEmpty": "你写下并保存或送出的话，会显示在这里。", "receivedEmpty": "目前还没有收到新的内容。", "anonymousToTeacher": "对老师匿名", "reviewSoon": "请尽快了解", "senderAnonymous": "这名学生选择了对老师匿名。" },
+    "notices": { "noTeacher": "学校还没有为你安排负责老师。", "noGuardian": "学校还没有确认关联家长。", "safetySent": "这段话已经送出。请尽快联系身边可信任的大人；如果正处于危险中，请立即联系当地紧急服务。", "savedForSelf": "已经替你保存下来。", "sent": "已经送出。" },
+    "errors": { "loadFailed": "暂时无法加载想说的话。", "sendFailed": "暂时无法发送，请稍后再试。" }
   }
 }
