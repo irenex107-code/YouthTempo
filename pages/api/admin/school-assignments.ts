@@ -293,11 +293,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from("professional_verifications")
         .upsert({
           user_id: authUser.id,
-          verified_by: context.user.id,
-          status: "active",
+          verified_by: null,
+          status: "pending",
+          verification_basis: "document_review",
+          credential_verified: false,
+          institution_verified: false,
           revoked_at: null,
           updated_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
+        }, { onConflict: "user_id", ignoreDuplicates: true });
       if (verificationError) throw verificationError;
     } else {
       const now = new Date().toISOString();

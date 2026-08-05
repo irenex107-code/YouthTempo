@@ -21,6 +21,7 @@ export function normalizeRoleList(value: unknown) {
 
 export async function getCommunityIdentity(supabase: SupabaseClient, user: User) {
   const email = (user.email || "").trim().toLowerCase();
+  const today = new Date().toISOString().slice(0, 10);
   const [
     { data: profile, error: profileError },
     { data: memberships, error: membershipError },
@@ -38,6 +39,7 @@ export async function getCommunityIdentity(supabase: SupabaseClient, user: User)
         .select("user_id")
         .eq("user_id", user.id)
         .eq("status", "active")
+        .or(`credential_expires_on.is.null,credential_expires_on.gte.${today}`)
         .maybeSingle(),
     ]);
   if (profileError) throw profileError;

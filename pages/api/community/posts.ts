@@ -174,6 +174,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const commentAuthorIds = Array.from(new Set((comments || []).map((comment) => comment.author_user_id as string)))
       .filter((id) => !authorIds.includes(id));
     const allAuthorIds = [...authorIds, ...commentAuthorIds];
+    const today = new Date().toISOString().slice(0, 10);
     const [
       { data: commentProfiles, error: commentProfilesError },
       { data: professionalVerifications, error: professionalVerificationError },
@@ -187,6 +188,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .select("user_id")
             .in("user_id", allAuthorIds)
             .eq("status", "active")
+            .or(`credential_expires_on.is.null,credential_expires_on.gte.${today}`)
         : Promise.resolve({ data: [], error: null }),
     ]);
     if (commentProfilesError) throw commentProfilesError;

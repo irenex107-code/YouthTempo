@@ -5,6 +5,7 @@ import { SectionHeader } from "@/components/SectionHeader";
 import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
 import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
 import { SchoolOperationsOverview } from "@/components/SchoolOperationsOverview";
+import { ProfessionalVerificationQueue } from "@/components/ProfessionalVerificationQueue";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
 import { findStudentRelationshipGaps } from "@/lib/schoolRelationshipGaps";
@@ -833,6 +834,8 @@ export default function AdminPage() {
 
       {isPlatformAdmin && accessToken ? <PilotFeedbackOverview accessToken={accessToken} /> : null}
 
+      {isPlatformAdmin && accessToken ? <ProfessionalVerificationQueue accessToken={accessToken} /> : null}
+
       {isPlatformAdmin && overview ? (
         <SchoolOperationsOverview
           directories={overview.schoolDirectories}
@@ -949,6 +952,8 @@ export default function AdminPage() {
                 <p className="text-sm leading-6 text-muted">
                   {assignmentRole === "学生"
                     ? "老师或家长尚未加入时，可以先完成学生建档，之后在关系管理中补充。"
+                    : assignmentRole === "专业支持者"
+                      ? "账号创建后，对方需要登录账户补交机构与资质资料；审核通过前不会显示专业身份标记。"
                     : isPlatformAdmin
                       ? "日常成员维护由学校负责人完成；平台管理员可在学校需要时协助登记。"
                       : "添加后，对方可以直接使用这个邮箱登录。"}

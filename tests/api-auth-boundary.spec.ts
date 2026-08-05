@@ -15,6 +15,8 @@ const protectedReads = [
   "/api/admin/pilot-feedback",
   "/api/mini/profile",
   "/api/mini/records",
+  "/api/professional-verification",
+  "/api/admin/professional-verifications",
 ];
 
 test("未登录不能注销账号", async ({ request }) => {

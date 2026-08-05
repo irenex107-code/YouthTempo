@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { SectionHeader } from "@/components/SectionHeader";
+import { ProfessionalVerificationCard } from "@/components/ProfessionalVerificationCard";
 import {
   AccountStatus,
   CloudProfile,
@@ -150,7 +151,8 @@ export default function AccountPage() {
   const isManagedSchoolRole = !isIdentityLoading && (displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员");
   const isSchoolAssignedStudent = !isIdentityLoading && displayRole === "学生" && hasSchool;
   const isSchoolAssignedParent = !isIdentityLoading && displayRole === "家长" && hasSchool;
-  const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent || isSchoolAssignedParent;
+  const isProfessional = !isIdentityLoading && displayRole === "专业支持者";
+  const isExternallyManagedRole = isManagedSchoolRole || isSchoolAssignedStudent || isSchoolAssignedParent || isProfessional;
   const needsPersonalProfile = Boolean(
     user && !isIdentityLoading && !isExternallyManagedRole && (!profile || !profile.display_name?.trim()),
   );
@@ -851,6 +853,7 @@ export default function AccountPage() {
                               {displayRole === "学校负责人" ? "你可以在管理台配置本校学生和支持老师。" : null}
                               {displayRole === "支持老师" ? "你可以查看学校分配给你的学生记录。" : null}
                               {displayRole === "平台管理员" ? "你可以创建学校空间并指定负责人。" : null}
+                              {displayRole === "专业支持者" ? "专业身份由平台确认。你可以在下方查看或补充核验资料。" : null}
                             </p>
                           </div>
                           <button type="button" className="button-secondary w-full sm:w-fit" onClick={handleSignOut}>退出登录</button>
@@ -1046,6 +1049,10 @@ export default function AccountPage() {
             )}
           </div>
         </section>
+      ) : null}
+
+      {user && !needsPersonalProfile && !isPlatformAdmin && isProfessional ? (
+        <ProfessionalVerificationCard />
       ) : null}
 
       {user && !needsPersonalProfile && !isPlatformAdmin ? (
