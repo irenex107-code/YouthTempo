@@ -518,7 +518,20 @@
   },
   "feedback": {
     "metadata": { "title": "试点反馈 | YouthTempo" },
-    "visitor": { "hero": { "label": "试点反馈", "title": "这次用起来怎么样？", "description": "大约两分钟。说说哪里顺手、哪里卡住，帮助我们把接下来的体验做得更好。", "action": "返回我的工作台" }, "loading": "正在打开反馈表……", "title": "登录后再填写", "description": "这样我们只会保存到你自己的账号，也方便你之后回来修改。", "action": "前往登录" }
+    "visitor": { "hero": { "label": "试点反馈", "title": "这次用起来怎么样？", "description": "大约两分钟。说说哪里顺手、哪里卡住，帮助我们把接下来的体验做得更好。", "action": "返回我的工作台" }, "loading": "正在打开反馈表……", "title": "登录后再填写", "description": "这样我们只会保存到你自己的账号，也方便你之后回来修改。", "action": "前往登录" },
+    "member": {
+      "hero": { "label": "试点反馈", "title": "这次用起来怎么样？", "description": "大约两分钟。说说哪里顺手、哪里卡住，帮助我们把接下来的体验做得更好。", "action": "返回我的工作台" },
+      "roles": { "student": "学生", "guardian": "家长", "teacher": "老师" },
+      "currentRole": "当前以{{role}}身份填写", "privacy": "不会显示给学校负责人、老师、家长或学生。平台只会用这些反馈改善试点；只有你主动同意联系时，平台才会看到登录邮箱。",
+      "questions": { "overall": "整体用起来顺不顺？", "clarity": "页面和提示看得懂吗？", "safety": "使用时觉得安心吗？" },
+      "ratingAria": "{{label}}，1 到 5 分", "ratings": { "one": "很不顺", "two": "不太顺", "three": "还可以", "four": "比较顺", "five": "很顺" }, "ratingLow": "不太好", "ratingHigh": "很好",
+      "personalInfoReminder": "请不要写其他人的姓名、联系方式或能认出具体身份的信息。",
+      "textQuestions": { "mostHelpful": { "label": "哪一部分最有帮助？", "placeholder": "例如：记录以后更容易看懂最近的状态。" }, "hardToUse": { "label": "哪里让你停下来，或不太明白？", "placeholder": "例如：某个按钮不好找，或一段说明读不懂。" }, "suggestion": { "label": "如果只能改一件事，你希望改什么？", "placeholder": "想到什么就说什么，不用写得很正式。" } },
+      "contactConsent": { "title": "可以联系我进一步了解", "description": "如有需要，只通过我的登录邮箱联系；不勾选也可以正常提交。" },
+      "savedHelp": "保存后会更新你这次的反馈。", "submitHelp": "提交后，你可以随时回来修改。", "saving": "正在保存……", "saveChanges": "保存修改", "submit": "提交反馈",
+      "notices": { "received": "已经收到，谢谢你认真告诉我们。", "returnAnytime": "之后想补充或修改，随时再打开这份表就可以。" },
+      "errors": { "loadFailed": "反馈表暂时没能打开。", "allRatingsRequired": "请为三个问题都选一个分数。", "saveFailed": "反馈暂时没能保存，请稍后再试。" }
+    }
   },
   "privacySafety": {
     "metadata": { "title": "隐私与安全 | YouthTempo" },

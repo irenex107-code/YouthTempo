@@ -518,7 +518,20 @@
   },
   "feedback": {
     "metadata": { "title": "Pilot Feedback | YouthTempo" },
-    "visitor": { "hero": { "label": "Pilot feedback", "title": "How was your experience?", "description": "This takes about two minutes. Tell us what worked well and where you got stuck, so we can improve the experience.", "action": "Back to my workspace" }, "loading": "Opening the feedback form...", "title": "Sign in to share feedback", "description": "This keeps your feedback with your own account and lets you return to update it later.", "action": "Go to sign in" }
+    "visitor": { "hero": { "label": "Pilot feedback", "title": "How was your experience?", "description": "This takes about two minutes. Tell us what worked well and where you got stuck, so we can improve the experience.", "action": "Back to my workspace" }, "loading": "Opening the feedback form...", "title": "Sign in to share feedback", "description": "This keeps your feedback with your own account and lets you return to update it later.", "action": "Go to sign in" },
+    "member": {
+      "hero": { "label": "Pilot feedback", "title": "How was your experience?", "description": "This takes about two minutes. Tell us what felt clear and where you got stuck, so we can improve the experience.", "action": "Back to my workspace" },
+      "roles": { "student": "student", "guardian": "parent or guardian", "teacher": "teacher" },
+      "currentRole": "Sharing feedback as a {{role}}", "privacy": "Your responses are not shown to school leads, teachers, parents, guardians, or students. The platform uses them only to improve the pilot. Your sign-in email is visible to the platform only if you choose to be contacted.",
+      "questions": { "overall": "How did the overall experience feel?", "clarity": "Were the pages and guidance easy to understand?", "safety": "Did you feel comfortable using YouthTempo?" },
+      "ratingAria": "{{label}}, rated from 1 to 5", "ratings": { "one": "Very difficult", "two": "A little difficult", "three": "Okay", "four": "Mostly smooth", "five": "Very smooth" }, "ratingLow": "Not good", "ratingHigh": "Very good",
+      "personalInfoReminder": "Please do not include another person's name, contact details, or information that could identify them.",
+      "textQuestions": { "mostHelpful": { "label": "What was most helpful?", "placeholder": "For example, the check-in made it easier to understand how things have been lately." }, "hardToUse": { "label": "Where did you pause or feel unsure?", "placeholder": "For example, a button was hard to find or some guidance was unclear." }, "suggestion": { "label": "If we could improve one thing, what would you choose?", "placeholder": "Share whatever comes to mind. It does not need to sound formal." } },
+      "contactConsent": { "title": "You may contact me to learn more", "description": "If needed, contact me only through my sign-in email. You can submit feedback without selecting this option." },
+      "savedHelp": "Saving will update your current feedback.", "submitHelp": "After submitting, you can return and make changes at any time.", "saving": "Saving...", "saveChanges": "Save changes", "submit": "Submit feedback",
+      "notices": { "received": "Thank you. Your feedback has been received.", "returnAnytime": "You can reopen this form whenever you want to add or change something." },
+      "errors": { "loadFailed": "The feedback form could not be opened right now.", "allRatingsRequired": "Choose a rating for all three questions.", "saveFailed": "Your feedback could not be saved. Please try again later." }
+    }
   },
   "privacySafety": {
     "metadata": { "title": "Privacy & Safety | YouthTempo" },
