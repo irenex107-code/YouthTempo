@@ -1,5 +1,33 @@
 export const emailOtpLength = 8;
 
+type OtpRequestMessages = {
+  unauthorized: string;
+  rateLimited: string;
+  network: string;
+  fallback: string;
+};
+
+type OtpVerificationMessages = {
+  invalid: string;
+  rateLimited: string;
+  network: string;
+  fallback: string;
+};
+
+const defaultRequestMessages: OtpRequestMessages = {
+  unauthorized: "当前邮箱暂时无法收到登录验证码，请联系平台负责人处理。",
+  rateLimited: "验证码请求有些频繁，请稍后再试。",
+  network: "网络连接不稳定，请检查网络后重新发送。",
+  fallback: "验证码发送失败，请稍后重试。",
+};
+
+const defaultVerificationMessages: OtpVerificationMessages = {
+  invalid: "验证码不正确或已过期，请重新输入，或重新发送。",
+  rateLimited: "验证尝试有些频繁，请稍后再试。",
+  network: "网络连接不稳定，请检查网络后重新验证。",
+  fallback: "验证码验证失败，请稍后重试。",
+};
+
 function errorText(error: unknown) {
   return error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
 }
@@ -12,17 +40,17 @@ function isRateLimitError(message: string) {
   return message.includes("429") || message.includes("rate limit") || message.includes("too many") || message.includes("频繁");
 }
 
-export function otpRequestErrorMessage(error: unknown) {
+export function otpRequestErrorMessage(error: unknown, messages: OtpRequestMessages = defaultRequestMessages) {
   const message = errorText(error);
   if (message.includes("not authorized") || message.includes("unauthorized email")) {
-    return "当前邮箱暂时无法收到登录验证码，请联系平台负责人处理。";
+    return messages.unauthorized;
   }
-  if (isRateLimitError(message)) return "验证码请求有些频繁，请稍后再试。";
-  if (isNetworkError(message)) return "网络连接不稳定，请检查网络后重新发送。";
-  return "验证码发送失败，请稍后重试。";
+  if (isRateLimitError(message)) return messages.rateLimited;
+  if (isNetworkError(message)) return messages.network;
+  return messages.fallback;
 }
 
-export function otpVerificationErrorMessage(error: unknown) {
+export function otpVerificationErrorMessage(error: unknown, messages: OtpVerificationMessages = defaultVerificationMessages) {
   const message = errorText(error);
   if (
     message.includes("token")
@@ -31,9 +59,9 @@ export function otpVerificationErrorMessage(error: unknown) {
     || message.includes("expired")
     || message.includes("验证码")
   ) {
-    return "验证码不正确或已过期，请重新输入，或重新发送。";
+    return messages.invalid;
   }
-  if (isRateLimitError(message)) return "验证尝试有些频繁，请稍后再试。";
-  if (isNetworkError(message)) return "网络连接不稳定，请检查网络后重新验证。";
-  return "验证码验证失败，请稍后重试。";
+  if (isRateLimitError(message)) return messages.rateLimited;
+  if (isNetworkError(message)) return messages.network;
+  return messages.fallback;
 }

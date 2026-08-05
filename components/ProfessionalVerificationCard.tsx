@@ -1,9 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
-  professionalVerificationStatusLabels,
   type ProfessionalVerificationStatus,
 } from "@/lib/professionalVerification";
 import { getSupabase } from "@/lib/supabaseClient";
+import { useTranslation } from "@/lib/i18n/client";
+import type { Locale } from "@/lib/i18n/config";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
+import { localizedCloudErrorMessage } from "@/lib/cloudRecords";
 
 type Verification = {
   status: ProfessionalVerificationStatus;
@@ -66,12 +69,13 @@ async function accessToken() {
   return data.session.access_token;
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, locale: Locale) {
   if (!value) return "—";
-  return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-CN", { year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
 }
 
 export function ProfessionalVerificationCard() {
+  const { locale, t } = useTranslation();
   const [verification, setVerification] = useState<Verification | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loading, setLoading] = useState(true);
@@ -88,18 +92,23 @@ export function ProfessionalVerificationCard() {
         headers: { authorization: `Bearer ${token}` },
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "专业身份资料暂时没有加载出来。");
+      if (!response.ok) throw new Error(payload.error || t("account.professional.errors.loadFailed"));
       const nextVerification = payload.verification as Verification | null;
       setVerification(nextVerification);
       setForm(formFromVerification(nextVerification));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "专业身份资料暂时没有加载出来。");
+      setError(localizedCloudErrorMessage(loadError, locale, t("account.professional.errors.loadFailed")));
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => { void load(); }, []);
+
+  useEffect(() => {
+    setNotice("");
+    setError("");
+  }, [locale]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -118,11 +127,11 @@ export function ProfessionalVerificationCard() {
         body: JSON.stringify({ ...form, credentialExpiresOn: form.credentialExpiresOn || null }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "资料暂时无法提交。");
-      setNotice("资料已经交给平台确认。审核期间，你仍可以正常使用其他功能。");
+      if (!response.ok) throw new Error(payload.error || t("account.professional.errors.submitFailed"));
+      setNotice(t("account.professional.noticeSubmitted"));
       await load();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "资料暂时无法提交。");
+      setError(localizedCloudErrorMessage(submitError, locale, t("account.professional.errors.submitFailed")));
     } finally {
       setSaving(false);
     }
@@ -130,36 +139,37 @@ export function ProfessionalVerificationCard() {
 
   const active = verification?.status === "active";
   const isLegacy = Boolean(verification?.legacyConfirmed);
+  const statusLabel = verification ? t(`account.professional.status.${verification.status}` as TranslationKey) : "";
 
   return (
     <section className="section section-muted pt-8 sm:pt-10" aria-labelledby="professional-verification-title">
       <div className="container max-w-4xl">
         <div className="card">
-          <p className="eyebrow">专业支持者</p>
+          <p className="eyebrow">{t("account.professional.label")}</p>
           <h2 id="professional-verification-title" className="mt-2 text-[1.5rem] font-bold text-ink">
-            让大家知道你的专业身份已经过确认
+            {t("account.professional.title")}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-            提交所在机构和可核验的资质信息。只有平台管理员能查看这些资料；通过后，社区会显示“专业身份已确认”。
+            {t("account.professional.description")}
           </p>
 
-          {loading ? <p className="mt-6 rounded-2xl bg-cream px-4 py-4 text-sm font-bold text-muted">正在加载确认状态…</p> : null}
+          {loading ? <p className="mt-6 rounded-2xl bg-cream px-4 py-4 text-sm font-bold text-muted">{t("account.professional.loading")}</p> : null}
           {notice ? <p className="mt-5 rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark" aria-live="polite">{notice}</p> : null}
           {error ? <p className="mt-5 rounded-2xl border border-[#b8644d]/25 bg-[#f9eee9] px-4 py-3 text-sm font-bold text-[#8a4634]" role="alert">{error}</p> : null}
 
           {!loading && verification ? (
             <div className="mt-6 rounded-2xl border border-sage/20 bg-mint/35 px-5 py-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="font-bold text-ink">{professionalVerificationStatusLabels[verification.status]}</p>
-                {verification.submittedAt ? <p className="text-xs text-muted">提交于 {formatDate(verification.submittedAt)}</p> : null}
+                <p className="font-bold text-ink">{statusLabel}</p>
+                {verification.submittedAt ? <p className="text-xs text-muted">{t("account.professional.submittedAt", { date: formatDate(verification.submittedAt, locale) })}</p> : null}
               </div>
-              {verification.reviewNote ? <p className="mt-3 text-sm leading-7 text-muted">平台说明：{verification.reviewNote}</p> : null}
+              {verification.reviewNote ? <p className="mt-3 text-sm leading-7 text-muted">{t("account.professional.reviewNote", { note: verification.reviewNote })}</p> : null}
               {active ? (
                 <div className="mt-4 grid gap-2 text-sm text-muted sm:grid-cols-2">
-                  <p>机构：{verification.institutionName || (isLegacy ? "此前已由平台确认" : "—")}</p>
-                  <p>专业方向：{verification.positionTitle || (isLegacy ? "此前已由平台确认" : "—")}</p>
-                  <p>资质：{verification.credentialType || (isLegacy ? "此前已由平台确认" : "—")}</p>
-                  <p>有效期：{verification.credentialExpiresOn ? formatDate(verification.credentialExpiresOn) : "未注明到期日"}</p>
+                  <p>{t("account.professional.institution", { value: verification.institutionName || (isLegacy ? t("account.professional.legacyConfirmed") : "—") })}</p>
+                  <p>{t("account.professional.position", { value: verification.positionTitle || (isLegacy ? t("account.professional.legacyConfirmed") : "—") })}</p>
+                  <p>{t("account.professional.credential", { value: verification.credentialType || (isLegacy ? t("account.professional.legacyConfirmed") : "—") })}</p>
+                  <p>{t("account.professional.expires", { value: verification.credentialExpiresOn ? formatDate(verification.credentialExpiresOn, locale) : t("account.professional.noExpiry") })}</p>
                 </div>
               ) : null}
             </div>
@@ -169,41 +179,41 @@ export function ProfessionalVerificationCard() {
             <form className="mt-7 grid gap-4" onSubmit={submit}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  所在机构
-                  <input className="field-control" value={form.institutionName} onChange={(event) => update("institutionName", event.target.value)} maxLength={120} placeholder="例如：某某心理服务中心" required />
+                  {t("account.professional.fields.institution")}
+                  <input className="field-control" value={form.institutionName} onChange={(event) => update("institutionName", event.target.value)} maxLength={120} placeholder={t("account.professional.fields.institutionPlaceholder")} required />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  职务或专业方向
-                  <input className="field-control" value={form.positionTitle} onChange={(event) => update("positionTitle", event.target.value)} maxLength={80} placeholder="例如：心理咨询师" required />
+                  {t("account.professional.fields.position")}
+                  <input className="field-control" value={form.positionTitle} onChange={(event) => update("positionTitle", event.target.value)} maxLength={80} placeholder={t("account.professional.fields.positionPlaceholder")} required />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  资质类型
-                  <input className="field-control" value={form.credentialType} onChange={(event) => update("credentialType", event.target.value)} maxLength={80} placeholder="例如：职业资格或执业登记" required />
+                  {t("account.professional.fields.credentialType")}
+                  <input className="field-control" value={form.credentialType} onChange={(event) => update("credentialType", event.target.value)} maxLength={80} placeholder={t("account.professional.fields.credentialPlaceholder")} required />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  资质编号
+                  {t("account.professional.fields.credentialNumber")}
                   <input className="field-control" value={form.credentialNumber} onChange={(event) => update("credentialNumber", event.target.value)} maxLength={120} autoComplete="off" required />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  发证或登记机构
+                  {t("account.professional.fields.issuer")}
                   <input className="field-control" value={form.credentialIssuer} onChange={(event) => update("credentialIssuer", event.target.value)} maxLength={120} required />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
-                  到期日期（没有可留空）
+                  {t("account.professional.fields.expiry")}
                   <input className="field-control" type="date" value={form.credentialExpiresOn} onChange={(event) => update("credentialExpiresOn", event.target.value)} />
                 </label>
               </div>
               <label className="grid gap-2 text-sm font-bold text-ink">
-                核验材料说明
-                <textarea className="field-control min-h-28" value={form.evidenceReference} onChange={(event) => update("evidenceReference", event.target.value)} maxLength={500} placeholder="填写平台约定的材料编号、机构公开人员页或可联系核验的方式。不要填写与审核无关的个人信息。" required />
+                {t("account.professional.fields.evidence")}
+                <textarea className="field-control min-h-28" value={form.evidenceReference} onChange={(event) => update("evidenceReference", event.target.value)} maxLength={500} placeholder={t("account.professional.fields.evidencePlaceholder")} required />
               </label>
               <label className="grid gap-2 text-sm font-bold text-ink">
-                还有什么想补充的（可不填）
+                {t("account.professional.fields.additional")}
                 <textarea className="field-control min-h-24" value={form.applicantStatement} onChange={(event) => update("applicantStatement", event.target.value)} maxLength={1000} />
               </label>
-              <p className="text-xs leading-6 text-muted">提交不代表自动通过。平台会核对机构和资质；资料不完整时，会说明需要补充什么。</p>
+              <p className="text-xs leading-6 text-muted">{t("account.professional.disclaimer")}</p>
               <button className="button-primary w-full sm:w-fit" type="submit" disabled={saving}>
-                {saving ? "正在提交…" : verification ? "更新并重新提交" : "提交确认资料"}
+                {saving ? t("account.actions.submitting") : verification ? t("account.professional.resubmit") : t("account.professional.submit")}
               </button>
             </form>
           ) : null}

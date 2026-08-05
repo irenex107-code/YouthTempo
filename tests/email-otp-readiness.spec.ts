@@ -24,6 +24,19 @@ test("OTP 错误文案不会向页面透传服务端原始消息", async () => {
   expect(otpRequestErrorMessage(new Error("429 rate limit"))).toContain("频繁");
   expect(otpVerificationErrorMessage(new Error("Token has expired"))).toContain("不正确或已过期");
   expect(otpVerificationErrorMessage(new Error(raw))).not.toContain("private-user");
+
+  expect(otpRequestErrorMessage(new Error("429 rate limit"), {
+    unauthorized: "unauthorized",
+    rateLimited: "rate limited",
+    network: "network",
+    fallback: "fallback",
+  })).toBe("rate limited");
+  expect(otpVerificationErrorMessage(new Error("Token has expired"), {
+    invalid: "invalid or expired",
+    rateLimited: "rate limited",
+    network: "network",
+    fallback: "fallback",
+  })).toBe("invalid or expired");
 });
 
 test("账户页与 8 位 OTP 配置一致", async ({ page }) => {

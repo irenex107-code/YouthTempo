@@ -1,4 +1,5 @@
 import type { EmailOtpType, User } from "@supabase/supabase-js";
+import type { Locale } from "@/lib/i18n/config";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/sweetRecordTypes";
 import type { CommunityReportCategory, CommunityReportPriority } from "@/lib/communityReports";
@@ -149,6 +150,13 @@ export type StudentConsentResponse = {
   consent: StudentConsentSummary | null;
   children: StudentConsentSummary[];
 };
+
+export function localizedCloudErrorMessage(error: unknown, locale: Locale, fallback: string) {
+  const message = error instanceof Error ? error.message.trim() : "";
+  if (!message) return fallback;
+  if (locale === "zh-CN") return message;
+  return /[\u3400-\u9fff]/u.test(message) ? fallback : message;
+}
 
 function normalizeRole(role?: string | null): UserRole {
   if (role === "专业支持者") return "专业支持者";

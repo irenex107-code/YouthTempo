@@ -29,10 +29,13 @@ import {
   submitStudentAssent,
   verifyEmailOtp,
   withdrawStudentConsent,
+  localizedCloudErrorMessage,
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 import { useTranslation } from "@/lib/i18n/client";
+import type { Locale } from "@/lib/i18n/config";
+import { dictionaries, type TranslationKey, type TranslationValues } from "@/lib/i18n/dictionaries";
 import {
   emailOtpLength,
   otpRequestErrorMessage,
@@ -40,8 +43,40 @@ import {
 } from "@/lib/emailOtp";
 import { rhythmOverview } from "@/lib/rhythmInsights";
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("zh-CN", {
+type Translate = (key: TranslationKey, values?: TranslationValues) => string;
+
+function collectParallelCopy(zhValue: unknown, enValue: unknown, copy: Map<string, string>) {
+  if (typeof zhValue === "string" && typeof enValue === "string") {
+    copy.set(zhValue, enValue);
+    return;
+  }
+  if (!zhValue || !enValue || typeof zhValue !== "object" || typeof enValue !== "object") return;
+  Object.keys(zhValue).forEach((key) => {
+    collectParallelCopy(
+      (zhValue as Record<string, unknown>)[key],
+      (enValue as Record<string, unknown>)[key],
+      copy,
+    );
+  });
+}
+
+const savedCheckInCopy = new Map<string, string>();
+collectParallelCopy(dictionaries["zh-CN"].checkIn.steps, dictionaries.en.checkIn.steps, savedCheckInCopy);
+
+function localizedStoredValue(value: string, locale: Locale) {
+  return locale === "en" ? savedCheckInCopy.get(value) || value : value;
+}
+
+function storedRecordLabel(locale: Locale, key: string, fallback: string) {
+  const value = key.split(".").reduce<unknown>((current, segment) => {
+    if (!current || typeof current !== "object") return undefined;
+    return (current as Record<string, unknown>)[segment];
+  }, dictionaries[locale]);
+  return typeof value === "string" ? value : fallback;
+}
+
+function formatDate(value: string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-CN", {
     month: "long",
     day: "numeric",
     hour: "2-digit",
@@ -64,9 +99,10 @@ function countRecentRecordDays(records: CloudSweetRecord[], userId?: string) {
   return days.size;
 }
 
-function formatRecordValue(value: string | string[]) {
-  if (Array.isArray(value)) return value.length ? value.join("、") : "未填写";
-  return String(value || "").trim() || "未填写";
+function formatRecordValue(value: string | string[], locale: Locale, t: Translate) {
+  if (Array.isArray(value)) return value.length ? value.map((item) => localizedStoredValue(item, locale)).join(locale === "en" ? ", " : "、") : t("account.records.notProvided");
+  const text = String(value || "").trim();
+  return text ? localizedStoredValue(text, locale) : t("account.records.notProvided");
 }
 
 function profileRoleLabel(value?: string | null) {
@@ -76,37 +112,47 @@ function profileRoleLabel(value?: string | null) {
   return "学生";
 }
 
-function recordsTitle(role: string) {
-  if (role === "学校负责人") return "本校学生的 SWEET 记录";
-  if (role === "支持老师") return "负责学生的 SWEET 记录";
-  if (role === "家长") return "孩子的 SWEET 记录";
-  return "我的 SWEET 历史记录";
+function roleDisplayLabel(role: string, t: Translate) {
+  if (role === "学校学生") return t("account.roles.schoolStudent");
+  if (role === "学校家长") return t("account.roles.schoolGuardian");
+  if (role === "平台管理员") return t("account.roles.platformAdmin");
+  if (role === "学校负责人") return t("account.roles.schoolLead");
+  if (role === "支持老师") return t("account.roles.supportTeacher");
+  if (role === "家长") return t("account.roles.guardian");
+  if (role === "专业支持者") return t("account.roles.professionalSupporter");
+  return t("account.roles.student");
 }
 
-function recordsDescription(role: string, hasSchool: boolean) {
-  if (role === "平台管理员") return "进入平台管理，查看全部学校、成员和负责关系。";
-  if (role === "学校负责人") return "管理本校成员，同时查看本校学生提交的记录。";
-  if (role === "支持老师") return "查看学校分配给你的学生记录和近期变化。";
-  if (role === "家长") return "亲子关系确认后，在这里查看孩子共享的节律记录。";
-  if (hasSchool) return "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。";
-  return "完成 SWEET 后保存，即可在这里回看。";
+function recordsTitle(role: string, t: Translate) {
+  if (role === "学校负责人") return t("account.records.titles.school");
+  if (role === "支持老师") return t("account.records.titles.teacher");
+  if (role === "家长") return t("account.records.titles.guardian");
+  return t("account.records.titles.own");
 }
 
-function emptyRecordsDescription(role: string) {
-  if (role === "学生") return "完成一次 SWEET 节律记录并保存后，会显示在这里。";
-  if (role === "家长") return "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由学校管理员确认。";
-  if (role === "支持老师") return "学校负责人分配学生后，这里会显示你负责学生的记录。";
-  if (role === "学校负责人") return "本校学生保存 SWEET 记录后，会显示在这里。";
-  return "保存记录后，会显示在这里。";
+function recordsDescription(role: string, hasSchool: boolean, t: Translate) {
+  if (role === "平台管理员") return t("account.hero.descriptions.platformAdmin");
+  if (role === "学校负责人") return t("account.hero.descriptions.schoolLead");
+  if (role === "支持老师") return t("account.hero.descriptions.supportTeacher");
+  if (role === "家长") return t("account.hero.descriptions.guardian");
+  return hasSchool ? t("account.hero.descriptions.schoolStudent") : t("account.hero.descriptions.personal");
 }
 
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+function emptyRecordsDescription(role: string, t: Translate) {
+  if (role === "学生") return t("account.records.empty.student");
+  if (role === "家长") return t("account.records.empty.guardian");
+  if (role === "支持老师") return t("account.records.empty.teacher");
+  if (role === "学校负责人") return t("account.records.empty.schoolLead");
+  return t("account.records.empty.default");
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string) {
   let timeoutId: number | undefined;
   try {
     return await Promise.race<T>([
       promise,
       new Promise<T>((_, reject) => {
-        timeoutId = window.setTimeout(() => reject(new Error("账户服务响应超时。")), timeoutMs);
+        timeoutId = window.setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
       }),
     ]);
   } finally {
@@ -115,7 +161,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
 }
 
 export default function AccountPage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
@@ -164,7 +210,7 @@ export default function AccountPage() {
       ? "学校家长"
       : displayRole;
   const recentRecordDays = countRecentRecordDays(records, user?.id);
-  const accountName = profile?.display_name?.trim() || user?.email || "你的账户";
+  const accountName = profile?.display_name?.trim() || user?.email || t("account.hero.accountFallback");
   const isInitialAccountLoad = loading && !user;
   const isPlatformAdmin = displayRole === "平台管理员";
   const isSchoolLead = displayRole === "学校负责人";
@@ -180,6 +226,8 @@ export default function AccountPage() {
   const activeRelatedPerson = relatedPeople.find((person) => person.id === activeRelatedUserId) || null;
   const relatedOverview = rhythmOverview(records, isParent ? 28 : 7, activeRelatedUserId);
   const linkedChildById = new Map(linkedChildren.map((child) => [child.id, child]));
+  const accountError = (error: unknown, fallbackKey: TranslationKey) =>
+    localizedCloudErrorMessage(error, locale, t(fallbackKey));
 
   async function refreshAccount() {
     setLoading(true);
@@ -189,7 +237,7 @@ export default function AccountPage() {
     try {
       let currentUser: User | null = null;
       try {
-        currentUser = await withTimeout(getCurrentUser(), 4_000);
+        currentUser = await withTimeout(getCurrentUser(), 4_000, t("account.errors.serviceTimeout"));
       } catch (authError) {
         reportClientOperationFailure("auth", "auth_session", authError);
         console.warn("Initial auth check timed out", authError);
@@ -199,7 +247,7 @@ export default function AccountPage() {
         setRecords([]);
         setWechatIdentities([]);
         setConsentStatus(null);
-        setNotice("登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。");
+        setNotice(t("account.notices.sessionSlow"));
         return;
       }
       setUser(currentUser);
@@ -228,7 +276,7 @@ export default function AccountPage() {
         nextProfile = nextAccountStatus.profile;
       } catch (statusError) {
         console.warn("Account status failed", statusError);
-        nonFatalNotice = "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。";
+        nonFatalNotice = t("account.notices.identitySyncing");
       }
 
       if (!nextProfile) {
@@ -236,14 +284,14 @@ export default function AccountPage() {
           nextProfile = await getProfile(currentUser);
         } catch (profileError) {
           console.warn("Profile fallback failed", profileError);
-          nonFatalNotice = nonFatalNotice || "账号资料暂时没有加载完整，可以稍后重试。";
+          nonFatalNotice = nonFatalNotice || t("account.notices.profileIncomplete");
         }
       }
 
       const [nextRecords, nextWechatIdentities, nextConsentStatus] = await Promise.all([
         listCloudSweetRecords().catch((recordsError) => {
           console.warn("Cloud records failed", recordsError);
-          nonFatalNotice = nonFatalNotice || "记录暂时没有加载出来，请稍后刷新。";
+          nonFatalNotice = nonFatalNotice || t("account.notices.recordsUnavailable");
           return [] as CloudSweetRecord[];
         }),
         listWechatIdentities().catch((wechatError) => {
@@ -264,12 +312,12 @@ export default function AccountPage() {
       setWechatIdentities(nextWechatIdentities);
       setConsentStatus(nextConsentStatus);
       if (nextAccountStatus?.inviteSyncError) {
-        setNotice("账户身份已加载，但学校邀请同步需要稍后再试。");
+        setNotice(t("account.notices.inviteSyncDelayed"));
       } else if (nonFatalNotice) {
         setNotice(nonFatalNotice);
       }
-    } catch (accountError) {
-      setError(accountError instanceof Error ? accountError.message : "账户信息加载失败。");
+    } catch (loadError) {
+      setError(accountError(loadError, "account.errors.loadFailed"));
     } finally {
       setLoading(false);
       setIdentityChecking(false);
@@ -279,11 +327,11 @@ export default function AccountPage() {
   useEffect(() => {
     async function loadAccount() {
       try {
-        const handledRedirect = await withTimeout(handleAuthRedirect(), 8_000);
-        if (handledRedirect) setNotice("登录成功，已进入你的账户。");
+        const handledRedirect = await withTimeout(handleAuthRedirect(), 8_000, t("account.errors.serviceTimeout"));
+        if (handledRedirect) setNotice(t("account.notices.signedInAccount"));
       } catch (redirectError) {
         reportClientOperationFailure("auth", "auth_redirect", redirectError);
-        setError(redirectError instanceof Error ? redirectError.message : "登录链接处理失败，请重新发送验证码。");
+        setError(accountError(redirectError, "account.errors.redirectFailed"));
       } finally {
         await refreshAccount();
       }
@@ -300,17 +348,17 @@ export default function AccountPage() {
         const result = await checkWechatBindSession(wechatBindSession.scene);
         if (result.bound) {
           window.clearInterval(interval);
-          setWechatStatus("微信绑定成功。");
+          setWechatStatus(t("account.notices.wechatBound"));
           setWechatBindSession(null);
           await refreshAccount();
         } else if (result.status === "expired") {
           window.clearInterval(interval);
-          setWechatStatus("二维码已过期，请重新生成。");
+          setWechatStatus(t("account.errors.wechatQrExpired"));
           setWechatBindSession(null);
         }
       } catch (bindError) {
         window.clearInterval(interval);
-        setWechatStatus(bindError instanceof Error ? bindError.message : "微信绑定状态检查失败。");
+        setWechatStatus(accountError(bindError, "account.errors.wechatStatusFailed"));
         setWechatBindSession(null);
       }
     }, 2200);
@@ -326,6 +374,12 @@ export default function AccountPage() {
     return () => window.clearInterval(timer);
   }, [resendCooldown]);
 
+  useEffect(() => {
+    setNotice("");
+    setError("");
+    setWechatStatus("");
+  }, [locale]);
+
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (otpRequestInFlight.current) return;
@@ -337,10 +391,15 @@ export default function AccountPage() {
       await sendEmailOtp(email.trim());
       setOtpSent(true);
       setResendCooldown(60);
-      setNotice("验证码已发送。请查看邮箱。");
+      setNotice(t("account.notices.otpSent"));
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_send", loginError);
-      setError(otpRequestErrorMessage(loginError));
+      setError(otpRequestErrorMessage(loginError, {
+        unauthorized: t("account.errors.otpUnauthorized"),
+        rateLimited: t("account.errors.otpRateLimited"),
+        network: t("account.errors.otpSendNetwork"),
+        fallback: t("account.errors.otpSendFailed"),
+      }));
     } finally {
       otpRequestInFlight.current = false;
       setAuthLoading(false);
@@ -352,7 +411,7 @@ export default function AccountPage() {
     setNotice("");
     setError("");
     if (otp.trim().length !== emailOtpLength) {
-      setError(`请输入完整的 ${emailOtpLength} 位验证码。`);
+      setError(t("account.errors.otpIncomplete", { count: emailOtpLength }));
       return;
     }
     setAuthLoading(true);
@@ -360,11 +419,16 @@ export default function AccountPage() {
       await verifyEmailOtp(email.trim(), otp);
       setOtp("");
       setOtpSent(false);
-      setNotice("登录成功。");
+      setNotice(t("account.notices.signedIn"));
       await refreshAccount();
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_verify", loginError);
-      setError(otpVerificationErrorMessage(loginError));
+      setError(otpVerificationErrorMessage(loginError, {
+        invalid: t("account.errors.otpInvalid"),
+        rateLimited: t("account.errors.otpVerifyRateLimited"),
+        network: t("account.errors.otpVerifyNetwork"),
+        fallback: t("account.errors.otpVerifyFailed"),
+      }));
     } finally {
       setAuthLoading(false);
     }
@@ -380,10 +444,15 @@ export default function AccountPage() {
       await sendEmailOtp(email.trim());
       setOtp("");
       setResendCooldown(60);
-      setNotice("新的验证码已发送。");
+      setNotice(t("account.notices.otpResent"));
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_send", loginError);
-      setError(otpRequestErrorMessage(loginError));
+      setError(otpRequestErrorMessage(loginError, {
+        unauthorized: t("account.errors.otpUnauthorized"),
+        rateLimited: t("account.errors.otpRateLimited"),
+        network: t("account.errors.otpSendNetwork"),
+        fallback: t("account.errors.otpSendFailed"),
+      }));
     } finally {
       otpRequestInFlight.current = false;
       setAuthLoading(false);
@@ -396,15 +465,15 @@ export default function AccountPage() {
     setNotice("");
     setError("");
     if (!name.trim()) {
-      setError("请填写姓名。");
+      setError(t("account.errors.nameRequired"));
       return;
     }
     try {
       await saveProfile(user, name.trim(), role);
       await refreshAccount();
-      setNotice("账号资料已保存。");
+      setNotice(t("account.notices.profileSaved"));
     } catch (profileError) {
-      setError(profileError instanceof Error ? profileError.message : "资料保存失败。");
+      setError(accountError(profileError, "account.errors.profileSaveFailed"));
     }
   }
 
@@ -414,15 +483,15 @@ export default function AccountPage() {
     try {
       await deleteCloudSweetRecord(recordId);
       setRecords(await listCloudSweetRecords());
-      setNotice("记录已删除。");
+      setNotice(t("account.notices.recordDeleted"));
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "删除记录失败。");
+      setError(accountError(deleteError, "account.errors.recordDeleteFailed"));
     }
   }
 
   async function handleSignOut() {
     await signOut();
-    setNotice("已退出登录。");
+    setNotice(t("account.notices.signedOut"));
     setWechatBindSession(null);
     setWechatStatus("");
     setAccountStatus(null);
@@ -437,9 +506,9 @@ export default function AccountPage() {
     setNotice("");
     try {
       await downloadAccountDataExport();
-      setNotice("数据导出已开始下载。文件只保存在你的设备上。");
+      setNotice(t("account.notices.exportStarted"));
     } catch (exportError) {
-      setError(exportError instanceof Error ? exportError.message : "账户数据导出失败。");
+      setError(accountError(exportError, "account.errors.exportFailed"));
     } finally {
       setAccountActionLoading(false);
     }
@@ -447,7 +516,7 @@ export default function AccountPage() {
 
   async function handleAccountDeletion() {
     if (!user?.email || !deletionAcknowledged || deletionEmail.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
-      setError("请输入当前登录邮箱，并勾选不可恢复确认。");
+      setError(t("account.errors.deletionConfirmationRequired"));
       return;
     }
     setAccountActionLoading(true);
@@ -464,10 +533,10 @@ export default function AccountPage() {
       setDeletionEmail("");
       setDeletionAcknowledged(false);
       setNotice(result.cleanupPending
-        ? "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。"
-        : "账号及关联数据已注销，当前设备也已退出登录。");
+        ? t("account.notices.accountDeletedCleanupPending")
+        : t("account.notices.accountDeleted"));
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "账户注销失败。");
+      setError(accountError(deleteError, "account.errors.accountDeleteFailed"));
     } finally {
       setAccountActionLoading(false);
     }
@@ -479,9 +548,9 @@ export default function AccountPage() {
     setNotice("");
     try {
       setConsentStatus(await submitStudentAssent(ageBand));
-      setNotice(ageBand === "under_14" ? "当前试点暂不接收 14 岁以下学生，请联系学校负责人。" : ageBand === "18_plus" ? "知情确认已完成。" : "学生确认已记录，下一步请已关联的监护人登录完成确认。");
+      setNotice(ageBand === "under_14" ? t("account.notices.under14Ineligible") : ageBand === "18_plus" ? t("account.notices.adultConsentComplete") : t("account.notices.studentAssentRecorded"));
     } catch (consentError) {
-      setError(consentError instanceof Error ? consentError.message : "学生确认提交失败。");
+      setError(accountError(consentError, "account.errors.studentAssentFailed"));
     } finally {
       setConsentLoading(false);
     }
@@ -493,9 +562,9 @@ export default function AccountPage() {
     setNotice("");
     try {
       setConsentStatus(await submitGuardianConsent(studentUserId));
-      setNotice("监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。");
+      setNotice(t("account.notices.guardianConsentComplete"));
     } catch (consentError) {
-      setError(consentError instanceof Error ? consentError.message : "监护人确认提交失败。");
+      setError(accountError(consentError, "account.errors.guardianConsentFailed"));
     } finally {
       setConsentLoading(false);
     }
@@ -507,9 +576,9 @@ export default function AccountPage() {
     setNotice("");
     try {
       setConsentStatus(await withdrawStudentConsent(studentUserId));
-      setNotice("确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。");
+      setNotice(t("account.notices.consentWithdrawn"));
     } catch (consentError) {
-      setError(consentError instanceof Error ? consentError.message : "撤回确认失败。");
+      setError(accountError(consentError, "account.errors.consentWithdrawFailed"));
     } finally {
       setConsentLoading(false);
     }
@@ -522,9 +591,9 @@ export default function AccountPage() {
     try {
       const bindSession = await createWechatBindSession();
       setWechatBindSession(bindSession);
-      setWechatStatus("请用微信扫描小程序码，完成后此页面会自动更新。");
+      setWechatStatus(t("account.notices.scanWechatQr"));
     } catch (bindError) {
-      setWechatStatus(bindError instanceof Error ? bindError.message : "微信绑定二维码生成失败。");
+      setWechatStatus(accountError(bindError, "account.errors.wechatQrFailed"));
     } finally {
       setWechatLoading(false);
     }
@@ -641,30 +710,30 @@ export default function AccountPage() {
             <div className="container">
               <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                 <div className="min-w-0">
-                  <p className="eyebrow">{needsPersonalProfile ? "首次登录" : "我的账户"}</p>
+                  <p className="eyebrow">{needsPersonalProfile ? t("account.hero.firstSignIn") : t("account.hero.label")}</p>
                   <h1 className="mt-2 overflow-hidden text-ellipsis text-[2rem] font-bold leading-tight text-ink sm:text-[2.5rem]">
-                    {needsPersonalProfile ? "先完善你的资料" : `你好，${accountName}`}
+                    {needsPersonalProfile ? t("account.hero.completeProfile") : t("account.hero.greeting", { name: accountName })}
                   </h1>
                   <p className="mt-3 max-w-2xl text-[0.95rem] leading-7 text-muted">
                     {needsPersonalProfile
-                      ? "填写姓名并选择身份。之后登录时会直接进入你的记录页。"
+                      ? t("account.hero.completeProfileDescription")
                       : isParent
                         ? linkedChildren.length
-                          ? `已关联 ${linkedChildren.map((child) => child.display_name).join("、")}，可以查看学校确认范围内的节律记录。`
-                          : "亲子关系由学校管理员确认。关联完成后，这里会直接显示孩子的节律记录。"
-                        : recordsDescription(displayRole, hasSchool)}
+                          ? t("account.hero.linkedChildren", { names: linkedChildren.map((child) => child.display_name).join(locale === "en" ? ", " : "、") })
+                          : t("account.hero.noLinkedChildren")
+                        : recordsDescription(displayRole, hasSchool, t)}
                   </p>
                 </div>
                 {!needsPersonalProfile ? (
                   <div className="grid shrink-0 gap-3 sm:flex">
-                    {isPlatformAdmin ? <Link href="/admin" className="button-primary w-full sm:w-auto">进入平台管理</Link> : null}
-                    {isSchoolLead ? <Link href="/admin" className="button-primary w-full sm:w-auto">进入学校管理</Link> : null}
-                    {isSchoolLead ? <Link href="#records" className="button-secondary w-full sm:w-auto">查看学生记录</Link> : null}
-                    {isSupportTeacher ? <Link href="#students" className="button-primary w-full sm:w-auto">查看负责学生</Link> : null}
-                    {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">跟进工作台</Link> : null}
-                    {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">查看孩子记录</Link> : null}
-                    {isParent ? <Link href="/referral" className="button-secondary w-full sm:w-auto">需要更多支持</Link> : null}
-                    {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">记录今天</Link> : null}
+                    {isPlatformAdmin ? <Link href="/admin" className="button-primary w-full sm:w-auto">{t("account.actions.platformAdmin")}</Link> : null}
+                    {isSchoolLead ? <Link href="/admin" className="button-primary w-full sm:w-auto">{t("account.actions.schoolAdmin")}</Link> : null}
+                    {isSchoolLead ? <Link href="#records" className="button-secondary w-full sm:w-auto">{t("account.actions.studentRecords")}</Link> : null}
+                    {isSupportTeacher ? <Link href="#students" className="button-primary w-full sm:w-auto">{t("account.actions.assignedStudents")}</Link> : null}
+                    {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">{t("account.actions.followUpWorkspace")}</Link> : null}
+                    {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">{t("account.actions.childRecords")}</Link> : null}
+                    {isParent ? <Link href="/referral" className="button-secondary w-full sm:w-auto">{t("account.actions.moreSupport")}</Link> : null}
+                    {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">{t("account.actions.recordToday")}</Link> : null}
                   </div>
                 ) : null}
               </div>
@@ -673,34 +742,34 @@ export default function AccountPage() {
                 <form className="mt-8 max-w-2xl rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft sm:p-7" onSubmit={handleProfileSubmit}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="grid gap-2 text-sm font-bold text-ink">
-                      姓名
+                      {t("account.profile.name")}
                       <input
                         className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        placeholder="怎么称呼你"
+                        placeholder={t("account.profile.namePlaceholder")}
                         maxLength={50}
                         autoFocus
                       />
                     </label>
                     <label className="grid gap-2 text-sm font-bold text-ink">
-                      账号类型
+                      {t("account.profile.accountType")}
                       <select
                         className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
                         value={role}
                         onChange={(event) => setRole(event.target.value)}
                       >
-                        <option>学生</option>
-                        <option>家长</option>
+                        <option value="学生">{t("account.roles.student")}</option>
+                        <option value="家长">{t("account.roles.guardian")}</option>
                       </select>
                     </label>
                   </div>
                   <div className="mt-5 grid gap-3 sm:flex">
                     <button type="submit" className="button-primary w-full sm:w-auto" disabled={!name.trim()}>
-                      保存并继续
+                      {t("account.actions.saveContinue")}
                     </button>
                     <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>
-                      退出登录
+                      {t("account.actions.signOut")}
                     </button>
                   </div>
                   {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
@@ -708,26 +777,26 @@ export default function AccountPage() {
               ) : (
                 <div className="mt-8 grid gap-4 sm:grid-cols-3">
                   <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
-                    <p className="text-xs font-bold text-sage">当前身份</p>
-                    <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : confirmedRoleLabel}</p>
+                    <p className="text-xs font-bold text-sage">{t("account.summary.currentRole")}</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? t("account.summary.confirming") : roleDisplayLabel(confirmedRoleLabel, t)}</p>
                     <p className="mt-2 overflow-hidden text-ellipsis text-sm text-muted">{user.email}</p>
                   </div>
                   <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
-                    <p className="text-xs font-bold text-sage">可见记录</p>
-                    <p className="mt-2 text-xl font-bold text-ink">{records.length} 条</p>
-                    <p className="mt-2 text-sm text-muted">保存在当前账号</p>
+                    <p className="text-xs font-bold text-sage">{t("account.summary.visibleRecords")}</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{t("account.summary.recordCount", { count: records.length })}</p>
+                    <p className="mt-2 text-sm text-muted">{t("account.summary.savedToAccount")}</p>
                   </div>
                   {!isIdentityLoading && displayRole === "学生" ? (
                     <div className="rounded-2xl border border-sage/30 bg-mist/70 px-5 py-5">
-                      <p className="text-xs font-bold text-sage">最近 7 天</p>
-                      <p className="mt-2 text-xl font-bold text-ink">{recentRecordDays} 天有记录</p>
-                      <p className="mt-2 text-sm text-muted">不需要每天都完成</p>
+                      <p className="text-xs font-bold text-sage">{t("account.summary.lastSevenDays")}</p>
+                      <p className="mt-2 text-xl font-bold text-ink">{t("account.summary.daysRecorded", { count: recentRecordDays })}</p>
+                      <p className="mt-2 text-sm text-muted">{t("account.summary.notEveryDay")}</p>
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
-                      <p className="text-xs font-bold text-sage">学校空间</p>
-                      <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? "正在确认" : hasSchool ? "已加入" : "未加入"}</p>
-                      <p className="mt-2 text-sm text-muted">由学校管理员配置</p>
+                      <p className="text-xs font-bold text-sage">{t("account.summary.schoolSpace")}</p>
+                      <p className="mt-2 text-xl font-bold text-ink">{isIdentityLoading ? t("account.summary.confirming") : hasSchool ? t("account.summary.joined") : t("account.summary.notJoined")}</p>
+                      <p className="mt-2 text-sm text-muted">{t("account.summary.configuredBySchool")}</p>
                     </div>
                   )}
                 </div>
@@ -739,48 +808,48 @@ export default function AccountPage() {
             <section className="px-4 pb-2 pt-6 sm:px-8 lg:px-12">
               <div className="container">
                 <div className="rounded-2xl border border-sage/25 bg-mist/55 p-5 shadow-soft sm:p-7">
-                  <p className="eyebrow">使用前确认</p>
-                  <h2 className="mt-2 text-2xl font-bold text-ink">先了解哪些内容会被保存、谁可以看到</h2>
+                  <p className="eyebrow">{t("account.consent.label")}</p>
+                  <h2 className="mt-2 text-2xl font-bold text-ink">{t("account.consent.title")}</h2>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
-                    SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和学校支持，不用于广告或公开展示；学生或监护人可随时撤回。完整说明见
-                    <Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">隐私与安全</Link>。
+                    {t("account.consent.description")}
+                    <Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">{t("account.consent.privacyLink")}</Link>{t("account.consent.sentenceEnd")}
                   </p>
 
                   {consentStatus.role === "student" && consentStatus.consent ? (
                     <div className="mt-6 rounded-2xl bg-white/85 p-5">
                       {consentStatus.consent.status === "active" ? (
                         <>
-                          <p className="font-bold text-sage-dark">已完成知情确认</p>
+                          <p className="font-bold text-sage-dark">{t("account.consent.activeTitle")}</p>
                           <p className="mt-2 text-sm leading-6 text-muted">
                             {consentStatus.consent.ageBand === "18_plus"
-                              ? "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。"
-                              : "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。"}
-                            当前版本：{consentStatus.policyVersion}。
+                              ? t("account.consent.adultActive")
+                              : t("account.consent.minorActive")}
+                            {t("account.consent.policyVersion", { version: consentStatus.policyVersion })}
                           </p>
-                          <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>撤回确认</button>
+                          <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>{t("account.consent.withdraw")}</button>
                         </>
                       ) : consentStatus.consent.status === "pending_guardian" ? (
                         <>
-                          <p className="font-bold text-ink">学生确认已完成，等待监护人确认</p>
-                          <p className="mt-2 text-sm leading-6 text-muted">{consentStatus.consent.hasLinkedGuardian ? "请已关联家长登录自己的账户完成确认。" : "当前还没有学校确认的监护人关联，请联系学校负责人。"}</p>
-                          <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>撤回学生确认</button>
+                          <p className="font-bold text-ink">{t("account.consent.pendingTitle")}</p>
+                          <p className="mt-2 text-sm leading-6 text-muted">{consentStatus.consent.hasLinkedGuardian ? t("account.consent.askGuardian") : t("account.consent.noGuardian")}</p>
+                          <button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent()}>{t("account.consent.withdrawStudent")}</button>
                         </>
                       ) : (
                         <>
-                          {consentStatus.consent.status === "ineligible" ? <p className="mb-4 rounded-xl bg-cream px-4 py-3 text-sm font-bold text-sage-dark">当前试点面向 14–18 岁在校青少年。14 岁以下请由监护人联系学校负责人。</p> : null}
+                          {consentStatus.consent.status === "ineligible" ? <p className="mb-4 rounded-xl bg-cream px-4 py-3 text-sm font-bold text-sage-dark">{t("account.consent.ineligible")}</p> : null}
                           <label className="grid max-w-md gap-2 text-sm font-bold text-ink">
-                            你的年龄范围（不收集具体生日）
+                            {t("account.consent.ageRange")}
                             <select className="rounded-xl border border-ink/15 bg-white px-4 py-3" value={ageBand} onChange={(event) => setAgeBand(event.target.value as typeof ageBand)}>
-                              <option value="14_17">14–17 岁</option>
-                              <option value="18_plus">已满 18 岁</option>
-                              <option value="under_14">未满 14 岁</option>
+                              <option value="14_17">{t("account.consent.age14to17")}</option>
+                              <option value="18_plus">{t("account.consent.age18Plus")}</option>
+                              <option value="under_14">{t("account.consent.ageUnder14")}</option>
                             </select>
                           </label>
                           <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-muted">
                             <input type="checkbox" className="mt-1" checked={consentRead} onChange={(event) => setConsentRead(event.target.checked)} />
-                            <span>我已阅读说明，理解会处理哪些信息、用途、谁能查看以及如何撤回，并自愿确认。</span>
+                            <span>{t("account.consent.acknowledgement")}</span>
                           </label>
-                          <button type="button" className="button-primary mt-4 disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={consentLoading || !consentRead} onClick={handleStudentAssent}>{consentLoading ? "正在提交…" : "完成学生确认"}</button>
+                          <button type="button" className="button-primary mt-4 disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45" disabled={consentLoading || !consentRead} onClick={handleStudentAssent}>{consentLoading ? t("account.actions.submitting") : t("account.consent.completeStudent")}</button>
                         </>
                       )}
                     </div>
@@ -792,14 +861,14 @@ export default function AccountPage() {
                         <div key={child.studentUserId} className="rounded-2xl bg-white/85 p-5">
                           <p className="font-bold text-ink">{child.studentName}</p>
                           {child.status === "active" ? (
-                            <><p className="mt-2 text-sm text-muted">学生与监护人确认均已完成。</p><button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent(child.studentUserId)}>撤回监护人确认</button></>
+                            <><p className="mt-2 text-sm text-muted">{t("account.consent.bothComplete")}</p><button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent(child.studentUserId)}>{t("account.consent.withdrawGuardian")}</button></>
                           ) : child.status === "pending_guardian" ? (
-                            <><p className="mt-2 text-sm leading-6 text-muted">孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。</p><button type="button" className="button-primary mt-4" disabled={consentLoading} onClick={() => handleGuardianConsent(child.studentUserId)}>{consentLoading ? "正在提交…" : "同意孩子参加试点"}</button></>
+                            <><p className="mt-2 text-sm leading-6 text-muted">{t("account.consent.guardianPrompt")}</p><button type="button" className="button-primary mt-4" disabled={consentLoading} onClick={() => handleGuardianConsent(child.studentUserId)}>{consentLoading ? t("account.actions.submitting") : t("account.consent.agreeChild")}</button></>
                           ) : (
-                            <p className="mt-2 text-sm text-muted">等待孩子先登录自己的账户阅读说明并完成学生确认。</p>
+                            <p className="mt-2 text-sm text-muted">{t("account.consent.waitingChild")}</p>
                           )}
                         </div>
-                      )) : <p className="rounded-xl bg-white/80 px-4 py-3 text-sm text-muted">尚未关联孩子。亲子关系需由学校负责人确认。</p>}
+                      )) : <p className="rounded-xl bg-white/80 px-4 py-3 text-sm text-muted">{t("account.consent.noLinkedChild")}</p>}
                     </div>
                   ) : null}
                 </div>
@@ -813,8 +882,8 @@ export default function AccountPage() {
               {error ? <p className="mb-4 rounded-xl border border-sage/30 bg-white px-4 py-3 text-sm font-bold text-sage-dark">{error}</p> : null}
               <details className="rounded-2xl border border-ink/10 bg-white/70">
                 <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-ink sm:px-6">
-                  账户设置
-                  <span className="ml-2 font-normal text-muted">资料、数据导出、注销与退出</span>
+                  {t("account.settings.title")}
+                  <span className="ml-2 font-normal text-muted">{t("account.settings.description")}</span>
                 </summary>
                 <div className="border-t border-ink/10 px-5 py-6 sm:px-6">
                   <div className="inline-flex max-w-full flex-wrap rounded-xl bg-cream p-1 text-sm font-bold">
@@ -823,79 +892,79 @@ export default function AccountPage() {
                       className={`rounded-lg px-4 py-2 transition ${accountTab === "profile" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                       onClick={() => setAccountTab("profile")}
                     >
-                      {isExternallyManagedRole ? "学校身份" : "账号资料"}
+                      {isExternallyManagedRole ? t("account.settings.schoolIdentity") : t("account.settings.profile")}
                     </button>
                     <button
                       type="button"
                       className={`rounded-lg px-4 py-2 transition ${accountTab === "wechat" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                       onClick={() => setAccountTab("wechat")}
                     >
-                      微信绑定
+                      {t("account.settings.wechat")}
                     </button>
                     <button
                       type="button"
                       className={`rounded-lg px-4 py-2 transition ${accountTab === "data" ? "bg-white text-ink shadow-sm" : "text-ink/55"}`}
                       onClick={() => setAccountTab("data")}
                     >
-                      数据与注销
+                      {t("account.settings.data")}
                     </button>
                   </div>
 
                   <div className="mt-6 max-w-2xl">
                     {accountTab === "profile" ? (
                       isIdentityLoading ? (
-                        <p className="rounded-xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">正在确认身份…</p>
+                        <p className="rounded-xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">{t("account.summary.confirmingRole")}</p>
                       ) : isExternallyManagedRole ? (
                         <div className="grid gap-4">
                           <div className="rounded-xl bg-cream px-4 py-4">
-                            <p className="text-xs font-bold text-sage">当前身份</p>
-                            <p className="mt-2 text-lg font-bold text-ink">{confirmedRoleLabel}</p>
+                            <p className="text-xs font-bold text-sage">{t("account.summary.currentRole")}</p>
+                            <p className="mt-2 text-lg font-bold text-ink">{roleDisplayLabel(confirmedRoleLabel, t)}</p>
                             <p className="mt-2 text-sm leading-6 text-muted">
-                              {isSchoolAssignedStudent ? "学校已经为这个账号配置学生身份。" : null}
-                              {displayRole === "学校负责人" ? "你可以在管理台配置本校学生和支持老师。" : null}
-                              {displayRole === "支持老师" ? "你可以查看学校分配给你的学生记录。" : null}
-                              {displayRole === "平台管理员" ? "你可以创建学校空间并指定负责人。" : null}
-                              {displayRole === "专业支持者" ? "专业身份由平台确认。你可以在下方查看或补充核验资料。" : null}
+                              {isSchoolAssignedStudent ? t("account.settings.roleDescriptions.schoolStudent") : null}
+                              {displayRole === "学校负责人" ? t("account.settings.roleDescriptions.schoolLead") : null}
+                              {displayRole === "支持老师" ? t("account.settings.roleDescriptions.supportTeacher") : null}
+                              {displayRole === "平台管理员" ? t("account.settings.roleDescriptions.platformAdmin") : null}
+                              {displayRole === "专业支持者" ? t("account.settings.roleDescriptions.professional") : null}
                             </p>
                           </div>
-                          <button type="button" className="button-secondary w-full sm:w-fit" onClick={handleSignOut}>退出登录</button>
+                          <button type="button" className="button-secondary w-full sm:w-fit" onClick={handleSignOut}>{t("account.actions.signOut")}</button>
                         </div>
                       ) : (
                         <form className="grid gap-4" onSubmit={handleProfileSubmit}>
                           <label className="grid gap-2 text-sm font-bold text-ink">
-                            姓名
+                            {t("account.profile.name")}
                             <input className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
                           </label>
                           <label className="grid gap-2 text-sm font-bold text-ink">
-                            账号类型
+                            {t("account.profile.accountType")}
                             <select
                               className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
                               value={role}
                               onChange={(event) => setRole(event.target.value)}
                             >
-                              <option>学生</option>
-                              <option>家长</option>
+                              <option value="学生">{t("account.roles.student")}</option>
+                              <option value="家长">{t("account.roles.guardian")}</option>
                             </select>
                           </label>
                           <div className="grid gap-3 sm:flex">
-                            <button type="submit" className="button-primary w-full sm:w-auto">保存资料</button>
-                            <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>退出登录</button>
+                            <button type="submit" className="button-primary w-full sm:w-auto">{t("account.actions.saveProfile")}</button>
+                            <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>{t("account.actions.signOut")}</button>
                           </div>
                         </form>
                       )
                     ) : accountTab === "wechat" ? (
                       <div className="grid gap-4">
                         <p className="text-[0.95rem] leading-7 text-muted">
-                          绑定后，可以在小程序中使用同一个 YouthTempo 账号。
+                          {t("account.wechat.description")}
                         </p>
                         {wechatBindSession ? (
                           <div className="w-fit rounded-2xl border border-ink/10 bg-white p-3">
-                            <img src={wechatBindSession.qrCodeDataUrl} alt="微信小程序绑定码" className="aspect-square w-44 rounded-xl object-contain" />
-                            <p className="mt-2 max-w-44 text-center text-xs leading-5 text-muted">二维码 10 分钟内有效</p>
+                            <img src={wechatBindSession.qrCodeDataUrl} alt={t("account.wechat.qrAlt")} className="aspect-square w-44 rounded-xl object-contain" />
+                            <p className="mt-2 max-w-44 text-center text-xs leading-5 text-muted">{t("account.wechat.qrValidity")}</p>
                           </div>
                         ) : (
                           <p className="rounded-xl bg-cream px-4 py-3 text-sm text-muted">
-                            {wechatIdentities.length > 0 ? "已绑定微信。" : "尚未绑定微信。"}
+                            {wechatIdentities.length > 0 ? t("account.wechat.bound") : t("account.wechat.notBound")}
                           </p>
                         )}
                         <button
@@ -904,29 +973,29 @@ export default function AccountPage() {
                           onClick={handleCreateWechatBindSession}
                           disabled={wechatLoading}
                         >
-                          {wechatLoading ? "正在生成..." : wechatIdentities.length > 0 ? "重新生成绑定码" : "生成微信绑定码"}
+                          {wechatLoading ? t("account.wechat.generating") : wechatIdentities.length > 0 ? t("account.wechat.regenerate") : t("account.wechat.generate")}
                         </button>
                         {wechatStatus ? <p className="text-sm font-bold text-sage-dark">{wechatStatus}</p> : null}
                       </div>
                     ) : (
                       <div className="grid gap-6">
                         <div className="rounded-2xl border border-sage/20 bg-mint/35 p-5">
-                          <p className="font-bold text-ink">下载我的数据</p>
+                          <p className="font-bold text-ink">{t("account.dataExport.title")}</p>
                           <p className="mt-2 text-sm leading-7 text-muted">
-                            下载账号资料、你自己的 SWEET 记录、留言、社区内容、同意记录和学校关系。文件为 JSON，服务器不会保存导出副本。
+                            {t("account.dataExport.description")}
                           </p>
                           <button type="button" className="button-secondary mt-4" disabled={accountActionLoading} onClick={handleDataExport}>
-                            {accountActionLoading ? "正在处理…" : "下载数据副本"}
+                            {accountActionLoading ? t("account.actions.processing") : t("account.dataExport.action")}
                           </button>
                         </div>
 
                         <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5">
-                          <p className="font-bold text-ink">永久注销账号</p>
+                          <p className="font-bold text-ink">{t("account.deletion.title")}</p>
                           <p className="mt-2 text-sm leading-7 text-muted">
-                            注销后，账号、SWEET 记录、留言、学校关系、微信绑定和社区内容都会被永久删除，无法恢复。建议先下载一份自己的数据。
+                            {t("account.deletion.description")}
                           </p>
                           <label className="mt-4 grid gap-2 text-sm font-bold text-ink">
-                            输入当前登录邮箱确认
+                            {t("account.deletion.emailConfirmation")}
                             <input
                               className="rounded-xl border border-red-200 bg-white px-4 py-3 text-sm outline-none focus:border-red-400"
                               type="email"
@@ -938,7 +1007,7 @@ export default function AccountPage() {
                           </label>
                           <label className="mt-4 flex items-start gap-3 text-sm leading-6 text-muted">
                             <input type="checkbox" className="mt-1" checked={deletionAcknowledged} onChange={(event) => setDeletionAcknowledged(event.target.checked)} />
-                            <span>我理解注销会永久删除账号关联数据，且无法撤销。</span>
+                            <span>{t("account.deletion.acknowledgement")}</span>
                           </label>
                           <button
                             type="button"
@@ -946,12 +1015,12 @@ export default function AccountPage() {
                             disabled={accountActionLoading || !deletionAcknowledged || deletionEmail.trim().toLowerCase() !== user.email?.trim().toLowerCase()}
                             onClick={handleAccountDeletion}
                           >
-                            {accountActionLoading ? "正在处理…" : "永久注销账号"}
+                            {accountActionLoading ? t("account.actions.processing") : t("account.deletion.action")}
                           </button>
                         </div>
                         <p className="text-sm leading-7 text-muted">
-                          具体保存期限、注销后的安全处理记录和备份说明见
-                          <Link href="/privacy-safety#account-data" className="ml-1 font-bold text-sage-dark underline underline-offset-4">隐私与安全</Link>。
+                          {t("account.deletion.privacyPrefix")}
+                          <Link href="/privacy-safety#account-data" className="ml-1 font-bold text-sage-dark underline underline-offset-4">{t("account.consent.privacyLink")}</Link>{t("account.consent.sentenceEnd")}
                         </p>
                       </div>
                     )}
@@ -969,11 +1038,11 @@ export default function AccountPage() {
           className="section section-muted scroll-mt-24"
         >
           <div className="container">
-            <SectionHeader title={isParent ? "孩子的节律概览" : "我负责的学生"} />
+            <SectionHeader title={isParent ? t("account.relationships.childOverview") : t("account.relationships.assignedStudents")} />
             {relatedPeople.length ? (
               <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
                 <aside className="card">
-                  <p className="text-sm font-bold text-ink">{isParent ? "选择孩子" : "学生列表"}</p>
+                  <p className="text-sm font-bold text-ink">{isParent ? t("account.relationships.selectChild") : t("account.relationships.studentList")}</p>
                   <div className="mt-4 grid gap-2">
                     {relatedPeople.map((person) => {
                       const personOverview = rhythmOverview(records, isParent ? 28 : 7, person.id);
@@ -990,8 +1059,8 @@ export default function AccountPage() {
                           <span className="block font-bold text-ink">{person.display_name}</span>
                           <span className="mt-1 block text-xs text-muted">
                             {isParent
-                              ? `近 4 周 ${personOverview.activeDays} 天有记录`
-                              : `近 7 天 ${personOverview.activeDays} 天有记录`}
+                              ? t("account.relationships.fourWeekDays", { count: personOverview.activeDays })
+                              : t("account.relationships.sevenDayDays", { count: personOverview.activeDays })}
                           </span>
                         </button>
                       );
@@ -1002,13 +1071,13 @@ export default function AccountPage() {
                 <div className="card">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <p className="eyebrow">{isParent ? "近 4 周" : "近 7 天"}</p>
+                      <p className="eyebrow">{isParent ? t("account.relationships.lastFourWeeks") : t("account.relationships.lastSevenDays")}</p>
                       <h2 className="mt-2 text-[1.5rem] font-bold text-ink">
-                        {activeRelatedPerson?.display_name || "节律概览"}
+                        {activeRelatedPerson?.display_name || t("account.relationships.rhythmOverview")}
                       </h2>
                     </div>
                     <span className="rounded-full bg-cream px-4 py-2 text-sm font-bold text-sage-dark">
-                      {relatedOverview.activeDays} 天有记录
+                      {t("account.summary.daysRecorded", { count: relatedOverview.activeDays })}
                     </span>
                   </div>
 
@@ -1017,24 +1086,24 @@ export default function AccountPage() {
                       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                         {relatedOverview.dimensions.map((dimension) => (
                           <div key={dimension.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
-                            <p className="text-xs font-bold text-sage">{dimension.label}</p>
+                            <p className="text-xs font-bold text-sage">{t(`account.rhythm.${dimension.id}` as TranslationKey)}</p>
                             <p className="mt-2 text-sm font-bold leading-6 text-ink">{dimension.value}</p>
                           </div>
                         ))}
                       </div>
                       <div className="mt-5 rounded-2xl bg-cream px-5 py-5">
-                        <p className="text-xs font-bold text-sage-dark">最近小结</p>
+                        <p className="text-xs font-bold text-sage-dark">{t("account.relationships.latestSummary")}</p>
                         <p className="mt-2 text-sm leading-7 text-muted">
-                          {relatedOverview.latestSummary || "最近一条记录还没有生成小结，可以在下方查看原始回答。"}
+                          {relatedOverview.latestSummary || t("account.relationships.noSummary")}
                         </p>
                       </div>
                       <a href="#records" className="button-secondary mt-5">
-                        查看原始回答
+                        {t("account.relationships.viewRawAnswers")}
                       </a>
                     </>
                   ) : (
                     <p className="mt-6 rounded-2xl bg-cream px-5 py-5 text-sm leading-7 text-muted">
-                      {isParent ? "孩子暂时还没有保存 SWEET 记录。" : "这名学生近 7 天还没有保存 SWEET 记录。"}
+                      {isParent ? t("account.relationships.childNoRecords") : t("account.relationships.studentNoRecords")}
                     </p>
                   )}
                 </div>
@@ -1042,10 +1111,10 @@ export default function AccountPage() {
             ) : (
               <div className="card">
                 <p className="font-bold text-ink">
-                  {isParent ? "暂时还没有关联孩子。" : "学校暂时还没有为你分配学生。"}
+                  {isParent ? t("account.relationships.noChild") : t("account.relationships.noStudent")}
                 </p>
                 <p className="mt-2 text-sm leading-7 text-muted">
-                  {isParent ? "请联系学校负责人确认亲子关系。" : "分配完成后，学生概览会显示在这里。"}
+                  {isParent ? t("account.relationships.confirmRelationship") : t("account.relationships.assignmentHelp")}
                 </p>
               </div>
             )}
@@ -1060,7 +1129,7 @@ export default function AccountPage() {
       {user && !needsPersonalProfile && !isPlatformAdmin ? (
         <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">
           <div className="container">
-            <SectionHeader title={recordsTitle(displayRole)} />
+            <SectionHeader title={recordsTitle(displayRole, t)} />
             {isParent && linkedChildren.length > 0 ? (
               <div className="mb-5 flex flex-wrap gap-2">
                 {linkedChildren.map((child) => (
@@ -1070,7 +1139,7 @@ export default function AccountPage() {
                 ))}
               </div>
             ) : null}
-            {loading ? <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-6 text-sm font-bold text-muted">正在加载记录…</div> : null}
+            {loading ? <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-6 text-sm font-bold text-muted">{t("account.records.loading")}</div> : null}
             {!loading && records.length > 0 ? (
               <div className="grid gap-5">
                 {records.map((record) => {
@@ -1079,30 +1148,30 @@ export default function AccountPage() {
                     <article key={record.id} className="card">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
-                          <p className="text-sm font-bold text-sage">{formatDate(record.created_at)}</p>
+                          <p className="text-sm font-bold text-sage">{formatDate(record.created_at, locale)}</p>
                           <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">
                             {linkedChildById.get(record.user_id)?.display_name
-                              ? `${linkedChildById.get(record.user_id)?.display_name}的 SWEET 记录`
-                              : "SWEET 节律记录"}
+                              ? t("account.records.childRecord", { name: linkedChildById.get(record.user_id)?.display_name || "" })
+                              : t("account.records.recordTitle")}
                           </h3>
                         </div>
                         {canDelete ? (
-                          <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>删除</button>
+                          <button type="button" className="button-secondary w-full px-4 py-2 text-xs sm:w-auto" onClick={() => handleDeleteRecord(record.id)}>{t("account.records.delete")}</button>
                         ) : null}
                       </div>
                       <details className="mt-4 rounded-xl border border-ink/10 bg-white/70">
                         <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-sage-dark">
-                          查看完整记录
+                          {t("account.records.viewFull")}
                         </summary>
                         <div className="grid gap-5 border-t border-ink/10 px-4 py-5">
                           {record.records.map((step) => (
                             <div key={step.id}>
-                              <h4 className="text-sm font-bold text-ink">{step.label} · {step.title}</h4>
+                              <h4 className="text-sm font-bold text-ink">{step.label} · {storedRecordLabel(locale, `checkIn.steps.${step.id}.title`, step.title)}</h4>
                               <dl className="mt-3 grid gap-3">
                                 {step.fields.map((field) => (
                                   <div key={field.id} className="rounded-xl bg-cream px-4 py-3">
-                                    <dt className="text-xs font-bold leading-5 text-muted">{field.title}</dt>
-                                    <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value)}</dd>
+                                    <dt className="text-xs font-bold leading-5 text-muted">{storedRecordLabel(locale, `checkIn.steps.${step.id}.fields.${field.id}.title`, field.title)}</dt>
+                                    <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value, locale, t)}</dd>
                                   </div>
                                 ))}
                               </dl>
@@ -1111,8 +1180,8 @@ export default function AccountPage() {
                         </div>
                       </details>
                       {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
-                      {record.small_step ? <p className="mt-4 rounded-xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">可以先做的一件小事：{record.small_step}</p> : null}
-                      {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">推荐下一步：{record.recommended_next_tool}</p> : null}
+                      {record.small_step ? <p className="mt-4 rounded-xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{t("account.records.smallStepPrefix")}{record.small_step}</p> : null}
+                      {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">{t("account.records.nextToolPrefix")}{record.recommended_next_tool}</p> : null}
                     </article>
                   );
                 })}
@@ -1121,13 +1190,13 @@ export default function AccountPage() {
             {!loading && records.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-sage/40 bg-white/55 px-5 py-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-7">
                 <div>
-                  <h3 className="text-lg font-bold text-ink">暂时没有可见记录</h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-7 text-muted">{emptyRecordsDescription(displayRole)}</p>
+                  <h3 className="text-lg font-bold text-ink">{t("account.records.emptyTitle")}</h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-7 text-muted">{emptyRecordsDescription(displayRole, t)}</p>
                 </div>
                 <div className="mt-5 shrink-0 sm:mt-0">
-                  {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">开始记录</Link> : null}
-                  {displayRole === "家长" && linkedChildren.length === 0 ? <Link href="/contact" className="button-secondary w-full sm:w-auto">联系学校确认关系</Link> : null}
-                  {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">进入管理台</Link> : null}
+                  {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">{t("account.records.start")}</Link> : null}
+                  {displayRole === "家长" && linkedChildren.length === 0 ? <Link href="/contact" className="button-secondary w-full sm:w-auto">{t("account.records.contactSchool")}</Link> : null}
+                  {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">{t("account.records.admin")}</Link> : null}
                 </div>
               </div>
             ) : null}

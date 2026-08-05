@@ -475,7 +475,46 @@
   },
   "account": {
     "metadata": { "title": "账号 | YouthTempo" },
-    "visitor": { "loading": "正在进入账户…", "label": "YouthTempo 账号", "title": "登录后，记录会一直在", "description": "使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。", "noPassword": "不用记密码", "firstUse": "第一次使用这个邮箱也可以直接登录", "otpSent": "验证码已发送", "emailLogin": "邮箱登录", "enterOtp": "输入 {{count}} 位验证码", "welcome": "欢迎回来", "unavailableTitle": "账号服务暂不可用", "unavailableText": "请稍后再试，或通过联系我们页面反馈问题。", "email": "邮箱", "otp": "验证码", "wait": "请稍等...", "signIn": "登录", "sendOtp": "发送验证码", "resendCountdown": "{{seconds}} 秒后可重新发送", "resend": "重新发送验证码", "changeEmail": "更换邮箱" }
+    "visitor": { "loading": "正在进入账户…", "label": "YouthTempo 账号", "title": "登录后，记录会一直在", "description": "使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。", "noPassword": "不用记密码", "firstUse": "第一次使用这个邮箱也可以直接登录", "otpSent": "验证码已发送", "emailLogin": "邮箱登录", "enterOtp": "输入 {{count}} 位验证码", "welcome": "欢迎回来", "unavailableTitle": "账号服务暂不可用", "unavailableText": "请稍后再试，或通过联系我们页面反馈问题。", "email": "邮箱", "otp": "验证码", "wait": "请稍等...", "signIn": "登录", "sendOtp": "发送验证码", "resendCountdown": "{{seconds}} 秒后可重新发送", "resend": "重新发送验证码", "changeEmail": "更换邮箱" },
+    "roles": { "student": "学生", "guardian": "家长", "schoolStudent": "学校学生", "schoolGuardian": "学校家长", "supportTeacher": "支持老师", "schoolLead": "学校负责人", "platformAdmin": "平台管理员", "professionalSupporter": "专业支持者" },
+    "hero": {
+      "firstSignIn": "首次登录", "label": "我的账户", "completeProfile": "先完善你的资料", "greeting": "你好，{{name}}", "accountFallback": "你的账户",
+      "completeProfileDescription": "填写姓名并选择身份。之后登录时会直接进入你的记录页。",
+      "linkedChildren": "已关联 {{names}}，可以查看学校确认范围内的节律记录。", "noLinkedChildren": "亲子关系由学校管理员确认。关联完成后，这里会直接显示孩子的节律记录。",
+      "descriptions": { "platformAdmin": "进入平台管理，查看全部学校、成员和负责关系。", "schoolLead": "管理本校成员，同时查看本校学生提交的记录。", "supportTeacher": "查看学校分配给你的学生记录和近期变化。", "guardian": "亲子关系确认后，在这里查看孩子共享的节律记录。", "schoolStudent": "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。", "personal": "完成 SWEET 后保存，即可在这里回看。" }
+    },
+    "actions": { "platformAdmin": "进入平台管理", "schoolAdmin": "进入学校管理", "studentRecords": "查看学生记录", "assignedStudents": "查看负责学生", "followUpWorkspace": "跟进工作台", "childRecords": "查看孩子记录", "moreSupport": "需要更多支持", "recordToday": "记录今天", "saveContinue": "保存并继续", "saveProfile": "保存资料", "signOut": "退出登录", "submitting": "正在提交…", "processing": "正在处理…" },
+    "profile": { "name": "姓名", "namePlaceholder": "怎么称呼你", "accountType": "账号类型" },
+    "summary": { "currentRole": "当前身份", "confirming": "正在确认", "confirmingRole": "正在确认身份…", "visibleRecords": "可见记录", "recordCount": "{{count}} 条", "savedToAccount": "保存在当前账号", "lastSevenDays": "最近 7 天", "daysRecorded": "{{count}} 天有记录", "notEveryDay": "不需要每天都完成", "schoolSpace": "学校空间", "joined": "已加入", "notJoined": "未加入", "configuredBySchool": "由学校管理员配置" },
+    "consent": {
+      "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和学校支持，不用于广告或公开展示；学生或监护人可随时撤回。完整说明见", "privacyLink": "隐私与安全", "sentenceEnd": "。",
+      "activeTitle": "已完成知情确认", "adultActive": "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。", "minorActive": "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。", "policyVersion": "当前版本：{{version}}。", "withdraw": "撤回确认",
+      "pendingTitle": "学生确认已完成，等待监护人确认", "askGuardian": "请已关联家长登录自己的账户完成确认。", "noGuardian": "当前还没有学校确认的监护人关联，请联系学校负责人。", "withdrawStudent": "撤回学生确认", "ineligible": "当前试点面向 14–18 岁在校青少年。14 岁以下请由监护人联系学校负责人。",
+      "ageRange": "你的年龄范围（不收集具体生日）", "age14to17": "14–17 岁", "age18Plus": "已满 18 岁", "ageUnder14": "未满 14 岁", "acknowledgement": "我已阅读说明，理解会处理哪些信息、用途、谁能查看以及如何撤回，并自愿确认。", "completeStudent": "完成学生确认",
+      "bothComplete": "学生与监护人确认均已完成。", "withdrawGuardian": "撤回监护人确认", "guardianPrompt": "孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。", "agreeChild": "同意孩子参加试点", "waitingChild": "等待孩子先登录自己的账户阅读说明并完成学生确认。", "noLinkedChild": "尚未关联孩子。亲子关系需由学校负责人确认。"
+    },
+    "settings": {
+      "title": "账户设置", "description": "资料、数据导出、注销与退出", "schoolIdentity": "学校身份", "profile": "账号资料", "wechat": "微信绑定", "data": "数据与注销",
+      "roleDescriptions": { "schoolStudent": "学校已经为这个账号配置学生身份。", "schoolLead": "你可以在管理台配置本校学生和支持老师。", "supportTeacher": "你可以查看学校分配给你的学生记录。", "platformAdmin": "你可以创建学校空间并指定负责人。", "professional": "专业身份由平台确认。你可以在下方查看或补充核验资料。" }
+    },
+    "wechat": { "description": "绑定后，可以在小程序中使用同一个 YouthTempo 账号。", "qrAlt": "微信小程序绑定码", "qrValidity": "二维码 10 分钟内有效", "bound": "已绑定微信。", "notBound": "尚未绑定微信。", "generating": "正在生成...", "regenerate": "重新生成绑定码", "generate": "生成微信绑定码" },
+    "dataExport": { "title": "下载我的数据", "description": "下载账号资料、你自己的 SWEET 记录、留言、社区内容、同意记录和学校关系。文件为 JSON，服务器不会保存导出副本。", "action": "下载数据副本" },
+    "deletion": { "title": "永久注销账号", "description": "注销后，账号、SWEET 记录、留言、学校关系、微信绑定和社区内容都会被永久删除，无法恢复。建议先下载一份自己的数据。", "emailConfirmation": "输入当前登录邮箱确认", "acknowledgement": "我理解注销会永久删除账号关联数据，且无法撤销。", "action": "永久注销账号", "privacyPrefix": "具体保存期限、注销后的安全处理记录和备份说明见" },
+    "relationships": { "childOverview": "孩子的节律概览", "assignedStudents": "我负责的学生", "selectChild": "选择孩子", "studentList": "学生列表", "fourWeekDays": "近 4 周 {{count}} 天有记录", "sevenDayDays": "近 7 天 {{count}} 天有记录", "lastFourWeeks": "近 4 周", "lastSevenDays": "近 7 天", "rhythmOverview": "节律概览", "latestSummary": "最近小结", "noSummary": "最近一条记录还没有生成小结，可以在下方查看原始回答。", "viewRawAnswers": "查看原始回答", "childNoRecords": "孩子暂时还没有保存 SWEET 记录。", "studentNoRecords": "这名学生近 7 天还没有保存 SWEET 记录。", "noChild": "暂时还没有关联孩子。", "noStudent": "学校暂时还没有为你分配学生。", "confirmRelationship": "请联系学校负责人确认亲子关系。", "assignmentHelp": "分配完成后，学生概览会显示在这里。" },
+    "rhythm": { "sleep": "睡眠", "wake": "醒来状态", "eat": "饮食", "exercise": "活动", "task": "任务投入" },
+    "records": {
+      "titles": { "school": "本校学生的 SWEET 记录", "teacher": "负责学生的 SWEET 记录", "guardian": "孩子的 SWEET 记录", "own": "我的 SWEET 历史记录" },
+      "loading": "正在加载记录…", "recordTitle": "SWEET 节律记录", "childRecord": "{{name}}的 SWEET 记录", "delete": "删除", "viewFull": "查看完整记录", "notProvided": "未填写", "smallStepPrefix": "可以先做的一件小事：", "nextToolPrefix": "推荐下一步：", "emptyTitle": "暂时没有可见记录", "start": "开始记录", "contactSchool": "联系学校确认关系", "admin": "进入管理台",
+      "empty": { "student": "完成一次 SWEET 节律记录并保存后，会显示在这里。", "guardian": "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由学校管理员确认。", "teacher": "学校负责人分配学生后，这里会显示你负责学生的记录。", "schoolLead": "本校学生保存 SWEET 记录后，会显示在这里。", "default": "保存记录后，会显示在这里。" }
+    },
+    "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前试点暂不接收 14 岁以下学生，请联系学校负责人。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生确认已记录，下一步请已关联的监护人登录完成确认。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
+    "errors": { "serviceTimeout": "账户服务响应超时。", "loadFailed": "账户信息加载失败。", "redirectFailed": "登录链接处理失败，请重新发送验证码。", "wechatQrExpired": "二维码已过期，请重新生成。", "wechatStatusFailed": "微信绑定状态检查失败。", "otpUnauthorized": "当前邮箱暂时无法收到登录验证码，请联系平台负责人处理。", "otpRateLimited": "验证码请求有些频繁，请稍后再试。", "otpSendNetwork": "网络连接不稳定，请检查网络后重新发送。", "otpSendFailed": "验证码发送失败，请稍后重试。", "otpIncomplete": "请输入完整的 {{count}} 位验证码。", "otpInvalid": "验证码不正确或已过期，请重新输入，或重新发送。", "otpVerifyRateLimited": "验证尝试有些频繁，请稍后再试。", "otpVerifyNetwork": "网络连接不稳定，请检查网络后重新验证。", "otpVerifyFailed": "验证码验证失败，请稍后重试。", "nameRequired": "请填写姓名。", "profileSaveFailed": "资料保存失败。", "recordDeleteFailed": "删除记录失败。", "exportFailed": "账户数据导出失败。", "deletionConfirmationRequired": "请输入当前登录邮箱，并勾选不可恢复确认。", "accountDeleteFailed": "账户注销失败。", "studentAssentFailed": "学生确认提交失败。", "guardianConsentFailed": "监护人确认提交失败。", "consentWithdrawFailed": "撤回确认失败。", "wechatQrFailed": "微信绑定二维码生成失败。" },
+    "professional": {
+      "label": "专业支持者", "title": "让大家知道你的专业身份已经过确认", "description": "提交所在机构和可核验的资质信息。只有平台管理员能查看这些资料；通过后，社区会显示“专业身份已确认”。", "loading": "正在加载确认状态…", "noticeSubmitted": "资料已经交给平台确认。审核期间，你仍可以正常使用其他功能。", "submittedAt": "提交于 {{date}}", "reviewNote": "平台说明：{{note}}", "legacyConfirmed": "此前已由平台确认", "institution": "机构：{{value}}", "position": "专业方向：{{value}}", "credential": "资质：{{value}}", "expires": "有效期：{{value}}", "noExpiry": "未注明到期日", "disclaimer": "提交不代表自动通过。平台会核对机构和资质；资料不完整时，会说明需要补充什么。", "resubmit": "更新并重新提交", "submit": "提交确认资料",
+      "status": { "pending": "等待平台确认", "needs_more_info": "需要补充资料", "active": "已通过确认", "rejected": "暂未通过", "revoked": "确认已撤销" },
+      "fields": { "institution": "所在机构", "institutionPlaceholder": "例如：某某心理服务中心", "position": "职务或专业方向", "positionPlaceholder": "例如：心理咨询师", "credentialType": "资质类型", "credentialPlaceholder": "例如：职业资格或执业登记", "credentialNumber": "资质编号", "issuer": "发证或登记机构", "expiry": "到期日期（没有可留空）", "evidence": "核验材料说明", "evidencePlaceholder": "填写平台约定的材料编号、机构公开人员页或可联系核验的方式。不要填写与审核无关的个人信息。", "additional": "还有什么想补充的（可不填）" },
+      "errors": { "loadFailed": "专业身份资料暂时没有加载出来。", "submitFailed": "资料暂时无法提交。" }
+    }
   },
   "feedback": {
     "metadata": { "title": "试点反馈 | YouthTempo" },
