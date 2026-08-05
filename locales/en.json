@@ -6,280 +6,280 @@
       "english": "English"
     },
     "metadata": {
-      "description": "YouthTempo starts with everyday rhythms, helping young people understand how they are doing, express what they feel, and connect with trusted support more easily."
+      "description": "YouthTempo 从日常节律开始，帮助青少年看见状态、表达感受，并更容易连接可信任的支持。"
     },
     "navbar": {
-      "homeAria": "YouthTempo home",
-      "loadingAccount": "Loading account",
-      "openMenu": "Open navigation menu",
-      "closeMenu": "Close navigation menu",
+      "homeAria": "YouthTempo 首页",
+      "loadingAccount": "正在加载账号",
+      "openMenu": "打开导航菜单",
+      "closeMenu": "关闭导航菜单",
       "account": {
-        "greetingWithName": "Hello, {{name}}!",
-        "greeting": "Hello!",
-        "signInRecords": "Sign in / My records"
+        "greetingWithName": "你好，{{name}}！",
+        "greeting": "你好！",
+        "signInRecords": "登录 / 我的记录"
       },
       "actions": {
-        "platformAdmin": "Platform admin",
-        "schoolAdmin": "School admin",
-        "myStudents": "My students",
-        "childRecords": "My child's records",
-        "startSweet": "Start a SWEET check-in",
-        "recordToday": "Check in today"
+        "platformAdmin": "平台管理",
+        "schoolAdmin": "学校管理",
+        "myStudents": "我的学生",
+        "childRecords": "孩子记录",
+        "startSweet": "开始 SWEET 节律",
+        "recordToday": "记录今天"
       },
       "nav": {
-        "forTeens": "For Youth",
-        "forParents": "For Parents",
-        "forTeachers": "For Educators",
-        "sweet": "SWEET Rhythm",
-        "community": "Support Community",
-        "referral": "Find Support"
+        "forTeens": "青少年入口",
+        "forParents": "家长入口",
+        "forTeachers": "老师入口",
+        "sweet": "SWEET 节律",
+        "community": "家校医社区",
+        "referral": "下一步找谁"
       }
     },
     "footer": {
-      "description": "Young people can check in with daily life and put feelings into words. With permission, parents and educators can understand changes and help connect them with the right support when needed.",
-      "tagline": "Start with what life has felt like lately.",
+      "description": "青少年可以记录近况、整理感受；家长和老师可以在获得授权后了解变化。需要的时候，大家也能更快找到合适的帮助。",
+      "tagline": "从最近的生活开始聊。",
       "links": {
-        "resources": "Support Guide",
-        "community": "Support Community",
-        "referral": "Find Support",
-        "account": "Account",
-        "privacy": "Privacy & Safety",
-        "contact": "Contact Us"
+        "resources": "家校陪伴指南",
+        "community": "家校医社区",
+        "referral": "下一步找谁",
+        "account": "账号",
+        "privacy": "隐私与安全",
+        "contact": "联系我们"
       }
     },
     "hero": {
       "rhythm": {
-        "ariaLabel": "The five everyday dimensions of the SWEET model",
-        "sleep": { "title": "Sleep", "label": "Sleep" },
-        "wake": { "title": "Waking", "label": "Wake" },
-        "eat": { "title": "Eating", "label": "Eat" },
-        "exercise": { "title": "Movement", "label": "Exercise" },
-        "task": { "title": "Engagement", "label": "Task" }
+        "ariaLabel": "SWEET 五个日常节律维度",
+        "sleep": { "title": "睡眠", "label": "Sleep" },
+        "wake": { "title": "醒来", "label": "Wake" },
+        "eat": { "title": "饮食", "label": "Eat" },
+        "exercise": { "title": "运动", "label": "Exercise" },
+        "task": { "title": "投入", "label": "Task" }
       }
     }
   },
   "home": {
-    "metadata": { "title": "YouthTempo | Earlier support for young people" },
+    "metadata": { "title": "YouthTempo | 更早开始的青少年支持" },
     "hero": {
-      "label": "A youth mental health support platform",
-      "title": "How have things been lately?",
-      "description": "Start with sleep, meals, movement, schoolwork and emotions. A simple check-in can make it easier to understand what is going on and talk with someone you trust when you need support.",
-      "primaryAction": "Start a SWEET check-in",
-      "secondaryAction": "Learn about SWEET",
-      "imageAlt": "A young person moving forward at their own pace, supported by family, educators and a professional"
+      "label": "青少年日常支持平台",
+      "title": "最近过得怎么样？",
+      "description": "从睡眠、吃饭、运动、学习和心情开始，把最近的状态记下来。需要的时候，也更容易和信任的人说清楚。",
+      "primaryAction": "开始 SWEET 节律记录",
+      "secondaryAction": "了解 SWEET",
+      "imageAlt": "青少年按照自己的节奏向前，并获得家长、老师和专业支持者陪伴的插画"
     },
     "demo": {
-      "eyebrow": "SWEET check-in example",
-      "title": "Choose what feels closest and see how a check-in can help",
-      "description": "You can try this example without saving anything. After you choose, you will see a short reflection and one small step you could take right away.",
+      "eyebrow": "SWEET 记录示例",
+      "title": "选一个最接近的状态，看看整理后的样子",
+      "description": "这里可以直接体验，不会保存。选好后，你会看到一句简单的小结和一个可以马上试试的小步骤。",
       "progress": {
-        "choose": "Choose what feels closest",
-        "notice": "Put the experience into words",
-        "act": "Choose one small action"
+        "choose": "选择最接近的状态",
+        "notice": "看见状态被说清楚",
+        "act": "只选一个小行动"
       },
       "panel": {
-        "chooseLabel": "Step 1 · Choose a state",
-        "question": "How did it feel to get started this morning?",
-        "ariaLabel": "Choose how this morning felt",
-        "noticeLabel": "Step 2 · Notice what is happening",
-        "actLabel": "Step 3 · Start small",
-        "fullAction": "Start the full SWEET check-in"
+        "chooseLabel": "第 1 步 · 选择状态",
+        "question": "今天早晨开始一天时，你感觉怎么样？",
+        "ariaLabel": "选择今天早晨的状态",
+        "noticeLabel": "第 2 步 · 看见状态",
+        "actLabel": "第 3 步 · 先做一点",
+        "fullAction": "开始完整 SWEET 记录"
       },
       "options": {
         "steady": {
-          "label": "Going fairly well",
-          "summary": "Your morning rhythm felt fairly steady today.",
-          "step": "Keep what is already helping. You do not need to add another task."
+          "label": "还算顺利",
+          "summary": "今天早晨的节奏还算稳定。",
+          "step": "保留现在有效的做法就好，不需要额外给自己加任务。"
         },
         "slow": {
-          "label": "Taking some effort",
-          "summary": "Getting started took some effort this morning. It is worth noticing without blaming yourself.",
-          "step": "Begin with the smallest next thing, such as washing up, having some water or packing your bag."
+          "label": "有点费力",
+          "summary": "今天早晨开始一天有点费力。先记下来，不用急着责怪自己。",
+          "step": "先选一件最小的事开始，例如洗漱、喝水或收好书包。"
         },
         "stuck": {
-          "label": "Hard to get started",
-          "summary": "It felt hard to get going this morning. Sleep or stress may also be affecting you.",
-          "step": "Reduce what you need to do to one step, or tell an adult you trust that today feels difficult."
+          "label": "很难开始",
+          "summary": "今天早晨很难启动，可以再看看睡眠或压力是不是也在影响你。",
+          "step": "把必须做的事缩成一步，也可以告诉一个你信任的大人。"
         }
       }
     },
     "dailyChanges": {
-      "label": "Why start with daily life",
-      "title": "Changes often show up in everyday life first",
-      "description": "Poor sleep, low appetite, less movement or difficulty starting schoolwork can appear before someone can say, “I feel under a lot of pressure.” Noticing these changes can help you decide whether you need rest, a conversation or more support."
+      "label": "为什么从日常开始",
+      "title": "很多变化，最先出现在日常里",
+      "description": "睡不好、吃不下、不想动、学习很难开始，常常比一句“我压力很大”更早出现。先把这些变化记下来，就更容易知道自己需要休息、聊一聊，还是找人帮忙。"
     },
     "audiences": {
-      "label": "Find the right place to begin",
-      "title": "Start from where you are now",
-      "description": "Young people can check in and express themselves. Parents can understand and support. Educators can notice changes and help connect students with further support when needed.",
+      "label": "找到适合你的入口",
+      "title": "从你现在所在的位置开始",
+      "description": "青少年可以记录和表达，家长可以理解和陪伴，老师可以看见变化并在需要时连接支持。",
       "teens": {
-        "title": "I am a young person",
-        "label": "Check in and express yourself",
-        "text": "Notice today's rhythm and make sense of feelings that are hard to explain. When you need to, you can also write something for yourself or an adult you trust.",
-        "action": "Go to youth support"
+        "title": "我是青少年",
+        "label": "记录与表达",
+        "text": "看看今天的生活节律，整理说不清的感受；需要时，也可以把想说的话写给自己或信任的大人。",
+        "action": "进入青少年入口"
       },
       "parents": {
-        "title": "I am a parent",
-        "label": "Understand what has changed",
-        "text": "Look at recent patterns in sleep, eating, movement and schoolwork, then find a gentler way to start a conversation.",
-        "action": "Go to parent support"
+        "title": "我是家长",
+        "label": "先了解近况",
+        "text": "看看孩子最近的睡眠、吃饭、运动和学习状态，再找一个更容易开口的方式聊聊。",
+        "action": "进入家长入口"
       },
       "teachers": {
-        "title": "I am an educator",
-        "label": "Notice meaningful changes",
-        "text": "See broad changes among the students you support, understand individual situations when needed, and help connect school, family and professional support.",
-        "action": "Go to educator support"
+        "title": "我是老师",
+        "label": "留意变化",
+        "text": "先看负责学生的总体变化，在需要时了解具体情况，并连接家庭或专业支持。",
+        "action": "进入老师入口"
       }
     },
     "support": {
-      "label": "From check-in to support",
-      "title": "Take it one step at a time, in the order life happens",
-      "description": "Start with what daily life has been like, then make sense of what you are feeling. If it becomes too much to manage alone, ask someone you trust to think through the next step with you.",
+      "label": "从记录到支持",
+      "title": "按生活里的顺序，一步一步来",
+      "description": "先看看最近的生活，再整理当下的感受。一个人处理不动时，就找信任的人一起想办法。",
       "steps": {
         "daily": {
-          "title": "Start with recent daily life",
-          "label": "Sleep, meals, movement and schoolwork",
-          "text": "You do not need to explain everything at once. Begin with the clearest change from the past few days."
+          "title": "先记下最近的日常",
+          "label": "睡眠、吃饭、运动和学习",
+          "text": "不用一次说清所有事，从最近几天最明显的变化开始就可以。"
         },
         "feelings": {
-          "title": "Put the feeling into words",
-          "label": "Emotions and pressure",
-          "text": "Choose a few words that feel close, or write down the concern that keeps coming back."
+          "title": "再把感受说清一点",
+          "label": "心情和压力",
+          "text": "可以选几个接近的情绪词，也可以把反复担心的事先写下来。"
         },
         "people": {
-          "title": "Ask someone to help when needed",
-          "label": "Family, educators or professional support",
-          "text": "If it feels too hard to carry alone, tell someone you trust what has been happening and decide together who to turn to next."
+          "title": "需要时找人一起想办法",
+          "label": "家人、老师或专业帮助",
+          "text": "如果一个人很难撑住，可以把近况告诉信任的人，再决定下一步找谁。"
         }
       }
     },
     "principles": {
-      "label": "Our approach",
-      "title": "A check-in helps describe what is happening. It does not define anyone.",
-      "cardTitle": "When you use YouthTempo",
-      "cardLabel": "What you can expect",
+      "label": "我们的原则",
+      "title": "记录是为了把近况说清楚，不是给谁下结论。",
+      "cardTitle": "使用 YouthTempo 时",
+      "cardLabel": "你可以放心",
       "items": {
-        "one": "1. One check-in will never be used to draw a conclusion about you",
-        "two": "2. Reflections only organise what you choose to share",
-        "three": "3. When needed, we will encourage you to contact someone you trust"
+        "one": "1. 不会用一次记录给你下结论",
+        "two": "2. 小结只整理你写下的内容",
+        "three": "3. 需要时会提示你联系可信任的人"
       }
     }
   },
   "forTeens": {
-    "metadata": { "title": "For Youth | YouthTempo" },
+    "metadata": { "title": "青少年入口 | YouthTempo" },
     "hero": {
-      "label": "For young people",
-      "title": "A place to start",
-      "description": "Whether you want to understand how you have been doing, untangle one difficult thought, or write down something that is hard to say face to face, you can begin here.",
-      "primaryAction": "Open my workspace",
-      "secondaryAction": "Learn about SWEET",
-      "imageAlt": "A student holding a notebook and preparing to check in at her own pace"
+      "label": "给青少年",
+      "title": "青少年入口",
+      "description": "想看看最近的状态、理清一件烦心事，或者把不好当面说的话写下来，都可以从这里开始。",
+      "primaryAction": "进入青少年工作台",
+      "secondaryAction": "了解 SWEET",
+      "imageAlt": "手持笔记本、准备按照自己节奏开始记录的女学生插画"
     },
     "start": {
-      "title": "Where would you like to start today?",
-      "description": "Choose just one thing at a time.",
+      "title": "今天想从哪里开始？",
+      "description": "每次只做一件事。",
       "cards": {
-        "rhythm": { "title": "I want to see how I am doing today", "text": "Check in with sleep, waking, eating, movement and task engagement to capture today's real-life rhythm.", "action": "Start a SWEET check-in", "alt": "A daily rhythm made up of sleep, waking, eating, movement and task engagement" },
-        "mood": { "title": "I cannot quite explain how I feel", "text": "You do not need to explain everything yet. Choose a few emotions that feel close, then add what happened when you are ready.", "action": "Open the mood journal", "alt": "A mood mosaic made from different colours" },
-        "talk": { "title": "I want somewhere to talk", "text": "Start with the one thing that feels most stuck and work through it one question at a time.", "action": "Talk it through", "alt": "A tangled feeling gradually becoming clearer" },
-        "messages": { "title": "I want to tell a parent or educator something", "text": "If it is hard to say face to face, write it down and choose whether to share it with a parent, an educator, or keep it for yourself.", "action": "Open private messages", "alt": "A green mailbox holding letters" },
-        "worry": { "title": "My thoughts keep going at bedtime", "text": "Write down what is worrying you, then separate what you can act on from what can wait.", "action": "Set worries down for tonight", "alt": "Setting worries down gently under moonlight" },
-        "referral": { "title": "I want to know what to do next", "text": "If pressure has continued for days or is clearly affecting daily life or learning, explore a support path that fits.", "action": "Find the next source of support", "alt": "A gentle path leading towards appropriate support" }
+        "rhythm": { "title": "我想看看今天状态", "text": "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。", "action": "做 SWEET 节律记录", "alt": "睡眠、醒来、饮食、运动和任务投入组成的日常节律" },
+        "mood": { "title": "我有点说不清自己的感受", "text": "先不用解释清楚，选几个接近的情绪词，再慢慢补充发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
+        "talk": { "title": "我想先找个地方说说", "text": "从眼前最卡住的一件事开始，一问一答地把想法捋清一点。", "action": "陪我捋一捋", "alt": "把打结的感受慢慢整理清楚" },
+        "messages": { "title": "我有些话想告诉老师或家长", "text": "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。", "action": "打开悄悄话信箱", "alt": "装着信件的绿色信箱" },
+        "worry": { "title": "我睡前总是想很多", "text": "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。", "action": "今晚先放下", "alt": "在月光下把担心暂时安放好" },
+        "referral": { "title": "我想知道下一步可以怎么做", "text": "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。", "action": "看看下一步找谁", "alt": "沿着温和路径逐步找到合适支持" }
       }
     },
-    "youngAdults": { "title": "18 or older and want to use YouthTempo independently?", "description": "Young adults aged 18–25 can complete their own informed confirmation without involving a school or guardian.", "action": "View independent access" },
-    "support": { "title": "Has it felt hard to keep going lately?", "description": "Start by talking with an adult or educator you trust. You can also explore which kind of support may fit.", "action": "Find the next source of support" },
-    "feedback": { "title": "Is there anything you would change?", "description": "Take two minutes to tell us what felt easy and where you got stuck.", "action": "Share my experience" }
+    "youngAdults": { "title": "已经满 18 岁，想独立使用？", "description": "18–25 岁可以自己完成知情确认，不需要学校或监护人加入。", "action": "查看独立使用入口" },
+    "support": { "title": "最近一直很难撑住？", "description": "先找一个可信任的大人或老师聊一聊，也可以查看适合的支持路径。", "action": "看看下一步找谁" },
+    "feedback": { "title": "用过之后，有哪里想改？", "description": "花两分钟告诉我们哪里顺手、哪里卡住。", "action": "说说我的感受" }
   },
   "forParents": {
-    "metadata": { "title": "For Parents | YouthTempo" },
-    "hero": { "label": "For parents", "title": "Support starts with noticing", "description": "Begin with how your child has been sleeping, eating and moving, then find a calm, non-judgmental way to start a conversation.", "primaryAction": "Open the parent workspace", "secondaryAction": "Learn about SWEET", "imageAlt": "A parent listening calmly and preparing to support their child" },
+    "metadata": { "title": "家长入口 | YouthTempo" },
+    "hero": { "label": "给家长", "title": "家长入口", "description": "先看看孩子最近睡得、吃得、动得怎么样，再找一个不指责、比较容易开口的方式聊聊。", "primaryAction": "进入家长工作台", "secondaryAction": "了解 SWEET", "imageAlt": "平静倾听、准备陪伴孩子的家长插画" },
     "intro": {
-      "visibleTitle": "What you can see",
-      "visibleText": "You can only view records for a child whose relationship to you has been confirmed by the school. You cannot see information about other students. One check-in never tells the whole story; it is a way to understand what has been happening and begin a conversation.",
-      "concreteTitle": "Start with a specific change before asking why",
-      "concreteText": "For many young people, answering “What is wrong with you?” is difficult. It can be easier to begin with something concrete, such as poor sleep, difficulty getting up, or struggling to start schoolwork."
+      "visibleTitle": "你能看到哪些内容",
+      "visibleText": "你只能查看学校已经确认关联的孩子记录，不会看到其他学生的信息。一次记录不能说明全部情况，更适合用来了解近况、开始一次对话。",
+      "concreteTitle": "先说具体变化，不急着追问原因",
+      "concreteText": "对很多孩子来说，直接回答“你到底怎么了”很难。可以先从最近睡不好、早上起不来或学习很难开始这些具体变化聊起。"
     },
     "starts": {
-      "title": "Where can parents begin?",
-      "description": "Choose the most specific starting point that is least likely to create conflict.",
+      "title": "家长可以从哪里开始？",
+      "description": "先选择一个最具体、最不容易引发冲突的入口。",
       "items": {
-        "daily": { "title": "Notice recent daily life", "text": "Start with sleep, waking, meals, movement and schoolwork, and notice whether any changes have continued.", "alt": "A father and daughter looking through the five SWEET daily rhythms together" },
-        "listen": { "title": "Lower defensiveness first", "text": "Focus on understanding your child's experience instead of immediately judging, asking for reasons or demanding change.", "alt": "A parent setting judgment aside and listening quietly" },
-        "conversation": { "title": "Find an easier opening line", "text": "Say what you have noticed and why you care, then choose a time when neither of you will be interrupted.", "alt": "A parent and child moving through a safe conversation step by step" },
-        "support": { "title": "Connect with support when needed", "text": "When changes continue to affect daily life or learning, family, school and professional support can work together.", "alt": "A parent helping their child connect with school and professional support" }
+        "daily": { "title": "先看看最近的生活", "text": "从睡眠、起床、吃饭、运动和学习开始，留意孩子最近有没有持续变化。", "alt": "爸爸和女儿按顺序一起观察 SWEET 五项生活节律" },
+        "listen": { "title": "先降低防御", "text": "把重点放在理解孩子的状态，而不是马上评价、追问原因或要求立刻改变。", "alt": "家长放下评判并安静倾听孩子" },
+        "conversation": { "title": "找一句容易开口的话", "text": "先说你看见了什么、为什么关心，再约一个不被打扰的时间聊一会儿。", "alt": "家长和孩子循序渐进地进行安全对话" },
+        "support": { "title": "需要时连接支持", "text": "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。", "alt": "家长为孩子连接学校和专业支持" }
       }
     },
-    "messages": { "title": "Read messages your child has shared", "description": "Messages a child chooses to share with a parent are collected on a separate page.", "action": "View received messages" },
-    "feedback": { "title": "How did YouthTempo feel to use?", "description": "Take two minutes to tell us what helped and what still needs improvement.", "action": "Complete parent feedback" },
+    "messages": { "title": "查看孩子写来的悄悄话", "description": "孩子写给家长的内容，会集中显示在独立功能页。", "action": "查看收到的话" },
+    "feedback": { "title": "这次用起来顺不顺？", "description": "花两分钟告诉我们哪里有帮助、哪里还需要改。", "action": "填写家长反馈" },
     "sweet": {
-      "title": "What parents can notice with SWEET",
-      "description": "SWEET organises daily life into five observable areas. A change does not necessarily mean something is seriously wrong, but if it continues, it is worth checking in with your child.",
+      "title": "SWEET：家长可以观察什么",
+      "description": "SWEET 把日常分成五个容易观察的部分。这些变化不一定代表出了严重问题；如果持续出现，就值得找孩子聊一聊。",
       "items": {
-        "sleep": { "title": "Sleep", "question": "Has sleep been fairly steady?", "text": "Notice whether bedtime, waking during the night or morning tiredness feels clearly different from before." },
-        "wake": { "title": "Waking up", "question": "Is it much harder to get started in the morning?", "text": "Notice whether getting up, washing, leaving home or beginning the day has become more difficult." },
-        "eat": { "title": "Eating", "question": "Have meals been regular?", "text": "Notice changes in energy, appetite, skipped meals or relying on snacks to get through the day." },
-        "exercise": { "title": "Movement", "question": "Has physical activity noticeably decreased?", "text": "Notice whether your child is going out, moving or joining familiar activities less often." },
-        "task": { "title": "Task engagement", "question": "Is it hard to begin school or everyday tasks?", "text": "Look beyond the outcome and notice whether starting and staying with a task have become harder." }
+        "sleep": { "title": "Sleep 睡眠", "question": "最近睡得是否稳定？", "text": "比如入睡时间、夜里醒来、早晨疲惫感，是否和以前明显不同。" },
+        "wake": { "title": "Wake up on time 起床", "question": "早晨是否很难启动？", "text": "起床、洗漱、出门或开始一天时，是否变得更吃力。" },
+        "eat": { "title": "Eat healthily 饮食", "question": "吃饭是否规律？", "text": "精力是否有明显波动，是否常常没胃口、跳餐或靠零食撑过去。" },
+        "exercise": { "title": "Exercise 运动", "question": "身体活动是否明显减少？", "text": "孩子是否越来越少出门、运动或参与原本会做的活动。" },
+        "task": { "title": "Task engagement 任务参与", "question": "学习或生活任务是否很难开始？", "text": "重点不是只看结果，而是看启动和维持是否变难。" }
       }
     },
     "aidet": {
-      "title": "Using AIDET to start a conversation",
-      "description": "AIDET breaks a conversation into five steps. You do not need to use the terminology—simply follow the order to make your care clear.",
+      "title": "AIDET：家长可以怎么开口谈",
+      "description": "AIDET 把一次对话分成五步。不用照着术语念，照着顺序把关心说清楚就可以。",
       "items": {
-        "acknowledge": { "label": "Acknowledge your child's experience", "example": "I know you may be genuinely tired lately. I don't think you're doing this on purpose." },
-        "introduce": { "label": "Explain why you are here", "example": "I'm not here to criticise you. I just want to understand how things have been lately." },
-        "duration": { "label": "Keep the conversation manageable", "example": "Let's talk for ten minutes. We don't need to solve everything right now." },
-        "explanation": { "label": "Explain why daily rhythms matter", "example": "Sleep, waking, eating and movement can affect emotions and attention. I'd like to see if there is one place where we can make things a little easier." },
-        "thankYou": { "label": "Thank them for sharing", "example": "Thank you for telling me. I know this may not be easy to talk about." }
+        "acknowledge": { "label": "先看见孩子的感受", "example": "我知道你最近可能真的很累，也不是故意拖延。" },
+        "introduce": { "label": "说明自己的来意", "example": "我不是来骂你，我只是想了解你最近状态。" },
+        "duration": { "label": "说明只聊一小会儿", "example": "我们先聊10分钟，不需要马上解决所有问题。" },
+        "explanation": { "label": "解释为什么关心这些生活节律", "example": "睡眠、起床、吃饭、运动会影响情绪和注意力，我想看看有没有什么地方可以先帮你轻松一点。" },
+        "thankYou": { "label": "感谢孩子愿意表达", "example": "谢谢你愿意跟我说这些，我知道这不一定容易。" }
       }
     },
     "conversation": {
-      "title": "Words you can use",
-      "description": "You do not need to follow these lines exactly. Choose one that sounds natural in your own voice and let the conversation begin.",
+      "title": "可以直接说的话",
+      "description": "这些话不用照着念。选一句接近你平时说话方式的，让对话先开始。",
       "phrases": {
-        "one": "Have you been feeling tired lately? I'd like to listen first.",
-        "two": "Let's talk for ten minutes. We don't need to solve it right now.",
-        "three": "It's okay if you don't know how to explain it yet.",
-        "four": "I won't judge. Which part has felt most tiring lately?"
+        "one": "你最近是不是有点累？我想先听听。",
+        "two": "我们先聊十分钟，不用现在就解决。",
+        "three": "你还没想好怎么说也没关系。",
+        "four": "我先不评价，你说说最近最累的是哪一块。"
       }
     },
-    "furtherSupport": { "title": "When to seek further support", "label": "Connect with more support", "text": "If pressure continues or clearly affects sleep, learning, relationships or daily life, families can consider school-based mental health support or a qualified counsellor, and connect with medical or emergency services when necessary. The goal is not to blame anyone, but to help the young person receive appropriate support." },
-    "oneThing": { "title": "One thing parents can do first", "text": "Begin with one specific change, such as poor sleep, difficulty getting up, or struggling to start schoolwork. Explain that you only want to understand what has been happening, then listen to what your child says." },
-    "resources": { "title": "Family and school support guide", "text": "Practical approaches for parents and educators to understand young people's rhythms, feelings and support needs earlier.", "action": "View the support guide" }
+    "furtherSupport": { "title": "什么时候寻求进一步帮助", "label": "连接更多支持", "text": "如果孩子的压力持续存在，或睡眠、学习、人际和日常生活明显受到影响，家庭可以考虑学校心理老师、专业咨询师，必要时连接医疗或紧急资源。这个过程不需要责备任何人，重点是让孩子获得更合适的支持。" },
+    "oneThing": { "title": "家长可以先做的一件事", "text": "选一个最具体的变化开始，比如最近睡不好、早上起不来或学习很难开始。先说明你只是想了解近况，再听孩子怎么说。" },
+    "resources": { "title": "家校陪伴指南", "text": "给家长和老师的陪伴方法，帮助更早理解青少年的节律、感受和支持需要。", "action": "查看陪伴指南" }
   },
   "forTeachers": {
-    "metadata": { "title": "For Educators | YouthTempo" },
-    "hero": { "label": "For educators", "title": "Notice change, then start a conversation", "description": "Begin with whether the students you support have shown ongoing changes. When needed, understand the specific situation and decide with the student whether to involve family or further support.", "primaryAction": "Open the educator workspace", "secondaryAction": "Learn about SWEET", "imageAlt": "An educator holding a notebook and preparing to listen to a student" },
+    "metadata": { "title": "老师入口 | YouthTempo" },
+    "hero": { "label": "给老师", "title": "老师入口", "description": "先看看负责学生最近有没有持续变化，需要时再了解具体情况，和学生一起决定是否要联系家庭或更多支持。", "primaryAction": "进入老师工作台", "secondaryAction": "了解 SWEET", "imageAlt": "手持笔记本、准备倾听学生的老师插画" },
     "capabilities": {
-      "title": "What educators can do here",
+      "title": "老师可以在这里做什么",
       "items": {
-        "week": { "title": "Start with the past week", "description": "See which students have checked in recently and where daily patterns may have continued to change.", "alt": "An educator reviewing an overview of changes among the students she supports" },
-        "details": { "title": "Understand the specific situation", "description": "When needed, review a student's recent reflections and own records, then begin with the concrete change you have noticed.", "alt": "An educator and student reviewing the five SWEET daily rhythms together" },
-        "listen": { "title": "Hear from the student", "description": "Read messages students found difficult to say face to face and chose to share with an educator.", "alt": "Reviewing a private message shared by a student" }
+        "week": { "title": "先看最近一周", "description": "先了解哪些学生最近有记录、哪些日常状态出现了持续变化。", "alt": "女老师查看所负责学生的总体变化概览" },
+        "details": { "title": "再了解具体情况", "description": "需要时查看学生最近的小结和本人记录，带着具体变化开始沟通。", "alt": "男老师和女学生按顺序一起查看 SWEET 五项生活节律" },
+        "listen": { "title": "听学生说", "description": "查看学生不容易当面说出口、选择写给老师的话。", "alt": "查看学生写来的悄悄话" }
       }
     },
-    "conversation": { "title": "Use a check-in to begin a conversation", "text": "When sleep, eating, movement or task engagement continues to change, begin with a simple question: “Has something been making things feel more tiring lately?” Listen first, then decide together whether more support is needed.", "recordsAction": "View my students", "messagesAction": "View received messages", "referralAction": "View support options" },
-    "feedback": { "title": "What could work more smoothly?", "description": "Take two minutes to share what using YouthTempo was like and help us improve the pilot.", "action": "Complete educator feedback" }
+    "conversation": { "title": "把记录当作一次谈话的开头", "text": "当睡眠、饮食、活动或任务投入出现持续变化时，可以先问一句：“最近是不是有什么事情让你比较累？” 先听学生怎么说，再一起确定是否需要更多支持。", "recordsAction": "查看负责学生", "messagesAction": "查看收到的话", "referralAction": "查看支持路径" },
+    "feedback": { "title": "哪些地方还不够顺手？", "description": "花两分钟说说实际使用感受，帮助我们调整试点。", "action": "填写老师反馈" }
   },
   "forYoungAdults": {
-    "metadata": { "title": "Independent Access for Ages 18–25 | YouthTempo" },
-    "hero": { "label": "For ages 18–25", "title": "You do not have to wait until everything feels settled to care for your rhythm.", "description": "Leaving school, starting university or beginning work can bring more freedom—and make daily life easier to lose track of. You can use YouthTempo independently, without involving a school or guardian.", "primaryAction": "Sign in and begin", "secondaryAction": "Try a SWEET check-in", "imageAlt": "A path of growth moving forward at an individual pace" },
+    "metadata": { "title": "18–25 岁独立使用 | YouthTempo" },
+    "hero": { "label": "给 18–25 岁的你", "title": "不用等一切稳定下来，才开始照顾自己的节奏。", "description": "离开高中、进入大学或刚开始工作，生活常常一下子变得更自由，也更容易乱。你可以独立使用 YouthTempo，不需要学校或监护人加入。", "primaryAction": "登录并开始", "secondaryAction": "先试一次 SWEET", "imageAlt": "沿着自己的节奏逐步向前的成长路径" },
     "tools": {
-      "title": "Start with what you need right now",
-      "description": "Choose one thing at a time. This does not need to become another task list.",
+      "title": "按你现在最需要的来",
+      "description": "每次只做一件事，不用把它变成新的任务清单。",
       "items": {
-        "rhythm": { "title": "Check in with your recent rhythm", "text": "Start with sleep, waking, eating, movement and the tasks in front of you. You do not need to understand every problem first.", "action": "Start a SWEET check-in", "alt": "A check-in path made up of five everyday rhythms" },
-        "mood": { "title": "Put a complicated feeling into words", "text": "When emotions feel mixed, choose what feels closest and add what just happened when you are ready.", "action": "Open the mood journal", "alt": "A mood mosaic made from different colours" },
-        "worry": { "title": "Set worries down before sleep", "text": "Separate what you can act on from what cannot be handled yet. You do not need to solve everything tonight.", "action": "Set worries down for tonight", "alt": "Setting worries down under moonlight" },
-        "support": { "title": "Know where to turn for human support", "text": "When things continue to affect study, work or daily life, find a source of support that fits the level of urgency.", "action": "Find the next source of support", "alt": "A path connecting someone with appropriate support step by step" }
+        "rhythm": { "title": "看看最近的生活节奏", "text": "从睡眠、醒来、饮食、活动和手头任务开始，不需要先想清楚所有问题。", "action": "做一次 SWEET 记录", "alt": "五个日常节律组成的记录路径" },
+        "mood": { "title": "把心里那团东西说清一点", "text": "情绪很杂时，可以先选接近的感受，再补充刚才发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
+        "worry": { "title": "睡前先把担心放下来", "text": "把能做的、暂时不能做的分开，今晚不必把每件事都解决。", "action": "今晚先放下", "alt": "在月光下暂时安放担心" },
+        "support": { "title": "需要真人支持时知道找谁", "text": "当状态持续影响学习、工作或生活，可以按紧急程度找到更合适的支持。", "action": "看看下一步找谁", "alt": "逐步连接合适支持的路径" }
       }
     },
     "independence": {
-      "confirmation": { "label": "Independent confirmation", "title": "If you are 18 or older, you can confirm for yourself", "text": "After signing in, select “18 or older,” read the data information and confirm. You do not need guardian consent or school membership." },
-      "records": { "label": "Your records", "title": "Only you can see them by default", "text": "If you are not part of a school, no school or educator can view your records. You can export your data, delete individual entries or close your account." },
-      "boundary": { "label": "What YouthTempo is not", "title": "It is not a diagnostic or emergency service", "text": "If you are in immediate danger of harming yourself or someone else, contact local emergency services, the police, or someone nearby who can be with you now." }
+      "confirmation": { "label": "独立确认", "title": "已满 18 岁，可以自己确认", "text": "登录后只需选择“已满 18 岁”，阅读数据说明并确认，不需要监护人同意，也不要求加入学校。" },
+      "records": { "label": "你的记录", "title": "默认只有你能看到", "text": "未加入学校时，学校和老师无法查看。你可以导出、删除单条记录，也可以注销账户。" },
+      "boundary": { "label": "使用边界", "title": "它不是诊断或急救服务", "text": "如果你正面临伤害自己或他人的危险，请立即联系当地急救、警方，或身边能够到场的人。" }
     },
-    "teens": { "title": "Still part of the school pilot for ages 14–18?", "description": "The youth area includes support relationships with parents, educators and schools.", "action": "Return to youth support" }
+    "teens": { "title": "还在 14–18 岁学校试点范围内？", "description": "青少年入口包含家长、老师和学校支持关系。", "action": "回到青少年入口" }
   }
 }
