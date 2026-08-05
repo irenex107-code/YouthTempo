@@ -15,7 +15,7 @@ function pageCopy(dictionary: typeof zhCN | typeof en, section: (typeof routes)[
 }
 
 for (const route of routes) {
-  test(`${route.path} 保留中文原文并提供英文页面`, async ({ page }) => {
+  test(`${route.path} 从中文词典渲染原文并支持英文 locale 路由`, async ({ page }) => {
     const browserErrors: string[] = [];
     page.on("console", (message) => {
       if (message.type() === "error") browserErrors.push(message.text());
@@ -38,7 +38,7 @@ for (const route of routes) {
   });
 }
 
-test("Batch 1 英文页面在窄屏下没有横向溢出", async ({ page }) => {
+test("Batch 1 locale 页面在窄屏下没有横向溢出", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
 
   for (const route of routes) {
