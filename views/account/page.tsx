@@ -32,6 +32,7 @@ import {
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
+import { useTranslation } from "@/lib/i18n/client";
 import {
   emailOtpLength,
   otpRequestErrorMessage,
@@ -114,6 +115,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
 }
 
 export default function AccountPage() {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
@@ -534,7 +536,7 @@ export default function AccountPage() {
         <section className="section section-muted">
           <div className="container max-w-3xl">
             <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-8 text-center shadow-soft sm:px-8">
-              <p className="text-sm font-bold text-sage">正在进入账户…</p>
+              <p className="text-sm font-bold text-sage">{t("account.visitor.loading")}</p>
             </div>
           </div>
         </section>
@@ -542,34 +544,34 @@ export default function AccountPage() {
         <section className="section section-muted">
           <div className="container grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <div className="max-w-xl">
-              <p className="eyebrow">YouthTempo 账号</p>
+              <p className="eyebrow">{t("account.visitor.label")}</p>
               <h1 className="mt-3 text-[2rem] font-bold leading-tight text-ink sm:text-[2.7rem]">
-                登录后，记录会一直在
+                {t("account.visitor.title")}
               </h1>
               <p className="mt-4 max-w-lg text-[0.95rem] leading-7 text-muted sm:text-base sm:leading-8">
-                使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。
+                {t("account.visitor.description")}
               </p>
               <div className="mt-7 grid gap-3 text-sm leading-6 text-muted sm:grid-cols-2">
-                <p className="border-l-2 border-sage/45 pl-4">不用记密码</p>
-                <p className="border-l-2 border-sage/45 pl-4">第一次使用这个邮箱也可以直接登录</p>
+                <p className="border-l-2 border-sage/45 pl-4">{t("account.visitor.noPassword")}</p>
+                <p className="border-l-2 border-sage/45 pl-4">{t("account.visitor.firstUse")}</p>
               </div>
             </div>
 
             <div className="w-full rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft sm:p-7 lg:max-w-lg lg:justify-self-end">
-              <p className="eyebrow">{otpSent ? "验证码已发送" : "邮箱登录"}</p>
+              <p className="eyebrow">{otpSent ? t("account.visitor.otpSent") : t("account.visitor.emailLogin")}</p>
               <h2 className="mt-2 text-[1.45rem] font-bold leading-tight text-ink sm:text-[1.7rem]">
-                {otpSent ? `输入 ${emailOtpLength} 位验证码` : "欢迎回来"}
+                {otpSent ? t("account.visitor.enterOtp", { count: emailOtpLength }) : t("account.visitor.welcome")}
               </h2>
 
               {!isSupabaseConfigured() ? (
                 <div className="mt-6 rounded-2xl bg-cream px-4 py-4">
-                  <p className="font-bold text-ink">账号服务暂不可用</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">请稍后再试，或通过联系我们页面反馈问题。</p>
+                  <p className="font-bold text-ink">{t("account.visitor.unavailableTitle")}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{t("account.visitor.unavailableText")}</p>
                 </div>
               ) : (
                 <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
                   <label className="grid gap-2 text-sm font-bold text-ink">
-                    邮箱
+                    {t("account.visitor.email")}
                     <input
                       className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-sage focus:ring-4 focus:ring-sage/10 disabled:bg-cream disabled:text-ink/60"
                       value={email}
@@ -582,7 +584,7 @@ export default function AccountPage() {
                   </label>
                   {otpSent ? (
                     <label className="grid gap-2 text-sm font-bold text-ink">
-                      验证码
+                      {t("account.visitor.otp")}
                       <input
                         className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-center text-lg font-bold tracking-[0.22em] outline-none transition focus:border-sage focus:ring-4 focus:ring-sage/10"
                         value={otp}
@@ -599,7 +601,7 @@ export default function AccountPage() {
                     className="button-primary mt-1 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45"
                     disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}
                   >
-                    {authLoading ? "请稍等..." : otpSent ? "登录" : "发送验证码"}
+                    {authLoading ? t("account.visitor.wait") : otpSent ? t("account.visitor.signIn") : t("account.visitor.sendOtp")}
                   </button>
                   {otpSent ? (
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
@@ -609,7 +611,7 @@ export default function AccountPage() {
                         onClick={resendOtp}
                         disabled={authLoading || resendCooldown > 0}
                       >
-                        {resendCooldown > 0 ? `${resendCooldown} 秒后可重新发送` : "重新发送验证码"}
+                        {resendCooldown > 0 ? t("account.visitor.resendCountdown", { seconds: resendCooldown }) : t("account.visitor.resend")}
                       </button>
                       <button
                         type="button"
@@ -622,7 +624,7 @@ export default function AccountPage() {
                         }}
                         disabled={authLoading}
                       >
-                        更换邮箱
+                        {t("account.visitor.changeEmail")}
                       </button>
                     </div>
                   ) : null}

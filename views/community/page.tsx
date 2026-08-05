@@ -20,29 +20,51 @@ import {
 import {
   communityReportCategories,
   communityReportCategory,
-  communityReportPriorityLabels,
-  communityReportStatusLabel,
   type CommunityReportCategory,
 } from "@/lib/communityReports";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
-const roleOptions: Array<{ key: CommunityRole; label: string; hint: string }> = [
-  { key: "student", label: "学生", hint: "同龄人之间交流和回应" },
-  { key: "guardian", label: "家长", hint: "分享陪伴中的经验与困惑" },
-  { key: "teacher", label: "老师", hint: "提供校园中的观察和建议" },
-  { key: "professional", label: "专业支持者", hint: "由平台确认身份后参与回复" },
+const roleOptions: Array<{ key: CommunityRole; labelKey: TranslationKey; hintKey: TranslationKey }> = [
+  { key: "student", labelKey: "community.roles.student.label", hintKey: "community.roles.student.hint" },
+  { key: "guardian", labelKey: "community.roles.guardian.label", hintKey: "community.roles.guardian.hint" },
+  { key: "teacher", labelKey: "community.roles.teacher.label", hintKey: "community.roles.teacher.hint" },
+  { key: "professional", labelKey: "community.roles.professional.label", hintKey: "community.roles.professional.hint" },
 ];
 
 type DeleteTarget = { type: "post" | "comment"; id: string; postId?: string } | null;
 type ReportTarget = { postId?: string; commentId?: string } | null;
 
-const communityRules = [
-  ["尊重，不欺凌", "不辱骂、威胁、诽谤、围攻或恶意损害他人形象；不同意见也要具体、友善地表达。"],
-  ["保护自己和他人", "不公开真实姓名、学校班级、住址、联系方式、账号、定位或未经同意的私密经历与影像。"],
-  ["不传播危险内容", "不发布色情、暴力、赌博、违法内容，不鼓励自伤自杀，也不诱导他人模仿不安全行为。"],
-  ["真实且不牟利", "不冒充专业人士，不诈骗、索要钱款、发布可疑链接、刷屏或借社区营销。"],
+const communityRules: Array<[TranslationKey, TranslationKey]> = [
+  ["community.rules.respect.title", "community.rules.respect.text"],
+  ["community.rules.privacy.title", "community.rules.privacy.text"],
+  ["community.rules.harm.title", "community.rules.harm.text"],
+  ["community.rules.authentic.title", "community.rules.authentic.text"],
 ];
+
+const reportCategoryCopy: Record<CommunityReportCategory, { label: TranslationKey; hint: TranslationKey }> = {
+  immediate_danger: { label: "community.report.categories.immediateDanger.label", hint: "community.report.categories.immediateDanger.hint" },
+  sexual_harm: { label: "community.report.categories.sexualHarm.label", hint: "community.report.categories.sexualHarm.hint" },
+  bullying_threat: { label: "community.report.categories.bullying.label", hint: "community.report.categories.bullying.hint" },
+  privacy_exposure: { label: "community.report.categories.privacy.label", hint: "community.report.categories.privacy.hint" },
+  harmful_content: { label: "community.report.categories.harmful.label", hint: "community.report.categories.harmful.hint" },
+  fraud_spam: { label: "community.report.categories.fraud.label", hint: "community.report.categories.fraud.hint" },
+  other: { label: "community.report.categories.other.label", hint: "community.report.categories.other.hint" },
+};
+
+const reportPriorityCopy: Record<string, TranslationKey> = {
+  urgent: "community.report.priority.urgent",
+  high: "community.report.priority.high",
+  standard: "community.report.priority.standard",
+};
+
+function reportStatusKey(status: string): TranslationKey {
+  if (status === "resolved") return "community.report.status.resolved";
+  if (status === "reviewing") return "community.report.status.reviewing";
+  return "community.report.status.submitted";
+}
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -54,6 +76,7 @@ function formatTime(value: string) {
 }
 
 function Avatar({ name, professional = false }: { name: string; professional?: boolean }) {
+  const { t } = useTranslation();
   return (
     <span
       aria-hidden="true"
@@ -61,15 +84,16 @@ function Avatar({ name, professional = false }: { name: string; professional?: b
         professional ? "bg-sage text-white" : "bg-mist text-sage-dark"
       }`}
     >
-      {name.trim().slice(0, 1).toUpperCase() || "友"}
+      {name.trim().slice(0, 1).toUpperCase() || t("community.avatarFallback")}
     </span>
   );
 }
 
 function RoleBadge({ label, verified }: { label: string; verified?: boolean }) {
+  const { t } = useTranslation();
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-mist px-2.5 py-1 text-[0.7rem] font-bold text-sage-dark">
-      {label}{verified ? " · 已认证" : ""}
+      {label}{verified ? t("community.verifiedSuffix") : ""}
     </span>
   );
 }
@@ -93,6 +117,7 @@ function ReportDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!target) return undefined;
     function closeOnEscape(event: KeyboardEvent) {
@@ -107,29 +132,29 @@ function ReportDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/35 px-4 py-8 backdrop-blur-sm" role="presentation">
       <div role="dialog" aria-modal="true" aria-labelledby="report-community-title" className="w-full max-w-xl rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7">
-        <p className="eyebrow">社区安全</p>
-        <h2 id="report-community-title" className="mt-3 text-xl font-bold text-ink">举报这条内容</h2>
-        <p className="mt-3 text-sm leading-7 text-muted">请选择最接近的情况。举报人身份不会向内容作者公开。</p>
+        <p className="eyebrow">{t("community.report.label")}</p>
+        <h2 id="report-community-title" className="mt-3 text-xl font-bold text-ink">{t("community.report.title")}</h2>
+        <p className="mt-3 text-sm leading-7 text-muted">{t("community.report.description")}</p>
         <div className="mt-5 grid gap-2">
           {communityReportCategories.map((item) => (
             <label key={item.value} className={`cursor-pointer rounded-2xl border px-4 py-3 ${category === item.value ? "border-sage/45 bg-mint/55" : "border-ink/10"}`}>
               <span className="flex items-start gap-3">
                 <input type="radio" name="report-category" value={item.value} checked={category === item.value} onChange={() => onCategoryChange(item.value)} className="mt-1 accent-sage" />
-                <span><strong className="block text-sm text-ink">{item.label}</strong><span className="mt-1 block text-xs leading-5 text-muted">{item.hint}</span></span>
+                <span><strong className="block text-sm text-ink">{t(reportCategoryCopy[item.value].label)}</strong><span className="mt-1 block text-xs leading-5 text-muted">{t(reportCategoryCopy[item.value].hint)}</span></span>
               </span>
             </label>
           ))}
         </div>
         <label className="mt-5 grid gap-2 text-sm font-bold text-ink">
-          补充说明（选填）
-          <textarea value={details} onChange={(event) => onDetailsChange(event.target.value)} maxLength={500} rows={3} className="resize-y rounded-2xl border border-ink/10 px-4 py-3 font-normal leading-7 outline-none focus:border-sage" placeholder="不用重复粘贴内容，可以说明你担心什么。" />
+          {t("community.report.detailsLabel")}
+          <textarea value={details} onChange={(event) => onDetailsChange(event.target.value)} maxLength={500} rows={3} className="resize-y rounded-2xl border border-ink/10 px-4 py-3 font-normal leading-7 outline-none focus:border-sage" placeholder={t("community.report.detailsPlaceholder")} />
         </label>
         <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted">
-          该类型目标在 <strong className="text-ink">{selected.targetHours} 小时内完成首次复核</strong>。这不是紧急救助渠道；如有人正处于即时危险中，请立刻联系可信任的成年人，并拨打 110 或 120。
+          {t("community.report.targetPrefix")} <strong className="text-ink">{t("community.report.targetHours", { hours: selected.targetHours })}</strong>{t("community.report.targetSuffix")}
         </p>
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onCancel} disabled={busy} className="button-secondary">取消</button>
-          <button type="button" onClick={onConfirm} disabled={busy} className="button-primary">{busy ? "正在提交…" : "提交举报"}</button>
+          <button type="button" onClick={onCancel} disabled={busy} className="button-secondary">{t("community.actions.cancel")}</button>
+          <button type="button" onClick={onConfirm} disabled={busy} className="button-primary">{busy ? t("community.actions.submittingReport") : t("community.actions.submitReport")}</button>
         </div>
       </div>
     </div>
@@ -147,6 +172,7 @@ function DeleteDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!target) return undefined;
     function closeOnEscape(event: KeyboardEvent) {
@@ -157,7 +183,7 @@ function DeleteDialog({
   }, [target, busy, onCancel]);
 
   if (!target) return null;
-  const label = target.type === "post" ? "帖子" : "评论";
+  const label = target.type === "post" ? t("community.content.post") : t("community.content.comment");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/35 px-4 backdrop-blur-sm" role="presentation">
       <div
@@ -166,19 +192,19 @@ function DeleteDialog({
         aria-labelledby="delete-community-title"
         className="w-full max-w-md rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7"
       >
-        <h2 id="delete-community-title" className="mt-5 text-xl font-bold text-ink">删除这条{label}？</h2>
+        <h2 id="delete-community-title" className="mt-5 text-xl font-bold text-ink">{t("community.delete.title", { type: label })}</h2>
         <p className="mt-3 text-sm leading-7 text-muted">
-          删除后，这条{label}会立即从社区中消失，无法由你自行恢复。
+          {t("community.delete.description", { type: label })}
         </p>
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onCancel} disabled={busy} autoFocus className="button-secondary">先保留</button>
+          <button type="button" onClick={onCancel} disabled={busy} autoFocus className="button-secondary">{t("community.actions.keep")}</button>
           <button
             type="button"
             onClick={onConfirm}
             disabled={busy}
             className="inline-flex min-h-11 items-center justify-center rounded-full bg-rose-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-rose-800 disabled:opacity-50"
           >
-            {busy ? "正在删除…" : `确认删除${label}`}
+            {busy ? t("community.actions.deleting") : t("community.actions.confirmDelete", { type: label })}
           </button>
         </div>
       </div>
@@ -187,6 +213,7 @@ function DeleteDialog({
 }
 
 export default function CommunityPage() {
+  const { t } = useTranslation();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [currentRole, setCurrentRole] = useState<CommunityRole>("student");
@@ -224,7 +251,7 @@ export default function CommunityPage() {
       setBlockedMembers(blockData.blocks);
       setReports(reportData.reports);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "社区内容加载失败。");
+      setError(loadError instanceof Error ? loadError.message : t("community.messages.loadFailed"));
     }
   }
 
@@ -233,10 +260,11 @@ export default function CommunityPage() {
   }, []);
 
   const audienceText = useMemo(
-    () => roleOptions.filter((item) => viewerRoles.includes(item.key)).map((item) => item.label).join("、"),
-    [viewerRoles],
+    () => roleOptions.filter((item) => viewerRoles.includes(item.key)).map((item) => t(item.labelKey)).join("、"),
+    [viewerRoles, t],
   );
-  const currentRoleLabel = roleOptions.find((item) => item.key === currentRole)?.label || "成员";
+  const currentRoleLabel = roleOptions.find((item) => item.key === currentRole)?.labelKey;
+  const currentRoleText = currentRoleLabel ? t(currentRoleLabel) : t("community.roles.member");
 
   function toggleViewer(role: CommunityRole) {
     setViewerRoles((current) => {
@@ -265,12 +293,12 @@ export default function CommunityPage() {
       setBody("");
       setNotice(
         result.safetyNotice
-          ? "这段内容可能涉及紧急安全风险，已暂不公开。请同时联系可信任的成年人或专业支持。"
-          : "话题已发布，只有你选择的身份可以看到和参与。",
+          ? t("community.messages.postSafety")
+          : t("community.messages.postPublished"),
       );
       await load();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "暂时无法发布。");
+      setError(submitError instanceof Error ? submitError.message : t("community.messages.postFailed"));
     } finally {
       setBusy(false);
     }
@@ -286,12 +314,12 @@ export default function CommunityPage() {
       setCommentDrafts((current) => ({ ...current, [postId]: "" }));
       setNotice(
         result.safetyNotice
-          ? "这段回复可能涉及紧急安全风险，已暂不公开。请尽快联系现实中的可信任支持。"
-          : "回应已发布。",
+          ? t("community.messages.commentSafety")
+          : t("community.messages.commentPublished"),
       );
       await load();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "暂时无法回应。");
+      setError(submitError instanceof Error ? submitError.message : t("community.messages.commentFailed"));
     } finally {
       setBusy(false);
     }
@@ -313,10 +341,10 @@ export default function CommunityPage() {
             : post,
         ));
       }
-      setNotice(deleteTarget.type === "post" ? "帖子已删除。" : "评论已删除。");
+      setNotice(deleteTarget.type === "post" ? t("community.messages.postDeleted") : t("community.messages.commentDeleted"));
       setDeleteTarget(null);
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "暂时无法删除。");
+      setError(deleteError instanceof Error ? deleteError.message : t("community.messages.deleteFailed"));
     } finally {
       setDeleting(false);
     }
@@ -342,21 +370,21 @@ export default function CommunityPage() {
       setNotice(result.notice);
       setReportTarget(null);
     } catch (reportError) {
-      setError(reportError instanceof Error ? reportError.message : "举报提交失败。");
+      setError(reportError instanceof Error ? reportError.message : t("community.messages.reportFailed"));
     } finally {
       setReportBusy(false);
     }
   }
 
   async function blockMember(targetUserId: string, name: string) {
-    if (!window.confirm(`屏蔽“${name}”后，你们将无法在社区看到彼此的帖子和回应，也不能继续互动。其他 YouthTempo 功能不会受到影响。\n\n确定继续吗？`)) return;
+    if (!window.confirm(t("community.block.confirm", { name }))) return;
     setError("");
     try {
       await blockCommunityMember(targetUserId);
-      setNotice(`已屏蔽 ${name}。你们的社区内容已互相隐藏。`);
+      setNotice(t("community.block.blocked", { name }));
       await load();
     } catch (blockError) {
-      setError(blockError instanceof Error ? blockError.message : "屏蔽设置保存失败。");
+      setError(blockError instanceof Error ? blockError.message : t("community.block.failed"));
     }
   }
 
@@ -364,37 +392,37 @@ export default function CommunityPage() {
     setError("");
     try {
       await unblockCommunityMember(targetUserId);
-      setNotice(`已解除对 ${name} 的屏蔽。`);
+      setNotice(t("community.block.unblocked", { name }));
       await load();
     } catch (blockError) {
-      setError(blockError instanceof Error ? blockError.message : "解除屏蔽失败。");
+      setError(blockError instanceof Error ? blockError.message : t("community.block.unblockFailed"));
     }
   }
 
   return (
     <>
       <PageHero
-        label="成员社区"
-        title="家校医社区"
-        subtitle="把真实的困惑说出来，也听听不同位置的人怎么看。你始终可以决定谁能看、谁能回应。"
+        label={t("community.hero.label")}
+        title={t("community.hero.title")}
+        subtitle={t("community.hero.description")}
         action={
           loggedIn === false ? (
-            <Link href="/account?next=/community" className="button-primary">登录后进入社区</Link>
+            <Link href="/account?next=/community" className="button-primary">{t("community.actions.signIn")}</Link>
           ) : loggedIn === true ? (
-            <a href="#new-post" className="button-primary">发布新话题</a>
+            <a href="#new-post" className="button-primary">{t("community.actions.newTopic")}</a>
           ) : (
-            <span className="button-secondary cursor-wait" aria-live="polite">正在确认身份…</span>
+            <span className="button-secondary cursor-wait" aria-live="polite">{t("community.actions.checkingIdentity")}</span>
           )
         }
         aside={
           <div>
             <IllustrationPanel
               src="/illustrations/system/feature-community.webp"
-              alt="学生、家长、老师和专业支持者围坐交流，认真倾听一位学生发言"
+              alt={t("community.hero.imageAlt")}
               priority
             />
             <p className="mt-3 px-3 text-xs font-bold leading-5 text-muted">
-              每个人都可以选择自己的内容向谁开放，也可以决定谁能够回应。
+              {t("community.hero.imageCaption")}
             </p>
           </div>
         }
@@ -405,26 +433,26 @@ export default function CommunityPage() {
           <div className="rounded-[2rem] border border-sage/20 bg-white p-6 shadow-soft sm:p-8">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
-                <p className="eyebrow">未成年人社区规则</p>
-                <h2 className="mt-3 text-2xl font-bold text-ink sm:text-3xl">先保护人，再讨论问题</h2>
-                <p className="mt-3 text-sm leading-7 text-muted">规则适用于帖子和回应。发现可能伤害他人的内容时，我们会尽快查看，并根据情况隐藏内容、限制发布或依法报告。</p>
+                <p className="eyebrow">{t("community.rules.label")}</p>
+                <h2 className="mt-3 text-2xl font-bold text-ink sm:text-3xl">{t("community.rules.title")}</h2>
+                <p className="mt-3 text-sm leading-7 text-muted">{t("community.rules.description")}</p>
               </div>
-              <Link href="/privacy-safety#community-safety" className="button-secondary shrink-0">查看完整安全说明</Link>
+              <Link href="/privacy-safety#community-safety" className="button-secondary shrink-0">{t("community.rules.action")}</Link>
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {communityRules.map(([title, text]) => (
                 <div key={title} className="rounded-2xl bg-cream px-4 py-4">
-                  <h3 className="text-sm font-extrabold text-ink">{title}</h3>
-                  <p className="mt-2 text-xs leading-6 text-muted">{text}</p>
+                  <h3 className="text-sm font-extrabold text-ink">{t(title)}</h3>
+                  <p className="mt-2 text-xs leading-6 text-muted">{t(text)}</p>
                 </div>
               ))}
             </div>
             <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-6 text-amber-900"><strong>紧急优先：</strong>目标 2 小时内首次复核</p>
-              <p className="rounded-2xl border border-sage/20 bg-mist px-4 py-3 text-xs leading-6 text-sage-dark"><strong>欺凌、隐私等：</strong>目标 24 小时内首次复核</p>
-              <p className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-xs leading-6 text-muted"><strong>其他违规：</strong>目标 72 小时内首次复核</p>
+              <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-6 text-amber-900">{t("community.rules.targets.urgent")}</p>
+              <p className="rounded-2xl border border-sage/20 bg-mist px-4 py-3 text-xs leading-6 text-sage-dark">{t("community.rules.targets.high")}</p>
+              <p className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-xs leading-6 text-muted">{t("community.rules.targets.standard")}</p>
             </div>
-            <p className="mt-4 text-xs leading-6 text-muted">以上时间是我们争取完成首次查看的时间，不是紧急救助时限。有人正处于即时危险时，不要等待社区回复，请联系可信任的成年人并拨打 110 或 120。</p>
+            <p className="mt-4 text-xs leading-6 text-muted">{t("community.rules.targetDisclaimer")}</p>
           </div>
         </div>
       </section>
@@ -434,34 +462,34 @@ export default function CommunityPage() {
           {loggedIn === null ? (
             <div className="mx-auto max-w-3xl rounded-[1.75rem] border border-ink/10 bg-white p-7 text-center shadow-soft">
               <span className="mx-auto block h-10 w-10 animate-pulse rounded-full bg-mist" />
-              <p className="mt-4 text-sm font-bold text-muted">正在打开社区…</p>
+              <p className="mt-4 text-sm font-bold text-muted">{t("community.loading")}</p>
             </div>
           ) : loggedIn === false ? (
             <div className="mx-auto max-w-3xl rounded-[2rem] border border-sage/25 bg-white p-7 shadow-soft sm:p-10">
-              <p className="eyebrow">成员社区</p>
-              <h2 className="mt-3 text-2xl font-bold text-ink">登录后才能阅读和参与讨论</h2>
+              <p className="eyebrow">{t("community.hero.label")}</p>
+              <h2 className="mt-3 text-2xl font-bold text-ink">{t("community.visitor.title")}</h2>
               <p className="mt-4 text-sm leading-7 text-muted">
-                登录后，我们会按你的身份显示可以阅读和回应的内容。加入社区不会让其他人看到你的个人记录。
+                {t("community.visitor.description")}
               </p>
-              <Link href="/account?next=/community" className="button-primary mt-6">登录或创建账户</Link>
+              <Link href="/account?next=/community" className="button-primary mt-6">{t("community.visitor.action")}</Link>
             </div>
           ) : (
             <>
               <div className="mb-6 flex flex-col gap-4 rounded-[1.5rem] border border-sage/20 bg-white/85 px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                  <Avatar name={currentRoleLabel} professional={currentRole === "professional"} />
+                  <Avatar name={currentRoleText} professional={currentRole === "professional"} />
                   <div>
-                    <p className="text-sm font-bold text-ink">你正在以“{currentRoleLabel}”身份参与</p>
-                    <p className="mt-1 text-xs leading-5 text-muted">这里只显示向这个身份开放的内容，你的个人记录不会出现在社区里。</p>
+                    <p className="text-sm font-bold text-ink">{t("community.member.role", { role: currentRoleText })}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">{t("community.member.roleDescription")}</p>
                   </div>
                 </div>
-                <a href="#new-post" className="button-secondary shrink-0 px-4 py-2 text-xs">写一个新话题</a>
+                <a href="#new-post" className="button-secondary shrink-0 px-4 py-2 text-xs">{t("community.actions.writeTopic")}</a>
               </div>
 
               {blockedMembers.length ? (
                 <details className="mb-6 rounded-[1.5rem] border border-ink/10 bg-white px-5 py-4 shadow-sm">
-                  <summary className="cursor-pointer text-sm font-bold text-ink">已屏蔽成员（{blockedMembers.length}）</summary>
-                  <p className="mt-3 text-xs leading-6 text-muted">你们不会在社区中看到彼此的帖子和回应。解除后，仍需遵守原帖设置的查看和回应范围。</p>
+                  <summary className="cursor-pointer text-sm font-bold text-ink">{t("community.block.summary", { count: blockedMembers.length })}</summary>
+                  <p className="mt-3 text-xs leading-6 text-muted">{t("community.block.description")}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {blockedMembers.map((member) => (
                       <button
@@ -470,7 +498,7 @@ export default function CommunityPage() {
                         className="rounded-full border border-ink/10 bg-cream px-3 py-2 text-xs font-bold text-ink hover:border-sage"
                         onClick={() => void unblockMember(member.user_id, member.name)}
                       >
-                        {member.name} · 解除屏蔽
+                        {t("community.block.unblockAction", { name: member.name })}
                       </button>
                     ))}
                   </div>
@@ -479,17 +507,17 @@ export default function CommunityPage() {
 
               {reports.length ? (
                 <details className="mb-6 rounded-[1.5rem] border border-ink/10 bg-white px-5 py-4 shadow-sm">
-                  <summary className="cursor-pointer text-sm font-bold text-ink">我的举报进度（{reports.length}）</summary>
-                  <p className="mt-3 text-xs leading-6 text-muted">这里显示最近 30 条举报。目标时间指首次复核，复杂情况可能需要更长时间完成调查。</p>
+                  <summary className="cursor-pointer text-sm font-bold text-ink">{t("community.report.progress", { count: reports.length })}</summary>
+                  <p className="mt-3 text-xs leading-6 text-muted">{t("community.report.progressDescription")}</p>
                   <div className="mt-4 grid gap-3">
                     {reports.map((report) => (
                       <div key={report.id} className="rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <strong className="text-ink">{communityReportCategory(report.category).label}</strong>
-                          <span className="rounded-full bg-white px-2.5 py-1 font-bold text-sage-dark">{communityReportStatusLabel(report.status)}</span>
+                          <strong className="text-ink">{t(reportCategoryCopy[report.category].label)}</strong>
+                          <span className="rounded-full bg-white px-2.5 py-1 font-bold text-sage-dark">{t(reportStatusKey(report.status))}</span>
                         </div>
-                        <p className="mt-2">{report.post_id ? "帖子" : "回应"} · {formatTime(report.created_at)}提交 · {communityReportPriorityLabels[report.priority]}</p>
-                        <p>目标首次复核：{formatTime(report.target_review_at)}{report.resolved_at ? ` · ${formatTime(report.resolved_at)}已完成` : ""}</p>
+                        <p className="mt-2">{t("community.report.progressLine", { type: report.post_id ? t("community.content.post") : t("community.content.reply"), time: formatTime(report.created_at), priority: t(reportPriorityCopy[report.priority]) })}</p>
+                        <p>{t("community.report.targetReview", { time: formatTime(report.target_review_at) })}{report.resolved_at ? t("community.report.completedAt", { time: formatTime(report.resolved_at) }) : ""}</p>
                       </div>
                     ))}
                   </div>
@@ -500,19 +528,19 @@ export default function CommunityPage() {
               {error ? <p role="alert" className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">{error}</p> : null}
 
               <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_390px] xl:gap-8">
-                <section aria-label="社区话题" className="min-w-0 space-y-5">
+                <section aria-label={t("community.topics.ariaLabel")} className="min-w-0 space-y-5">
                   <div className="flex items-end justify-between gap-4 px-1">
                     <div>
-                      <p className="eyebrow">最新讨论</p>
-                      <h2 className="mt-2 text-2xl font-bold text-ink">社区正在聊</h2>
+                      <p className="eyebrow">{t("community.topics.label")}</p>
+                      <h2 className="mt-2 text-2xl font-bold text-ink">{t("community.topics.title")}</h2>
                     </div>
-                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-muted shadow-sm">{posts.length} 个话题</span>
+                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-muted shadow-sm">{t("community.topics.count", { count: posts.length })}</span>
                   </div>
 
                   {!posts.length ? (
                     <div className="rounded-[1.75rem] border border-dashed border-sage/35 bg-white/70 p-8 text-center">
-                      <h3 className="text-lg font-bold text-ink">还没有向你开放的话题</h3>
-                      <p className="mt-2 text-sm leading-7 text-muted">可以发布第一个话题，并邀请希望一起参与的人。</p>
+                      <h3 className="text-lg font-bold text-ink">{t("community.topics.emptyTitle")}</h3>
+                      <p className="mt-2 text-sm leading-7 text-muted">{t("community.topics.emptyText")}</p>
                     </div>
                   ) : null}
 
@@ -530,7 +558,7 @@ export default function CommunityPage() {
                           </div>
                         </div>
                         <span className="shrink-0 rounded-full bg-cream px-3 py-1.5 text-[0.7rem] font-bold text-muted">
-                          {post.comments.length} 条回应
+                          {t("community.comments.count", { count: post.comments.length })}
                         </span>
                       </header>
 
@@ -539,41 +567,41 @@ export default function CommunityPage() {
                         <p className="mt-3 whitespace-pre-wrap text-[0.95rem] leading-8 text-muted">{post.body}</p>
                         <div className="mt-5 flex flex-wrap gap-2 text-[0.7rem] font-bold text-muted">
                           <span className="rounded-full border border-sage/15 bg-mint/45 px-3 py-1.5">
-                            看得到 · {roleOptions.filter((item) => post.viewer_roles.includes(item.key)).map((item) => item.label).join("、")}
+                            {t("community.audience.visiblePrefix")} {roleOptions.filter((item) => post.viewer_roles.includes(item.key)).map((item) => t(item.labelKey)).join("、")}
                           </span>
                           <span className="rounded-full border border-sage/15 bg-mint/45 px-3 py-1.5">
-                            可回应 · {post.commenter_roles.length
-                              ? roleOptions.filter((item) => post.commenter_roles.includes(item.key)).map((item) => item.label).join("、")
-                              : "仅阅读"}
+                            {t("community.audience.commentPrefix")} {post.commenter_roles.length
+                              ? roleOptions.filter((item) => post.commenter_roles.includes(item.key)).map((item) => t(item.labelKey)).join("、")
+                              : t("community.audience.readOnly")}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 border-y border-ink/5 bg-cream/55 px-5 py-3 sm:px-6">
                         <a href={`#reply-${post.id}`} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-sage-dark hover:bg-mist">
-                          回应
+                          {t("community.actions.reply")}
                         </a>
                         {post.author_user_id !== currentUserId ? (
                           <button type="button" onClick={() => openReport(post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
-                            举报
+                            {t("community.actions.report")}
                           </button>
                         ) : null}
                         {post.author_user_id !== currentUserId ? (
                           <button type="button" onClick={() => void blockMember(post.author_user_id, post.author_name)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
-                            屏蔽该成员
+                            {t("community.actions.blockMember")}
                           </button>
                         ) : null}
                         {post.can_delete ? (
                           <button type="button" onClick={() => setDeleteTarget({ type: "post", id: post.id })} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-rose-700 hover:bg-rose-50">
-                            删除帖子
+                            {t("community.actions.deletePost")}
                           </button>
                         ) : null}
                       </div>
 
-                      <section aria-label={`${post.title}的回应`} className="px-5 py-5 sm:px-6">
+                      <section aria-label={t("community.comments.ariaLabel", { title: post.title })} className="px-5 py-5 sm:px-6">
                         <div className="flex items-center justify-between gap-3">
-                          <h4 className="text-sm font-extrabold text-ink">大家的回应</h4>
-                          <span className="text-xs text-muted">{post.comments.length ? `共 ${post.comments.length} 条` : "还没有回应"}</span>
+                          <h4 className="text-sm font-extrabold text-ink">{t("community.comments.title")}</h4>
+                          <span className="text-xs text-muted">{post.comments.length ? t("community.comments.total", { count: post.comments.length }) : t("community.comments.empty")}</span>
                         </div>
                         <div className="mt-4 space-y-3">
                           {post.comments.map((comment) => (
@@ -588,13 +616,13 @@ export default function CommunityPage() {
                                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted">{comment.body}</p>
                                 <div className="mt-3 flex flex-wrap items-center gap-1">
                                   {comment.author_user_id !== currentUserId ? (
-                                    <button type="button" onClick={() => openReport(undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">举报</button>
+                                    <button type="button" onClick={() => openReport(undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">{t("community.actions.report")}</button>
                                   ) : null}
                                   {comment.author_user_id !== currentUserId ? (
-                                    <button type="button" onClick={() => void blockMember(comment.author_user_id, comment.author_name)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">屏蔽该成员</button>
+                                    <button type="button" onClick={() => void blockMember(comment.author_user_id, comment.author_name)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">{t("community.actions.blockMember")}</button>
                                   ) : null}
                                   {comment.can_delete ? (
-                                    <button type="button" onClick={() => setDeleteTarget({ type: "comment", id: comment.id, postId: post.id })} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-rose-700 hover:bg-rose-50">删除评论</button>
+                                    <button type="button" onClick={() => setDeleteTarget({ type: "comment", id: comment.id, postId: post.id })} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-rose-700 hover:bg-rose-50">{t("community.actions.deleteComment")}</button>
                                   ) : null}
                                 </div>
                               </div>
@@ -604,8 +632,8 @@ export default function CommunityPage() {
 
                         {post.can_comment ? (
                           <div id={`reply-${post.id}`} className="mt-5 rounded-2xl border-2 border-sage/20 bg-mint/35 p-4 focus-within:border-sage/55 focus-within:bg-white">
-                            <label htmlFor={`comment-${post.id}`} className="text-sm font-extrabold text-ink">写下你的回应</label>
-                            <p className="mt-1 text-xs leading-5 text-muted">具体、友善地说说你的经验，不急着替对方下结论。</p>
+                            <label htmlFor={`comment-${post.id}`} className="text-sm font-extrabold text-ink">{t("community.comments.formLabel")}</label>
+                            <p className="mt-1 text-xs leading-5 text-muted">{t("community.comments.formDescription")}</p>
                             <textarea
                               id={`comment-${post.id}`}
                               value={commentDrafts[post.id] || ""}
@@ -613,7 +641,7 @@ export default function CommunityPage() {
                               rows={3}
                               maxLength={1200}
                               className="mt-3 w-full resize-y rounded-xl border border-ink/10 bg-white px-4 py-3 text-sm leading-7 outline-none focus:border-sage"
-                              placeholder="我想回应的是……"
+                              placeholder={t("community.comments.placeholder")}
                             />
                             <div className="mt-3 flex items-center justify-between gap-3">
                               <span className="text-[0.7rem] text-muted">{(commentDrafts[post.id] || "").length}/1200</span>
@@ -623,12 +651,12 @@ export default function CommunityPage() {
                                 disabled={busy || !commentDrafts[post.id]?.trim()}
                                 className="button-primary px-5 py-2 text-xs disabled:opacity-50"
                               >
-                                {busy ? "正在发送…" : "发布回应"}
+                                {busy ? t("community.actions.sending") : t("community.actions.publishReply")}
                               </button>
                             </div>
                           </div>
                         ) : (
-                          <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted">这条内容向你开放阅读，但发布者没有向你的身份开放回应。</p>
+                          <p className="mt-4 rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-muted">{t("community.comments.readOnly")}</p>
                         )}
                       </section>
                     </article>
@@ -638,54 +666,54 @@ export default function CommunityPage() {
                 <aside id="new-post" className="rounded-[1.75rem] border-2 border-sage/25 bg-white p-5 shadow-soft lg:sticky lg:top-24 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="eyebrow">发布新话题</p>
-                      <h2 className="mt-2 text-xl font-extrabold text-ink">今天想和谁聊聊？</h2>
+                      <p className="eyebrow">{t("community.newPost.label")}</p>
+                      <h2 className="mt-2 text-xl font-extrabold text-ink">{t("community.newPost.title")}</h2>
                     </div>
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage text-lg font-bold text-white" aria-hidden="true">＋</span>
                   </div>
 
                   <label className="mt-5 block text-sm font-bold text-ink">
-                    话题标题
-                    <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} className="mt-2 w-full rounded-xl border border-ink/10 bg-cream/45 px-4 py-3 font-normal outline-none focus:border-sage focus:bg-white" placeholder="一句话说清想讨论什么" />
+                    {t("community.newPost.titleLabel")}
+                    <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} className="mt-2 w-full rounded-xl border border-ink/10 bg-cream/45 px-4 py-3 font-normal outline-none focus:border-sage focus:bg-white" placeholder={t("community.newPost.titlePlaceholder")} />
                   </label>
                   <label className="mt-4 block text-sm font-bold text-ink">
-                    想说的内容
-                    <textarea value={body} onChange={(event) => setBody(event.target.value)} maxLength={3000} rows={5} className="mt-2 w-full resize-y rounded-xl border border-ink/10 bg-cream/45 px-4 py-3 font-normal leading-7 outline-none focus:border-sage focus:bg-white" placeholder="分享近况、提问，或告诉大家你希望得到怎样的回应。" />
+                    {t("community.newPost.bodyLabel")}
+                    <textarea value={body} onChange={(event) => setBody(event.target.value)} maxLength={3000} rows={5} className="mt-2 w-full resize-y rounded-xl border border-ink/10 bg-cream/45 px-4 py-3 font-normal leading-7 outline-none focus:border-sage focus:bg-white" placeholder={t("community.newPost.bodyPlaceholder")} />
                   </label>
                   <div className="mt-2 text-right text-[0.7rem] text-muted">{body.length}/3000</div>
 
                   <fieldset className="mt-5 border-t border-ink/5 pt-5">
-                    <legend className="text-sm font-extrabold text-ink">1. 哪些人可以看到？</legend>
+                    <legend className="text-sm font-extrabold text-ink">{t("community.newPost.viewerLegend")}</legend>
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       {roleOptions.map((role) => (
                         <label key={role.key} className={`cursor-pointer rounded-xl border p-3 transition ${viewerRoles.includes(role.key) ? "border-sage/45 bg-mint/55" : "border-ink/10 bg-white hover:border-sage/25"}`}>
                           <span className="flex items-center gap-2">
                             <input type="checkbox" checked={viewerRoles.includes(role.key)} onChange={() => toggleViewer(role.key)} className="accent-sage" />
-                            <span className="text-xs font-extrabold text-ink">{role.label}</span>
+                            <span className="text-xs font-extrabold text-ink">{t(role.labelKey)}</span>
                           </span>
-                          <span className="mt-1.5 block text-[0.68rem] leading-5 text-muted">{role.hint}</span>
+                          <span className="mt-1.5 block text-[0.68rem] leading-5 text-muted">{t(role.hintKey)}</span>
                         </label>
                       ))}
                     </div>
                   </fieldset>
 
                   <fieldset className="mt-5">
-                    <legend className="text-sm font-extrabold text-ink">2. 哪些人可以回应？</legend>
+                    <legend className="text-sm font-extrabold text-ink">{t("community.newPost.commenterLegend")}</legend>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {roleOptions.map((role) => (
                         <label key={role.key} className={`rounded-full border px-3 py-2 text-[0.7rem] font-bold ${viewerRoles.includes(role.key) ? "cursor-pointer border-sage/30 bg-white text-ink" : "cursor-not-allowed border-ink/5 bg-cream text-muted/50"}`}>
                           <input type="checkbox" className="mr-1.5 accent-sage" disabled={!viewerRoles.includes(role.key)} checked={commenterRoles.includes(role.key)} onChange={() => toggleCommenter(role.key)} />
-                          {role.label}
+                          {t(role.labelKey)}
                         </label>
                       ))}
                     </div>
                   </fieldset>
 
                   <div className="mt-5 rounded-xl border border-sage/15 bg-mint/35 px-4 py-3 text-[0.7rem] leading-6 text-muted">
-                    <strong className="text-ink">发布前确认：</strong> {audienceText || "尚未选择可见身份"}可以看到。辱骂、威胁和泄露隐私的内容不能发布。
+                    <strong className="text-ink">{t("community.newPost.confirmLabel")}</strong> {t("community.newPost.confirmText", { audience: audienceText || t("community.newPost.noAudience") })}
                   </div>
                   <button type="button" onClick={() => void submitPost()} disabled={busy || !title.trim() || !body.trim() || !viewerRoles.length} className="button-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-50">
-                    {busy ? "正在发布…" : "发布到社区"}
+                    {busy ? t("community.actions.publishing") : t("community.actions.publish")}
                   </button>
                 </aside>
               </div>

@@ -437,5 +437,164 @@
     "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET 节律记录", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
     "result": { "label": "支持建议", "title": "你的下一步支持路径", "answerSummary": "{{question}}：{{answers}}", "noSelection": "你还没有选择当前状态。", "path": "建议路径", "reason": "为什么这样建议", "howToStart": "可以怎么开始", "fallbackStarter": "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”", "links": "推荐入口" },
     "direct": { "title": "你也可以直接让一个人知道", "description": "不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。", "action": "打开悄悄话信箱" }
+  },
+  "resources": {
+    "metadata": { "title": "家校陪伴指南 | YouthTempo" },
+    "hero": { "title": "家校陪伴指南", "description": "给家长和老师的陪伴方法：看什么、怎么开口、怎样回应，以及什么时候需要进一步支持。这里不是学生求助入口。", "imageAlt": "家长和老师一起查看陪伴指南的插画" },
+    "intro": {
+      "daily": { "label": "日常陪伴", "title": "想学习怎么理解和支持孩子", "text": "继续查看下面按家长、老师整理的方法和沟通建议。" },
+      "help": { "label": "当前需要帮助", "title": "现在不知道下一步该找谁", "text": "转到支持路径，根据持续时间和影响程度获得下一步建议。", "action": "判断下一步" }
+    },
+    "groups": {
+      "parents": { "title": "家长：怎么观察和开口", "items": {
+        "rhythm": { "title": "先看节律变化", "text": "留意睡眠、起床、饮食、运动和任务参与是否持续变难，不急着给变化下结论。", "action": "查看家长指引" },
+        "communication": { "title": "降低沟通冲突", "text": "先说观察和关心，再给孩子一点表达时间，避免连续追问、比较或马上讲道理。", "action": "查看沟通句式" },
+        "support": { "title": "知道何时求助", "text": "当状态持续影响学习、关系或日常生活时，和学校或专业支持资源一起讨论下一步。", "action": "查看支持路径" }
+      } },
+      "school": { "title": "老师与学校：怎么回应和跟进", "items": {
+        "changes": { "title": "关注持续变化", "text": "记录变化出现多久、影响哪些日常功能，以及学生是否有可以信任的支持者。" },
+        "respond": { "title": "从支持开始回应", "text": "先确认学生当下最需要什么，再讨论学习安排、家庭沟通或进一步支持。" },
+        "boundaries": { "title": "保持清晰边界", "text": "记录只用于支持和跟进，不用于排名、惩罚、诊断或给学生贴标签。" }
+      } }
+    },
+    "support": { "title": "已经明显影响生活或学习？", "text": "家校方法不能代替及时支持。可以根据当前状态判断下一步找谁。", "action": "进入支持路径" }
+  },
+  "contact": {
+    "metadata": { "title": "联系我们 | YouthTempo" },
+    "hero": { "title": "联系我们", "description": "学校合作、产品反馈或隐私问题，可以联系 YouthTempo 项目负责人。" },
+    "reasons": {
+      "title": "可以因为什么联系我们？", "description": "为了让沟通更有效，可以先选择最接近的一类问题。",
+      "school": { "title": "学校合作", "text": "如果你来自学校、社团或心理健康相关项目，可以联系 YouthTempo 了解合作与使用方式。" },
+      "feedback": { "title": "家长与学生反馈", "text": "如果你在使用中发现内容不清楚、不够友好或有需要补充的地方，可以把具体页面和感受告诉我们。" },
+      "privacy": { "title": "隐私与数据问题", "text": "如果你想了解登录、数据保存、记录删除或学校权限配置，可以优先说明你的角色和问题。" },
+      "promotion": { "title": "校园推广团队", "text": "如果你希望参与校园推广、用户测试或反馈收集，可以留下学校、年级和可参与方式。" }
+    },
+    "details": { "title": "联系信息", "project": "YouthTempo 项目", "description": "请通过邀请你使用 YouthTempo 的学校联系人或项目负责人 Irene 取得联系。", "owner": "负责人：Irene", "purpose": "用途：学校合作、产品反馈、隐私与数据问题" },
+    "messageTips": { "title": "发送反馈时可以包含", "identity": "你是谁：学生、家长、老师、学校负责人或合作伙伴。", "topic": "你想咨询什么：页面内容、学校合作、隐私数据、校园推广或产品反馈。", "reply": "你希望我们如何回复：邮件、微信或后续会议。" },
+    "privacy": { "title": "关于数据与登录", "text": "如果你的问题和用户登录、数据保存、记录删除或学校权限配置有关，可以先查看隐私与安全页面。", "cardTitle": "查看隐私与安全说明", "cardText": "我们会把账号、数据保存和反馈收集尽量设计得清楚、克制、可解释。", "action": "隐私与安全" }
+  },
+  "account": {
+    "metadata": { "title": "账号 | YouthTempo" },
+    "visitor": { "loading": "正在进入账户…", "label": "YouthTempo 账号", "title": "登录后，记录会一直在", "description": "使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。", "noPassword": "不用记密码", "firstUse": "第一次使用这个邮箱也可以直接登录", "otpSent": "验证码已发送", "emailLogin": "邮箱登录", "enterOtp": "输入 {{count}} 位验证码", "welcome": "欢迎回来", "unavailableTitle": "账号服务暂不可用", "unavailableText": "请稍后再试，或通过联系我们页面反馈问题。", "email": "邮箱", "otp": "验证码", "wait": "请稍等...", "signIn": "登录", "sendOtp": "发送验证码", "resendCountdown": "{{seconds}} 秒后可重新发送", "resend": "重新发送验证码", "changeEmail": "更换邮箱" }
+  },
+  "feedback": {
+    "metadata": { "title": "试点反馈 | YouthTempo" },
+    "visitor": { "hero": { "label": "试点反馈", "title": "这次用起来怎么样？", "description": "大约两分钟。说说哪里顺手、哪里卡住，帮助我们把接下来的体验做得更好。", "action": "返回我的工作台" }, "loading": "正在打开反馈表……", "title": "登录后再填写", "description": "这样我们只会保存到你自己的账号，也方便你之后回来修改。", "action": "前往登录" }
+  },
+  "privacySafety": {
+    "metadata": { "title": "隐私与安全 | YouthTempo" },
+    "hero": { "title": "隐私与安全", "description": "只保存提供服务所需要的信息，并按用户身份限制记录的可见范围。" },
+    "principles": {
+      "title": "你可以怎么保护自己的信息", "description": "这里说明会保存什么、谁能看到，以及需要帮助或想删除数据时可以怎么做。",
+      "noLabels": { "title": "不贴标签", "text": "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。" },
+      "minimum": { "title": "只保存需要的内容", "text": "只保存完成记录和提供服务所需要的信息，不收集无关隐私。" },
+      "safety": { "title": "安全优先", "text": "当用户表达明显危险或无法保证安全时，会优先提醒联系可信任的大人、学校或紧急资源。" },
+      "control": { "title": "自己可以管理", "text": "登录后可以查看、下载或删除自己的内容；不同身份只能看到获得授权的记录。" }
+    },
+    "community": {
+      "title": "未成年人社区安全与举报处理", "description": "社区规则适用于帖子和回应。举报人身份不会告诉内容作者；越可能伤害到人的情况，会越早查看。", "reviewLabel": "首次复核",
+      "urgent": { "title": "紧急优先 · 目标 2 小时", "text": "明确的即时危险、鼓励自伤自杀、涉未成年人色情或性侵害进入紧急队列。有人正处于危险时，请不要等待平台处理，立即联系可信任的成年人并拨打 110 或 120。" },
+      "high": { "title": "优先处理 · 目标 24 小时", "text": "欺凌、辱骂、威胁、泄露个人信息及其他明显危险或不适宜内容优先复核，并视情况隐藏内容、限制账号或保留必要记录。" },
+      "standard": { "title": "常规处理 · 目标 72 小时", "text": "诈骗、广告、刷屏及其他规则问题进入常规队列。复杂情况完成调查可能超过首次复核目标，状态会在社区的“我的举报进度”中更新。" },
+      "legalPrefix": "上述 2/24/72 小时是我们争取完成首次查看的时间，并不是法律规定的统一时限。有人正处于危险时，请不要等待社区处理。社区规则依据"
+    },
+    "account": {
+      "title": "用户登录与数据保存", "description": "个人用户查看自己的记录；学校角色按照学校归属和师生分配关系查看记录；家长仅能查看由学校确认关联的孩子记录。",
+      "email": { "title": "邮箱登录", "text": "使用邮箱验证码登录，不需要设置或记住密码。" },
+      "records": { "title": "保存记录", "text": "登录后主动保存的 SWEET 记录会进入个人历史记录。" },
+      "school": { "title": "学校访问", "text": "学校负责人可查看本校学生记录；支持老师只查看由学校分配给自己的学生。" },
+      "delete": { "title": "删除记录", "text": "学生可以在“账号”中删除自己保存的 SWEET 记录。" },
+      "export": { "title": "导出与注销", "text": "登录后可即时下载自己的数据副本，或永久注销账号。平台不保存导出文件。" }
+    },
+    "consent": {
+      "title": "未成年人及监护人知情同意", "description": "YouthTempo 当前试点面向 14–18 岁在校青少年。学生本人需要清楚知道数据如何使用；14–17 岁学校试点学生还需要已核验监护人确认。",
+      "student": { "title": "学生先确认", "text": "学生阅读数据范围、用途、可见角色和撤回方式，只选择年龄范围，不填写具体生日。" },
+      "guardian": { "title": "监护人再确认", "text": "14–17 岁学生参加学校试点时，由学校已确认关联的监护人在自己的账户中完成确认。" },
+      "summary": { "title": "生成小结前再确认", "text": "生成小结前会再次说明本次回答可能包含敏感生活与健康信息，由用户主动勾选。" },
+      "withdraw": { "title": "随时可以撤回", "text": "学生或监护人可在账户页撤回；撤回后不能继续保存新记录、发送留言或在社区发布。" },
+      "coverage": { "title": "同意覆盖什么", "text": "账号资料、SWEET 日常节律回答、AI 生成小结、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。" },
+      "afterWithdrawal": { "title": "撤回后会怎样", "text": "撤回后不能继续保存新记录、发送留言或在社区发布。已有内容仍可查看、下载或逐条删除，也可以注销账号并删除关联数据。" },
+      "legalPrefix": "法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是我们增加的一层保护。查看"
+    },
+    "retention": {
+      "title": "数据导出、注销与保存期限", "description": "用户可以在账户设置中直接行使这些权利，不需要先联系学校或平台说明理由。导出只包含当前账号的数据，不会额外打包关联孩子、学生或其他用户的私密记录。",
+      "active": { "title": "账号存续期间", "text": "账号存续期间，仅为提供服务、展示历史和履行安全责任而保存。用户可逐条删除自己的 SWEET 记录，也可随时注销账号。" },
+      "deletion": { "title": "注销立即执行", "text": "注销确认后，账号及关联个人数据会立即删除；下载的数据副本不会由 YouthTempo 另行保存。" },
+      "audit": { "title": "安全处理记录 · 最长 24 个月", "text": "不含明文邮箱和用户编号的安全处理记录最多保存 24 个月，用于复核安全问题和确认删除已经完成，到期后清理。" },
+      "backups": { "title": "备份副本", "text": "备份副本的具体保存期限仍在确认，确认后会在本页公布。恢复服务时，已登记的删除要求仍会执行。" },
+      "deletionScope": { "title": "注销会删除什么", "text": "账号资料、SWEET 记录、留言、学校与监护关系、知情同意记录、微信绑定、个人社区内容和举报会随账号删除。涉及该账号的社区审核动作仅保留去标识化的安全记录。" },
+      "legalPrefix": "《个人信息保护法》规定个人有权查阅、复制个人信息，并在处理目的已实现、停止提供服务、保存期限届满或撤回同意等情形请求删除；《网络数据安全管理条例》要求提供便捷的复制、删除、限制处理、注销账号和撤回同意方法。查看"
+    },
+    "schoolExit": {
+      "title": "学校退出试点后的数据处理", "description": "学校退出后，学校不能再查看相关学生信息；学生和家长的个人账号不会因此被注销。",
+      "access": { "title": "学校权限立即停止", "text": "退出生效后，学校负责人、老师和其他学校角色立即失去该学校空间、学生记录和支持关系的访问权限。" },
+      "personal": { "title": "个人账号继续保留", "text": "学生、家长和老师的个人账号不会因学校退出而删除；个人可继续查看、导出或注销自己的账号与数据。" },
+      "relationships": { "title": "解除学校关系", "text": "学校成员、师生关系、亲子关系和未完成邀请会解除；个人 SWEET 记录、留言和知情同意记录会移除学校归属。" },
+      "notes": { "title": "删除学校协作数据", "text": "仅为学校协作产生的跟进笔记会在退出时删除；不含学生内容的退出操作记录最多保存 24 个月。" },
+      "legalPrefix": "学校退出后，学校负责人和老师不能再通过原有学校关系查看学生信息。个人仍可依法查阅、复制、删除或注销自己的数据。详细权利可查看"
+    },
+    "dataTypes": {
+      "label": "数据范围", "title": "哪些数据可能被保存？", "description": "只保存用户主动提交的记录、账号资料和提供学校支持所需的关联信息。这些内容不会用来给人贴标签或排名。",
+      "sweet": { "title": "SWEET 节律记录", "text": "睡眠、起床、饮食、运动、任务参与等日常节律信息。" },
+      "account": { "title": "账号资料", "text": "邮箱、显示名称和用户选择的身份，用于登录和区分支持角色。" },
+      "school": { "title": "学校关系", "text": "学校、学生、支持老师及师生分配关系，用于限制记录的可见范围。" },
+      "summary": { "title": "整理后的小结", "text": "根据用户主动填写的内容生成的小结、沟通句式和下一步提示。" }
+    },
+    "laws": { "minorProtection": "《未成年人网络保护条例》", "personalInformation": "《个人信息保护法》", "networkData": "《网络数据安全管理条例》", "and": "和" },
+    "emergency": { "title": "危机与紧急情况", "text": "YouthTempo 不能替代紧急救助或专业诊疗。如果用户处在即时危险中，应尽快联系可信任的大人、学校负责人、当地医疗或紧急服务。" },
+    "contact": { "title": "有隐私或安全问题？", "text": "如果你正在通过学校使用 YouthTempo，或想了解数据如何使用，可以通过联系我们页面说明具体问题。", "action": "联系我们" }
+  },
+  "community": {
+    "metadata": { "title": "家校医社区 | YouthTempo" },
+    "hero": { "label": "成员社区", "title": "家校医社区", "description": "把真实的困惑说出来，也听听不同位置的人怎么看。你始终可以决定谁能看、谁能回应。", "imageAlt": "学生、家长、老师和专业支持者围坐交流，认真倾听一位学生发言", "imageCaption": "每个人都可以选择自己的内容向谁开放，也可以决定谁能够回应。" },
+    "roles": {
+      "student": { "label": "学生", "hint": "同龄人之间交流和回应" },
+      "guardian": { "label": "家长", "hint": "分享陪伴中的经验与困惑" },
+      "teacher": { "label": "老师", "hint": "提供校园中的观察和建议" },
+      "professional": { "label": "专业支持者", "hint": "由平台确认身份后参与回复" },
+      "member": "成员"
+    },
+    "verifiedSuffix": " · 已认证",
+    "avatarFallback": "友",
+    "rules": {
+      "label": "未成年人社区规则", "title": "先保护人，再讨论问题", "description": "规则适用于帖子和回应。发现可能伤害他人的内容时，我们会尽快查看，并根据情况隐藏内容、限制发布或依法报告。", "action": "查看完整安全说明",
+      "respect": { "title": "尊重，不欺凌", "text": "不辱骂、威胁、诽谤、围攻或恶意损害他人形象；不同意见也要具体、友善地表达。" },
+      "privacy": { "title": "保护自己和他人", "text": "不公开真实姓名、学校班级、住址、联系方式、账号、定位或未经同意的私密经历与影像。" },
+      "harm": { "title": "不传播危险内容", "text": "不发布色情、暴力、赌博、违法内容，不鼓励自伤自杀，也不诱导他人模仿不安全行为。" },
+      "authentic": { "title": "真实且不牟利", "text": "不冒充专业人士，不诈骗、索要钱款、发布可疑链接、刷屏或借社区营销。" },
+      "targets": { "urgent": "紧急优先：目标 2 小时内首次复核", "high": "欺凌、隐私等：目标 24 小时内首次复核", "standard": "其他违规：目标 72 小时内首次复核" },
+      "targetDisclaimer": "以上时间是我们争取完成首次查看的时间，不是紧急救助时限。有人正处于即时危险时，不要等待社区回复，请联系可信任的成年人并拨打 110 或 120。"
+    },
+    "visitor": { "title": "登录后才能阅读和参与讨论", "description": "登录后，我们会按你的身份显示可以阅读和回应的内容。加入社区不会让其他人看到你的个人记录。", "action": "登录或创建账户" },
+    "loading": "正在打开社区…",
+    "member": { "role": "你正在以“{{role}}”身份参与", "roleDescription": "这里只显示向这个身份开放的内容，你的个人记录不会出现在社区里。" },
+    "content": { "post": "帖子", "comment": "评论", "reply": "回应" },
+    "report": {
+      "label": "社区安全", "title": "举报这条内容", "description": "请选择最接近的情况。举报人身份不会向内容作者公开。", "detailsLabel": "补充说明（选填）", "detailsPlaceholder": "不用重复粘贴内容，可以说明你担心什么。", "targetPrefix": "该类型目标在", "targetHours": "{{hours}} 小时内完成首次复核", "targetSuffix": "。这不是紧急救助渠道；如有人正处于即时危险中，请立刻联系可信任的成年人，并拨打 110 或 120。",
+      "categories": {
+        "immediateDanger": { "label": "有人正处于危险中", "hint": "明确威胁、正在被伤害、鼓励自伤自杀或无法保证安全。" },
+        "sexualHarm": { "label": "涉未成年人色情或性侵害", "hint": "性诱导、性剥削、索要私密影像或传播相关内容。" },
+        "bullying": { "label": "欺凌、辱骂或威胁", "hint": "持续羞辱、诽谤、恶意损害形象、骚扰或威胁。" },
+        "privacy": { "label": "泄露隐私或个人信息", "hint": "姓名、学校、住址、联系方式、账号或私密经历被公开。" },
+        "harmful": { "label": "危险或不适宜内容", "hint": "暴力、赌博、违法行为，或诱导不安全模仿的内容。" },
+        "fraud": { "label": "诈骗、广告或垃圾信息", "hint": "索要钱款、可疑链接、冒充身份、重复营销或刷屏。" },
+        "other": { "label": "其他违反社区规则", "hint": "不属于以上类型，但可能伤害他人或破坏社区安全。" }
+      },
+      "priority": { "urgent": "紧急优先", "high": "优先处理", "standard": "常规处理" },
+      "status": { "resolved": "已完成复核", "reviewing": "复核中", "submitted": "已提交" },
+      "progress": "我的举报进度（{{count}}）", "progressDescription": "这里显示最近 30 条举报。目标时间指首次复核，复杂情况可能需要更长时间完成调查。", "progressLine": "{{type}} · {{time}}提交 · {{priority}}", "targetReview": "目标首次复核：{{time}}", "completedAt": " · {{time}}已完成"
+    },
+    "delete": { "title": "删除这条{{type}}？", "description": "删除后，这条{{type}}会立即从社区中消失，无法由你自行恢复。" },
+    "block": { "confirm": "屏蔽“{{name}}”后，你们将无法在社区看到彼此的帖子和回应，也不能继续互动。其他 YouthTempo 功能不会受到影响。\n\n确定继续吗？", "blocked": "已屏蔽 {{name}}。你们的社区内容已互相隐藏。", "failed": "屏蔽设置保存失败。", "unblocked": "已解除对 {{name}} 的屏蔽。", "unblockFailed": "解除屏蔽失败。", "summary": "已屏蔽成员（{{count}}）", "description": "你们不会在社区中看到彼此的帖子和回应。解除后，仍需遵守原帖设置的查看和回应范围。", "unblockAction": "{{name}} · 解除屏蔽" },
+    "messages": { "loadFailed": "社区内容加载失败。", "postSafety": "这段内容可能涉及紧急安全风险，已暂不公开。请同时联系可信任的成年人或专业支持。", "postPublished": "话题已发布，只有你选择的身份可以看到和参与。", "postFailed": "暂时无法发布。", "commentSafety": "这段回复可能涉及紧急安全风险，已暂不公开。请尽快联系现实中的可信任支持。", "commentPublished": "回应已发布。", "commentFailed": "暂时无法回应。", "postDeleted": "帖子已删除。", "commentDeleted": "评论已删除。", "deleteFailed": "暂时无法删除。", "reportFailed": "举报提交失败。" },
+    "topics": { "ariaLabel": "社区话题", "label": "最新讨论", "title": "社区正在聊", "count": "{{count}} 个话题", "emptyTitle": "还没有向你开放的话题", "emptyText": "可以发布第一个话题，并邀请希望一起参与的人。" },
+    "comments": { "count": "{{count}} 条回应", "ariaLabel": "{{title}}的回应", "title": "大家的回应", "total": "共 {{count}} 条", "empty": "还没有回应", "formLabel": "写下你的回应", "formDescription": "具体、友善地说说你的经验，不急着替对方下结论。", "placeholder": "我想回应的是……", "readOnly": "这条内容向你开放阅读，但发布者没有向你的身份开放回应。" },
+    "audience": { "visiblePrefix": "看得到 ·", "commentPrefix": "可回应 ·", "readOnly": "仅阅读" },
+    "newPost": { "label": "发布新话题", "title": "今天想和谁聊聊？", "titleLabel": "话题标题", "titlePlaceholder": "一句话说清想讨论什么", "bodyLabel": "想说的内容", "bodyPlaceholder": "分享近况、提问，或告诉大家你希望得到怎样的回应。", "viewerLegend": "1. 哪些人可以看到？", "commenterLegend": "2. 哪些人可以回应？", "confirmLabel": "发布前确认：", "confirmText": "{{audience}}可以看到。辱骂、威胁和泄露隐私的内容不能发布。", "noAudience": "尚未选择可见身份" },
+    "actions": { "signIn": "登录后进入社区", "newTopic": "发布新话题", "checkingIdentity": "正在确认身份…", "writeTopic": "写一个新话题", "cancel": "取消", "submittingReport": "正在提交…", "submitReport": "提交举报", "keep": "先保留", "deleting": "正在删除…", "confirmDelete": "确认删除{{type}}", "reply": "回应", "report": "举报", "blockMember": "屏蔽该成员", "deletePost": "删除帖子", "deleteComment": "删除评论", "sending": "正在发送…", "publishReply": "发布回应", "publishing": "正在发布…", "publish": "发布到社区" }
+  },
+  "messages": {
+    "metadata": { "title": "悄悄话信箱 | YouthTempo" },
+    "visitor": { "hero": { "title": "悄悄话信箱", "description": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" }, "loading": "正在加载…", "title": "登录后使用这个功能", "description": "这样才能确认你可以写给谁，或查看哪些话。", "action": "前往登录" }
   }
 }

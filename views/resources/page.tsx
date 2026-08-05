@@ -2,72 +2,75 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { SectionHeader } from "@/components/SectionHeader";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 type ResourceItem = {
-  title: string;
-  text: string;
+  titleKey: TranslationKey;
+  textKey: TranslationKey;
   href?: string;
-  action?: string;
+  actionKey?: TranslationKey;
 };
 
 type ResourceGroup = {
-  title: string;
+  titleKey: TranslationKey;
   items: ResourceItem[];
 };
 
 const resourceGroups: ResourceGroup[] = [
   {
-    title: "家长：怎么观察和开口",
+    titleKey: "resources.groups.parents.title",
     items: [
       {
-        title: "先看节律变化",
-        text: "留意睡眠、起床、饮食、运动和任务参与是否持续变难，不急着给变化下结论。",
+        titleKey: "resources.groups.parents.items.rhythm.title",
+        textKey: "resources.groups.parents.items.rhythm.text",
         href: "/for-parents",
-        action: "查看家长指引",
+        actionKey: "resources.groups.parents.items.rhythm.action",
       },
       {
-        title: "降低沟通冲突",
-        text: "先说观察和关心，再给孩子一点表达时间，避免连续追问、比较或马上讲道理。",
+        titleKey: "resources.groups.parents.items.communication.title",
+        textKey: "resources.groups.parents.items.communication.text",
         href: "/for-parents",
-        action: "查看沟通句式",
+        actionKey: "resources.groups.parents.items.communication.action",
       },
       {
-        title: "知道何时求助",
-        text: "当状态持续影响学习、关系或日常生活时，和学校或专业支持资源一起讨论下一步。",
+        titleKey: "resources.groups.parents.items.support.title",
+        textKey: "resources.groups.parents.items.support.text",
         href: "/referral",
-        action: "查看支持路径",
+        actionKey: "resources.groups.parents.items.support.action",
       },
     ],
   },
   {
-    title: "老师与学校：怎么回应和跟进",
+    titleKey: "resources.groups.school.title",
     items: [
       {
-        title: "关注持续变化",
-        text: "记录变化出现多久、影响哪些日常功能，以及学生是否有可以信任的支持者。",
+        titleKey: "resources.groups.school.items.changes.title",
+        textKey: "resources.groups.school.items.changes.text",
       },
       {
-        title: "从支持开始回应",
-        text: "先确认学生当下最需要什么，再讨论学习安排、家庭沟通或进一步支持。",
+        titleKey: "resources.groups.school.items.respond.title",
+        textKey: "resources.groups.school.items.respond.text",
       },
       {
-        title: "保持清晰边界",
-        text: "记录只用于支持和跟进，不用于排名、惩罚、诊断或给学生贴标签。",
+        titleKey: "resources.groups.school.items.boundaries.title",
+        textKey: "resources.groups.school.items.boundaries.text",
       },
     ],
   },
 ];
 
 export default function ResourcesPage() {
+  const { t } = useTranslation();
   return (
     <>
       <PageHero
-        title="家校陪伴指南"
-        subtitle="给家长和老师的陪伴方法：看什么、怎么开口、怎样回应，以及什么时候需要进一步支持。这里不是学生求助入口。"
+        title={t("resources.hero.title")}
+        subtitle={t("resources.hero.description")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-resources.webp"
-            alt="家长和老师一起查看陪伴指南的插画"
+            alt={t("resources.hero.imageAlt")}
             priority
           />
         }
@@ -75,30 +78,30 @@ export default function ResourcesPage() {
       <section className="section section-muted pb-0">
         <div className="container grid gap-4 md:grid-cols-2">
           <div className="card">
-            <p className="eyebrow">日常陪伴</p>
-            <h2 className="mt-2 text-xl font-bold text-ink">想学习怎么理解和支持孩子</h2>
-            <p className="mt-3 text-sm leading-7 text-muted">继续查看下面按家长、老师整理的方法和沟通建议。</p>
+            <p className="eyebrow">{t("resources.intro.daily.label")}</p>
+            <h2 className="mt-2 text-xl font-bold text-ink">{t("resources.intro.daily.title")}</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">{t("resources.intro.daily.text")}</p>
           </div>
           <div className="card">
-            <p className="eyebrow">当前需要帮助</p>
-            <h2 className="mt-2 text-xl font-bold text-ink">现在不知道下一步该找谁</h2>
-            <p className="mt-3 text-sm leading-7 text-muted">转到支持路径，根据持续时间和影响程度获得下一步建议。</p>
-            <Link href="/referral" className="button-primary mt-5 px-4 py-2 text-xs">判断下一步</Link>
+            <p className="eyebrow">{t("resources.intro.help.label")}</p>
+            <h2 className="mt-2 text-xl font-bold text-ink">{t("resources.intro.help.title")}</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">{t("resources.intro.help.text")}</p>
+            <Link href="/referral" className="button-primary mt-5 px-4 py-2 text-xs">{t("resources.intro.help.action")}</Link>
           </div>
         </div>
       </section>
       {resourceGroups.map((group, index) => (
-        <section key={group.title} className={`section ${index % 2 === 0 ? "section-muted" : ""}`}>
+        <section key={group.titleKey} className={`section ${index % 2 === 0 ? "section-muted" : ""}`}>
           <div className="container">
-            <SectionHeader title={group.title} />
+            <SectionHeader title={t(group.titleKey)} />
             <div className="grid gap-4 md:grid-cols-3">
               {group.items.map((item) => (
-                <article key={item.title} className="card flex flex-col">
-                  <h3 className="text-lg font-bold leading-snug text-ink">{item.title}</h3>
-                  <p className="mt-3 flex-1 text-[0.95rem] leading-7 text-muted">{item.text}</p>
-                  {item.href && item.action ? (
+                <article key={item.titleKey} className="card flex flex-col">
+                  <h3 className="text-lg font-bold leading-snug text-ink">{t(item.titleKey)}</h3>
+                  <p className="mt-3 flex-1 text-[0.95rem] leading-7 text-muted">{t(item.textKey)}</p>
+                  {item.href && item.actionKey ? (
                     <Link href={item.href} className="button-secondary mt-5 w-fit px-4 py-2 text-xs">
-                      {item.action}
+                      {t(item.actionKey)}
                     </Link>
                   ) : null}
                 </article>
@@ -110,10 +113,10 @@ export default function ResourcesPage() {
       <section className="section section-muted">
         <div className="container rounded-2xl border border-sage/25 bg-white/85 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>
-            <h2 className="text-xl font-bold text-ink">已经明显影响生活或学习？</h2>
-            <p className="mt-2 text-sm leading-7 text-muted">家校方法不能代替及时支持。可以根据当前状态判断下一步找谁。</p>
+            <h2 className="text-xl font-bold text-ink">{t("resources.support.title")}</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">{t("resources.support.text")}</p>
           </div>
-          <Link href="/referral" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">进入支持路径</Link>
+          <Link href="/referral" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("resources.support.action")}</Link>
         </div>
       </section>
     </>

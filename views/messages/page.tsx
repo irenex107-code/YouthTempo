@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
+import { useTranslation } from "@/lib/i18n/client";
 import {
   AccountStatus,
   StudentMessage,
@@ -26,6 +27,7 @@ function formatDate(value: string) {
 }
 
 export default function MessagesPage() {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [messages, setMessages] = useState<StudentMessage[]>([]);
@@ -43,6 +45,7 @@ export default function MessagesPage() {
   const isSchoolLead = displayRole === "学校负责人";
   const assignedTeachers = accountStatus?.assignedTeachers || [];
   const linkedGuardians = accountStatus?.linkedGuardians || [];
+  const showVisitorCopy = !loading && !user;
 
   async function refreshMessages() {
     setMessages(await listStudentMessages());
@@ -108,13 +111,13 @@ export default function MessagesPage() {
   return (
     <>
       <PageHero
-        title="悄悄话信箱"
-        subtitle={isStudent ? "有些话不容易当面说，可以先写给老师、家长或自己。" : "在这里查看学生认真写下、希望你知道的话。"}
-        action={<Link href="/account" className="button-secondary">返回工作台</Link>}
+        title={showVisitorCopy ? t("messages.visitor.hero.title") : "悄悄话信箱"}
+        subtitle={showVisitorCopy ? t("messages.visitor.hero.description") : isStudent ? "有些话不容易当面说，可以先写给老师、家长或自己。" : "在这里查看学生认真写下、希望你知道的话。"}
+        action={<Link href="/account" className="button-secondary">{showVisitorCopy ? t("messages.visitor.hero.action") : "返回工作台"}</Link>}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-mailbox.webp"
-            alt="装着一封信的绿色悄悄话信箱插画"
+            alt={showVisitorCopy ? t("messages.visitor.hero.imageAlt") : "装着一封信的绿色悄悄话信箱插画"}
             priority
           />
         }
@@ -122,15 +125,15 @@ export default function MessagesPage() {
 
       {loading ? (
         <section className="section section-muted">
-          <div className="container"><p className="card text-sm font-bold text-sage-dark">正在加载…</p></div>
+          <div className="container"><p className="card text-sm font-bold text-sage-dark">{t("messages.visitor.loading")}</p></div>
         </section>
       ) : !user ? (
         <section className="section section-muted">
           <div className="container max-w-2xl">
             <div className="card text-center">
-              <h2 className="text-2xl font-bold text-ink">登录后使用这个功能</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">这样才能确认你可以写给谁，或查看哪些话。</p>
-              <Link href="/account" className="button-primary mt-6">前往登录</Link>
+              <h2 className="text-2xl font-bold text-ink">{t("messages.visitor.title")}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{t("messages.visitor.description")}</p>
+              <Link href="/account" className="button-primary mt-6">{t("messages.visitor.action")}</Link>
             </div>
           </div>
         </section>

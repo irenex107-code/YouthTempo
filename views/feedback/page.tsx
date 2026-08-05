@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { PilotFeedbackRole, PilotFeedbackRow } from "@/lib/pilotFeedback";
+import { useTranslation } from "@/lib/i18n/client";
 
 type FormState = {
   overallExperience: number;
@@ -59,6 +60,7 @@ function RatingQuestion({ label, value, onChange }: { label: string; value: numb
 }
 
 export default function PilotFeedbackPage() {
+  const { t } = useTranslation();
   const [accessToken, setAccessToken] = useState("");
   const [role, setRole] = useState<PilotFeedbackRole | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -67,6 +69,7 @@ export default function PilotFeedbackPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const showVisitorCopy = !loading && !accessToken;
 
   useEffect(() => {
     async function load() {
@@ -124,10 +127,10 @@ export default function PilotFeedbackPage() {
   return (
     <>
       <PageHero
-        label="试点反馈"
-        title="这次用起来怎么样？"
-        subtitle="大约两分钟。说说哪里顺手、哪里卡住，帮助我们把接下来的体验做得更好。"
-        action={<Link href="/account" className="button-secondary">返回我的工作台</Link>}
+        label={showVisitorCopy ? t("feedback.visitor.hero.label") : "试点反馈"}
+        title={showVisitorCopy ? t("feedback.visitor.hero.title") : "这次用起来怎么样？"}
+        subtitle={showVisitorCopy ? t("feedback.visitor.hero.description") : "大约两分钟。说说哪里顺手、哪里卡住，帮助我们把接下来的体验做得更好。"}
+        action={<Link href="/account" className="button-secondary">{showVisitorCopy ? t("feedback.visitor.hero.action") : "返回我的工作台"}</Link>}
       />
 
       <section className="section section-muted pt-8 sm:pt-12">
@@ -135,12 +138,12 @@ export default function PilotFeedbackPage() {
           {notice ? <div className="mb-6 rounded-3xl border border-sage/30 bg-mint p-5" role="status"><p className="text-lg font-bold text-ink">{notice}</p><p className="mt-2 text-sm leading-7 text-muted">之后想补充或修改，随时再打开这份表就可以。</p></div> : null}
           {error ? <p className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700" role="alert">{error}</p> : null}
 
-          {loading ? <div className="card text-sm font-bold text-muted">正在打开反馈表……</div> : null}
+          {loading ? <div className="card text-sm font-bold text-muted">{t("feedback.visitor.loading")}</div> : null}
           {!loading && !accessToken ? (
             <div className="card text-center">
-              <h2 className="text-xl font-bold text-ink">登录后再填写</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">这样我们只会保存到你自己的账号，也方便你之后回来修改。</p>
-              <Link href="/account?next=/feedback" className="button-primary mt-5">前往登录</Link>
+              <h2 className="text-xl font-bold text-ink">{t("feedback.visitor.title")}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{t("feedback.visitor.description")}</p>
+              <Link href="/account?next=/feedback" className="button-primary mt-5">{t("feedback.visitor.action")}</Link>
             </div>
           ) : null}
 

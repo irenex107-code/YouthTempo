@@ -19,16 +19,16 @@ const translatedPageTitleKeys: Partial<Record<string, TranslationKey>> = {
   "/talk": "talk.metadata.title",
   "/worry-time": "worryTime.metadata.title",
   "/referral": "referral.metadata.title",
+  "/resources": "resources.metadata.title",
+  "/privacy-safety": "privacySafety.metadata.title",
+  "/contact": "contact.metadata.title",
+  "/community": "community.metadata.title",
+  "/account": "account.metadata.title",
+  "/feedback": "feedback.metadata.title",
+  "/messages": "messages.metadata.title",
 };
 
 const remainingPageTitles: Record<string, string> = {
-  "/messages": "悄悄话信箱 | YouthTempo",
-  "/resources": "家校陪伴指南 | YouthTempo",
-  "/community": "家校医社区 | YouthTempo",
-  "/privacy-safety": "隐私与安全 | YouthTempo",
-  "/contact": "联系我们 | YouthTempo",
-  "/account": "账号 | YouthTempo",
-  "/feedback": "试点反馈 | YouthTempo",
   "/admin": "管理工作台 | YouthTempo",
 };
 
