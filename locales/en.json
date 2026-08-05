@@ -311,132 +311,132 @@
     }
   },
   "checkIn": {
-    "metadata": { "title": "SWEET 节律记录 | YouthTempo" },
-    "hero": { "title": "SWEET 节律记录", "description": "约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。", "imageAlt": "SWEET 五个日常节律组成的循环插画" },
-    "progress": { "step": "第 {{current}} 步 / {{total}}", "completed": "已完成 {{completed}} / {{total}} 个维度" },
-    "form": { "label": "SWEET 日常记录", "optional": "可选", "expandDetails": "想补充更多", "collapseDetails": "收起补充问题", "collapse": "收起" },
-    "consent": { "text": "我知道本次 SWEET 回答会发送给 AI 生成小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次回应而处理这些内容。", "link": "查看说明" },
+    "metadata": { "title": "SWEET Rhythm Check-in | YouthTempo" },
+    "hero": { "title": "SWEET rhythm check-in", "description": "It takes about 30–60 seconds. Choose one answer in each of the five areas, and open the optional questions if you want to add more.", "imageAlt": "A cycle showing the five everyday rhythm areas of SWEET" },
+    "progress": { "step": "Step {{current}} of {{total}}", "completed": "{{completed}} of {{total}} areas completed" },
+    "form": { "label": "SWEET daily check-in", "optional": "Optional", "expandDetails": "Add more detail", "collapseDetails": "Hide additional questions", "collapse": "Collapse" },
+    "consent": { "text": "I understand that my SWEET responses will be sent to AI to generate a summary and may include sensitive information about my daily life and health. I consent to this information being processed only to generate this response.", "link": "Read more" },
     "steps": {
       "sleep": {
-        "title": "睡眠", "description": "先选一个最接近昨晚睡眠的状态。",
+        "title": "Sleep", "description": "Choose the option that best matches your sleep last night.",
         "fields": {
-          "quality": { "title": "睡眠质量如何？", "options": { "steady": "比较安稳", "okay": "还可以", "waking": "容易醒", "fallingAsleep": "入睡困难", "irregular": "睡得很乱" } },
-          "duration": { "title": "昨晚大概睡了多久？", "options": { "underFive": "少于 5 小时", "fiveToSix": "5-6 小时", "sixToSeven": "6-7 小时", "sevenToEight": "7-8 小时", "overEight": "8 小时以上", "unsure": "不太确定" } },
-          "factors": { "title": "可能影响睡眠的因素", "options": { "overthinking": "睡前想太多", "tasks": "作业或任务压力", "phone": "手机使用时间较长", "relationships": "家庭或人际压力", "physical": "身体不舒服", "unsure": "不太确定" } },
-          "note": { "title": "可选补充", "placeholder": "例如：昨晚很晚才睡，睡前一直在想明天的事情。" }
+          "quality": { "title": "How was your sleep?", "options": { "steady": "Fairly restful", "okay": "It was okay", "waking": "I woke up often", "fallingAsleep": "It was hard to fall asleep", "irregular": "It felt very irregular" } },
+          "duration": { "title": "About how long did you sleep last night?", "options": { "underFive": "Less than 5 hours", "fiveToSix": "5–6 hours", "sixToSeven": "6–7 hours", "sevenToEight": "7–8 hours", "overEight": "More than 8 hours", "unsure": "Not sure" } },
+          "factors": { "title": "What may have affected your sleep?", "options": { "overthinking": "A busy mind before bed", "tasks": "Schoolwork or task pressure", "phone": "A lot of phone use", "relationships": "Family or relationship stress", "physical": "Physical discomfort", "unsure": "Not sure" } },
+          "note": { "title": "Optional note", "placeholder": "For example: I went to sleep very late and kept thinking about tomorrow." }
         }
       },
       "wake": {
-        "title": "醒来", "description": "先选一个最接近今天早晨的状态。",
+        "title": "Wake", "description": "Choose the option that best matches this morning.",
         "fields": {
-          "state": { "title": "今天醒来后的状态更接近哪一种？", "options": { "calm": "平静", "energized": "有精神", "tired": "有点疲惫", "tense": "紧张或烦躁", "reluctant": "不想开始今天" } },
-          "startDifficulty": { "title": "今天开始的难度", "options": { "easy": "很容易开始", "time": "需要一点时间", "difficult": "有点困难", "veryDifficult": "很难开始" } },
-          "factors": { "title": "可能影响晨间状态的因素", "options": { "sleep": "没睡够", "thoughts": "一醒来就想到很多事", "tasks": "早上任务压力大", "physical": "身体有点累", "emotions": "情绪影响", "unsure": "不太确定" } },
-          "note": { "title": "可选补充", "placeholder": "例如：早上一醒来就想到作业，所以有点不想开始。" }
+          "state": { "title": "How did you feel when you woke up today?", "options": { "calm": "Calm", "energized": "Energized", "tired": "A little tired", "tense": "Tense or irritable", "reluctant": "Not ready to start the day" } },
+          "startDifficulty": { "title": "How hard was it to get started today?", "options": { "easy": "Easy to start", "time": "I needed some time", "difficult": "A little difficult", "veryDifficult": "Very difficult" } },
+          "factors": { "title": "What may have affected your morning?", "options": { "sleep": "Not enough sleep", "thoughts": "Many thoughts as soon as I woke up", "tasks": "Pressure from morning tasks", "physical": "My body felt tired", "emotions": "My emotions", "unsure": "Not sure" } },
+          "note": { "title": "Optional note", "placeholder": "For example: I thought about schoolwork as soon as I woke up, so I did not want to begin." }
         }
       },
       "eat": {
-        "title": "饮食", "description": "先看看今天吃饭的节奏是否规律。",
+        "title": "Eat", "description": "Notice whether your meal rhythm has been regular today.",
         "fields": {
-          "rhythm": { "title": "今天饮食节奏如何？", "options": { "regular": "基本规律", "oneIrregular": "有一餐不太规律", "irregular": "时间比较乱", "barelyAte": "几乎没有好好吃饭" } },
-          "mealCount": { "title": "今天大概吃了几餐？", "options": { "three": "三餐比较规律", "two": "两餐", "one": "一餐", "scattered": "吃得比较零散", "unsure": "不太确定" } },
-          "foodDetails": { "title": "今天吃了什么？", "placeholder": "想记录时再写，不需要列出每一样食物。" },
-          "factors": { "title": "饮食状态可能和什么有关？", "options": { "busy": "太忙了", "appetite": "没胃口", "schedule": "作息太乱", "emotions": "情绪影响", "forgot": "忘记吃饭", "limited": "家里或学校选择有限", "unsure": "不太确定" } },
-          "energyConnection": { "title": "今天精力和饮食有关系吗？", "options": { "yes": "感觉有关系", "maybe": "好像有一点", "unsure": "不太确定", "no": "没什么关系" } }
+          "rhythm": { "title": "How was your meal rhythm today?", "options": { "regular": "Mostly regular", "oneIrregular": "One meal was irregular", "irregular": "Meal times were quite irregular", "barelyAte": "I barely ate a proper meal" } },
+          "mealCount": { "title": "About how many meals did you have today?", "options": { "three": "Three fairly regular meals", "two": "Two meals", "one": "One meal", "scattered": "Small amounts at different times", "unsure": "Not sure" } },
+          "foodDetails": { "title": "What did you eat today?", "placeholder": "Add this only if you want to. You do not need to list every item." },
+          "factors": { "title": "What may have affected your eating today?", "options": { "busy": "I was too busy", "appetite": "I had little appetite", "schedule": "My schedule was irregular", "emotions": "My emotions", "forgot": "I forgot to eat", "limited": "Limited choices at home or school", "unsure": "Not sure" } },
+          "energyConnection": { "title": "Did eating affect your energy today?", "options": { "yes": "Yes, it seemed connected", "maybe": "Maybe a little", "unsure": "Not sure", "no": "Not really" } }
         }
       },
       "exercise": {
-        "title": "运动", "description": "先看看今天身体大概活动了多久。",
+        "title": "Exercise", "description": "Notice how much you moved your body today.",
         "fields": {
-          "duration": { "title": "今天大概活动了多久？", "options": { "none": "几乎没有活动", "fiveToTen": "5-10 分钟", "tenToTwenty": "10-20 分钟", "twentyToThirty": "20-30 分钟", "overThirty": "30 分钟以上", "unsure": "不太确定" } },
-          "activityTypes": { "title": "今天做了什么活动？", "options": { "walking": "走路", "stretching": "拉伸", "pe": "体育课", "sports": "球类/跑步/跳操等运动", "commute": "上下楼/通勤", "daily": "家务或日常活动", "none": "几乎没有", "other": "其他" } },
-          "activityNote": { "title": "活动补充", "placeholder": "例如：今天走路回家，大概 15 分钟；或者体育课跑了一会儿。" },
-          "bodyState": { "title": "今天身体状态更像哪种？", "options": { "relaxed": "比较放松", "tense": "有点紧绷", "sitting": "久坐后不太舒服", "tired": "很累，不想动", "unsure": "不太确定" } },
-          "factors": { "title": "活动较少可能和什么有关？", "options": { "tired": "太累了", "time": "没有时间", "motivation": "没有动力", "sitting": "一直坐着学习或工作", "emotions": "情绪影响", "physical": "身体不舒服", "unsure": "不太确定" } }
+          "duration": { "title": "About how long were you active today?", "options": { "none": "Almost no activity", "fiveToTen": "5–10 minutes", "tenToTwenty": "10–20 minutes", "twentyToThirty": "20–30 minutes", "overThirty": "More than 30 minutes", "unsure": "Not sure" } },
+          "activityTypes": { "title": "What kind of activity did you do today?", "options": { "walking": "Walking", "stretching": "Stretching", "pe": "Physical education class", "sports": "Sports, running, dance, or similar activity", "commute": "Stairs or active travel", "daily": "Housework or everyday activity", "none": "Almost none", "other": "Other" } },
+          "activityNote": { "title": "Optional activity note", "placeholder": "For example: I walked home for about 15 minutes, or ran for a while in physical education class." },
+          "bodyState": { "title": "How did your body feel today?", "options": { "relaxed": "Fairly relaxed", "tense": "A little tense", "sitting": "Uncomfortable after sitting for a long time", "tired": "Too tired to move", "unsure": "Not sure" } },
+          "factors": { "title": "What may have contributed to less activity?", "options": { "tired": "I was too tired", "time": "I did not have time", "motivation": "I had little motivation", "sitting": "I was sitting to study or work", "emotions": "My emotions", "physical": "Physical discomfort", "unsure": "Not sure" } }
         }
       },
       "task": {
-        "title": "任务投入", "description": "先看看今天开始学习或生活任务是否顺利。",
+        "title": "Task engagement", "description": "Notice how it felt to begin learning or everyday tasks today.",
         "fields": {
-          "engagement": { "title": "今天学习或生活任务完成得怎么样？", "options": { "smooth": "比较顺利", "basic": "能完成基本任务", "difficult": "开始有点困难", "stuck": "很难开始，或一直拖着" } },
-          "difficultyReasons": { "title": "最卡住的是哪一部分？", "options": { "tooMany": "任务太多", "start": "不知道从哪里开始", "performance": "担心做不好", "pressure": "被催促后更抗拒", "emotional": "情绪很累", "unsure": "不太确定" } },
-          "completedSmallTask": { "title": "今天有没有一个完成的小任务？", "placeholder": "例如：完成了一页作业、整理了书包、回复了一条消息。" }
+          "engagement": { "title": "How did learning or everyday tasks go today?", "options": { "smooth": "Fairly smoothly", "basic": "I managed the basic tasks", "difficult": "It was a little hard to start", "stuck": "It was very hard to start, or I kept putting it off" } },
+          "difficultyReasons": { "title": "What felt most difficult?", "options": { "tooMany": "There were too many tasks", "start": "I did not know where to begin", "performance": "I was worried I would not do it well", "pressure": "Pressure from others made me resist more", "emotional": "I felt emotionally drained", "unsure": "Not sure" } },
+          "completedSmallTask": { "title": "Did you complete one small task today?", "placeholder": "For example: finished one page of schoolwork, packed my bag, or replied to a message." }
         }
       }
     },
     "messages": {
-      "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "网络连接不稳定，请检查网络后重新保存。", "saveFailed": "这次没有保存成功，请稍后再试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。"
+      "selectRequired": "Choose the option that best matches how you are today.", "sessionExpired": "Your sign-in session has expired. Sign in again before saving.", "permissionDenied": "This account does not currently have permission to save. Contact your school lead or platform administrator.", "networkError": "The network connection is unstable. Check your connection and try saving again.", "saveFailed": "Your check-in could not be saved this time. Try again later.", "completeBeforeSave": "Complete the required questions in all five SWEET areas before saving.", "alreadySaved": "This SWEET check-in has already been saved.", "signInToSave": "Sign in before saving this check-in.", "saved": "Saved. You can view it under Account.", "summaryFailed": "A summary could not be created this time. Try again later.", "completeBeforeGenerate": "Complete the required questions in all five SWEET areas before generating a response.", "responseUnavailable": "A response is not available right now. Try again later.", "completeRequired": "Complete the required questions in all five SWEET areas.", "summaryUnavailableSaveAllowed": "A summary is not available right now. You can still save this check-in and try again later."
     },
-    "actions": { "previous": "上一步", "next": "下一步", "generatingAndSaving": "正在生成并保存...", "generateAndSave": "生成小结并保存", "retrying": "正在重试...", "regenerate": "重新生成", "saving": "正在保存...", "saveFirst": "先保存记录", "savedToAccount": "已保存到账号", "saveToAccount": "保存到账号", "openMoodJournal": "打开心情拼图", "openWorryTime": "今晚先放下", "viewReferral": "查看支持路径", "reset": "重新填写" },
-    "result": { "title": "今日 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "今天可以多留意：{{areas}}", "rhythmClue": "今天的一条节律线索", "smallStep": "明天只做这一小步", "nextTool": "接下来可以去哪里", "disclaimer": "这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。" }
+    "actions": { "previous": "Previous", "next": "Next", "generatingAndSaving": "Generating and saving...", "generateAndSave": "Generate summary and save", "retrying": "Trying again...", "regenerate": "Generate again", "saving": "Saving...", "saveFirst": "Save check-in first", "savedToAccount": "Saved to account", "saveToAccount": "Save to account", "openMoodJournal": "Open the mood map", "openWorryTime": "Set worries aside tonight", "viewReferral": "View support pathways", "reset": "Start again" },
+    "result": { "title": "Today's SWEET rhythm summary", "imageAlt": "An illustration of a check-in organized into a clear summary", "affectedAreas": "Areas to notice today: {{areas}}", "rhythmClue": "One rhythm clue from today", "smallStep": "One small step for tomorrow", "nextTool": "Where you can go next", "disclaimer": "This response can help you reflect on how you are doing and consider next steps. It does not replace professional support." }
   },
   "moodJournal": {
-    "metadata": { "title": "心情拼图 | YouthTempo" },
-    "hero": { "label": "感受整理", "title": "心情拼图", "description": "如果一时说不清感受，可以先选几个接近的情绪词，再慢慢补充发生了什么、身体有什么感觉。", "imageAlt": "由不同颜色与表情组成的心情拼图插画" },
+    "metadata": { "title": "Mood Map | YouthTempo" },
+    "hero": { "label": "Explore your feelings", "title": "Mood map", "description": "If your feelings are hard to describe, start by choosing a few emotion words that feel close. Then add what happened and what you noticed in your body.", "imageAlt": "A mood map made up of different colors and expressions" },
     "emotions": {
-      "label": "情绪词卡", "title": "情绪词卡", "description": "如果一开始说不清楚，可以先从几个接近的词开始。",
+      "label": "Emotion cards", "title": "Emotion cards", "description": "If it is hard to explain at first, begin with a few words that feel close.",
       "groups": {
-        "pressure": { "title": "压力类", "words": { "tense": "紧张", "anxious": "焦虑", "pressured": "压迫", "uneasy": "不安" } },
-        "low": { "title": "低落类", "words": { "sad": "难过", "empty": "空", "hurt": "委屈", "unmotivated": "没动力" } },
-        "irritable": { "title": "烦躁类", "words": { "irritable": "烦躁", "angry": "生气", "avoid": "想躲开", "quiet": "不想说话" } },
-        "unclear": { "title": "模糊类", "words": { "unclear": "说不清", "messy": "很乱", "numb": "麻木", "tired": "累" } }
+        "pressure": { "title": "Pressure", "words": { "tense": "Tense", "anxious": "Anxious", "pressured": "Under pressure", "uneasy": "Uneasy" } },
+        "low": { "title": "Feeling low", "words": { "sad": "Sad", "empty": "Empty", "hurt": "Hurt", "unmotivated": "Unmotivated" } },
+        "irritable": { "title": "Irritability", "words": { "irritable": "Irritable", "angry": "Angry", "avoid": "Wanting to get away", "quiet": "Not wanting to talk" } },
+        "unclear": { "title": "Hard to name", "words": { "unclear": "Hard to explain", "messy": "All mixed up", "numb": "Numb", "tired": "Tired" } }
       }
     },
-    "reflection": { "title": "引导式整理", "description": "这些问题只是帮助你整理今天的状态，不是测试，也不是正式评估。", "context": "这件事发生在什么情境里？", "body": "当时你身体有什么感觉？", "understanding": "你最想被别人理解的一点是什么？", "support": "现在你希望自己先得到什么支持？" },
+    "reflection": { "title": "Guided reflection", "description": "These questions are here to help you reflect on how you feel today. They are not a test or a formal assessment.", "context": "What was happening when this came up?", "body": "What did you notice in your body at the time?", "understanding": "What do you most want someone else to understand?", "support": "What kind of support would feel helpful right now?" },
     "starters": {
-      "title": "可以直接说的话", "description": "不用说得很完整。选一句最接近你现在感受的话，向家长、老师或可信任的人开口。",
-      "default": { "confused": "我现在有点乱，能先听我慢慢说吗？", "listen": "你先听我说完，可以吗？", "tired": "我最近真的有点累，能先陪我一下吗？", "stuck": "我不是不想做，是现在有点不知道怎么开始。" },
-      "context": { "task": "我不是不想做，是现在有点不知道怎么开始。能陪我先拆小一点吗？", "unclear": "我现在有点乱，还没想好怎么说。你能先听听吗？", "conflict": "你先听我说完，可以吗？我现在还不太需要建议。" }
+      "title": "Words you can use", "description": "You do not have to explain everything perfectly. Choose a sentence that feels close and use it to reach out to a parent, teacher, or someone you trust.",
+      "default": { "confused": "Things feel a bit mixed up right now. Could you listen while I take my time?", "listen": "Could you let me finish before you respond?", "tired": "I have been feeling really tired lately. Could you stay with me for a while?", "stuck": "It is not that I do not want to do it. I am just not sure how to begin right now." },
+      "context": { "task": "It is not that I do not want to do it. I am just not sure how to begin. Could you help me break it into a smaller step?", "unclear": "Things feel mixed up, and I do not know how to explain them yet. Could you listen for a moment?", "conflict": "Could you let me finish first? I do not need advice just yet." }
     },
-    "messages": { "completeRequired": "请先完成必要问题，再生成回应。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "暂时无法生成回应，请稍后再试。" },
-    "actions": { "organizing": "正在整理，请稍等……", "organize": "整理我的感受", "changeStarter": "换一条表达句式", "hideStarters": "收起其他句式", "showStarters": "查看其他句式" },
-    "result": { "title": "把现在的感受说清一点", "emotions": "你今天可能正在经历的情绪", "support": "这件事里你可能最需要的支持", "expression": "可以试着这样表达", "smallStep": "今天可以先做的一件小事", "disclaimer": "这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。" }
+    "messages": { "completeRequired": "Complete the required questions before generating a response.", "connectionFailed": "We could not connect this time. Try again later.", "responseUnavailable": "A response is not available right now. Try again later." },
+    "actions": { "organizing": "Organizing your thoughts...", "organize": "Help me understand my feelings", "changeStarter": "Try another sentence", "hideStarters": "Hide other sentences", "showStarters": "View other sentences" },
+    "result": { "title": "Put your feelings into words", "emotions": "Emotions you may be experiencing today", "support": "The support you may need most in this situation", "expression": "One way you could express this", "smallStep": "One small thing you could do today", "disclaimer": "This response can help you reflect on how you are doing and consider next steps. It does not replace professional support." }
   },
   "talk": {
-    "metadata": { "title": "陪我捋一捋 | YouthTempo" },
-    "hero": { "title": "陪我捋一捋", "description": "不用一次说清楚。先写下眼前最卡住的一件事，再一问一答地把它捋清一点。", "imageAlt": "把打结的感受慢慢整理成清晰路径的插画" },
-    "session": { "title": "本次对话", "description": "内容只保留在当前页面，刷新或离开后会清空。这里的文字整理不能代替真人或专业支持。", "organizing": "正在整理你的话…" },
-    "starters": { "title": "可以从一句话开始", "lingering": "我最近有件事一直放不下。", "confused": "我现在有点乱，不知道从哪里说。", "listen": "我只想先找个人听我说说。" },
-    "form": { "label": "写下想说的话", "limitPlaceholder": "这次先聊到这里。", "placeholder": "写下你现在最想说的话…" },
-    "messages": { "connectionFailed": "这次没有连接成功，请稍后再试。", "pause": "我们可以先停一下。", "connectionFailedWithReferral": "这次没有连接成功，可以稍后再试，或先转到支持路径。" },
-    "support": { "title": "什么时候转向真人支持", "description": "如果已经影响睡眠、吃饭、学习或安全，不用继续在这里解释，可以直接找可信任的大人或学校老师。", "tellSomeoneTitle": "可以让一个人知道", "tellSomeoneText": "你可以直接说：“我最近有点难撑，能先陪我聊一会儿吗？”" },
-    "actions": { "send": "发送", "viewReferral": "看看下一步找谁", "clear": "结束并清空" }
+    "metadata": { "title": "Talk It Through | YouthTempo" },
+    "hero": { "title": "Talk it through", "description": "You do not have to explain everything at once. Start with the one thing that feels most difficult, then work through it one question at a time.", "imageAlt": "An illustration of tangled feelings gradually becoming a clearer path" },
+    "session": { "title": "This conversation", "description": "Your words stay only on this page and will be cleared if you refresh or leave. This guided conversation does not replace support from a trusted person or qualified professional.", "organizing": "Organizing what you shared..." },
+    "starters": { "title": "Start with one sentence", "lingering": "There is something I have not been able to let go of lately.", "confused": "Things feel mixed up, and I do not know where to begin.", "listen": "I just want someone to listen for a while." },
+    "form": { "label": "Write what you want to say", "limitPlaceholder": "Let's pause here for this conversation.", "placeholder": "Write what you most want to say right now..." },
+    "messages": { "connectionFailed": "We could not connect this time. Try again later.", "pause": "We can pause here.", "connectionFailedWithReferral": "We could not connect this time. You can try again later or go directly to the support pathways." },
+    "support": { "title": "When to reach out to a person", "description": "If this is affecting your sleep, meals, learning, or safety, you do not need to keep explaining it here. Reach out directly to an adult you trust or a teacher at your school.", "tellSomeoneTitle": "Let someone know", "tellSomeoneText": "You can say: “I have been finding things hard lately. Could you stay and talk with me for a while?”" },
+    "actions": { "send": "Send", "viewReferral": "Find the right support", "clear": "End and clear" }
   },
   "worryTime": {
-    "metadata": { "title": "今晚先放下 | YouthTempo" },
-    "hero": { "label": "睡前整理", "title": "今晚先放下", "description": "这是 SWEET 睡眠维度下的延伸工具。用 15 分钟把反复出现的担心写下来，分清今晚能做什么、什么可以留到明天。", "imageAlt": "在月光下把担心暂时收好、留给明天处理的插画" },
-    "timer": { "title": "15 分钟整理", "description": "给睡前担心一个清晰边界：先整理 15 分钟，剩下的留给明天慢慢处理。", "label": "今晚的 15 分钟", "finished": "15 分钟到了。今天的担心已经被看见，剩下的可以留给明天慢慢处理。" },
-    "worries": { "title": "写下现在最放不下的事", "item": "担心 {{number}}" },
-    "sorting": { "title": "把担心分一分", "description": "不需要判断对错，只是先看看：哪些可以做一点点，哪些今晚可以先放下。" },
-    "controls": { "actionable": "我可以做一点点", "uncontrollable": "我暂时控制不了", "unsure": "我还不确定" },
-    "action": { "title": "明天可以做的一个小行动", "placeholder": "明天我可以先做的一件小事是……" },
-    "messages": { "addWorry": "可以先写下至少一个担心，再生成整理。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "暂时无法完成整理，请稍后再试。" },
-    "actions": { "start": "开始", "pause": "暂停", "resetTimer": "重置", "organizing": "正在整理……", "organize": "帮我分一分", "complete": "完成整理", "reset": "重新填写", "backToSweet": "回到 SWEET 节律", "openMoodJournal": "打开心情拼图" },
-    "result": { "title": "先把担心分一分", "controllable": "可以先做一点点的部分", "tomorrow": "可以暂时放到明天的部分", "smallAction": "明天最小行动", "bedtimeSentence": "睡前可以对自己说的一句话" },
-    "done": { "title": "今天先到这里", "description": "你已经把担心放到了纸面上，也给明天留了一个小行动。现在可以允许自己慢慢收尾。" }
+    "metadata": { "title": "Set Worries Aside Tonight | YouthTempo" },
+    "hero": { "label": "Before-bed reflection", "title": "Set worries aside tonight", "description": "This tool builds on the Sleep area of SWEET. Take 15 minutes to write down recurring worries and separate what you can do tonight from what can wait until tomorrow.", "imageAlt": "An illustration of setting worries aside under the moonlight to revisit tomorrow" },
+    "timer": { "title": "15-minute worry time", "description": "Give bedtime worries a clear boundary: spend 15 minutes reflecting on them, then leave the rest for tomorrow.", "label": "Tonight's 15 minutes", "finished": "The 15 minutes are up. You have acknowledged today's worries, and the rest can wait until tomorrow." },
+    "worries": { "title": "Write down what is hardest to set aside", "item": "Worry {{number}}" },
+    "sorting": { "title": "Sort your worries", "description": "There is no right or wrong answer. Simply notice what you can take a small step on and what you can set aside tonight." },
+    "controls": { "actionable": "I can take a small step", "uncontrollable": "I cannot control this right now", "unsure": "I am not sure yet" },
+    "action": { "title": "One small action for tomorrow", "placeholder": "One small thing I can do tomorrow is..." },
+    "messages": { "addWorry": "Write down at least one worry before organizing your thoughts.", "connectionFailed": "We could not connect this time. Try again later.", "responseUnavailable": "Your worries could not be organized right now. Try again later." },
+    "actions": { "start": "Start", "pause": "Pause", "resetTimer": "Reset", "organizing": "Organizing...", "organize": "Help me sort them", "complete": "Finish reflection", "reset": "Start again", "backToSweet": "Back to SWEET rhythms", "openMoodJournal": "Open the mood map" },
+    "result": { "title": "Sort your worries", "controllable": "Where you can take a small step", "tomorrow": "What can wait until tomorrow", "smallAction": "Smallest action for tomorrow", "bedtimeSentence": "A sentence to tell yourself before sleep" },
+    "done": { "title": "That is enough for today", "description": "You have put your worries into words and chosen one small action for tomorrow. You can let the day come to a gentle close." }
   },
   "referral": {
-    "metadata": { "title": "下一步找谁 | YouthTempo" },
-    "hero": { "title": "下一步找谁", "description": "当自己整理还不够时，用几道题判断现在适合继续自助、告诉可信任的人，还是尽快连接更多支持。", "imageAlt": "穿过自然山丘、逐步靠近支持的路径插画" },
-    "flow": { "select": "选择当前状态", "generate": "生成支持路径建议", "view": "查看下一步入口", "step": "第 {{number}} 步", "completed": "已完成" },
+    "metadata": { "title": "Find the Right Support | YouthTempo" },
+    "hero": { "title": "Find the right support", "description": "When reflecting on your own is not enough, answer a few questions to consider whether to continue with self-guided tools, tell someone you trust, or connect with more support soon.", "imageAlt": "A path through natural hills leading step by step towards support" },
+    "flow": { "select": "Choose what fits", "generate": "Create a support pathway", "view": "View next steps", "step": "Step {{number}}", "completed": "Completed" },
     "questions": {
-      "multiInstruction": "可多选",
-      "currentState": { "title": "你现在最接近哪种状态？", "instruction": "可多选，选择最接近你的 1–3 项", "options": { "emotionalPressure": "情绪压力比较大", "sleep": "最近睡眠不太稳定", "tasks": "学习或任务很难开始", "family": "和家人沟通有点困难", "eatingOrPhysical": "吃饭或身体状态受到影响", "expression": "不知道怎么表达自己", "organize": "只是想先整理一下", "unsure": "不太确定" } },
-      "duration": { "title": "这些状态大概持续多久了？", "options": { "today": "只是今天", "days": "几天以内", "weeks": "一两周", "longer": "更久一些", "unsure": "不太确定" } },
-      "impact": { "title": "是否影响到睡眠、学习或日常生活？", "options": { "none": "基本没有", "some": "有一点影响", "significant": "已经明显影响", "unsure": "不太确定" } },
-      "affectedAreas": { "title": "主要影响到哪些方面？", "options": { "sleep": "睡眠", "tasks": "学习或任务", "eating": "吃饭", "physical": "身体状态", "family": "家庭沟通", "expression": "情绪表达", "dailyLife": "日常生活", "none": "基本没有", "unsure": "不太确定" } },
-      "trustedAdult": { "title": "你现在愿意和可信任的大人说吗？", "options": { "willing": "愿意", "unsureHow": "可能愿意，但不知道怎么开口", "notNow": "暂时不想", "unsure": "不太确定" } },
-      "supportType": { "title": "你更希望先获得哪类支持？", "options": { "self": "自己先整理一下", "listener": "有人听我说", "school": "学校支持", "professional": "专业资源", "unsure": "不太确定" } },
-      "currentNeed": { "title": "你现在最需要的是哪一种？", "options": { "understood": "被理解", "smallStep": "一个具体小步骤", "direction": "帮我判断下一步", "expression": "帮我和别人表达", "unsure": "不太确定" } }
+      "multiInstruction": "Select all that apply",
+      "currentState": { "title": "What feels closest to how you are right now?", "instruction": "Select 1–3 options that feel closest", "options": { "emotionalPressure": "I am under a lot of emotional pressure", "sleep": "My sleep has been unsettled lately", "tasks": "It is hard to begin learning or other tasks", "family": "Communication with my family is difficult", "eatingOrPhysical": "My eating or physical wellbeing is affected", "expression": "I do not know how to express myself", "organize": "I just want to sort things out first", "unsure": "I am not sure" } },
+      "duration": { "title": "About how long has this been going on?", "options": { "today": "Only today", "days": "A few days", "weeks": "One or two weeks", "longer": "Longer than that", "unsure": "I am not sure" } },
+      "impact": { "title": "Is this affecting your sleep, learning, or daily life?", "options": { "none": "Not really", "some": "A little", "significant": "It is having a clear impact", "unsure": "I am not sure" } },
+      "affectedAreas": { "title": "Which areas are most affected?", "options": { "sleep": "Sleep", "tasks": "Learning or other tasks", "eating": "Eating", "physical": "Physical wellbeing", "family": "Family communication", "expression": "Expressing emotions", "dailyLife": "Daily life", "none": "None in particular", "unsure": "I am not sure" } },
+      "trustedAdult": { "title": "Would you be willing to tell an adult you trust?", "options": { "willing": "Yes", "unsureHow": "Maybe, but I do not know how to begin", "notNow": "Not right now", "unsure": "I am not sure" } },
+      "supportType": { "title": "What kind of support would you prefer first?", "options": { "self": "Time to reflect on my own", "listener": "Someone to listen", "school": "Support at school", "professional": "Professional support", "unsure": "I am not sure" } },
+      "currentNeed": { "title": "What do you need most right now?", "options": { "understood": "To feel understood", "smallStep": "One clear, small step", "direction": "Help deciding what to do next", "expression": "Help telling someone how I feel", "unsure": "I am not sure" } }
     },
-    "status": { "selectedCount": "已选择 {{count}} 项", "multi": "可多选", "selected": "已选择", "single": "单选" },
-    "messages": { "maxSelections": "这题最多选择 {{count}} 项。", "selectCurrentState": "可以先选择一个最接近你现在状态的选项。", "completeQuestions": "可以先选择几个最接近你现在状态的选项。", "responseUnavailable": "暂时无法生成回应，请稍后再试。" },
-    "generate": { "title": "生成支持路径建议", "progress": "已选择 {{selected}} / {{total}} 项。选择越接近当前状态，建议会越具体。", "description": "这不是评判，只是帮助你整理下一步可以从哪里开始。", "noteLabel": "还有什么想补充的吗？", "notePlaceholder": "可以写一句，也可以先留空。" },
-    "actions": { "generating": "正在生成支持路径建议……", "generate": "生成支持路径建议" },
-    "paths": { "moreSupport": "整理当前状态，并连接更多支持", "lowPressure": "从一个低压力入口开始", "moodFirst": "先拼一拼现在的心情", "worryFirst": "今晚先放下一点", "rhythmAndExpression": "从节律和表达开始", "expressionAndTell": "先整理表达，再让一个可信任的人知道", "rhythmAndTell": "记录节律，并让可信任的人知道", "checkInFirst": "先做 SWEET 节律记录", "selfOrganize": "先自己整理一下", "lowBarrier": "从低门槛记录开始", "tellAdult": "尝试和可信任的大人说" },
-    "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET 节律记录", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
-    "result": { "label": "支持建议", "title": "你的下一步支持路径", "answerSummary": "{{question}}：{{answers}}", "noSelection": "你还没有选择当前状态。", "path": "建议路径", "reason": "为什么这样建议", "howToStart": "可以怎么开始", "fallbackStarter": "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”", "links": "推荐入口" },
-    "direct": { "title": "你也可以直接让一个人知道", "description": "不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。", "action": "打开悄悄话信箱" }
+    "status": { "selectedCount": "{{count}} selected", "multi": "Select all that apply", "selected": "Selected", "single": "Choose one" },
+    "messages": { "maxSelections": "You can select up to {{count}} options for this question.", "selectCurrentState": "Choose the option that best matches how you are right now.", "completeQuestions": "Choose a few options that best match how you are right now.", "responseUnavailable": "A response is not available right now. Try again later." },
+    "generate": { "title": "Create a support pathway", "progress": "{{selected}} of {{total}} answered. The closer your choices are to your current situation, the more specific the guidance can be.", "description": "This is not a judgment. It is a way to consider where your next step could begin.", "noteLabel": "Is there anything else you would like to add?", "notePlaceholder": "Write one sentence, or leave this blank for now." },
+    "actions": { "generating": "Creating your support pathway...", "generate": "Create my support pathway" },
+    "paths": { "moreSupport": "Understand what is happening and connect with more support", "lowPressure": "Start with a low-pressure option", "moodFirst": "Begin by mapping your emotions", "worryFirst": "Set some worries aside tonight", "rhythmAndExpression": "Start with rhythm and expression", "expressionAndTell": "Put it into words, then tell someone you trust", "rhythmAndTell": "Check in with your rhythm and tell someone you trust", "checkInFirst": "Start with a SWEET rhythm check-in", "selfOrganize": "Take some time to reflect on your own", "lowBarrier": "Start with a simple check-in", "tellAdult": "Try telling an adult you trust" },
+    "links": { "moodJournal": "Mood map", "worryTime": "Set worries aside tonight", "checkIn": "SWEET rhythm check-in", "messages": "Private messages", "tellAdult": "Tell a teacher or parent" },
+    "result": { "label": "Support guidance", "title": "Your next support pathway", "answerSummary": "{{question}}: {{answers}}", "noSelection": "You have not selected how you are feeling yet.", "path": "Suggested pathway", "reason": "Why this may fit", "howToStart": "How to begin", "fallbackStarter": "“I have been feeling stuck lately. I do not need you to resolve it right away, but I want you to know.”", "links": "Suggested options" },
+    "direct": { "title": "You can also tell someone directly", "description": "You do not need to complete every question first. Write the one thing you most want a teacher or parent to know.", "action": "Open private messages" }
   },
   "resources": {
     "metadata": { "title": "家校陪伴指南 | YouthTempo" },
