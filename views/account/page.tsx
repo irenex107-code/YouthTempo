@@ -84,6 +84,21 @@ function formatDate(value: string, locale: Locale) {
   }).format(new Date(value));
 }
 
+function recordCountLabel(count: number, locale: Locale, t: Translate) {
+  return t(locale === "en" && count === 1 ? "account.summary.recordCountOne" : "account.summary.recordCount", { count });
+}
+
+function recordedDaysLabel(count: number, locale: Locale, t: Translate) {
+  return t(locale === "en" && count === 1 ? "account.summary.daysRecordedOne" : "account.summary.daysRecorded", { count });
+}
+
+function relationshipDaysLabel(period: "fourWeek" | "sevenDay", count: number, locale: Locale, t: Translate) {
+  const key = locale === "en" && count === 1
+    ? `account.relationships.${period}DaysOne`
+    : `account.relationships.${period}Days`;
+  return t(key as TranslationKey, { count });
+}
+
 function countRecentRecordDays(records: CloudSweetRecord[], userId?: string) {
   if (!userId) return 0;
   const today = new Date();
@@ -783,13 +798,13 @@ export default function AccountPage() {
                   </div>
                   <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
                     <p className="text-xs font-bold text-sage">{t("account.summary.visibleRecords")}</p>
-                    <p className="mt-2 text-xl font-bold text-ink">{t("account.summary.recordCount", { count: records.length })}</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{recordCountLabel(records.length, locale, t)}</p>
                     <p className="mt-2 text-sm text-muted">{t("account.summary.savedToAccount")}</p>
                   </div>
                   {!isIdentityLoading && displayRole === "学生" ? (
                     <div className="rounded-2xl border border-sage/30 bg-mist/70 px-5 py-5">
                       <p className="text-xs font-bold text-sage">{t("account.summary.lastSevenDays")}</p>
-                      <p className="mt-2 text-xl font-bold text-ink">{t("account.summary.daysRecorded", { count: recentRecordDays })}</p>
+                      <p className="mt-2 text-xl font-bold text-ink">{recordedDaysLabel(recentRecordDays, locale, t)}</p>
                       <p className="mt-2 text-sm text-muted">{t("account.summary.notEveryDay")}</p>
                     </div>
                   ) : (
@@ -812,7 +827,8 @@ export default function AccountPage() {
                   <h2 className="mt-2 text-2xl font-bold text-ink">{t("account.consent.title")}</h2>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
                     {t("account.consent.description")}
-                    <Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">{t("account.consent.privacyLink")}</Link>{t("account.consent.sentenceEnd")}
+                    {locale === "en" ? " " : null}
+                    <Link href="/privacy-safety#student-consent" className={`${locale === "en" ? "" : "ml-1 "}font-bold text-sage-dark underline underline-offset-4`}>{t("account.consent.privacyLink")}</Link>{t("account.consent.sentenceEnd")}
                   </p>
 
                   {consentStatus.role === "student" && consentStatus.consent ? (
@@ -1020,7 +1036,8 @@ export default function AccountPage() {
                         </div>
                         <p className="text-sm leading-7 text-muted">
                           {t("account.deletion.privacyPrefix")}
-                          <Link href="/privacy-safety#account-data" className="ml-1 font-bold text-sage-dark underline underline-offset-4">{t("account.consent.privacyLink")}</Link>{t("account.consent.sentenceEnd")}
+                          {locale === "en" ? " " : null}
+                          <Link href="/privacy-safety#account-data" className={`${locale === "en" ? "" : "ml-1 "}font-bold text-sage-dark underline underline-offset-4`}>{t("account.consent.privacyLink")}</Link>{t("account.consent.sentenceEnd")}
                         </p>
                       </div>
                     )}
@@ -1059,8 +1076,8 @@ export default function AccountPage() {
                           <span className="block font-bold text-ink">{person.display_name}</span>
                           <span className="mt-1 block text-xs text-muted">
                             {isParent
-                              ? t("account.relationships.fourWeekDays", { count: personOverview.activeDays })
-                              : t("account.relationships.sevenDayDays", { count: personOverview.activeDays })}
+                              ? relationshipDaysLabel("fourWeek", personOverview.activeDays, locale, t)
+                              : relationshipDaysLabel("sevenDay", personOverview.activeDays, locale, t)}
                           </span>
                         </button>
                       );
@@ -1077,7 +1094,7 @@ export default function AccountPage() {
                       </h2>
                     </div>
                     <span className="rounded-full bg-cream px-4 py-2 text-sm font-bold text-sage-dark">
-                      {t("account.summary.daysRecorded", { count: relatedOverview.activeDays })}
+                      {recordedDaysLabel(relatedOverview.activeDays, locale, t)}
                     </span>
                   </div>
 
@@ -1164,19 +1181,22 @@ export default function AccountPage() {
                           {t("account.records.viewFull")}
                         </summary>
                         <div className="grid gap-5 border-t border-ink/10 px-4 py-5">
-                          {record.records.map((step) => (
-                            <div key={step.id}>
-                              <h4 className="text-sm font-bold text-ink">{step.label} · {storedRecordLabel(locale, `checkIn.steps.${step.id}.title`, step.title)}</h4>
-                              <dl className="mt-3 grid gap-3">
-                                {step.fields.map((field) => (
-                                  <div key={field.id} className="rounded-xl bg-cream px-4 py-3">
-                                    <dt className="text-xs font-bold leading-5 text-muted">{storedRecordLabel(locale, `checkIn.steps.${step.id}.fields.${field.id}.title`, field.title)}</dt>
-                                    <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value, locale, t)}</dd>
-                                  </div>
-                                ))}
-                              </dl>
-                            </div>
-                          ))}
+                          {record.records.map((step, stepIndex) => {
+                            const stepKey = step.id || `${record.id}-step-${stepIndex}`;
+                            return (
+                              <div key={stepKey}>
+                                <h4 className="text-sm font-bold text-ink">{step.label} · {storedRecordLabel(locale, `checkIn.steps.${step.id}.title`, step.title)}</h4>
+                                <dl className="mt-3 grid gap-3">
+                                  {step.fields.map((field, fieldIndex) => (
+                                    <div key={field.id || `${stepKey}-field-${fieldIndex}`} className="rounded-xl bg-cream px-4 py-3">
+                                      <dt className="text-xs font-bold leading-5 text-muted">{storedRecordLabel(locale, `checkIn.steps.${step.id}.fields.${field.id}.title`, field.title)}</dt>
+                                      <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value, locale, t)}</dd>
+                                    </div>
+                                  ))}
+                                </dl>
+                              </div>
+                            );
+                          })}
                         </div>
                       </details>
                       {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
