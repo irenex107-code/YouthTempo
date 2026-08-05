@@ -23,11 +23,13 @@ for (const route of publicRoutes) {
 
     const chinese = pageCopy(zhCN, route.section);
     await page.goto(route.path);
+    await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
     await expect(page).toHaveTitle(chinese.metadata.title);
     await expect(page.getByRole("heading", { level: 1, name: chinese.hero.title })).toBeVisible();
 
     const english = pageCopy(en, route.section);
     await page.goto(`/en${route.path}`);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page).toHaveTitle(english.metadata.title);
     await expect(page.getByRole("heading", { level: 1, name: english.hero.title })).toBeVisible();
     expect(browserErrors).toEqual([]);
@@ -35,19 +37,31 @@ for (const route of publicRoutes) {
 }
 
 const visitorRoutes = [
-  { path: "/account", title: zhCN.account.metadata.title, heading: zhCN.account.visitor.title },
-  { path: "/feedback", title: zhCN.feedback.metadata.title, heading: zhCN.feedback.visitor.title },
-  { path: "/messages", title: zhCN.messages.metadata.title, heading: zhCN.messages.visitor.title },
+  { path: "/account", section: "account" },
+  { path: "/feedback", section: "feedback" },
+  { path: "/messages", section: "messages" },
 ] as const;
 
 for (const route of visitorRoutes) {
-  test(`${route.path} 未登录访客入口使用词典文案`, async ({ page }) => {
-    await page.goto(route.path);
-    await expect(page).toHaveTitle(route.title);
-    await expect(page.getByRole("heading", { name: route.heading })).toBeVisible();
+  test(`${route.path} 未登录访客入口按 locale 使用对应词典文案`, async ({ page }) => {
+    const browserErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") browserErrors.push(message.text());
+    });
+    page.on("pageerror", (error) => browserErrors.push(error.message));
 
+    const chinese = zhCN[route.section];
+    await page.goto(route.path);
+    await expect(page).toHaveTitle(chinese.metadata.title);
+    await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
+    await expect(page.getByRole("heading", { name: chinese.visitor.title })).toBeVisible();
+
+    const english = en[route.section];
     await page.goto(`/en${route.path}`);
-    await expect(page.getByRole("heading", { name: route.heading })).toBeVisible();
+    await expect(page).toHaveTitle(english.metadata.title);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.getByRole("heading", { name: english.visitor.title })).toBeVisible();
+    expect(browserErrors).toEqual([]);
   });
 }
 
