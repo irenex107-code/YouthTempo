@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
+import { I18nProvider } from "@/lib/i18n/client";
 import "@/views/globals.css";
 
 const pageTitles: Record<string, string> = {
@@ -31,7 +32,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const title = pageTitles[router.pathname] ?? "YouthTempo";
 
   return (
-    <>
+    <I18nProvider>
       <Head>
         <title>{title}</title>
         <meta
@@ -48,6 +49,6 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
       </div>
-    </>
+    </I18nProvider>
   );
 }

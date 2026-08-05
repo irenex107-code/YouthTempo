@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { navItems } from "@/data/site";
 import { getSupabase } from "@/lib/supabaseClient";
 
@@ -156,6 +157,7 @@ export function Navbar() {
             ))}
           </nav>
           <div className="hidden shrink-0 items-center gap-2 xl:flex">
+            <LanguageSwitcher />
             {authReady ? (
               <Link
                 href="/account"
@@ -172,6 +174,7 @@ export function Navbar() {
             </Link>
           </div>
           <div className="flex items-center gap-2 xl:hidden">
+            <LanguageSwitcher />
             {signedIn && accountRole ? (
               <Link href={primaryAction.href} className="button-primary px-3 py-2 text-xs">
                 {primaryAction.mobileLabel}

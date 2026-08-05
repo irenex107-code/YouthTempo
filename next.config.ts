@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.resolve(process.cwd()),
   devIndicators: false,
+  i18n: {
+    locales: ["zh-CN", "en"],
+    defaultLocale: "zh-CN",
+    localeDetection: false,
+  },
   // CloudBase's gateway intermittently truncates Next's gzip + chunked
   // responses. Let the platform transport complete static files instead.
   compress: false,

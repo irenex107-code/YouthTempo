@@ -1,0 +1,9 @@
+{
+  "common": {
+    "languageSwitcher": {
+      "ariaLabel": "切换语言",
+      "chinese": "中文",
+      "english": "English"
+    }
+  }
+}
