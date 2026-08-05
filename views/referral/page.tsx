@@ -2,8 +2,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
-const flowSteps = ["选择当前状态", "生成支持路径建议", "查看下一步入口"];
+const flowStepKeys: TranslationKey[] = [
+  "referral.flow.select",
+  "referral.flow.generate",
+  "referral.flow.view",
+];
 
 type ReferralAiResult = {
   recommendedSupport: string;
@@ -83,9 +89,49 @@ const questionnaire: Question[] = [
 ];
 
 type RecommendationLink = {
-  label: string;
+  labelKey: TranslationKey;
   href: string;
   primary?: boolean;
+};
+
+type QuestionCopyKeys = {
+  title: TranslationKey;
+  instruction?: TranslationKey;
+  options: readonly TranslationKey[];
+};
+
+const questionCopyKeys: Record<string, QuestionCopyKeys> = {
+  currentState: {
+    title: "referral.questions.currentState.title",
+    instruction: "referral.questions.currentState.instruction",
+    options: ["referral.questions.currentState.options.emotionalPressure", "referral.questions.currentState.options.sleep", "referral.questions.currentState.options.tasks", "referral.questions.currentState.options.family", "referral.questions.currentState.options.eatingOrPhysical", "referral.questions.currentState.options.expression", "referral.questions.currentState.options.organize", "referral.questions.currentState.options.unsure"],
+  },
+  duration: {
+    title: "referral.questions.duration.title",
+    options: ["referral.questions.duration.options.today", "referral.questions.duration.options.days", "referral.questions.duration.options.weeks", "referral.questions.duration.options.longer", "referral.questions.duration.options.unsure"],
+  },
+  impact: {
+    title: "referral.questions.impact.title",
+    options: ["referral.questions.impact.options.none", "referral.questions.impact.options.some", "referral.questions.impact.options.significant", "referral.questions.impact.options.unsure"],
+  },
+  affectedAreas: {
+    title: "referral.questions.affectedAreas.title",
+    instruction: "referral.questions.multiInstruction",
+    options: ["referral.questions.affectedAreas.options.sleep", "referral.questions.affectedAreas.options.tasks", "referral.questions.affectedAreas.options.eating", "referral.questions.affectedAreas.options.physical", "referral.questions.affectedAreas.options.family", "referral.questions.affectedAreas.options.expression", "referral.questions.affectedAreas.options.dailyLife", "referral.questions.affectedAreas.options.none", "referral.questions.affectedAreas.options.unsure"],
+  },
+  trustedAdult: {
+    title: "referral.questions.trustedAdult.title",
+    options: ["referral.questions.trustedAdult.options.willing", "referral.questions.trustedAdult.options.unsureHow", "referral.questions.trustedAdult.options.notNow", "referral.questions.trustedAdult.options.unsure"],
+  },
+  supportType: {
+    title: "referral.questions.supportType.title",
+    instruction: "referral.questions.multiInstruction",
+    options: ["referral.questions.supportType.options.self", "referral.questions.supportType.options.listener", "referral.questions.supportType.options.school", "referral.questions.supportType.options.professional", "referral.questions.supportType.options.unsure"],
+  },
+  currentNeed: {
+    title: "referral.questions.currentNeed.title",
+    options: ["referral.questions.currentNeed.options.understood", "referral.questions.currentNeed.options.smallStep", "referral.questions.currentNeed.options.direction", "referral.questions.currentNeed.options.expression", "referral.questions.currentNeed.options.unsure"],
+  },
 };
 
 function getSelections(answers: Answers, key: string) {
@@ -109,93 +155,103 @@ function getRecommendedPath(answers: Answers) {
     hasAny(answers, "supportType", ["学校支持", "专业资源"]);
 
   const links: RecommendationLink[] = [];
-  let title = needsMoreSupport ? "整理当前状态，并连接更多支持" : "从一个低压力入口开始";
+  let titleKey: TranslationKey = needsMoreSupport ? "referral.paths.moreSupport" : "referral.paths.lowPressure";
 
   if (
     hasAny(answers, "currentState", ["情绪压力比较大", "不知道怎么表达自己"]) ||
     hasAny(answers, "affectedAreas", ["情绪表达"]) ||
     hasAny(answers, "currentNeed", ["帮我和别人表达"])
   ) {
-    title = "先拼一拼现在的心情";
-    addLink(links, { label: "心情拼图", href: "/mood-journal", primary: true });
+    titleKey = "referral.paths.moodFirst";
+    addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal", primary: true });
   }
 
   if (hasAny(answers, "currentState", ["最近睡眠不太稳定"]) || hasAny(answers, "affectedAreas", ["睡眠"])) {
-    title = links.length ? title : "今晚先放下一点";
-    addLink(links, { label: "今晚先放下", href: "/worry-time", primary: links.length === 0 });
-    addLink(links, { label: "SWEET 节律记录", href: "/check-in" });
+    titleKey = links.length ? titleKey : "referral.paths.worryFirst";
+    addLink(links, { labelKey: "referral.links.worryTime", href: "/worry-time", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in" });
   }
 
   if (
     hasAny(answers, "currentState", ["学习或任务很难开始"]) ||
     hasAny(answers, "affectedAreas", ["学习或任务"])
   ) {
-    title = links.length ? title : "从节律和表达开始";
-    addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, { label: "心情拼图", href: "/mood-journal" });
+    titleKey = links.length ? titleKey : "referral.paths.rhythmAndExpression";
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal" });
   }
 
   if (
     hasAny(answers, "currentState", ["和家人沟通有点困难"]) ||
     hasAny(answers, "affectedAreas", ["家庭沟通"])
   ) {
-    title = "先整理表达，再让一个可信任的人知道";
-    addLink(links, { label: "心情拼图", href: "/mood-journal", primary: links.length === 0 });
-    addLink(links, { label: "悄悄话信箱", href: "/messages" });
+    titleKey = "referral.paths.expressionAndTell";
+    addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.messages", href: "/messages" });
   }
 
   if (
     hasAny(answers, "currentState", ["吃饭或身体状态受到影响"]) ||
     hasAny(answers, "affectedAreas", ["吃饭", "身体状态"])
   ) {
-    title = needsMoreSupport ? "记录节律，并让可信任的人知道" : "先做 SWEET 节律记录";
-    addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, needsMoreSupport ? { label: "悄悄话信箱", href: "/messages" } : { label: "心情拼图", href: "/mood-journal" });
+    titleKey = needsMoreSupport ? "referral.paths.rhythmAndTell" : "referral.paths.checkInFirst";
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, needsMoreSupport ? { labelKey: "referral.links.messages", href: "/messages" } : { labelKey: "referral.links.moodJournal", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["只是想先整理一下"]) || hasAny(answers, "supportType", ["自己先整理一下"])) {
-    title = links.length ? title : "先自己整理一下";
-    addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
-    addLink(links, { label: "心情拼图", href: "/mood-journal" });
+    titleKey = links.length ? titleKey : "referral.paths.selfOrganize";
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["不太确定"])) {
-    title = links.length ? title : "从低门槛记录开始";
-    addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
+    titleKey = links.length ? titleKey : "referral.paths.lowBarrier";
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
   }
 
   if (hasAny(answers, "supportType", ["有人听我说"]) || hasAny(answers, "trustedAdult", ["愿意", "可能愿意，但不知道怎么开口"])) {
-    title = links.length ? title : "尝试和可信任的大人说";
-    addLink(links, { label: "心情拼图", href: "/mood-journal", primary: links.length === 0 });
+    titleKey = links.length ? titleKey : "referral.paths.tellAdult";
+    addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal", primary: links.length === 0 });
   }
 
   if (needsMoreSupport) {
     if (links.some((item) => item.href === "/messages")) {
-      return { title, links: links.slice(0, 2) };
+      return { titleKey, links: links.slice(0, 2) };
     }
     if (links.length >= 2) {
-      links[1] = { label: "告诉老师或家长", href: "/messages" };
+      links[1] = { labelKey: "referral.links.tellAdult", href: "/messages" };
     } else {
-      addLink(links, { label: "告诉老师或家长", href: "/messages", primary: links.length === 0 });
+      addLink(links, { labelKey: "referral.links.tellAdult", href: "/messages", primary: links.length === 0 });
     }
   }
 
   if (!links.length || hasAny(answers, "affectedAreas", ["基本没有", "不太确定"])) {
-    addLink(links, { label: "SWEET 节律记录", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
   }
 
-  return { title, links: links.slice(0, 2) };
+  return { titleKey, links: links.slice(0, 2) };
 }
 
-function buildAnsweredSummary(answers: Answers) {
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+function buildAnsweredSummary(answers: Answers, t: Translate) {
   const selected = questionnaire
     .filter((item) => getSelections(answers, item.id).length)
-    .map((item) => `${item.title.replace("？", "")}：${getSelections(answers, item.id).join("、")}`);
+    .map((item) => {
+      const copy = questionCopyKeys[item.id];
+      const labels = getSelections(answers, item.id).map((value) => {
+        const optionIndex = item.options.indexOf(value);
+        return optionIndex >= 0 ? t(copy.options[optionIndex]) : value;
+      });
+      return t("referral.result.answerSummary", { question: t(copy.title).replace("？", ""), answers: labels.join("、") });
+    });
 
-  return selected.length ? selected.join("；") : "你还没有选择当前状态。";
+  return selected.length ? selected.join("；") : t("referral.result.noSelection");
 }
 
 export default function ReferralPage() {
+  const { t } = useTranslation();
   const [answers, setAnswers] = useState<Answers>({});
   const [note, setNote] = useState("");
   const [aiResult, setAiResult] = useState<ReferralAiResult | null>(null);
@@ -223,7 +279,7 @@ export default function ReferralPage() {
       if (optionIsGeneral) {
         nextSelections = [option];
       } else if (item.maxSelections && withoutGeneral.length >= item.maxSelections) {
-        setValidation(`这题最多选择 ${item.maxSelections} 项。`);
+        setValidation(t("referral.messages.maxSelections", { count: item.maxSelections }));
         return;
       } else {
         nextSelections = [...withoutGeneral, option];
@@ -247,19 +303,19 @@ export default function ReferralPage() {
   function getStatusLabel(item: Question) {
     const count = getSelections(answers, item.id).length;
     if (item.type === "multi") {
-      return count ? `已选择 ${count} 项` : "可多选";
+      return count ? t("referral.status.selectedCount", { count }) : t("referral.status.multi");
     }
-    return count ? "已选择" : "单选";
+    return count ? t("referral.status.selected") : t("referral.status.single");
   }
 
   async function generateRecommendation() {
     if (!getSelections(answers, "currentState").length) {
-      setValidation("可以先选择一个最接近你现在状态的选项。");
+      setValidation(t("referral.messages.selectCurrentState"));
       return;
     }
 
     if (!complete) {
-      setValidation("可以先选择几个最接近你现在状态的选项。");
+      setValidation(t("referral.messages.completeQuestions"));
       return;
     }
 
@@ -288,7 +344,7 @@ export default function ReferralPage() {
       if (!response.ok) throw new Error(data.error || "AI request failed");
       setAiResult(data);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "暂时无法生成回应，请稍后再试。");
+      setError(requestError instanceof Error ? requestError.message : t("referral.messages.responseUnavailable"));
     } finally {
       setLoading(false);
     }
@@ -297,12 +353,12 @@ export default function ReferralPage() {
   return (
     <>
       <PageHero
-        title="下一步找谁"
-        subtitle="当自己整理还不够时，用几道题判断现在适合继续自助、告诉可信任的人，还是尽快连接更多支持。"
+        title={t("referral.hero.title")}
+        subtitle={t("referral.hero.description")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-progress-path.webp"
-            alt="穿过自然山丘、逐步靠近支持的路径插画"
+            alt={t("referral.hero.imageAlt")}
             priority
           />
         }
@@ -310,7 +366,7 @@ export default function ReferralPage() {
       <section className="section section-muted">
         <div className="container">
           <div className="mb-6 grid gap-3 md:grid-cols-3">
-            {flowSteps.map((title, index) => {
+            {flowStepKeys.map((titleKey, index) => {
               const active =
                 (!loading && !aiResult && index === 0) ||
                 (loading && index === 1) ||
@@ -318,7 +374,7 @@ export default function ReferralPage() {
               const completed = Boolean(aiResult) && index < 2;
               return (
                 <div
-                  key={title}
+                  key={titleKey}
                   className={`rounded-2xl border p-4 transition ${
                     active || completed
                       ? "border-sage/45 bg-white text-ink shadow-soft"
@@ -327,13 +383,13 @@ export default function ReferralPage() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className={`text-xs font-bold ${active || completed ? "text-sage-dark" : "text-muted"}`}>
-                      第 {index + 1} 步
+                      {t("referral.flow.step", { number: index + 1 })}
                     </p>
                     {completed ? (
-                      <span className="rounded-full bg-mist px-2 py-0.5 text-xs font-bold text-sage-dark">已完成</span>
+                      <span className="rounded-full bg-mist px-2 py-0.5 text-xs font-bold text-sage-dark">{t("referral.flow.completed")}</span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-sm font-bold">{title}</p>
+                  <p className="mt-1 text-sm font-bold">{t(titleKey)}</p>
                 </div>
               );
             })}
@@ -344,9 +400,9 @@ export default function ReferralPage() {
               <article key={item.id} className="card">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-bold leading-snug text-ink">{item.title}</h3>
+                    <h3 className="text-lg font-bold leading-snug text-ink">{t(questionCopyKeys[item.id].title)}</h3>
                     {item.instruction ? (
-                      <p className="mt-2 text-xs font-bold text-sage">{item.instruction}</p>
+                      <p className="mt-2 text-xs font-bold text-sage">{questionCopyKeys[item.id].instruction ? t(questionCopyKeys[item.id].instruction!) : item.instruction}</p>
                     ) : null}
                   </div>
                   <span className="shrink-0 rounded-full bg-mist px-2.5 py-1 text-xs font-bold text-sage-dark">
@@ -354,7 +410,7 @@ export default function ReferralPage() {
                   </span>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {item.options.map((option) => {
+                  {item.options.map((option, optionIndex) => {
                     const selected = getSelections(answers, item.id).includes(option);
                     return (
                       <button
@@ -367,7 +423,7 @@ export default function ReferralPage() {
                             : "border-ink/10 bg-white/80 text-muted hover:border-sage/50 hover:text-sage-dark"
                         }`}
                       >
-                        {selected ? "✓ " : ""}{option}
+                        {selected ? "✓ " : ""}{t(questionCopyKeys[item.id].options[optionIndex])}
                       </button>
                     );
                   })}
@@ -379,22 +435,22 @@ export default function ReferralPage() {
           <div className="mt-6 rounded-3xl border border-sage/20 bg-white/85 p-6 shadow-soft">
             <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr] lg:items-end">
               <div>
-                <h2 className="text-xl font-bold text-ink">生成支持路径建议</h2>
+                <h2 className="text-xl font-bold text-ink">{t("referral.generate.title")}</h2>
                 <p className="mt-2 text-sm leading-6 text-muted">
-                  已选择 {selectedCount} / {questionnaire.length} 项。选择越接近当前状态，建议会越具体。
+                  {t("referral.generate.progress", { selected: selectedCount, total: questionnaire.length })}
                 </p>
                 <p className="mt-3 text-sm font-bold leading-6 text-sage-dark">
-                  这不是评判，只是帮助你整理下一步可以从哪里开始。
+                  {t("referral.generate.description")}
                 </p>
               </div>
               <div>
                 <label className="grid gap-2">
-                  <span className="text-sm font-bold text-ink">还有什么想补充的吗？</span>
+                  <span className="text-sm font-bold text-ink">{t("referral.generate.noteLabel")}</span>
                   <textarea
                     className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none transition focus:border-sage"
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
-                    placeholder="可以写一句，也可以先留空。"
+                    placeholder={t("referral.generate.notePlaceholder")}
                   />
                 </label>
               </div>
@@ -406,7 +462,7 @@ export default function ReferralPage() {
                 onClick={generateRecommendation}
                 disabled={loading}
               >
-                {loading ? "正在生成支持路径建议……" : "生成支持路径建议"}
+                {loading ? t("referral.actions.generating") : t("referral.actions.generate")}
               </button>
               {validation ? <p className="text-sm font-bold text-sage-dark">{validation}</p> : null}
               {error ? <p className="text-sm font-bold text-sage-dark">{error}</p> : null}
@@ -415,29 +471,29 @@ export default function ReferralPage() {
 
           {aiResult ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/90 p-6 shadow-soft sm:p-8">
-              <p className="text-sm font-bold text-sage">支持建议</p>
-              <h2 className="mt-2 text-[1.7rem] font-bold leading-[1.25] text-ink">你的下一步支持路径</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">{buildAnsweredSummary(answers)}</p>
+              <p className="text-sm font-bold text-sage">{t("referral.result.label")}</p>
+              <h2 className="mt-2 text-[1.7rem] font-bold leading-[1.25] text-ink">{t("referral.result.title")}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{buildAnsweredSummary(answers, t)}</p>
 
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div className="rounded-2xl bg-cream p-5">
-                  <h3 className="text-lg font-bold text-ink">建议路径</h3>
-                  <p className="mt-2 text-xl font-extrabold text-sage-dark">{recommendedPath.title}</p>
+                  <h3 className="text-lg font-bold text-ink">{t("referral.result.path")}</h3>
+                  <p className="mt-2 text-xl font-extrabold text-sage-dark">{t(recommendedPath.titleKey)}</p>
                   <p className="mt-3 text-[0.95rem] leading-7 text-muted">{aiResult.recommendedSupport}</p>
                 </div>
                 <div className="rounded-2xl bg-cream p-5">
-                  <h3 className="text-lg font-bold text-ink">为什么这样建议</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("referral.result.reason")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.reason}</p>
                 </div>
                 <div className="rounded-2xl bg-cream p-5">
-                  <h3 className="text-lg font-bold text-ink">可以怎么开始</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("referral.result.howToStart")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">
                     {aiResult.nextStep ||
-                      "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”"}
+                      t("referral.result.fallbackStarter")}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-cream p-5">
-                  <h3 className="text-lg font-bold text-ink">推荐入口</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("referral.result.links")}</h3>
                   <div className="mt-4 flex flex-wrap gap-3">
                     {resultLinks.map((item) => (
                       <Link
@@ -445,7 +501,7 @@ export default function ReferralPage() {
                         href={item.href}
                         className={item.primary ? "button-primary px-4 py-2 text-xs" : "button-secondary px-4 py-2 text-xs"}
                       >
-                        {item.label}
+                        {t(item.labelKey)}
                       </Link>
                     ))}
                   </div>
@@ -463,10 +519,10 @@ export default function ReferralPage() {
       <section className="section">
         <div className="container rounded-2xl border border-sage/25 bg-mint/60 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>
-            <h2 className="text-xl font-bold text-ink">你也可以直接让一个人知道</h2>
-            <p className="mt-2 text-sm leading-7 text-muted">不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。</p>
+            <h2 className="text-xl font-bold text-ink">{t("referral.direct.title")}</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">{t("referral.direct.description")}</p>
           </div>
-          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">打开悄悄话信箱</Link>
+          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("referral.direct.action")}</Link>
         </div>
       </section>
     </>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "@/lib/i18n/client";
 
 type SpeechRecognitionEventLike = Event & {
   results: ArrayLike<{
@@ -45,6 +46,7 @@ function appendTranscript(current: string, transcript: string) {
 }
 
 export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
+  const { t } = useTranslation();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const valueRef = useRef(value);
   const onChangeRef = useRef(onChange);
@@ -71,7 +73,7 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Recognition) {
       setSupported(false);
-      setMessage("当前浏览器不支持语音输入，可以使用手机键盘上的麦克风。");
+      setMessage(t("common.voiceInput.unsupported"));
       return;
     }
 
@@ -89,14 +91,14 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
       const nextValue = appendTranscript(valueRef.current, transcripts.join(" "));
       valueRef.current = nextValue;
       onChangeRef.current(nextValue);
-      setMessage("语音已转成文字，可以继续修改。");
+      setMessage(t("common.voiceInput.transcribed"));
     };
     recognition.onerror = (event) => {
       const permissionDenied = event.error === "not-allowed" || event.error === "service-not-allowed";
       setMessage(
         permissionDenied
-          ? "未获得麦克风权限，请在浏览器设置中允许后重试。"
-          : "这次没有听清，可以再试一次或直接输入文字。",
+          ? t("common.voiceInput.permissionDenied")
+          : t("common.voiceInput.notUnderstood"),
       );
       setListening(false);
     };
@@ -111,14 +113,14 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
       recognition.start();
     } catch {
       setListening(false);
-      setMessage("语音输入暂时无法启动，请稍后再试。");
+      setMessage(t("common.voiceInput.startFailed"));
     }
   }
 
   if (supported === false) {
     return (
       <p className="text-xs leading-6 text-muted">
-        当前浏览器不支持语音输入，可以使用手机键盘上的麦克风。
+        {t("common.voiceInput.unsupported")}
       </p>
     );
   }
@@ -135,9 +137,9 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
         onClick={listening ? stopListening : startListening}
         aria-pressed={listening}
       >
-        {listening ? "停止输入" : "语音输入"}
+        {listening ? t("common.voiceInput.stop") : t("common.voiceInput.start")}
       </button>
-      {listening ? <span className="text-xs font-bold text-sage-dark">正在聆听…</span> : null}
+      {listening ? <span className="text-xs font-bold text-sage-dark">{t("common.voiceInput.listening")}</span> : null}
       {message ? <span className="text-xs leading-6 text-muted" aria-live="polite">{message}</span> : null}
     </div>
   );

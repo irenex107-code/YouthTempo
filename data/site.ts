@@ -17,43 +17,43 @@ export const navItems: LocalizedLink[] = [
 export const sweetModules = [
   {
     key: "Sleep",
-    title: "睡眠",
+    titleKey: "sweetModel.modules.sleep.title" as TranslationKey,
     label: "Sleep",
-    question: "昨晚睡了多久？睡眠质量如何？",
-    summary: "睡眠和情绪稳定、注意力恢复、身体修复都有关系。",
-    example: "睡眠打卡、睡前情绪整理、睡眠习惯提示。"
+    questionKey: "sweetModel.modules.sleep.question" as TranslationKey,
+    summaryKey: "sweetModel.modules.sleep.summary" as TranslationKey,
+    exampleKey: "sweetModel.modules.sleep.example" as TranslationKey,
   },
   {
     key: "Wake",
-    title: "醒来",
+    titleKey: "sweetModel.modules.wake.title" as TranslationKey,
     label: "Wake",
-    question: "今天醒来后的状态是疲惫、平静还是紧张？",
-    summary: "一天开始的状态，会影响年轻人的情绪、专注和行动感。",
-    example: "晨间状态记录、柔和唤醒建议、早晨状态整理。"
+    questionKey: "sweetModel.modules.wake.question" as TranslationKey,
+    summaryKey: "sweetModel.modules.wake.summary" as TranslationKey,
+    exampleKey: "sweetModel.modules.wake.example" as TranslationKey,
   },
   {
     key: "Eat",
-    title: "饮食",
+    titleKey: "sweetModel.modules.eat.title" as TranslationKey,
     label: "Eat",
-    question: "今天是否规律吃饭？",
-    summary: "规律饮食帮助能量更稳定，也让日常功能更容易维持。",
-    example: "饮食规律记录、基础健康提醒。"
+    questionKey: "sweetModel.modules.eat.question" as TranslationKey,
+    summaryKey: "sweetModel.modules.eat.summary" as TranslationKey,
+    exampleKey: "sweetModel.modules.eat.example" as TranslationKey,
   },
   {
     key: "Exercise",
-    title: "运动",
+    titleKey: "sweetModel.modules.exercise.title" as TranslationKey,
     label: "Exercise",
-    question: "今天是否有轻量身体活动？",
-    summary: "轻量活动可以帮助释放压力，让身体和情绪重新获得一点流动。",
-    example: "轻量运动记录、低压力运动挑战。"
+    questionKey: "sweetModel.modules.exercise.question" as TranslationKey,
+    summaryKey: "sweetModel.modules.exercise.summary" as TranslationKey,
+    exampleKey: "sweetModel.modules.exercise.example" as TranslationKey,
   },
   {
     key: "Task",
-    title: "任务投入",
+    titleKey: "sweetModel.modules.task.title" as TranslationKey,
     label: "Task Engagement",
-    question: "今天是否能完成基本学习或生活任务？",
-    summary: "任务投入反映学习、生活和社交功能是否还在稳定运转。",
-    example: "学习压力追踪、任务分解、成就感记录。"
+    questionKey: "sweetModel.modules.task.question" as TranslationKey,
+    summaryKey: "sweetModel.modules.task.summary" as TranslationKey,
+    exampleKey: "sweetModel.modules.task.example" as TranslationKey,
   }
 ];
 

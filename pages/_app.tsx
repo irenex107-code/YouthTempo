@@ -13,16 +13,16 @@ const translatedPageTitleKeys: Partial<Record<string, TranslationKey>> = {
   "/for-parents": "forParents.metadata.title",
   "/for-teachers": "forTeachers.metadata.title",
   "/for-young-adults": "forYoungAdults.metadata.title",
+  "/sweet-model": "sweetModel.metadata.title",
+  "/check-in": "checkIn.metadata.title",
+  "/mood-journal": "moodJournal.metadata.title",
+  "/talk": "talk.metadata.title",
+  "/worry-time": "worryTime.metadata.title",
+  "/referral": "referral.metadata.title",
 };
 
 const remainingPageTitles: Record<string, string> = {
-  "/sweet-model": "SWEET 模型 | YouthTempo",
-  "/check-in": "SWEET 节律记录 | YouthTempo",
-  "/mood-journal": "心情拼图 | YouthTempo",
-  "/talk": "陪我捋一捋 | YouthTempo",
   "/messages": "悄悄话信箱 | YouthTempo",
-  "/worry-time": "今晚先放下 | YouthTempo",
-  "/referral": "下一步找谁 | YouthTempo",
   "/resources": "家校陪伴指南 | YouthTempo",
   "/community": "家校医社区 | YouthTempo",
   "/privacy-safety": "隐私与安全 | YouthTempo",

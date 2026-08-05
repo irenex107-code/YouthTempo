@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 type TalkMessage = {
   role: "user" | "assistant";
@@ -11,14 +13,15 @@ type TalkMessage = {
 };
 
 const starters = [
-  "我最近有件事一直放不下。",
-  "我现在有点乱，不知道从哪里说。",
-  "我只想先找个人听我说说。",
+  { key: "talk.starters.lingering" as TranslationKey },
+  { key: "talk.starters.confused" as TranslationKey },
+  { key: "talk.starters.listen" as TranslationKey },
 ];
 
 const maxUserMessages = 8;
 
 export default function TalkPage() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<TalkMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,12 +57,12 @@ export default function TalkPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "这次没有连接成功，请稍后再试。");
+      if (!response.ok) throw new Error(data.error || t("talk.messages.connectionFailed"));
       setMessages((current) => [
         ...current,
         {
           role: "assistant",
-          content: typeof data.reply === "string" ? data.reply : "我们可以先停一下。",
+          content: typeof data.reply === "string" ? data.reply : t("talk.messages.pause"),
           urgent: data.urgent === true,
         },
       ]);
@@ -68,7 +71,7 @@ export default function TalkPage() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "这次没有连接成功，可以稍后再试，或先转到支持路径。",
+          : t("talk.messages.connectionFailedWithReferral"),
       );
     } finally {
       setLoading(false);
@@ -90,12 +93,12 @@ export default function TalkPage() {
   return (
     <>
       <PageHero
-        title="陪我捋一捋"
-        subtitle="不用一次说清楚。先写下眼前最卡住的一件事，再一问一答地把它捋清一点。"
+        title={t("talk.hero.title")}
+        subtitle={t("talk.hero.description")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-talk.webp"
-            alt="把打结的感受慢慢整理成清晰路径的插画"
+            alt={t("talk.hero.imageAlt")}
             priority
           />
         }
@@ -105,25 +108,25 @@ export default function TalkPage() {
         <div className="container grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white/85 shadow-soft">
             <div className="border-b border-ink/10 px-5 py-4 sm:px-6">
-              <p className="font-bold text-ink">本次对话</p>
+              <p className="font-bold text-ink">{t("talk.session.title")}</p>
               <p className="mt-1 text-xs leading-6 text-muted">
-                内容只保留在当前页面，刷新或离开后会清空。这里的文字整理不能代替真人或专业支持。
+                {t("talk.session.description")}
               </p>
             </div>
 
             <div className="min-h-80 space-y-4 px-4 py-6 sm:px-6" aria-live="polite">
               {messages.length === 0 ? (
                 <div>
-                  <p className="text-sm font-bold text-ink">可以从一句话开始</p>
+                  <p className="text-sm font-bold text-ink">{t("talk.starters.title")}</p>
                   <div className="mt-4 grid gap-3">
                     {starters.map((starter) => (
                       <button
-                        key={starter}
+                        key={starter.key}
                         type="button"
                         className="min-h-11 rounded-xl border border-ink/10 bg-cream px-4 py-3 text-left text-sm font-bold leading-6 text-ink/75 transition hover:border-sage/50"
-                        onClick={() => startWith(starter)}
+                        onClick={() => startWith(t(starter.key))}
                       >
-                        {starter}
+                        {t(starter.key)}
                       </button>
                     ))}
                   </div>
@@ -148,21 +151,21 @@ export default function TalkPage() {
               ))}
               {loading ? (
                 <div className="flex justify-start">
-                  <p className="rounded-2xl bg-cream px-4 py-3 text-sm text-muted">正在整理你的话…</p>
+                  <p className="rounded-2xl bg-cream px-4 py-3 text-sm text-muted">{t("talk.session.organizing")}</p>
                 </div>
               ) : null}
             </div>
 
             <form className="border-t border-ink/10 p-4 sm:p-6" onSubmit={sendMessage}>
               <label className="grid gap-2">
-                <span className="sr-only">写下想说的话</span>
+                <span className="sr-only">{t("talk.form.label")}</span>
                 <textarea
                   className="min-h-24 w-full resize-y rounded-2xl border border-ink/10 bg-white p-4 leading-7 outline-none transition focus:border-sage"
                   value={draft}
                   maxLength={500}
                   disabled={loading || reachedLimit}
                   onChange={(event) => setDraft(event.target.value)}
-                  placeholder={reachedLimit ? "这次先聊到这里。" : "写下你现在最想说的话…"}
+                  placeholder={reachedLimit ? t("talk.form.limitPlaceholder") : t("talk.form.placeholder")}
                 />
               </label>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -174,7 +177,7 @@ export default function TalkPage() {
                     className="button-primary px-5 py-2 text-xs"
                     disabled={!draft.trim() || loading || reachedLimit}
                   >
-                    发送
+                    {t("talk.actions.send")}
                   </button>
                 </div>
               </div>
@@ -184,25 +187,25 @@ export default function TalkPage() {
 
           <aside className="space-y-4">
             <div className="rounded-2xl border border-ink/10 bg-white/80 p-5">
-              <p className="font-bold text-ink">什么时候转向真人支持</p>
+              <p className="font-bold text-ink">{t("talk.support.title")}</p>
               <p className="mt-3 text-sm leading-7 text-muted">
-                如果已经影响睡眠、吃饭、学习或安全，不用继续在这里解释，可以直接找可信任的大人或学校老师。
+                {t("talk.support.description")}
               </p>
               <Link href="/referral" className="button-secondary mt-5 w-full px-4 py-2 text-xs">
-                看看下一步找谁
+                {t("talk.actions.viewReferral")}
               </Link>
             </div>
             {suggestHumanSupport || reachedLimit ? (
               <div className="rounded-2xl border border-sage/25 bg-mist p-5">
-                <p className="font-bold text-ink">可以让一个人知道</p>
+                <p className="font-bold text-ink">{t("talk.support.tellSomeoneTitle")}</p>
                 <p className="mt-2 text-sm leading-7 text-muted">
-                  你可以直接说：“我最近有点难撑，能先陪我聊一会儿吗？”
+                  {t("talk.support.tellSomeoneText")}
                 </p>
               </div>
             ) : null}
             {messages.length > 0 ? (
               <button type="button" className="button-secondary w-full px-4 py-2 text-xs" onClick={resetConversation}>
-                结束并清空
+                {t("talk.actions.clear")}
               </button>
             ) : null}
           </aside>

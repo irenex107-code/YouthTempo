@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 type AiWorryResult = {
   controllableParts: string;
@@ -12,7 +14,11 @@ type AiWorryResult = {
   supportReminder: string;
 };
 
-const controlOptions = ["我可以做一点点", "我暂时控制不了", "我还不确定"];
+const controlOptions = [
+  { value: "我可以做一点点", labelKey: "worryTime.controls.actionable" as TranslationKey },
+  { value: "我暂时控制不了", labelKey: "worryTime.controls.uncontrollable" as TranslationKey },
+  { value: "我还不确定", labelKey: "worryTime.controls.unsure" as TranslationKey },
+];
 
 function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -21,6 +27,7 @@ function formatTime(seconds: number) {
 }
 
 export default function WorryTimePage() {
+  const { t } = useTranslation();
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [worries, setWorries] = useState(["", "", ""]);
@@ -76,7 +83,7 @@ export default function WorryTimePage() {
   async function generateAiResponse() {
     const filledWorries = worries.filter((item) => item.trim().length > 0);
     if (filledWorries.length === 0) {
-      setValidation("可以先写下至少一个担心，再生成整理。");
+      setValidation(t("worryTime.messages.addWorry"));
       return;
     }
     setLoading(true);
@@ -89,10 +96,10 @@ export default function WorryTimePage() {
         body: JSON.stringify({ worries, controls, action }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "这次没有连接成功，请稍后再试。");
+      if (!response.ok) throw new Error(data.error || t("worryTime.messages.connectionFailed"));
       setAiResult(data);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "暂时无法完成整理，请稍后再试。");
+      setError(requestError instanceof Error ? requestError.message : t("worryTime.messages.responseUnavailable"));
     } finally {
       setLoading(false);
     }
@@ -101,13 +108,13 @@ export default function WorryTimePage() {
   return (
     <>
       <PageHero
-        label="睡前整理"
-        title="今晚先放下"
-        subtitle="这是 SWEET 睡眠维度下的延伸工具。用 15 分钟把反复出现的担心写下来，分清今晚能做什么、什么可以留到明天。"
+        label={t("worryTime.hero.label")}
+        title={t("worryTime.hero.title")}
+        subtitle={t("worryTime.hero.description")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-worry-time.webp"
-            alt="在月光下把担心暂时收好、留给明天处理的插画"
+            alt={t("worryTime.hero.imageAlt")}
             priority
           />
         }
@@ -117,38 +124,38 @@ export default function WorryTimePage() {
         <div className="container">
           <div className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
             <article className="card">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">15 分钟整理</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("worryTime.timer.title")}</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-                给睡前担心一个清晰边界：先整理 15 分钟，剩下的留给明天慢慢处理。
+                {t("worryTime.timer.description")}
               </p>
               <div className="mt-6 rounded-3xl bg-cream p-6 text-center">
                 <p className="text-5xl font-bold leading-none text-ink">{formatTime(secondsLeft)}</p>
-                <p className="mt-3 text-sm font-bold text-sage-dark">今晚的 15 分钟</p>
+                <p className="mt-3 text-sm font-bold text-sage-dark">{t("worryTime.timer.label")}</p>
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
                 <button type="button" className="button-primary px-5 py-2 text-xs" onClick={() => setTimerRunning(true)}>
-                  开始
+                  {t("worryTime.actions.start")}
                 </button>
                 <button type="button" className="button-secondary px-5 py-2 text-xs" onClick={() => setTimerRunning(false)}>
-                  暂停
+                  {t("worryTime.actions.pause")}
                 </button>
                 <button type="button" className="button-secondary px-5 py-2 text-xs" onClick={resetTimer}>
-                  重置
+                  {t("worryTime.actions.resetTimer")}
                 </button>
               </div>
               {secondsLeft === 0 ? (
                 <div className="mt-5 rounded-2xl border border-sage/25 bg-mist p-4 text-sm font-bold leading-7 text-sage-dark">
-                  15 分钟到了。今天的担心已经被看见，剩下的可以留给明天慢慢处理。
+                  {t("worryTime.timer.finished")}
                 </div>
               ) : null}
             </article>
 
             <article className="card">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">写下现在最放不下的事</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("worryTime.worries.title")}</h2>
               <div className="mt-6 grid gap-5">
                 {worries.map((worry, index) => (
                   <label key={index} className="grid gap-2">
-                    <span className="text-sm font-bold text-ink">担心 {index + 1}</span>
+                    <span className="text-sm font-bold text-ink">{t("worryTime.worries.item", { number: index + 1 })}</span>
                     <textarea
                       className="min-h-20 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage"
                       value={worry}
@@ -164,10 +171,10 @@ export default function WorryTimePage() {
           <article className="card mt-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-xl font-bold text-ink">把担心分一分</h2>
+                <h2 className="text-xl font-bold text-ink">{t("worryTime.sorting.title")}</h2>
               </div>
               <p className="max-w-xl text-sm leading-6 text-muted">
-                不需要判断对错，只是先看看：哪些可以做一点点，哪些今晚可以先放下。
+                {t("worryTime.sorting.description")}
               </p>
             </div>
             <div className="mt-5 grid gap-3">
@@ -176,20 +183,20 @@ export default function WorryTimePage() {
                   key={index}
                   className="rounded-2xl border border-ink/10 bg-white/75 p-3 sm:grid sm:grid-cols-[88px_1fr] sm:items-center sm:gap-3"
                 >
-                  <p className="mb-3 text-sm font-bold text-ink sm:mb-0">担心 {index + 1}</p>
+                  <p className="mb-3 text-sm font-bold text-ink sm:mb-0">{t("worryTime.worries.item", { number: index + 1 })}</p>
                   <div className="grid gap-2 sm:grid-cols-3">
                     {controlOptions.map((item) => (
                       <button
-                        key={item}
+                        key={item.value}
                         type="button"
-                        onClick={() => updateControl(index, item)}
+                        onClick={() => updateControl(index, item.value)}
                         className={`min-h-11 rounded-full border px-4 py-2 text-center text-xs font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
-                          controls[index] === item
+                          controls[index] === item.value
                             ? "border-sage bg-mist text-sage-dark"
                             : "border-ink/10 bg-white text-ink/70 hover:border-sage/50"
                         }`}
                       >
-                        {item}
+                        {t(item.labelKey)}
                       </button>
                     ))}
                   </div>
@@ -200,7 +207,7 @@ export default function WorryTimePage() {
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.55fr]">
             <article className="card">
-              <h2 className="text-xl font-bold text-ink">明天可以做的一个小行动</h2>
+              <h2 className="text-xl font-bold text-ink">{t("worryTime.action.title")}</h2>
               <textarea
                 className="mt-5 min-h-28 w-full rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage"
                 value={action}
@@ -208,7 +215,7 @@ export default function WorryTimePage() {
                   setAction(e.target.value);
                   setDone(false);
                 }}
-                placeholder="明天我可以先做的一件小事是……"
+                placeholder={t("worryTime.action.placeholder")}
               />
               <div className="mt-3">
                 <VoiceInputButton
@@ -222,13 +229,13 @@ export default function WorryTimePage() {
             </article>
             <article className="card flex flex-col justify-center">
               <button type="button" className="button-primary w-full" onClick={generateAiResponse} disabled={loading}>
-                {loading ? "正在整理……" : "帮我分一分"}
+                {loading ? t("worryTime.actions.organizing") : t("worryTime.actions.organize")}
               </button>
               <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
-                完成整理
+                {t("worryTime.actions.complete")}
               </button>
               <button type="button" className="mt-3 min-h-11 w-full text-sm font-bold text-muted transition hover:text-sage-dark" onClick={reset}>
-                重新填写
+                {t("worryTime.actions.reset")}
               </button>
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
               {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
@@ -237,22 +244,22 @@ export default function WorryTimePage() {
 
           {aiResult ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">先把担心分一分</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("worryTime.result.title")}</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
-                  <h3 className="text-lg font-bold text-ink">可以先做一点点的部分</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("worryTime.result.controllable")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.controllableParts}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-ink">可以暂时放到明天的部分</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("worryTime.result.tomorrow")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.canWaitUntilTomorrow}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-ink">明天最小行动</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("worryTime.result.smallAction")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.tomorrowSmallAction}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-ink">睡前可以对自己说的一句话</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("worryTime.result.bedtimeSentence")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.bedtimeSentence}</p>
                 </div>
               </div>
@@ -264,16 +271,16 @@ export default function WorryTimePage() {
 
           {done ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今天先到这里</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("worryTime.done.title")}</h2>
               <p className="mt-4 text-base leading-8 text-muted">
-                你已经把担心放到了纸面上，也给明天留了一个小行动。现在可以允许自己慢慢收尾。
+                {t("worryTime.done.description")}
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link href="/check-in" className="button-primary">
-                  回到 SWEET 节律
+                  {t("worryTime.actions.backToSweet")}
                 </Link>
                 <Link href="/mood-journal" className="button-secondary">
-                  打开心情拼图
+                  {t("worryTime.actions.openMoodJournal")}
                 </Link>
               </div>
             </div>

@@ -4,6 +4,8 @@ import { PageHero } from "@/components/PageHero";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
 type FieldType = "single" | "multi" | "text";
@@ -102,6 +104,72 @@ const steps: CheckStep[] = [
   },
 ];
 
+type FieldCopyKeys = {
+  title: TranslationKey;
+  placeholder?: TranslationKey;
+  options?: readonly TranslationKey[];
+};
+
+type StepCopyKeys = {
+  title: TranslationKey;
+  description: TranslationKey;
+  fields: Record<string, FieldCopyKeys>;
+};
+
+const stepCopyKeys: Record<StepId, StepCopyKeys> = {
+  sleep: {
+    title: "checkIn.steps.sleep.title",
+    description: "checkIn.steps.sleep.description",
+    fields: {
+      quality: { title: "checkIn.steps.sleep.fields.quality.title", options: ["checkIn.steps.sleep.fields.quality.options.steady", "checkIn.steps.sleep.fields.quality.options.okay", "checkIn.steps.sleep.fields.quality.options.waking", "checkIn.steps.sleep.fields.quality.options.fallingAsleep", "checkIn.steps.sleep.fields.quality.options.irregular"] },
+      duration: { title: "checkIn.steps.sleep.fields.duration.title", options: ["checkIn.steps.sleep.fields.duration.options.underFive", "checkIn.steps.sleep.fields.duration.options.fiveToSix", "checkIn.steps.sleep.fields.duration.options.sixToSeven", "checkIn.steps.sleep.fields.duration.options.sevenToEight", "checkIn.steps.sleep.fields.duration.options.overEight", "checkIn.steps.sleep.fields.duration.options.unsure"] },
+      factors: { title: "checkIn.steps.sleep.fields.factors.title", options: ["checkIn.steps.sleep.fields.factors.options.overthinking", "checkIn.steps.sleep.fields.factors.options.tasks", "checkIn.steps.sleep.fields.factors.options.phone", "checkIn.steps.sleep.fields.factors.options.relationships", "checkIn.steps.sleep.fields.factors.options.physical", "checkIn.steps.sleep.fields.factors.options.unsure"] },
+      note: { title: "checkIn.steps.sleep.fields.note.title", placeholder: "checkIn.steps.sleep.fields.note.placeholder" },
+    },
+  },
+  wake: {
+    title: "checkIn.steps.wake.title",
+    description: "checkIn.steps.wake.description",
+    fields: {
+      state: { title: "checkIn.steps.wake.fields.state.title", options: ["checkIn.steps.wake.fields.state.options.calm", "checkIn.steps.wake.fields.state.options.energized", "checkIn.steps.wake.fields.state.options.tired", "checkIn.steps.wake.fields.state.options.tense", "checkIn.steps.wake.fields.state.options.reluctant"] },
+      startDifficulty: { title: "checkIn.steps.wake.fields.startDifficulty.title", options: ["checkIn.steps.wake.fields.startDifficulty.options.easy", "checkIn.steps.wake.fields.startDifficulty.options.time", "checkIn.steps.wake.fields.startDifficulty.options.difficult", "checkIn.steps.wake.fields.startDifficulty.options.veryDifficult"] },
+      factors: { title: "checkIn.steps.wake.fields.factors.title", options: ["checkIn.steps.wake.fields.factors.options.sleep", "checkIn.steps.wake.fields.factors.options.thoughts", "checkIn.steps.wake.fields.factors.options.tasks", "checkIn.steps.wake.fields.factors.options.physical", "checkIn.steps.wake.fields.factors.options.emotions", "checkIn.steps.wake.fields.factors.options.unsure"] },
+      note: { title: "checkIn.steps.wake.fields.note.title", placeholder: "checkIn.steps.wake.fields.note.placeholder" },
+    },
+  },
+  eat: {
+    title: "checkIn.steps.eat.title",
+    description: "checkIn.steps.eat.description",
+    fields: {
+      rhythm: { title: "checkIn.steps.eat.fields.rhythm.title", options: ["checkIn.steps.eat.fields.rhythm.options.regular", "checkIn.steps.eat.fields.rhythm.options.oneIrregular", "checkIn.steps.eat.fields.rhythm.options.irregular", "checkIn.steps.eat.fields.rhythm.options.barelyAte"] },
+      mealCount: { title: "checkIn.steps.eat.fields.mealCount.title", options: ["checkIn.steps.eat.fields.mealCount.options.three", "checkIn.steps.eat.fields.mealCount.options.two", "checkIn.steps.eat.fields.mealCount.options.one", "checkIn.steps.eat.fields.mealCount.options.scattered", "checkIn.steps.eat.fields.mealCount.options.unsure"] },
+      foodDetails: { title: "checkIn.steps.eat.fields.foodDetails.title", placeholder: "checkIn.steps.eat.fields.foodDetails.placeholder" },
+      factors: { title: "checkIn.steps.eat.fields.factors.title", options: ["checkIn.steps.eat.fields.factors.options.busy", "checkIn.steps.eat.fields.factors.options.appetite", "checkIn.steps.eat.fields.factors.options.schedule", "checkIn.steps.eat.fields.factors.options.emotions", "checkIn.steps.eat.fields.factors.options.forgot", "checkIn.steps.eat.fields.factors.options.limited", "checkIn.steps.eat.fields.factors.options.unsure"] },
+      energyConnection: { title: "checkIn.steps.eat.fields.energyConnection.title", options: ["checkIn.steps.eat.fields.energyConnection.options.yes", "checkIn.steps.eat.fields.energyConnection.options.maybe", "checkIn.steps.eat.fields.energyConnection.options.unsure", "checkIn.steps.eat.fields.energyConnection.options.no"] },
+    },
+  },
+  exercise: {
+    title: "checkIn.steps.exercise.title",
+    description: "checkIn.steps.exercise.description",
+    fields: {
+      duration: { title: "checkIn.steps.exercise.fields.duration.title", options: ["checkIn.steps.exercise.fields.duration.options.none", "checkIn.steps.exercise.fields.duration.options.fiveToTen", "checkIn.steps.exercise.fields.duration.options.tenToTwenty", "checkIn.steps.exercise.fields.duration.options.twentyToThirty", "checkIn.steps.exercise.fields.duration.options.overThirty", "checkIn.steps.exercise.fields.duration.options.unsure"] },
+      activityTypes: { title: "checkIn.steps.exercise.fields.activityTypes.title", options: ["checkIn.steps.exercise.fields.activityTypes.options.walking", "checkIn.steps.exercise.fields.activityTypes.options.stretching", "checkIn.steps.exercise.fields.activityTypes.options.pe", "checkIn.steps.exercise.fields.activityTypes.options.sports", "checkIn.steps.exercise.fields.activityTypes.options.commute", "checkIn.steps.exercise.fields.activityTypes.options.daily", "checkIn.steps.exercise.fields.activityTypes.options.none", "checkIn.steps.exercise.fields.activityTypes.options.other"] },
+      activityNote: { title: "checkIn.steps.exercise.fields.activityNote.title", placeholder: "checkIn.steps.exercise.fields.activityNote.placeholder" },
+      bodyState: { title: "checkIn.steps.exercise.fields.bodyState.title", options: ["checkIn.steps.exercise.fields.bodyState.options.relaxed", "checkIn.steps.exercise.fields.bodyState.options.tense", "checkIn.steps.exercise.fields.bodyState.options.sitting", "checkIn.steps.exercise.fields.bodyState.options.tired", "checkIn.steps.exercise.fields.bodyState.options.unsure"] },
+      factors: { title: "checkIn.steps.exercise.fields.factors.title", options: ["checkIn.steps.exercise.fields.factors.options.tired", "checkIn.steps.exercise.fields.factors.options.time", "checkIn.steps.exercise.fields.factors.options.motivation", "checkIn.steps.exercise.fields.factors.options.sitting", "checkIn.steps.exercise.fields.factors.options.emotions", "checkIn.steps.exercise.fields.factors.options.physical", "checkIn.steps.exercise.fields.factors.options.unsure"] },
+    },
+  },
+  task: {
+    title: "checkIn.steps.task.title",
+    description: "checkIn.steps.task.description",
+    fields: {
+      engagement: { title: "checkIn.steps.task.fields.engagement.title", options: ["checkIn.steps.task.fields.engagement.options.smooth", "checkIn.steps.task.fields.engagement.options.basic", "checkIn.steps.task.fields.engagement.options.difficult", "checkIn.steps.task.fields.engagement.options.stuck"] },
+      difficultyReasons: { title: "checkIn.steps.task.fields.difficultyReasons.title", options: ["checkIn.steps.task.fields.difficultyReasons.options.tooMany", "checkIn.steps.task.fields.difficultyReasons.options.start", "checkIn.steps.task.fields.difficultyReasons.options.performance", "checkIn.steps.task.fields.difficultyReasons.options.pressure", "checkIn.steps.task.fields.difficultyReasons.options.emotional", "checkIn.steps.task.fields.difficultyReasons.options.unsure"] },
+      completedSmallTask: { title: "checkIn.steps.task.fields.completedSmallTask.title", placeholder: "checkIn.steps.task.fields.completedSmallTask.placeholder" },
+    },
+  },
+};
+
 const initialAnswers = steps.reduce<Answers>((result, step) => {
   result[step.id] = {};
   step.fields.forEach((field) => {
@@ -115,6 +183,7 @@ function isFieldComplete(value: FieldValue) {
 }
 
 export default function CheckInPage() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
@@ -194,7 +263,7 @@ export default function CheckInPage() {
 
   function goNext() {
     if (!canGoNext) {
-      setValidation("请先选择一个最接近今天状态的选项。");
+      setValidation(t("checkIn.messages.selectRequired"));
       return;
     }
     setValidation("");
@@ -225,21 +294,21 @@ export default function CheckInPage() {
     const message = saveError instanceof Error ? saveError.message : "";
     const normalized = message.toLowerCase();
     if (normalized.includes("jwt") || normalized.includes("session") || normalized.includes("登录")) {
-      return "登录状态已过期，请重新登录后再保存。";
+      return t("checkIn.messages.sessionExpired");
     }
     if (normalized.includes("row-level security") || normalized.includes("permission") || normalized.includes("42501")) {
-      return "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。";
+      return t("checkIn.messages.permissionDenied");
     }
     if (normalized.includes("fetch") || normalized.includes("network") || normalized.includes("failed to")) {
-      return "网络连接不稳定，请检查网络后重新保存。";
+      return t("checkIn.messages.networkError");
     }
-    return "这次没有保存成功，请稍后再试。";
+    return t("checkIn.messages.saveFailed");
   }
 
   async function saveCurrentRecord(result: AiResult | null = aiResult) {
     if (saving) return;
     if (!allRequiredDone) {
-      setValidation("请先完成五个 SWEET 维度的必要记录，再保存。");
+      setValidation(t("checkIn.messages.completeBeforeSave"));
       return;
     }
     const recordPayload = {
@@ -250,19 +319,19 @@ export default function CheckInPage() {
     };
     const recordKey = JSON.stringify(recordPayload.records);
     if (recordKey === savedRecordKey) {
-      setSaveStatus("这次 SWEET 记录已经保存过了。");
+      setSaveStatus(t("checkIn.messages.alreadySaved"));
       return;
     }
     setSaving(true);
     try {
       const user = await getCurrentUser();
       if (!user) {
-        setSaveStatus("请先登录，再保存这次记录。");
+        setSaveStatus(t("checkIn.messages.signInToSave"));
         return;
       }
       await saveCloudSweetRecord(recordPayload);
       setSavedRecordKey(recordKey);
-      setSaveStatus("已保存，可以在“账号”中查看。");
+      setSaveStatus(t("checkIn.messages.saved"));
     } catch (saveError) {
       reportClientOperationFailure("save", "sweet_record_save", saveError);
       console.error("SWEET record save failed", saveError);
@@ -284,14 +353,14 @@ export default function CheckInPage() {
       body: JSON.stringify(payload),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "这次没有完成小结，请稍后再试。");
+    if (!response.ok) throw new Error(data.error || t("checkIn.messages.summaryFailed"));
     return data as AiResult;
   }
 
   async function generateSummary() {
     if (loading || saving) return;
     if (!allRequiredDone) {
-      setValidation("请先完成五个 SWEET 维度的必要记录，再生成回应。");
+      setValidation(t("checkIn.messages.completeBeforeGenerate"));
       return;
     }
 
@@ -303,7 +372,7 @@ export default function CheckInPage() {
       const result = await requestSummary();
       setAiResult(result);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "暂时无法生成回应，请稍后再试。");
+      setError(requestError instanceof Error ? requestError.message : t("checkIn.messages.responseUnavailable"));
     } finally {
       setLoading(false);
     }
@@ -312,7 +381,7 @@ export default function CheckInPage() {
   async function generateAndSave() {
     if (loading || saving) return;
     if (!allRequiredDone) {
-      setValidation("请先完成五个 SWEET 维度的必要记录。");
+      setValidation(t("checkIn.messages.completeRequired"));
       return;
     }
 
@@ -328,7 +397,7 @@ export default function CheckInPage() {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。",
+          : t("checkIn.messages.summaryUnavailableSaveAllowed"),
       );
       await saveCurrentRecord(null);
     } finally {
@@ -340,12 +409,12 @@ export default function CheckInPage() {
     <>
       <PageHero
         label="SWEET Rhythm Check-in"
-        title="SWEET 节律记录"
-        subtitle="约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。"
+        title={t("checkIn.hero.title")}
+        subtitle={t("checkIn.hero.description")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-sweet-rhythm-v2.webp"
-            alt="SWEET 五个日常节律组成的循环插画"
+            alt={t("checkIn.hero.imageAlt")}
             priority
           />
         }
@@ -355,8 +424,8 @@ export default function CheckInPage() {
         <div className="container">
           <div className="mx-auto max-w-4xl">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3 text-sm font-bold text-muted">
-              <span>第 {currentStep + 1} 步 / {steps.length}</span>
-              <span>已完成 {completedSteps} / {steps.length} 个维度</span>
+              <span>{t("checkIn.progress.step", { current: currentStep + 1, total: steps.length })}</span>
+              <span>{t("checkIn.progress.completed", { completed: completedSteps, total: steps.length })}</span>
             </div>
 
             <div className="-mx-4 mb-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
@@ -374,7 +443,7 @@ export default function CheckInPage() {
                       }`}
                     >
                       <span className="block text-xs font-bold">{item.label}</span>
-                      <span className="mt-1 block text-[0.7rem] font-bold">{item.title}</span>
+                      <span className="mt-1 block text-[0.7rem] font-bold">{t(stepCopyKeys[item.id].title)}</span>
                     </button>
                   );
                 })}
@@ -384,10 +453,10 @@ export default function CheckInPage() {
             <article ref={questionCardRef} className="card scroll-mt-24 sm:scroll-mt-28">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-[1.55rem] font-bold leading-[1.25] text-ink sm:text-[1.8rem]">{step.label} {step.title}</h2>
-                  <p className="mt-2 text-sm font-bold text-sage">SWEET 日常记录</p>
+                  <h2 className="text-[1.55rem] font-bold leading-[1.25] text-ink sm:text-[1.8rem]">{step.label} {t(stepCopyKeys[step.id].title)}</h2>
+                  <p className="mt-2 text-sm font-bold text-sage">{t("checkIn.form.label")}</p>
                 </div>
-                <p className="max-w-md text-sm leading-7 text-muted">{step.description}</p>
+                <p className="max-w-md text-sm leading-7 text-muted">{t(stepCopyKeys[step.id].description)}</p>
               </div>
 
               <div className="mt-7 grid gap-7 sm:mt-8">
@@ -395,18 +464,19 @@ export default function CheckInPage() {
                   .filter((field) => field.required !== false || detailsOpen[step.id])
                   .map((field) => {
                   const value = currentAnswer[field.id];
+                  const fieldCopy = stepCopyKeys[step.id].fields[field.id];
                   if (field.type === "text") {
                     return (
                       <label key={field.id} className="grid gap-2">
                         <span className="text-base font-bold text-ink">
-                          {field.title}
-                          {field.required === false ? <span className="ml-2 text-xs text-muted">可选</span> : null}
+                          {t(fieldCopy.title)}
+                          {field.required === false ? <span className="ml-2 text-xs text-muted">{t("checkIn.form.optional")}</span> : null}
                         </span>
                         <textarea
                           className="min-h-28 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage"
                           value={typeof value === "string" ? value : ""}
                           onChange={(event) => setTextValue(field.id, event.target.value)}
-                          placeholder={field.placeholder}
+                          placeholder={fieldCopy.placeholder ? t(fieldCopy.placeholder) : undefined}
                         />
                       </label>
                     );
@@ -415,9 +485,9 @@ export default function CheckInPage() {
                     const selectedValues = Array.isArray(value) ? value : [];
                     return (
                       <div key={field.id}>
-                        <p className="text-base font-bold text-ink">{field.title}</p>
+                        <p className="text-base font-bold text-ink">{t(fieldCopy.title)}</p>
                         <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
-                          {field.options?.map((option) => {
+                          {field.options?.map((option, optionIndex) => {
                             const selected = selectedValues.includes(option);
                             return (
                               <button
@@ -428,7 +498,7 @@ export default function CheckInPage() {
                                   selected ? "border-sage bg-mist text-sage-dark" : "border-ink/10 bg-white/80 text-muted hover:border-sage/50"
                                 }`}
                               >
-                                {option}
+                                {fieldCopy.options?.[optionIndex] ? t(fieldCopy.options[optionIndex]) : option}
                               </button>
                             );
                           })}
@@ -438,9 +508,9 @@ export default function CheckInPage() {
                   }
                   return (
                     <div key={field.id}>
-                      <p className="text-base font-bold text-ink">{field.title}</p>
+                      <p className="text-base font-bold text-ink">{t(fieldCopy.title)}</p>
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        {field.options?.map((option) => {
+                        {field.options?.map((option, optionIndex) => {
                           const selected = value === option;
                           return (
                             <button
@@ -451,7 +521,7 @@ export default function CheckInPage() {
                                 selected ? "border-sage bg-mist text-sage-dark" : "border-ink/10 bg-white/80 text-ink/75 hover:border-sage/50"
                               }`}
                             >
-                              {option}
+                              {fieldCopy.options?.[optionIndex] ? t(fieldCopy.options[optionIndex]) : option}
                             </button>
                           );
                         })}
@@ -467,9 +537,9 @@ export default function CheckInPage() {
                 className="mt-7 flex w-full items-center justify-between gap-4 rounded-2xl border border-sage/35 bg-mint/70 px-4 py-3 text-left text-sm font-bold text-sage-dark transition hover:border-sage hover:bg-mist focus:outline-none focus:ring-4 focus:ring-sage/15 sm:w-auto sm:min-w-64"
                 onClick={() => setDetailsOpen((current) => ({ ...current, [step.id]: !current[step.id] }))}
               >
-                <span>{detailsOpen[step.id] ? "收起补充问题" : "想补充更多"}</span>
+                <span>{detailsOpen[step.id] ? t("checkIn.form.collapseDetails") : t("checkIn.form.expandDetails")}</span>
                 <span className="flex items-center gap-2 text-xs">
-                  {detailsOpen[step.id] ? "收起" : "可选"}
+                  {detailsOpen[step.id] ? t("checkIn.form.collapse") : t("checkIn.form.optional")}
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-base leading-none shadow-sm">
                     {detailsOpen[step.id] ? "−" : "+"}
                   </span>
@@ -481,21 +551,21 @@ export default function CheckInPage() {
               {currentStep === steps.length - 1 ? (
                 <label className="mt-7 flex items-start gap-3 rounded-2xl border border-sage/25 bg-mist/60 px-4 py-4 text-sm leading-6 text-muted">
                   <input type="checkbox" className="mt-1" checked={sensitiveConsentAccepted} onChange={(event) => setSensitiveConsentAccepted(event.target.checked)} />
-                  <span>我知道本次 SWEET 回答会发送给 AI 生成小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次回应而处理这些内容。<Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">查看说明</Link></span>
+                  <span>{t("checkIn.consent.text")}<Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">{t("checkIn.consent.link")}</Link></span>
                 </label>
               ) : null}
 
               <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
                 <button type="button" className="button-secondary w-full sm:w-auto" disabled={currentStep === 0} onClick={() => goToStep(currentStep - 1)}>
-                  上一步
+                  {t("checkIn.actions.previous")}
                 </button>
                 {currentStep < steps.length - 1 ? (
                   <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!canGoNext} onClick={goNext}>
-                    下一步
+                    {t("checkIn.actions.next")}
                   </button>
                 ) : (
                   <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || !sensitiveConsentAccepted || loading || saving} onClick={generateAndSave}>
-                    {loading || saving ? "正在生成并保存..." : "生成小结并保存"}
+                    {loading || saving ? t("checkIn.actions.generatingAndSaving") : t("checkIn.actions.generateAndSave")}
                   </button>
                 )}
               </div>
@@ -507,10 +577,10 @@ export default function CheckInPage() {
                 <p className="text-sm font-bold text-sage-dark">{error}</p>
                 <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
                   <button type="button" className="button-primary w-full sm:w-auto" disabled={loading} onClick={generateSummary}>
-                    {loading ? "正在重试..." : "重新生成"}
+                    {loading ? t("checkIn.actions.retrying") : t("checkIn.actions.regenerate")}
                   </button>
                   <button type="button" className="button-secondary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
-                    {saving ? "正在保存..." : "先保存记录"}
+                    {saving ? t("checkIn.actions.saving") : t("checkIn.actions.saveFirst")}
                   </button>
                 </div>
               </div>
@@ -520,41 +590,41 @@ export default function CheckInPage() {
               <section ref={resultRef} className="mt-8 scroll-mt-24 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:scroll-mt-28 sm:p-8">
                 <div className="grid items-center gap-6 lg:grid-cols-[1fr_18rem]">
                   <div>
-                    <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">今日 SWEET 节律小结</h2>
+                    <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("checkIn.result.title")}</h2>
                     <p className="mt-4 text-base leading-8 text-muted">{aiResult.summary}</p>
                   </div>
                   <FeatureIllustration
                     src="/illustrations/system/feature-ai-summary.webp"
-                    alt="把记录整理成清晰小结的插画"
+                    alt={t("checkIn.result.imageAlt")}
                   />
                 </div>
                 <div className="mt-6 grid gap-4">
                   {mainAffectedAreas ? (
-                    <p className="text-sm font-bold text-sage-dark">今天可以多留意：{mainAffectedAreas}</p>
+                    <p className="text-sm font-bold text-sage-dark">{t("checkIn.result.affectedAreas", { areas: mainAffectedAreas })}</p>
                   ) : null}
                   <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
-                    <h3 className="text-base font-bold text-ink">今天的一条节律线索</h3>
+                    <h3 className="text-base font-bold text-ink">{t("checkIn.result.rhythmClue")}</h3>
                     <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.rhythmClue}</p>
                   </div>
                   <div className="rounded-2xl border border-sage/25 bg-mist/65 p-5">
-                    <h3 className="text-base font-bold text-ink">明天只做这一小步</h3>
+                    <h3 className="text-base font-bold text-ink">{t("checkIn.result.smallStep")}</h3>
                     <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.smallStep}</p>
                   </div>
                   <div className="rounded-2xl border border-ink/10 bg-white/70 p-5">
-                    <h3 className="text-base font-bold text-ink">接下来可以去哪里</h3>
+                    <h3 className="text-base font-bold text-ink">{t("checkIn.result.nextTool")}</h3>
                     <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.recommendedNextTool}</p>
                   </div>
                 </div>
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
-                <p className="mt-4 text-xs leading-6 text-muted">这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。</p>
+                <p className="mt-4 text-xs leading-6 text-muted">{t("checkIn.result.disclaimer")}</p>
                 <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
                   <button type="button" className="button-primary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
-                    {saving ? "正在保存..." : savedRecordKey ? "已保存到账号" : "保存到账号"}
+                    {saving ? t("checkIn.actions.saving") : savedRecordKey ? t("checkIn.actions.savedToAccount") : t("checkIn.actions.saveToAccount")}
                   </button>
-                  <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">打开心情拼图</Link>
-                  <Link href="/worry-time" className="button-secondary w-full sm:w-auto">今晚先放下</Link>
-                  <Link href="/referral" className="button-secondary w-full sm:w-auto">查看支持路径</Link>
-                  <button type="button" className="button-secondary w-full sm:w-auto" onClick={reset}>重新填写</button>
+                  <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">{t("checkIn.actions.openMoodJournal")}</Link>
+                  <Link href="/worry-time" className="button-secondary w-full sm:w-auto">{t("checkIn.actions.openWorryTime")}</Link>
+                  <Link href="/referral" className="button-secondary w-full sm:w-auto">{t("checkIn.actions.viewReferral")}</Link>
+                  <button type="button" className="button-secondary w-full sm:w-auto" onClick={reset}>{t("checkIn.actions.reset")}</button>
                 </div>
               </section>
             ) : null}

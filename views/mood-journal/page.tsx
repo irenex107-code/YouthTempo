@@ -3,37 +3,59 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
+import { useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
 const emotionGroups = [
-  ["压力类", ["紧张", "焦虑", "压迫", "不安"]],
-  ["低落类", ["难过", "空", "委屈", "没动力"]],
-  ["烦躁类", ["烦躁", "生气", "想躲开", "不想说话"]],
-  ["模糊类", ["说不清", "很乱", "麻木", "累"]],
+  { key: "pressure", labelKey: "moodJournal.emotions.groups.pressure.title" as TranslationKey, words: [
+    { value: "紧张", labelKey: "moodJournal.emotions.groups.pressure.words.tense" as TranslationKey },
+    { value: "焦虑", labelKey: "moodJournal.emotions.groups.pressure.words.anxious" as TranslationKey },
+    { value: "压迫", labelKey: "moodJournal.emotions.groups.pressure.words.pressured" as TranslationKey },
+    { value: "不安", labelKey: "moodJournal.emotions.groups.pressure.words.uneasy" as TranslationKey },
+  ] },
+  { key: "low", labelKey: "moodJournal.emotions.groups.low.title" as TranslationKey, words: [
+    { value: "难过", labelKey: "moodJournal.emotions.groups.low.words.sad" as TranslationKey },
+    { value: "空", labelKey: "moodJournal.emotions.groups.low.words.empty" as TranslationKey },
+    { value: "委屈", labelKey: "moodJournal.emotions.groups.low.words.hurt" as TranslationKey },
+    { value: "没动力", labelKey: "moodJournal.emotions.groups.low.words.unmotivated" as TranslationKey },
+  ] },
+  { key: "irritable", labelKey: "moodJournal.emotions.groups.irritable.title" as TranslationKey, words: [
+    { value: "烦躁", labelKey: "moodJournal.emotions.groups.irritable.words.irritable" as TranslationKey },
+    { value: "生气", labelKey: "moodJournal.emotions.groups.irritable.words.angry" as TranslationKey },
+    { value: "想躲开", labelKey: "moodJournal.emotions.groups.irritable.words.avoid" as TranslationKey },
+    { value: "不想说话", labelKey: "moodJournal.emotions.groups.irritable.words.quiet" as TranslationKey },
+  ] },
+  { key: "unclear", labelKey: "moodJournal.emotions.groups.unclear.title" as TranslationKey, words: [
+    { value: "说不清", labelKey: "moodJournal.emotions.groups.unclear.words.unclear" as TranslationKey },
+    { value: "很乱", labelKey: "moodJournal.emotions.groups.unclear.words.messy" as TranslationKey },
+    { value: "麻木", labelKey: "moodJournal.emotions.groups.unclear.words.numb" as TranslationKey },
+    { value: "累", labelKey: "moodJournal.emotions.groups.unclear.words.tired" as TranslationKey },
+  ] },
 ];
 
 const starters = [
-  "我现在有点乱，能先听我慢慢说吗？",
-  "你先听我说完，可以吗？",
-  "我最近真的有点累，能先陪我一下吗？",
-  "我不是不想做，是现在有点不知道怎么开始。",
+  { value: "我现在有点乱，能先听我慢慢说吗？", key: "moodJournal.starters.default.confused" as TranslationKey },
+  { value: "你先听我说完，可以吗？", key: "moodJournal.starters.default.listen" as TranslationKey },
+  { value: "我最近真的有点累，能先陪我一下吗？", key: "moodJournal.starters.default.tired" as TranslationKey },
+  { value: "我不是不想做，是现在有点不知道怎么开始。", key: "moodJournal.starters.default.stuck" as TranslationKey },
 ];
 
 function buildStarterOptions(reflectionText: string) {
   if (/拖|开始|任务|作业|学习|催|压力|做不好/.test(reflectionText)) {
     return [
-      "我不是不想做，是现在有点不知道怎么开始。能陪我先拆小一点吗？",
+      { value: "我不是不想做，是现在有点不知道怎么开始。能陪我先拆小一点吗？", key: "moodJournal.starters.context.task" as TranslationKey },
       ...starters,
     ];
   }
   if (/不想说|说不清|乱|麻木|累/.test(reflectionText)) {
     return [
-      "我现在有点乱，还没想好怎么说。你能先听听吗？",
+      { value: "我现在有点乱，还没想好怎么说。你能先听听吗？", key: "moodJournal.starters.context.unclear" as TranslationKey },
       ...starters,
     ];
   }
   if (/评价|吵|冲突|生气|烦/.test(reflectionText)) {
     return [
-      "你先听我说完，可以吗？我现在还不太需要建议。",
+      { value: "你先听我说完，可以吗？我现在还不太需要建议。", key: "moodJournal.starters.context.conflict" as TranslationKey },
       ...starters,
     ];
   }
@@ -49,6 +71,7 @@ type MoodAiResult = {
 };
 
 export default function MoodJournalPage() {
+  const { t } = useTranslation();
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [context, setContext] = useState("");
   const [body, setBody] = useState("");
@@ -76,7 +99,7 @@ export default function MoodJournalPage() {
 
   async function generateAiResponse() {
     if (!selectedWords.length && !context && !body && !understanding && !support) {
-      setValidation("请先完成必要问题，再生成回应。");
+      setValidation(t("moodJournal.messages.completeRequired"));
       return;
     }
 
@@ -93,14 +116,14 @@ export default function MoodJournalPage() {
           bodyFeeling: body,
           recurringThought: understanding,
           desiredSupport: support,
-          communicationStarter: starter,
+          communicationStarter: starter.value,
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "这次没有连接成功，请稍后再试。");
+      if (!response.ok) throw new Error(data.error || t("moodJournal.messages.connectionFailed"));
       setAiResult(data);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "暂时无法生成回应，请稍后再试。");
+      setError(requestError instanceof Error ? requestError.message : t("moodJournal.messages.responseUnavailable"));
     } finally {
       setLoading(false);
     }
@@ -109,13 +132,13 @@ export default function MoodJournalPage() {
   return (
     <>
       <PageHero
-        label="感受整理"
-        title="心情拼图"
-        subtitle="如果一时说不清感受，可以先选几个接近的情绪词，再慢慢补充发生了什么、身体有什么感觉。"
+        label={t("moodJournal.hero.label")}
+        title={t("moodJournal.hero.title")}
+        subtitle={t("moodJournal.hero.description")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-mood-puzzle.webp"
-            alt="由不同颜色与表情组成的心情拼图插画"
+            alt={t("moodJournal.hero.imageAlt")}
             priority
           />
         }
@@ -124,27 +147,27 @@ export default function MoodJournalPage() {
       <section className="section section-muted">
         <div className="container">
           <SectionHeader
-            label="情绪词卡"
-            title="情绪词卡"
-            description="如果一开始说不清楚，可以先从几个接近的词开始。"
+            label={t("moodJournal.emotions.label")}
+            title={t("moodJournal.emotions.title")}
+            description={t("moodJournal.emotions.description")}
           />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {emotionGroups.map(([group, words]) => (
-              <article key={group as string} className="card">
-                <h3 className="text-xl font-bold text-ink">{group}</h3>
+            {emotionGroups.map((group) => (
+              <article key={group.key} className="card">
+                <h3 className="text-xl font-bold text-ink">{t(group.labelKey)}</h3>
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {(words as string[]).map((word) => (
+                  {group.words.map((word) => (
                     <button
-                      key={word}
+                      key={word.value}
                       type="button"
-                      onClick={() => toggleWord(word)}
+                      onClick={() => toggleWord(word.value)}
                       className={`min-h-11 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
-                        selectedWords.includes(word)
+                        selectedWords.includes(word.value)
                           ? "border-sage bg-mist text-sage-dark"
                           : "border-ink/10 bg-white/80 text-ink/70 hover:border-sage/50"
                       }`}
                     >
-                      {word}
+                      {t(word.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -159,32 +182,32 @@ export default function MoodJournalPage() {
           <div className="card">
             <SectionHeader
               label="Guided Reflection"
-              title="引导式整理"
-              description="这些问题只是帮助你整理今天的状态，不是测试，也不是正式评估。"
+              title={t("moodJournal.reflection.title")}
+              description={t("moodJournal.reflection.description")}
             />
             <div className="grid gap-5">
               <label className="grid gap-2">
-                <span className="text-sm font-bold text-ink">这件事发生在什么情境里？</span>
+                <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.context")}</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => setContext(e.target.value)} />
                 <VoiceInputButton value={context} onChange={setContext} />
               </label>
               <label className="grid gap-2">
-                <span className="text-sm font-bold text-ink">当时你身体有什么感觉？</span>
+                <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.body")}</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => setBody(e.target.value)} />
                 <VoiceInputButton value={body} onChange={setBody} />
               </label>
               <label className="grid gap-2">
-                <span className="text-sm font-bold text-ink">你最想被别人理解的一点是什么？</span>
+                <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.understanding")}</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => setUnderstanding(e.target.value)} />
                 <VoiceInputButton value={understanding} onChange={setUnderstanding} />
               </label>
               <label className="grid gap-2">
-                <span className="text-sm font-bold text-ink">现在你希望自己先得到什么支持？</span>
+                <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.support")}</span>
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => setSupport(e.target.value)} />
                 <VoiceInputButton value={support} onChange={setSupport} />
               </label>
               <button type="button" className="button-primary w-fit" onClick={generateAiResponse} disabled={loading}>
-                {loading ? "正在整理，请稍等……" : "整理我的感受"}
+                {loading ? t("moodJournal.actions.organizing") : t("moodJournal.actions.organize")}
               </button>
               {validation ? <p className="text-sm font-bold text-sage-dark">{validation}</p> : null}
               {error ? <p className="text-sm font-bold text-sage-dark">{error}</p> : null}
@@ -192,28 +215,28 @@ export default function MoodJournalPage() {
           </div>
 
           <div className="card">
-            <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">可以直接说的话</h2>
+            <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("moodJournal.starters.title")}</h2>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              不用说得很完整。选一句最接近你现在感受的话，向家长、老师或可信任的人开口。
+              {t("moodJournal.starters.description")}
             </p>
             <div className="mt-6 rounded-2xl bg-cream p-5 text-lg font-bold leading-8 text-ink">
-              “{starter}”
+              “{t(starter.key)}”
             </div>
             <button type="button" className="button-secondary mt-5" onClick={generateStarter}>
-              换一条表达句式
+              {t("moodJournal.actions.changeStarter")}
             </button>
             <button
               type="button"
               className="button-secondary mt-3 w-full sm:w-auto"
               onClick={() => setShowAllStarters((current) => !current)}
             >
-              {showAllStarters ? "收起其他句式" : "查看其他句式"}
+              {showAllStarters ? t("moodJournal.actions.hideStarters") : t("moodJournal.actions.showStarters")}
             </button>
             {showAllStarters ? (
               <div className="mt-5 grid gap-3">
-                {starterOptions.filter((item) => item !== starter).map((item) => (
-                  <p key={item} className="rounded-2xl border border-ink/10 bg-white/70 p-4 text-sm font-bold leading-7 text-muted">
-                    “{item}”
+                {starterOptions.filter((item) => item.value !== starter.value).map((item) => (
+                  <p key={item.value} className="rounded-2xl border border-ink/10 bg-white/70 p-4 text-sm font-bold leading-7 text-muted">
+                    “{t(item.key)}”
                   </p>
                 ))}
               </div>
@@ -224,22 +247,22 @@ export default function MoodJournalPage() {
         {aiResult ? (
           <div className="container mt-8">
             <div className="rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
-              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">把现在的感受说清一点</h2>
+              <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("moodJournal.result.title")}</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
-                  <h3 className="text-lg font-bold text-ink">你今天可能正在经历的情绪</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("moodJournal.result.emotions")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.emotionReflection}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-ink">这件事里你可能最需要的支持</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("moodJournal.result.support")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.possibleNeed}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-ink">可以试着这样表达</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("moodJournal.result.expression")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.communicationSuggestion}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-ink">今天可以先做的一件小事</h3>
+                  <h3 className="text-lg font-bold text-ink">{t("moodJournal.result.smallStep")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.smallStep}</p>
                 </div>
               </div>
@@ -247,7 +270,7 @@ export default function MoodJournalPage() {
                 {aiResult.supportReminder}
               </p>
               <p className="mt-4 text-xs leading-6 text-muted">
-                这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。
+                {t("moodJournal.result.disclaimer")}
               </p>
             </div>
           </div>
