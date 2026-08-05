@@ -7,11 +7,11 @@ type PageHeroProps = {
 };
 
 const rhythmItems = [
-  ["S", "睡眠", "Sleep"],
-  ["W", "醒来", "Wake"],
-  ["E", "饮食", "Eat"],
-  ["E", "运动", "Exercise"],
-  ["T", "投入", "Task"],
+  ["S", "common.hero.rhythm.sleep.title", "common.hero.rhythm.sleep.label"],
+  ["W", "common.hero.rhythm.wake.title", "common.hero.rhythm.wake.label"],
+  ["E", "common.hero.rhythm.eat.title", "common.hero.rhythm.eat.label"],
+  ["E", "common.hero.rhythm.exercise.title", "common.hero.rhythm.exercise.label"],
+  ["T", "common.hero.rhythm.task.title", "common.hero.rhythm.task.label"],
 ] as const;
 
 export function PageHero({ label = "YouthTempo", title, subtitle, action, aside }: PageHeroProps) {
@@ -35,18 +35,21 @@ export function PageHero({ label = "YouthTempo", title, subtitle, action, aside 
 }
 
 function RhythmVisual() {
+  const { t } = useTranslation();
+
   return (
-    <div className="surface-panel relative mx-auto max-w-lg overflow-hidden p-5 sm:p-7" aria-label="SWEET 五个日常节律维度">
+    <div className="surface-panel relative mx-auto max-w-lg overflow-hidden p-5 sm:p-7" aria-label={t("common.hero.rhythm.ariaLabel")}>
       <p className="relative text-xs font-extrabold tracking-[0.12em] text-sage-dark">SWEET DAILY RHYTHM</p>
       <div className="relative mt-5 grid grid-cols-2 gap-3">
-        {rhythmItems.map(([letter, title, english], index) => (
-          <div key={`${letter}-${english}`} className={`rounded-2xl border border-ink/[0.07] p-4 ${index === 4 ? "col-span-2 bg-sage-dark text-white" : index === 0 ? "bg-sky-soft/55" : index === 1 ? "bg-gold/20" : index === 2 ? "bg-clay-soft/60" : "bg-lavender/50"}`}>
+        {rhythmItems.map(([letter, titleKey, labelKey], index) => (
+          <div key={labelKey} className={`rounded-2xl border border-ink/[0.07] p-4 ${index === 4 ? "col-span-2 bg-sage-dark text-white" : index === 0 ? "bg-sky-soft/55" : index === 1 ? "bg-gold/20" : index === 2 ? "bg-clay-soft/60" : "bg-lavender/50"}`}>
             <span className={`text-lg font-black ${index === 4 ? "text-gold" : "text-clay"}`}>{letter}</span>
-            <p className="mt-2 text-sm font-extrabold">{title}</p>
-            <p className={`mt-1 text-[0.68rem] font-bold ${index === 4 ? "text-white/65" : "text-muted"}`}>{english}</p>
+            <p className="mt-2 text-sm font-extrabold">{t(titleKey)}</p>
+            <p className={`mt-1 text-[0.68rem] font-bold ${index === 4 ? "text-white/65" : "text-muted"}`}>{t(labelKey)}</p>
           </div>
         ))}
       </div>
     </div>
   );
 }
+import { useTranslation } from "@/lib/i18n/client";

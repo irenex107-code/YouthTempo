@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { navItems } from "@/data/site";
+import { useTranslation } from "@/lib/i18n/client";
 import { getSupabase } from "@/lib/supabaseClient";
 
 const roleEntryHrefs = new Set(["/for-teens", "/for-parents", "/for-teachers"]);
@@ -24,6 +25,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
 
 export function Navbar() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
@@ -113,19 +115,19 @@ export function Navbar() {
 
   const accountLabel = signedIn
     ? accountName
-      ? `你好，${accountName}！`
-      : "你好！"
-    : "登录 / 我的记录";
+      ? t("common.navbar.account.greetingWithName", { name: accountName })
+      : t("common.navbar.account.greeting")
+    : t("common.navbar.account.signInRecords");
   const primaryAction =
     accountRole === "平台管理员"
-      ? { href: "/admin", label: "平台管理", mobileLabel: "平台管理" }
+      ? { href: "/admin", label: t("common.navbar.actions.platformAdmin"), mobileLabel: t("common.navbar.actions.platformAdmin") }
       : accountRole === "学校负责人"
-        ? { href: "/admin", label: "学校管理", mobileLabel: "学校管理" }
+        ? { href: "/admin", label: t("common.navbar.actions.schoolAdmin"), mobileLabel: t("common.navbar.actions.schoolAdmin") }
         : accountRole === "支持老师"
-          ? { href: "/account#students", label: "我的学生", mobileLabel: "我的学生" }
+          ? { href: "/account#students", label: t("common.navbar.actions.myStudents"), mobileLabel: t("common.navbar.actions.myStudents") }
           : accountRole === "家长"
-            ? { href: "/account#records", label: "孩子记录", mobileLabel: "孩子记录" }
-            : { href: "/check-in", label: "开始 SWEET 节律", mobileLabel: "记录今天" };
+            ? { href: "/account#records", label: t("common.navbar.actions.childRecords"), mobileLabel: t("common.navbar.actions.childRecords") }
+            : { href: "/check-in", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
   const roleEntryHref =
     accountRole === "学生"
       ? "/for-teens"
@@ -146,13 +148,13 @@ export function Navbar() {
     <header className="sticky top-0 z-30 border-b border-ink/[0.07] bg-cream/88 shadow-[0_8px_30px_rgba(32,51,47,0.04)] backdrop-blur-xl">
       <div className="px-4 sm:px-8 lg:px-12">
         <div className="container flex min-h-[68px] items-center justify-between gap-3 lg:min-h-[76px]">
-          <Link href="/" className="shrink-0 text-[1.2rem] font-black tracking-[-0.035em] text-ink transition hover:text-sage-dark" aria-label="YouthTempo 首页">
+          <Link href="/" className="shrink-0 text-[1.2rem] font-black tracking-[-0.035em] text-ink transition hover:text-sage-dark" aria-label={t("common.navbar.homeAria")}>
             YouthTempo
           </Link>
           <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 xl:flex xl:gap-5">
             {visibleNavItems.map((item) => (
               <Link key={item.href} href={item.href} className={`whitespace-nowrap rounded-lg px-2.5 py-2 transition ${router.pathname === item.href ? "bg-mist text-sage-dark" : "hover:bg-white/70 hover:text-sage-dark"}`}>
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
           </nav>
@@ -167,7 +169,7 @@ export function Navbar() {
                 {accountLabel}
               </Link>
             ) : (
-              <span className="h-9 w-28 animate-pulse rounded-full bg-ink/5" aria-label="正在加载账号" />
+              <span className="h-9 w-28 animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
             )}
             <Link href={primaryAction.href} className="button-primary px-4 py-2 text-xs sm:px-5">
               {primaryAction.label}
@@ -183,7 +185,7 @@ export function Navbar() {
             <button
               type="button"
               className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink/10 bg-paper text-ink shadow-sm"
-              aria-label={menuOpen ? "关闭导航菜单" : "打开导航菜单"}
+              aria-label={menuOpen ? t("common.navbar.closeMenu") : t("common.navbar.openMenu")}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
             >
@@ -205,7 +207,7 @@ export function Navbar() {
                   className={`rounded-xl px-4 py-3 text-sm font-bold transition ${router.pathname === item.href ? "bg-mist text-sage-dark" : "text-ink/80 hover:bg-cream hover:text-sage-dark"}`}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               ))}
               <div className="mt-1 grid gap-2 border-t border-ink/10 pt-3">
@@ -214,7 +216,7 @@ export function Navbar() {
                     {accountLabel}
                   </Link>
                 ) : (
-                  <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label="正在加载账号" />
+                  <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
                 )}
                 <Link href={primaryAction.href} className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
                   {primaryAction.label}

@@ -21,7 +21,13 @@ type NestedKey<T> = {
 
 export type TranslationKey = NestedKey<TranslationDictionary>;
 
-export function translate(dictionary: TranslationDictionary, key: TranslationKey): string {
+export type TranslationValues = Record<string, string | number>;
+
+export function translate(
+  dictionary: TranslationDictionary,
+  key: TranslationKey,
+  values?: TranslationValues,
+): string {
   const value = key.split(".").reduce<unknown>((current, segment) => {
     if (!current || typeof current !== "object") return undefined;
     return (current as Record<string, unknown>)[segment];
@@ -31,5 +37,10 @@ export function translate(dictionary: TranslationDictionary, key: TranslationKey
     throw new Error(`Missing translation key: ${key}`);
   }
 
-  return value;
+  if (!values) return value;
+
+  return value.replace(/\{\{(\w+)\}\}/g, (match, variable: string) => {
+    const replacement = values[variable];
+    return replacement === undefined ? match : String(replacement);
+  });
 }

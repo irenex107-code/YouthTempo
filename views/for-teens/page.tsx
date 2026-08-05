@@ -2,75 +2,35 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
-
-const startCards = [
-  {
-    title: "我想看看今天状态",
-    text: "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。",
-    action: "做 SWEET 节律记录",
-    href: "/check-in",
-    illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp",
-    illustrationAlt: "睡眠、醒来、饮食、运动和任务投入组成的日常节律",
-  },
-  {
-    title: "我有点说不清自己的感受",
-    text: "先不用解释清楚，选几个接近的情绪词，再慢慢补充发生了什么。",
-    action: "打开心情拼图",
-    href: "/mood-journal",
-    illustration: "/illustrations/system/feature-mood-puzzle.webp",
-    illustrationAlt: "不同颜色组成的心情拼图",
-  },
-  {
-    title: "我想先找个地方说说",
-    text: "从眼前最卡住的一件事开始，一问一答地把想法捋清一点。",
-    action: "陪我捋一捋",
-    href: "/talk",
-    illustration: "/illustrations/system/feature-talk.webp",
-    illustrationAlt: "把打结的感受慢慢整理清楚",
-  },
-  {
-    title: "我有些话想告诉老师或家长",
-    text: "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。",
-    action: "打开悄悄话信箱",
-    href: "/messages",
-    illustration: "/illustrations/system/feature-mailbox.webp",
-    illustrationAlt: "装着信件的绿色信箱",
-  },
-  {
-    title: "我睡前总是想很多",
-    text: "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。",
-    action: "今晚先放下",
-    href: "/worry-time",
-    illustration: "/illustrations/system/feature-worry-time.webp",
-    illustrationAlt: "在月光下把担心暂时安放好",
-  },
-  {
-    title: "我想知道下一步可以怎么做",
-    text: "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。",
-    action: "看看下一步找谁",
-    href: "/referral",
-    illustration: "/illustrations/system/feature-progress-path.webp",
-    illustrationAlt: "沿着温和路径逐步找到合适支持",
-  },
-];
+import { useTranslation } from "@/lib/i18n/client";
 
 export default function ForTeensPage() {
+  const { t } = useTranslation();
+  const startCards = [
+    { title: t("forTeens.start.cards.rhythm.title"), text: t("forTeens.start.cards.rhythm.text"), action: t("forTeens.start.cards.rhythm.action"), href: "/check-in", illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp", illustrationAlt: t("forTeens.start.cards.rhythm.alt") },
+    { title: t("forTeens.start.cards.mood.title"), text: t("forTeens.start.cards.mood.text"), action: t("forTeens.start.cards.mood.action"), href: "/mood-journal", illustration: "/illustrations/system/feature-mood-puzzle.webp", illustrationAlt: t("forTeens.start.cards.mood.alt") },
+    { title: t("forTeens.start.cards.talk.title"), text: t("forTeens.start.cards.talk.text"), action: t("forTeens.start.cards.talk.action"), href: "/talk", illustration: "/illustrations/system/feature-talk.webp", illustrationAlt: t("forTeens.start.cards.talk.alt") },
+    { title: t("forTeens.start.cards.messages.title"), text: t("forTeens.start.cards.messages.text"), action: t("forTeens.start.cards.messages.action"), href: "/messages", illustration: "/illustrations/system/feature-mailbox.webp", illustrationAlt: t("forTeens.start.cards.messages.alt") },
+    { title: t("forTeens.start.cards.worry.title"), text: t("forTeens.start.cards.worry.text"), action: t("forTeens.start.cards.worry.action"), href: "/worry-time", illustration: "/illustrations/system/feature-worry-time.webp", illustrationAlt: t("forTeens.start.cards.worry.alt") },
+    { title: t("forTeens.start.cards.referral.title"), text: t("forTeens.start.cards.referral.text"), action: t("forTeens.start.cards.referral.action"), href: "/referral", illustration: "/illustrations/system/feature-progress-path.webp", illustrationAlt: t("forTeens.start.cards.referral.alt") },
+  ];
+
   return (
     <>
       <PageHero
-        label="给青少年"
-        title="青少年入口"
-        subtitle="想看看最近的状态、理清一件烦心事，或者把不好当面说的话写下来，都可以从这里开始。"
+        label={t("forTeens.hero.label")}
+        title={t("forTeens.hero.title")}
+        subtitle={t("forTeens.hero.description")}
         action={
           <>
-            <Link href="/account" className="button-primary">进入青少年工作台</Link>
-            <Link href="/sweet-model" className="button-secondary">了解 SWEET</Link>
+            <Link href="/account" className="button-primary">{t("forTeens.hero.primaryAction")}</Link>
+            <Link href="/sweet-model" className="button-secondary">{t("forTeens.hero.secondaryAction")}</Link>
           </>
         }
         aside={
           <IllustrationPanel
             src="/illustrations/system/role-student-v2.webp"
-            alt="手持笔记本、准备按照自己节奏开始记录的女学生插画"
+            alt={t("forTeens.hero.imageAlt")}
             priority
           />
         }
@@ -79,8 +39,8 @@ export default function ForTeensPage() {
       <section className="section section-muted pt-8 sm:pt-12">
         <div className="container">
           <SectionHeader
-            title="今天想从哪里开始？"
-            description="每次只做一件事。"
+            title={t("forTeens.start.title")}
+            description={t("forTeens.start.description")}
           />
           <div className="grid gap-5 md:grid-cols-2">
             {startCards.map((card) => (
@@ -103,27 +63,27 @@ export default function ForTeensPage() {
 
       <section className="section pt-8 sm:pt-12">
         <div className="container rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
-          <div><h2 className="text-lg font-bold text-ink">已经满 18 岁，想独立使用？</h2><p className="mt-2 text-sm leading-7 text-muted">18–25 岁可以自己完成知情确认，不需要学校或监护人加入。</p></div>
-          <Link href="/for-young-adults" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">查看独立使用入口</Link>
+          <div><h2 className="text-lg font-bold text-ink">{t("forTeens.youngAdults.title")}</h2><p className="mt-2 text-sm leading-7 text-muted">{t("forTeens.youngAdults.description")}</p></div>
+          <Link href="/for-young-adults" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">{t("forTeens.youngAdults.action")}</Link>
         </div>
       </section>
 
       <section className="section">
         <div className="container rounded-[1.75rem] border border-sage/25 bg-mist/60 p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>
-            <h2 className="text-lg font-bold text-ink">最近一直很难撑住？</h2>
-            <p className="mt-2 text-sm leading-7 text-muted">先找一个可信任的大人或老师聊一聊，也可以查看适合的支持路径。</p>
+            <h2 className="text-lg font-bold text-ink">{t("forTeens.support.title")}</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">{t("forTeens.support.description")}</p>
           </div>
           <Link href="/referral" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">
-            看看下一步找谁
+            {t("forTeens.support.action")}
           </Link>
         </div>
       </section>
 
       <section className="section section-muted pt-8 sm:pt-12">
         <div className="container rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
-          <div><h2 className="text-lg font-bold text-ink">用过之后，有哪里想改？</h2><p className="mt-2 text-sm leading-7 text-muted">花两分钟告诉我们哪里顺手、哪里卡住。</p></div>
-          <Link href="/feedback" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">说说我的感受</Link>
+          <div><h2 className="text-lg font-bold text-ink">{t("forTeens.feedback.title")}</h2><p className="mt-2 text-sm leading-7 text-muted">{t("forTeens.feedback.description")}</p></div>
+          <Link href="/feedback" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">{t("forTeens.feedback.action")}</Link>
         </div>
       </section>
     </>

@@ -4,6 +4,282 @@
       "ariaLabel": "Switch language",
       "chinese": "中文",
       "english": "English"
+    },
+    "metadata": {
+      "description": "YouthTempo starts with everyday rhythms, helping young people understand how they are doing, express what they feel, and connect with trusted support more easily."
+    },
+    "navbar": {
+      "homeAria": "YouthTempo home",
+      "loadingAccount": "Loading account",
+      "openMenu": "Open navigation menu",
+      "closeMenu": "Close navigation menu",
+      "account": {
+        "greetingWithName": "Hello, {{name}}!",
+        "greeting": "Hello!",
+        "signInRecords": "Sign in / My records"
+      },
+      "actions": {
+        "platformAdmin": "Platform admin",
+        "schoolAdmin": "School admin",
+        "myStudents": "My students",
+        "childRecords": "My child's records",
+        "startSweet": "Start a SWEET check-in",
+        "recordToday": "Check in today"
+      },
+      "nav": {
+        "forTeens": "For Youth",
+        "forParents": "For Parents",
+        "forTeachers": "For Educators",
+        "sweet": "SWEET Rhythm",
+        "community": "Support Community",
+        "referral": "Find Support"
+      }
+    },
+    "footer": {
+      "description": "Young people can check in with daily life and put feelings into words. With permission, parents and educators can understand changes and help connect them with the right support when needed.",
+      "tagline": "Start with what life has felt like lately.",
+      "links": {
+        "resources": "Support Guide",
+        "community": "Support Community",
+        "referral": "Find Support",
+        "account": "Account",
+        "privacy": "Privacy & Safety",
+        "contact": "Contact Us"
+      }
+    },
+    "hero": {
+      "rhythm": {
+        "ariaLabel": "The five everyday dimensions of the SWEET model",
+        "sleep": { "title": "Sleep", "label": "Sleep" },
+        "wake": { "title": "Waking", "label": "Wake" },
+        "eat": { "title": "Eating", "label": "Eat" },
+        "exercise": { "title": "Movement", "label": "Exercise" },
+        "task": { "title": "Engagement", "label": "Task" }
+      }
     }
+  },
+  "home": {
+    "metadata": { "title": "YouthTempo | Earlier support for young people" },
+    "hero": {
+      "label": "A youth mental health support platform",
+      "title": "How have things been lately?",
+      "description": "Start with sleep, meals, movement, schoolwork and emotions. A simple check-in can make it easier to understand what is going on and talk with someone you trust when you need support.",
+      "primaryAction": "Start a SWEET check-in",
+      "secondaryAction": "Learn about SWEET",
+      "imageAlt": "A young person moving forward at their own pace, supported by family, educators and a professional"
+    },
+    "demo": {
+      "eyebrow": "SWEET check-in example",
+      "title": "Choose what feels closest and see how a check-in can help",
+      "description": "You can try this example without saving anything. After you choose, you will see a short reflection and one small step you could take right away.",
+      "progress": {
+        "choose": "Choose what feels closest",
+        "notice": "Put the experience into words",
+        "act": "Choose one small action"
+      },
+      "panel": {
+        "chooseLabel": "Step 1 · Choose a state",
+        "question": "How did it feel to get started this morning?",
+        "ariaLabel": "Choose how this morning felt",
+        "noticeLabel": "Step 2 · Notice what is happening",
+        "actLabel": "Step 3 · Start small",
+        "fullAction": "Start the full SWEET check-in"
+      },
+      "options": {
+        "steady": {
+          "label": "Going fairly well",
+          "summary": "Your morning rhythm felt fairly steady today.",
+          "step": "Keep what is already helping. You do not need to add another task."
+        },
+        "slow": {
+          "label": "Taking some effort",
+          "summary": "Getting started took some effort this morning. It is worth noticing without blaming yourself.",
+          "step": "Begin with the smallest next thing, such as washing up, having some water or packing your bag."
+        },
+        "stuck": {
+          "label": "Hard to get started",
+          "summary": "It felt hard to get going this morning. Sleep or stress may also be affecting you.",
+          "step": "Reduce what you need to do to one step, or tell an adult you trust that today feels difficult."
+        }
+      }
+    },
+    "dailyChanges": {
+      "label": "Why start with daily life",
+      "title": "Changes often show up in everyday life first",
+      "description": "Poor sleep, low appetite, less movement or difficulty starting schoolwork can appear before someone can say, “I feel under a lot of pressure.” Noticing these changes can help you decide whether you need rest, a conversation or more support."
+    },
+    "audiences": {
+      "label": "Find the right place to begin",
+      "title": "Start from where you are now",
+      "description": "Young people can check in and express themselves. Parents can understand and support. Educators can notice changes and help connect students with further support when needed.",
+      "teens": {
+        "title": "I am a young person",
+        "label": "Check in and express yourself",
+        "text": "Notice today's rhythm and make sense of feelings that are hard to explain. When you need to, you can also write something for yourself or an adult you trust.",
+        "action": "Go to youth support"
+      },
+      "parents": {
+        "title": "I am a parent",
+        "label": "Understand what has changed",
+        "text": "Look at recent patterns in sleep, eating, movement and schoolwork, then find a gentler way to start a conversation.",
+        "action": "Go to parent support"
+      },
+      "teachers": {
+        "title": "I am an educator",
+        "label": "Notice meaningful changes",
+        "text": "See broad changes among the students you support, understand individual situations when needed, and help connect school, family and professional support.",
+        "action": "Go to educator support"
+      }
+    },
+    "support": {
+      "label": "From check-in to support",
+      "title": "Take it one step at a time, in the order life happens",
+      "description": "Start with what daily life has been like, then make sense of what you are feeling. If it becomes too much to manage alone, ask someone you trust to think through the next step with you.",
+      "steps": {
+        "daily": {
+          "title": "Start with recent daily life",
+          "label": "Sleep, meals, movement and schoolwork",
+          "text": "You do not need to explain everything at once. Begin with the clearest change from the past few days."
+        },
+        "feelings": {
+          "title": "Put the feeling into words",
+          "label": "Emotions and pressure",
+          "text": "Choose a few words that feel close, or write down the concern that keeps coming back."
+        },
+        "people": {
+          "title": "Ask someone to help when needed",
+          "label": "Family, educators or professional support",
+          "text": "If it feels too hard to carry alone, tell someone you trust what has been happening and decide together who to turn to next."
+        }
+      }
+    },
+    "principles": {
+      "label": "Our approach",
+      "title": "A check-in helps describe what is happening. It does not define anyone.",
+      "cardTitle": "When you use YouthTempo",
+      "cardLabel": "What you can expect",
+      "items": {
+        "one": "1. One check-in will never be used to draw a conclusion about you",
+        "two": "2. Reflections only organise what you choose to share",
+        "three": "3. When needed, we will encourage you to contact someone you trust"
+      }
+    }
+  },
+  "forTeens": {
+    "metadata": { "title": "For Youth | YouthTempo" },
+    "hero": {
+      "label": "For young people",
+      "title": "A place to start",
+      "description": "Whether you want to understand how you have been doing, untangle one difficult thought, or write down something that is hard to say face to face, you can begin here.",
+      "primaryAction": "Open my workspace",
+      "secondaryAction": "Learn about SWEET",
+      "imageAlt": "A student holding a notebook and preparing to check in at her own pace"
+    },
+    "start": {
+      "title": "Where would you like to start today?",
+      "description": "Choose just one thing at a time.",
+      "cards": {
+        "rhythm": { "title": "I want to see how I am doing today", "text": "Check in with sleep, waking, eating, movement and task engagement to capture today's real-life rhythm.", "action": "Start a SWEET check-in", "alt": "A daily rhythm made up of sleep, waking, eating, movement and task engagement" },
+        "mood": { "title": "I cannot quite explain how I feel", "text": "You do not need to explain everything yet. Choose a few emotions that feel close, then add what happened when you are ready.", "action": "Open the mood journal", "alt": "A mood mosaic made from different colours" },
+        "talk": { "title": "I want somewhere to talk", "text": "Start with the one thing that feels most stuck and work through it one question at a time.", "action": "Talk it through", "alt": "A tangled feeling gradually becoming clearer" },
+        "messages": { "title": "I want to tell a parent or educator something", "text": "If it is hard to say face to face, write it down and choose whether to share it with a parent, an educator, or keep it for yourself.", "action": "Open private messages", "alt": "A green mailbox holding letters" },
+        "worry": { "title": "My thoughts keep going at bedtime", "text": "Write down what is worrying you, then separate what you can act on from what can wait.", "action": "Set worries down for tonight", "alt": "Setting worries down gently under moonlight" },
+        "referral": { "title": "I want to know what to do next", "text": "If pressure has continued for days or is clearly affecting daily life or learning, explore a support path that fits.", "action": "Find the next source of support", "alt": "A gentle path leading towards appropriate support" }
+      }
+    },
+    "youngAdults": { "title": "18 or older and want to use YouthTempo independently?", "description": "Young adults aged 18–25 can complete their own informed confirmation without involving a school or guardian.", "action": "View independent access" },
+    "support": { "title": "Has it felt hard to keep going lately?", "description": "Start by talking with an adult or educator you trust. You can also explore which kind of support may fit.", "action": "Find the next source of support" },
+    "feedback": { "title": "Is there anything you would change?", "description": "Take two minutes to tell us what felt easy and where you got stuck.", "action": "Share my experience" }
+  },
+  "forParents": {
+    "metadata": { "title": "For Parents | YouthTempo" },
+    "hero": { "label": "For parents", "title": "Support starts with noticing", "description": "Begin with how your child has been sleeping, eating and moving, then find a calm, non-judgmental way to start a conversation.", "primaryAction": "Open the parent workspace", "secondaryAction": "Learn about SWEET", "imageAlt": "A parent listening calmly and preparing to support their child" },
+    "intro": {
+      "visibleTitle": "What you can see",
+      "visibleText": "You can only view records for a child whose relationship to you has been confirmed by the school. You cannot see information about other students. One check-in never tells the whole story; it is a way to understand what has been happening and begin a conversation.",
+      "concreteTitle": "Start with a specific change before asking why",
+      "concreteText": "For many young people, answering “What is wrong with you?” is difficult. It can be easier to begin with something concrete, such as poor sleep, difficulty getting up, or struggling to start schoolwork."
+    },
+    "starts": {
+      "title": "Where can parents begin?",
+      "description": "Choose the most specific starting point that is least likely to create conflict.",
+      "items": {
+        "daily": { "title": "Notice recent daily life", "text": "Start with sleep, waking, meals, movement and schoolwork, and notice whether any changes have continued.", "alt": "A father and daughter looking through the five SWEET daily rhythms together" },
+        "listen": { "title": "Lower defensiveness first", "text": "Focus on understanding your child's experience instead of immediately judging, asking for reasons or demanding change.", "alt": "A parent setting judgment aside and listening quietly" },
+        "conversation": { "title": "Find an easier opening line", "text": "Say what you have noticed and why you care, then choose a time when neither of you will be interrupted.", "alt": "A parent and child moving through a safe conversation step by step" },
+        "support": { "title": "Connect with support when needed", "text": "When changes continue to affect daily life or learning, family, school and professional support can work together.", "alt": "A parent helping their child connect with school and professional support" }
+      }
+    },
+    "messages": { "title": "Read messages your child has shared", "description": "Messages a child chooses to share with a parent are collected on a separate page.", "action": "View received messages" },
+    "feedback": { "title": "How did YouthTempo feel to use?", "description": "Take two minutes to tell us what helped and what still needs improvement.", "action": "Complete parent feedback" },
+    "sweet": {
+      "title": "What parents can notice with SWEET",
+      "description": "SWEET organises daily life into five observable areas. A change does not necessarily mean something is seriously wrong, but if it continues, it is worth checking in with your child.",
+      "items": {
+        "sleep": { "title": "Sleep", "question": "Has sleep been fairly steady?", "text": "Notice whether bedtime, waking during the night or morning tiredness feels clearly different from before." },
+        "wake": { "title": "Waking up", "question": "Is it much harder to get started in the morning?", "text": "Notice whether getting up, washing, leaving home or beginning the day has become more difficult." },
+        "eat": { "title": "Eating", "question": "Have meals been regular?", "text": "Notice changes in energy, appetite, skipped meals or relying on snacks to get through the day." },
+        "exercise": { "title": "Movement", "question": "Has physical activity noticeably decreased?", "text": "Notice whether your child is going out, moving or joining familiar activities less often." },
+        "task": { "title": "Task engagement", "question": "Is it hard to begin school or everyday tasks?", "text": "Look beyond the outcome and notice whether starting and staying with a task have become harder." }
+      }
+    },
+    "aidet": {
+      "title": "Using AIDET to start a conversation",
+      "description": "AIDET breaks a conversation into five steps. You do not need to use the terminology—simply follow the order to make your care clear.",
+      "items": {
+        "acknowledge": { "label": "Acknowledge your child's experience", "example": "I know you may be genuinely tired lately. I don't think you're doing this on purpose." },
+        "introduce": { "label": "Explain why you are here", "example": "I'm not here to criticise you. I just want to understand how things have been lately." },
+        "duration": { "label": "Keep the conversation manageable", "example": "Let's talk for ten minutes. We don't need to solve everything right now." },
+        "explanation": { "label": "Explain why daily rhythms matter", "example": "Sleep, waking, eating and movement can affect emotions and attention. I'd like to see if there is one place where we can make things a little easier." },
+        "thankYou": { "label": "Thank them for sharing", "example": "Thank you for telling me. I know this may not be easy to talk about." }
+      }
+    },
+    "conversation": {
+      "title": "Words you can use",
+      "description": "You do not need to follow these lines exactly. Choose one that sounds natural in your own voice and let the conversation begin.",
+      "phrases": {
+        "one": "Have you been feeling tired lately? I'd like to listen first.",
+        "two": "Let's talk for ten minutes. We don't need to solve it right now.",
+        "three": "It's okay if you don't know how to explain it yet.",
+        "four": "I won't judge. Which part has felt most tiring lately?"
+      }
+    },
+    "furtherSupport": { "title": "When to seek further support", "label": "Connect with more support", "text": "If pressure continues or clearly affects sleep, learning, relationships or daily life, families can consider school-based mental health support or a qualified counsellor, and connect with medical or emergency services when necessary. The goal is not to blame anyone, but to help the young person receive appropriate support." },
+    "oneThing": { "title": "One thing parents can do first", "text": "Begin with one specific change, such as poor sleep, difficulty getting up, or struggling to start schoolwork. Explain that you only want to understand what has been happening, then listen to what your child says." },
+    "resources": { "title": "Family and school support guide", "text": "Practical approaches for parents and educators to understand young people's rhythms, feelings and support needs earlier.", "action": "View the support guide" }
+  },
+  "forTeachers": {
+    "metadata": { "title": "For Educators | YouthTempo" },
+    "hero": { "label": "For educators", "title": "Notice change, then start a conversation", "description": "Begin with whether the students you support have shown ongoing changes. When needed, understand the specific situation and decide with the student whether to involve family or further support.", "primaryAction": "Open the educator workspace", "secondaryAction": "Learn about SWEET", "imageAlt": "An educator holding a notebook and preparing to listen to a student" },
+    "capabilities": {
+      "title": "What educators can do here",
+      "items": {
+        "week": { "title": "Start with the past week", "description": "See which students have checked in recently and where daily patterns may have continued to change.", "alt": "An educator reviewing an overview of changes among the students she supports" },
+        "details": { "title": "Understand the specific situation", "description": "When needed, review a student's recent reflections and own records, then begin with the concrete change you have noticed.", "alt": "An educator and student reviewing the five SWEET daily rhythms together" },
+        "listen": { "title": "Hear from the student", "description": "Read messages students found difficult to say face to face and chose to share with an educator.", "alt": "Reviewing a private message shared by a student" }
+      }
+    },
+    "conversation": { "title": "Use a check-in to begin a conversation", "text": "When sleep, eating, movement or task engagement continues to change, begin with a simple question: “Has something been making things feel more tiring lately?” Listen first, then decide together whether more support is needed.", "recordsAction": "View my students", "messagesAction": "View received messages", "referralAction": "View support options" },
+    "feedback": { "title": "What could work more smoothly?", "description": "Take two minutes to share what using YouthTempo was like and help us improve the pilot.", "action": "Complete educator feedback" }
+  },
+  "forYoungAdults": {
+    "metadata": { "title": "Independent Access for Ages 18–25 | YouthTempo" },
+    "hero": { "label": "For ages 18–25", "title": "You do not have to wait until everything feels settled to care for your rhythm.", "description": "Leaving school, starting university or beginning work can bring more freedom—and make daily life easier to lose track of. You can use YouthTempo independently, without involving a school or guardian.", "primaryAction": "Sign in and begin", "secondaryAction": "Try a SWEET check-in", "imageAlt": "A path of growth moving forward at an individual pace" },
+    "tools": {
+      "title": "Start with what you need right now",
+      "description": "Choose one thing at a time. This does not need to become another task list.",
+      "items": {
+        "rhythm": { "title": "Check in with your recent rhythm", "text": "Start with sleep, waking, eating, movement and the tasks in front of you. You do not need to understand every problem first.", "action": "Start a SWEET check-in", "alt": "A check-in path made up of five everyday rhythms" },
+        "mood": { "title": "Put a complicated feeling into words", "text": "When emotions feel mixed, choose what feels closest and add what just happened when you are ready.", "action": "Open the mood journal", "alt": "A mood mosaic made from different colours" },
+        "worry": { "title": "Set worries down before sleep", "text": "Separate what you can act on from what cannot be handled yet. You do not need to solve everything tonight.", "action": "Set worries down for tonight", "alt": "Setting worries down under moonlight" },
+        "support": { "title": "Know where to turn for human support", "text": "When things continue to affect study, work or daily life, find a source of support that fits the level of urgency.", "action": "Find the next source of support", "alt": "A path connecting someone with appropriate support step by step" }
+      }
+    },
+    "independence": {
+      "confirmation": { "label": "Independent confirmation", "title": "If you are 18 or older, you can confirm for yourself", "text": "After signing in, select “18 or older,” read the data information and confirm. You do not need guardian consent or school membership." },
+      "records": { "label": "Your records", "title": "Only you can see them by default", "text": "If you are not part of a school, no school or educator can view your records. You can export your data, delete individual entries or close your account." },
+      "boundary": { "label": "What YouthTempo is not", "title": "It is not a diagnostic or emergency service", "text": "If you are in immediate danger of harming yourself or someone else, contact local emergency services, the police, or someone nearby who can be with you now." }
+    },
+    "teens": { "title": "Still part of the school pilot for ages 14–18?", "description": "The youth area includes support relationships with parents, educators and schools.", "action": "Return to youth support" }
   }
 }

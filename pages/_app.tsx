@@ -3,14 +3,19 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
-import { I18nProvider } from "@/lib/i18n/client";
+import { I18nProvider, useTranslation } from "@/lib/i18n/client";
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
 import "@/views/globals.css";
 
-const pageTitles: Record<string, string> = {
-  "/": "YouthTempo | 更早开始的青少年支持",
-  "/for-teens": "青少年入口 | YouthTempo",
-  "/for-parents": "家长入口 | YouthTempo",
-  "/for-teachers": "老师入口 | YouthTempo",
+const translatedPageTitleKeys: Partial<Record<string, TranslationKey>> = {
+  "/": "home.metadata.title",
+  "/for-teens": "forTeens.metadata.title",
+  "/for-parents": "forParents.metadata.title",
+  "/for-teachers": "forTeachers.metadata.title",
+  "/for-young-adults": "forYoungAdults.metadata.title",
+};
+
+const remainingPageTitles: Record<string, string> = {
   "/sweet-model": "SWEET 模型 | YouthTempo",
   "/check-in": "SWEET 节律记录 | YouthTempo",
   "/mood-journal": "心情拼图 | YouthTempo",
@@ -28,16 +33,28 @@ const pageTitles: Record<string, string> = {
 };
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-  const title = pageTitles[router.pathname] ?? "YouthTempo";
-
   return (
     <I18nProvider>
+      <AppContent Component={Component} pageProps={pageProps} />
+    </I18nProvider>
+  );
+}
+
+type AppContentProps = Pick<AppProps, "Component" | "pageProps">;
+
+function AppContent({ Component, pageProps }: AppContentProps) {
+  const router = useRouter();
+  const { t } = useTranslation();
+  const titleKey = translatedPageTitleKeys[router.pathname];
+  const title = titleKey ? t(titleKey) : remainingPageTitles[router.pathname] ?? "YouthTempo";
+
+  return (
+    <>
       <Head>
         <title>{title}</title>
         <meta
           name="description"
-          content="YouthTempo 从日常节律开始，帮助青少年看见状态、表达感受，并更容易连接可信任的支持。"
+          content={t("common.metadata.description")}
         />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <meta name="theme-color" content="#fbf7ed" />
@@ -49,6 +66,6 @@ export default function App({ Component, pageProps }: AppProps) {
         </main>
         <Footer />
       </div>
-    </I18nProvider>
+    </>
   );
 }

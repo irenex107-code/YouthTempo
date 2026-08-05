@@ -1,10 +1,17 @@
-export const navItems = [
-  { label: "青少年入口", href: "/for-teens" },
-  { label: "家长入口", href: "/for-parents" },
-  { label: "老师入口", href: "/for-teachers" },
-  { label: "SWEET 节律", href: "/check-in" },
-  { label: "家校医社区", href: "/community" },
-  { label: "下一步找谁", href: "/referral" },
+import type { TranslationKey } from "@/lib/i18n/dictionaries";
+
+type LocalizedLink = {
+  labelKey: TranslationKey;
+  href: string;
+};
+
+export const navItems: LocalizedLink[] = [
+  { labelKey: "common.navbar.nav.forTeens", href: "/for-teens" },
+  { labelKey: "common.navbar.nav.forParents", href: "/for-parents" },
+  { labelKey: "common.navbar.nav.forTeachers", href: "/for-teachers" },
+  { labelKey: "common.navbar.nav.sweet", href: "/check-in" },
+  { labelKey: "common.navbar.nav.community", href: "/community" },
+  { labelKey: "common.navbar.nav.referral", href: "/referral" },
 ];
 
 export const sweetModules = [
@@ -50,11 +57,11 @@ export const sweetModules = [
   }
 ];
 
-export const footerLinks = [
-  { label: "家校陪伴指南", href: "/resources" },
-  { label: "家校医社区", href: "/community" },
-  { label: "下一步找谁", href: "/referral" },
-  { label: "账号", href: "/account" },
-  { label: "隐私与安全", href: "/privacy-safety" },
-  { label: "联系我们", href: "/contact" },
+export const footerLinks: LocalizedLink[] = [
+  { labelKey: "common.footer.links.resources", href: "/resources" },
+  { labelKey: "common.footer.links.community", href: "/community" },
+  { labelKey: "common.footer.links.referral", href: "/referral" },
+  { labelKey: "common.footer.links.account", href: "/account" },
+  { labelKey: "common.footer.links.privacy", href: "/privacy-safety" },
+  { labelKey: "common.footer.links.contact", href: "/contact" },
 ];

@@ -5,11 +5,12 @@ import {
   dictionaries,
   translate,
   type TranslationKey,
+  type TranslationValues,
 } from "@/lib/i18n/dictionaries";
 
 type I18nContextValue = {
   locale: Locale;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, values?: TranslationValues) => string;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -21,7 +22,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const dictionary = dictionaries[locale];
     return {
       locale,
-      t: (key) => translate(dictionary, key),
+      t: (key, values) => translate(dictionary, key, values),
     };
   }, [locale]);
 
