@@ -46,7 +46,7 @@ function appendTranscript(current: string, transcript: string) {
 }
 
 export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const valueRef = useRef(value);
   const onChangeRef = useRef(onChange);
@@ -79,7 +79,7 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
 
     setMessage("");
     const recognition = new Recognition();
-    recognition.lang = "zh-CN";
+    recognition.lang = locale === "en" ? "en-US" : "zh-CN";
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.onresult = (event) => {

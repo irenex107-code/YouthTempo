@@ -6,14 +6,14 @@
       "english": "English"
     },
     "voiceInput": {
-      "unsupported": "当前浏览器不支持语音输入，可以使用手机键盘上的麦克风。",
-      "transcribed": "语音已转成文字，可以继续修改。",
-      "permissionDenied": "未获得麦克风权限，请在浏览器设置中允许后重试。",
-      "notUnderstood": "这次没有听清，可以再试一次或直接输入文字。",
-      "startFailed": "语音输入暂时无法启动，请稍后再试。",
-      "stop": "停止输入",
-      "start": "语音输入",
-      "listening": "正在聆听…"
+      "unsupported": "Voice input is not supported in this browser. You can use the microphone on your phone keyboard instead.",
+      "transcribed": "Your speech has been converted to text. You can review or edit it.",
+      "permissionDenied": "Microphone access is not enabled. Allow it in your browser settings and try again.",
+      "notUnderstood": "We did not catch that. Try again or type your response.",
+      "startFailed": "Voice input could not start. Try again later.",
+      "stop": "Stop voice input",
+      "start": "Start voice input",
+      "listening": "Listening…"
     },
     "metadata": {
       "description": "YouthTempo starts with everyday rhythms, helping young people understand how they are doing, express their feelings, and connect with trusted support more easily."
@@ -189,7 +189,7 @@
       "title": "Where would you like to start today?",
       "description": "One thing at a time.",
       "cards": {
-        "rhythm": { "title": "I want to check in with today", "text": "Notice today's real-life rhythm through sleep, waking, meals, movement, and task engagement.", "action": "Start a SWEET check-in", "alt": "An everyday rhythm made up of sleep, waking, meals, movement, and task engagement" },
+        "rhythm": { "title": "I want to check in on how I’m doing today", "text": "Notice today's real-life rhythm through sleep, waking, meals, movement, and task engagement.", "action": "Start a SWEET check-in", "alt": "An everyday rhythm made up of sleep, waking, meals, movement, and task engagement" },
         "mood": { "title": "I am not sure how to describe my feelings", "text": "You do not have to explain everything yet. Choose a few emotion words that feel close, then add what happened when you are ready.", "action": "Open the mood map", "alt": "A mood map made up of different colors" },
         "talk": { "title": "I want somewhere to talk things through", "text": "Start with the one thing that feels most stuck and work through your thoughts one question at a time.", "action": "Help me sort it out", "alt": "Slowly untangling feelings that are difficult to make sense of" },
         "messages": { "title": "I have something to tell a teacher or parent", "text": "Write down what is hard to say face to face, then choose whether to share it with a teacher or parent, or keep it for yourself.", "action": "Open my private messages", "alt": "A green mailbox holding letters" },
@@ -259,18 +259,18 @@
     "resources": { "title": "Family–school support guide", "text": "Practical guidance for parents and teachers to understand young people's rhythms, feelings, and support needs earlier.", "action": "View the support guide" }
   },
   "forTeachers": {
-    "metadata": { "title": "老师入口 | YouthTempo" },
-    "hero": { "label": "给老师", "title": "老师入口", "description": "先看看负责学生最近有没有持续变化，需要时再了解具体情况，和学生一起决定是否要联系家庭或更多支持。", "primaryAction": "进入老师工作台", "secondaryAction": "了解 SWEET", "imageAlt": "手持笔记本、准备倾听学生的老师插画" },
+    "metadata": { "title": "For Teachers | YouthTempo" },
+    "hero": { "label": "For teachers", "title": "Teacher workspace", "description": "Start by looking for ongoing changes among the students you support. When needed, review the details and decide together with the student whether to involve family or connect with further support.", "primaryAction": "Open the teacher workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
     "capabilities": {
-      "title": "老师可以在这里做什么",
+      "title": "What teachers can do here",
       "items": {
-        "week": { "title": "先看最近一周", "description": "先了解哪些学生最近有记录、哪些日常状态出现了持续变化。", "alt": "女老师查看所负责学生的总体变化概览" },
-        "details": { "title": "再了解具体情况", "description": "需要时查看学生最近的小结和本人记录，带着具体变化开始沟通。", "alt": "男老师和女学生按顺序一起查看 SWEET 五项生活节律" },
-        "listen": { "title": "听学生说", "description": "查看学生不容易当面说出口、选择写给老师的话。", "alt": "查看学生写来的悄悄话" }
+        "week": { "title": "Start with the past week", "description": "See which students have recent records and whether any changes in their daily rhythms have continued.", "alt": "A teacher reviewing an overview of recent changes among the students they support" },
+        "details": { "title": "Then look at the details", "description": "When needed, review a student's recent summaries and their own records, then use specific changes to begin a conversation.", "alt": "A teacher and student reviewing the five SWEET areas of everyday rhythm together" },
+        "listen": { "title": "Hear what students want to say", "description": "Read messages that students chose to write to a teacher when they found them difficult to say face to face.", "alt": "A teacher reading a private message from a student" }
       }
     },
-    "conversation": { "title": "把记录当作一次谈话的开头", "text": "当睡眠、饮食、活动或任务投入出现持续变化时，可以先问一句：“最近是不是有什么事情让你比较累？” 先听学生怎么说，再一起确定是否需要更多支持。", "recordsAction": "查看负责学生", "messagesAction": "查看收到的话", "referralAction": "查看支持路径" },
-    "feedback": { "title": "哪些地方还不够顺手？", "description": "花两分钟说说实际使用感受，帮助我们调整试点。", "action": "填写老师反馈" }
+    "conversation": { "title": "Use the record to start a conversation", "text": "When changes in sleep, eating, movement, or task engagement continue, you might begin with: “Has something been leaving you especially tired lately?” Listen first, then decide together whether more support is needed.", "recordsAction": "View my students", "messagesAction": "View messages", "referralAction": "View support pathways" },
+    "feedback": { "title": "What could work better?", "description": "Take two minutes to share how the platform worked in practice and help us improve the pilot.", "action": "Share teacher feedback" }
   },
   "forYoungAdults": {
     "metadata": { "title": "Independent Access for Ages 18–25 | YouthTempo" },
@@ -282,7 +282,7 @@
         "rhythm": { "title": "Look at your recent rhythm", "text": "Start with sleep, waking, meals, movement, and the tasks in front of you. You do not need to understand every problem first.", "action": "Start a SWEET check-in", "alt": "A check-in path made up of five everyday rhythm areas" },
         "mood": { "title": "Put complicated feelings into words", "text": "When emotions feel mixed, choose the feelings that come closest, then add what has just happened.", "action": "Open the mood map", "alt": "A mood map made up of different colors" },
         "worry": { "title": "Set worries aside before sleep", "text": "Separate what you can act on from what cannot be addressed yet. You do not have to solve everything tonight.", "action": "Set worries aside tonight", "alt": "Setting worries aside for now under the moonlight" },
-        "support": { "title": "Know who to contact for human support", "text": "If the situation continues to affect study, work, or daily life, find support that matches the level of urgency.", "action": "Find the right support", "alt": "A step-by-step path to the right support" }
+        "support": { "title": "Know who to reach out to for support", "text": "If the situation continues to affect study, work, or daily life, find support that matches the level of urgency.", "action": "Find the right support", "alt": "A step-by-step path to the right support" }
       }
     },
     "independence": {
@@ -546,12 +546,12 @@
   },
   "community": {
     "metadata": { "title": "Youth Support Community | YouthTempo" },
-    "hero": { "label": "Member community", "title": "Youth support community", "description": "Share honest questions and hear perspectives from people in different roles. You decide who can see your content and who can respond.", "imageAlt": "Students, parents, teachers, and professional supporters sitting together and listening closely to a student", "imageCaption": "Everyone can choose which roles can see their content and which roles can respond." },
+    "hero": { "label": "Member community", "title": "Youth support community", "description": "Share honest questions and hear perspectives from people in different roles. You decide who can see your content and who can respond.", "imageAlt": "Students, parents, teachers, and support professionals sitting together and listening closely to a student", "imageCaption": "Everyone can choose which roles can see their content and which roles can respond." },
     "roles": {
       "student": { "label": "Student", "hint": "Connect and respond with peers" },
       "guardian": { "label": "Parent", "hint": "Share experiences and questions about supporting young people" },
       "teacher": { "label": "Teacher", "hint": "Offer observations and guidance from school settings" },
-      "professional": { "label": "Professional supporter", "hint": "Respond after their professional identity is verified by the platform" },
+      "professional": { "label": "Support professional", "hint": "Offer support after the platform verifies their professional identity" },
       "member": "Member"
     },
     "verifiedSuffix": " · Verified",
@@ -586,7 +586,7 @@
     },
     "delete": { "title": "Delete this {{type}}?", "description": "Once deleted, this {{type}} will disappear from the community immediately and you will not be able to restore it yourself." },
     "block": { "confirm": "After you block {{name}}, neither of you will see the other's posts or replies in the community, and you will no longer be able to interact there. Other YouthTempo features will not be affected.\n\nDo you want to continue?", "blocked": "{{name}} has been blocked. Your community content is now hidden from each other.", "failed": "The block setting could not be saved.", "unblocked": "{{name}} has been unblocked.", "unblockFailed": "The member could not be unblocked.", "summary": "Blocked members ({{count}})", "description": "You will not see each other's posts or replies in the community. After unblocking, the original post's audience and reply settings will still apply.", "unblockAction": "{{name}} · Unblock" },
-    "messages": { "loadFailed": "Community content could not be loaded.", "postSafety": "This content may involve an urgent safety risk and has not been made public. Please also contact a trusted adult or professional support.", "postPublished": "Your topic has been published. Only the roles you selected can see and join it.", "postFailed": "The topic could not be published right now.", "commentSafety": "This reply may involve an urgent safety risk and has not been made public. Please reach out to trusted support in your life as soon as possible.", "commentPublished": "Your reply has been published.", "commentFailed": "The reply could not be published right now.", "postDeleted": "The post has been deleted.", "commentDeleted": "The comment has been deleted.", "deleteFailed": "This content could not be deleted right now.", "reportFailed": "The report could not be submitted." },
+    "messages": { "loadFailed": "Community content could not be loaded.", "postSafety": "This content may involve an urgent safety risk and has not been made public. Please also contact a trusted adult or seek support from a qualified professional.", "postPublished": "Your topic has been published. Only the roles you selected can see and join it.", "postFailed": "The topic could not be published right now.", "commentSafety": "This reply may involve an urgent safety risk and has not been made public. Please reach out to trusted support in your life as soon as possible.", "commentPublished": "Your reply has been published.", "commentFailed": "The reply could not be published right now.", "postDeleted": "The post has been deleted.", "commentDeleted": "The comment has been deleted.", "deleteFailed": "This content could not be deleted right now.", "reportFailed": "The report could not be submitted." },
     "topics": { "ariaLabel": "Community topics", "label": "Latest discussions", "title": "Community conversations", "count": "{{count}} topics", "emptyTitle": "No topics are currently shared with you", "emptyText": "You can start the first topic and invite the roles you would like to join." },
     "comments": { "count": "{{count}} replies", "ariaLabel": "Replies to {{title}}", "title": "Community replies", "total": "{{count}} in total", "empty": "No replies yet", "formLabel": "Write your reply", "formDescription": "Share your experience clearly and kindly, without rushing to conclusions about the other person.", "placeholder": "I would like to respond...", "readOnly": "You can read this content, but the author has not enabled replies from your role." },
     "audience": { "visiblePrefix": "Visible to ·", "commentPrefix": "Can reply ·", "readOnly": "Read only" },

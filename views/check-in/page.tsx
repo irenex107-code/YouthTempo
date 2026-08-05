@@ -183,7 +183,7 @@ function isFieldComplete(value: FieldValue) {
 }
 
 export default function CheckInPage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
@@ -433,6 +433,8 @@ export default function CheckInPage() {
                 {steps.map((item, index) => {
                   const active = index === currentStep;
                   const done = item.fields.filter((field) => field.required !== false).every((field) => isFieldComplete(answers[item.id][field.id]));
+                  const translatedTitle = t(stepCopyKeys[item.id].title);
+                  const showTranslatedTitle = locale !== "en" || item.label.toLocaleLowerCase() !== translatedTitle.toLocaleLowerCase();
                   return (
                     <button
                       key={item.id}
@@ -443,7 +445,7 @@ export default function CheckInPage() {
                       }`}
                     >
                       <span className="block text-xs font-bold">{item.label}</span>
-                      <span className="mt-1 block text-[0.7rem] font-bold">{t(stepCopyKeys[item.id].title)}</span>
+                      {showTranslatedTitle ? <span className="mt-1 block text-[0.7rem] font-bold">{translatedTitle}</span> : null}
                     </button>
                   );
                 })}
@@ -453,7 +455,12 @@ export default function CheckInPage() {
             <article ref={questionCardRef} className="card scroll-mt-24 sm:scroll-mt-28">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-[1.55rem] font-bold leading-[1.25] text-ink sm:text-[1.8rem]">{step.label} {t(stepCopyKeys[step.id].title)}</h2>
+                  <h2 className="text-[1.55rem] font-bold leading-[1.25] text-ink sm:text-[1.8rem]">
+                    {step.label}
+                    {locale !== "en" || step.label.toLocaleLowerCase() !== t(stepCopyKeys[step.id].title).toLocaleLowerCase()
+                      ? ` ${t(stepCopyKeys[step.id].title)}`
+                      : null}
+                  </h2>
                   <p className="mt-2 text-sm font-bold text-sage">{t("checkIn.form.label")}</p>
                 </div>
                 <p className="max-w-md text-sm leading-7 text-muted">{t(stepCopyKeys[step.id].description)}</p>
