@@ -262,8 +262,8 @@ alter table public.student_messages enable row level security;
 -- Users may maintain their own public profile fields, but school assignment is
 -- controlled exclusively by trusted server routes using the service role.
 revoke insert, update on table public.profiles from anon, authenticated;
-grant insert (id, email, display_name, role, school_id, updated_at) on table public.profiles to authenticated;
-grant update (email, display_name, role, school_id, updated_at) on table public.profiles to authenticated;
+grant insert (id, email, display_name, school_id, updated_at) on table public.profiles to authenticated;
+grant update (email, display_name, school_id, updated_at) on table public.profiles to authenticated;
 
 create or replace function public.enforce_profile_school_assignment()
 returns trigger
@@ -291,6 +291,35 @@ drop trigger if exists enforce_profile_school_assignment on public.profiles;
 create trigger enforce_profile_school_assignment
 before insert or update of school_id on public.profiles
 for each row execute function public.enforce_profile_school_assignment();
+
+create or replace function public.enforce_profile_role_assignment()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if current_user in ('postgres', 'service_role') then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' and new.role is distinct from '学生' then
+    raise exception 'profile_role_assignment_server_only' using errcode = '42501';
+  end if;
+
+  if tg_op = 'UPDATE' and new.role is distinct from old.role then
+    raise exception 'profile_role_assignment_server_only' using errcode = '42501';
+  end if;
+
+  return new;
+end;
+$$;
+
+revoke all on function public.enforce_profile_role_assignment() from public, anon, authenticated;
+drop trigger if exists enforce_profile_role_assignment on public.profiles;
+create trigger enforce_profile_role_assignment
+before insert or update of role on public.profiles
+for each row execute function public.enforce_profile_role_assignment();
 
 -- Follow-up notes contain school support context and are only accessed by
 -- authenticated server routes using the service role.
