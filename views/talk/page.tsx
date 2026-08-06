@@ -21,7 +21,7 @@ const starters = [
 const maxUserMessages = 8;
 
 export default function TalkPage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [messages, setMessages] = useState<TalkMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,6 +50,7 @@ export default function TalkPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          locale,
           messages: nextMessages.map(({ role, content: messageContent }) => ({
             role,
             content: messageContent,

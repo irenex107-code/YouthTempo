@@ -71,7 +71,7 @@ type MoodAiResult = {
 };
 
 export default function MoodJournalPage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [context, setContext] = useState("");
   const [body, setBody] = useState("");
@@ -111,6 +111,7 @@ export default function MoodJournalPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          locale,
           selectedWords,
           context,
           bodyFeeling: body,

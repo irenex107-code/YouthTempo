@@ -343,6 +343,7 @@ export default function CheckInPage() {
 
   async function requestSummary(): Promise<AiResult> {
     const payload = {
+      locale,
       currentDate: new Date().toISOString(),
       sensitiveConsentAccepted,
       records: getRecordPayload().map((item) => ({ ...item, dimension: `${item.label} ${item.title}` })),

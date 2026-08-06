@@ -251,7 +251,7 @@ function buildAnsweredSummary(answers: Answers, t: Translate) {
 }
 
 export default function ReferralPage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [answers, setAnswers] = useState<Answers>({});
   const [note, setNote] = useState("");
   const [aiResult, setAiResult] = useState<ReferralAiResult | null>(null);
@@ -332,6 +332,7 @@ export default function ReferralPage() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          locale,
           ...payload,
           note: [
             `当前状态：${getSelections(answers, "currentState").join("、")}`,

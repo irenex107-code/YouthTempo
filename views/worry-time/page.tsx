@@ -27,7 +27,7 @@ function formatTime(seconds: number) {
 }
 
 export default function WorryTimePage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [worries, setWorries] = useState(["", "", ""]);
@@ -93,7 +93,7 @@ export default function WorryTimePage() {
       const response = await fetch("/api/ai/worry-time", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ worries, controls, action }),
+        body: JSON.stringify({ locale, worries, controls, action }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || t("worryTime.messages.connectionFailed"));
