@@ -12,6 +12,7 @@ import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
+import { normalizeLocale } from "@/lib/i18n/config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "DELETE"].includes(req.method || "")) {
@@ -63,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === "POST") {
       await requireActiveStudentConsent(supabase, user.id);
+      const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : undefined);
       const activeMute = await getActiveCommunityMute(supabase, user.id);
       if (activeMute) {
         return res.status(403).json({
@@ -86,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: "可以评论的人，也需要先有查看权限。" });
       }
 
-      const moderation = moderateCommunityContent(`${title}\n${body}`);
+      const moderation = moderateCommunityContent(`${title}\n${body}`, locale);
       if (moderation.status === "blocked") {
         return res.status(422).json({ error: moderation.reason, blocked: true });
       }

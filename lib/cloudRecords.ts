@@ -365,6 +365,7 @@ export async function sendStudentMessage(input: {
   recipientUserId?: string;
   anonymous?: boolean;
   body: string;
+  locale?: "zh-CN" | "en";
 }) {
   const token = await getAccessToken();
   const response = await fetch("/api/messages", {
@@ -422,6 +423,7 @@ export async function createCommunityPost(input: {
   body: string;
   viewerRoles: CommunityRole[];
   commenterRoles: CommunityRole[];
+  locale?: "zh-CN" | "en";
 }) {
   return communityRequest("/api/community/posts", {
     method: "POST",
@@ -429,10 +431,10 @@ export async function createCommunityPost(input: {
   }) as Promise<{ safetyNotice?: boolean }>;
 }
 
-export async function createCommunityComment(postId: string, body: string) {
+export async function createCommunityComment(postId: string, body: string, locale?: "zh-CN" | "en") {
   return communityRequest("/api/community/comments", {
     method: "POST",
-    body: JSON.stringify({ postId, body }),
+    body: JSON.stringify({ postId, body, locale }),
   }) as Promise<{ safetyNotice?: boolean }>;
 }
 

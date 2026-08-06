@@ -5,6 +5,7 @@ import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
+import { normalizeLocale } from "@/lib/i18n/config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["POST", "DELETE"].includes(req.method || "")) {
@@ -49,6 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ ok: true });
     }
     await requireActiveStudentConsent(supabase, user.id);
+    const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : undefined);
     const activeMute = await getActiveCommunityMute(supabase, user.id);
     if (activeMute) {
       return res.status(403).json({
@@ -83,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: "发布者没有向你的身份开放评论。" });
     }
 
-    const moderation = moderateCommunityContent(body);
+    const moderation = moderateCommunityContent(body, locale);
     if (moderation.status === "blocked") {
       return res.status(422).json({ error: moderation.reason, blocked: true });
     }

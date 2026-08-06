@@ -97,6 +97,7 @@ export default function MessagesPage() {
         recipientUserId,
         anonymous: recipientType === "teacher" && anonymous,
         body,
+        locale,
       });
       setBody("");
       setAnonymous(false);

@@ -213,7 +213,7 @@ function DeleteDialog({
 }
 
 export default function CommunityPage() {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [currentRole, setCurrentRole] = useState<CommunityRole>("student");
@@ -288,7 +288,7 @@ export default function CommunityPage() {
     setError("");
     setNotice("");
     try {
-      const result = await createCommunityPost({ title, body, viewerRoles, commenterRoles });
+      const result = await createCommunityPost({ title, body, viewerRoles, commenterRoles, locale });
       setTitle("");
       setBody("");
       setNotice(
@@ -310,7 +310,7 @@ export default function CommunityPage() {
     setBusy(true);
     setError("");
     try {
-      const result = await createCommunityComment(postId, draft);
+      const result = await createCommunityComment(postId, draft, locale);
       setCommentDrafts((current) => ({ ...current, [postId]: "" }));
       setNotice(
         result.safetyNotice

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { moderateStudentMessage } from "@/lib/messageSafety";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
+import { normalizeLocale } from "@/lib/i18n/config";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "PATCH"].includes(req.method || "")) {
@@ -16,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === "POST") {
       await requireActiveStudentConsent(supabase, user.id);
+      const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : undefined);
       const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
       const recipientType = req.body?.recipientType;
       const requestedRecipientId =
@@ -64,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         schoolId = relationship.school_id as string;
       }
 
-      const result = moderateStudentMessage(body);
+      const result = moderateStudentMessage(body, locale);
       if (result.status === "blocked") {
         return res.status(422).json({ error: result.reason, blocked: true });
       }
