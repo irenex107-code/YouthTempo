@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { aiText, fail, generateJson, missing, normalizeAiLocale, requireAiInputSize, requireAiRateLimit, requirePost, shortText } from "./_shared";
+import { detectCrisis, getCrisisResponse } from "@/lib/safety/crisisDetection";
 
 type TalkMessage = {
   role: "user" | "assistant";
@@ -11,19 +12,6 @@ type TalkResult = {
   urgent?: unknown;
   suggestHumanSupport?: unknown;
 };
-
-const urgentPatterns = [
-  /不想活/,
-  /想死/,
-  /自杀/,
-  /伤害自己/,
-  /自残/,
-  /结束生命/,
-  /活着没意思/,
-  /不能保证.*安全/,
-  /有人.*伤害我/,
-  /正在被.*伤害/,
-];
 
 function normalizeMessages(value: unknown): TalkMessage[] {
   if (!Array.isArray(value)) return [];
@@ -38,11 +26,6 @@ function normalizeMessages(value: unknown): TalkMessage[] {
   return messages.slice(-16);
 }
 
-function hasUrgentSignal(messages: TalkMessage[]) {
-  const latestUserMessage = [...messages].reverse().find((message) => message.role === "user");
-  return latestUserMessage ? urgentPatterns.some((pattern) => pattern.test(latestUserMessage.content)) : false;
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const locale = normalizeAiLocale(req.body?.locale);
   if (!requirePost(req, res)) return;
@@ -51,13 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return missing(res, aiText(locale, "可以先写一句你现在最想说的话。", "Start with one sentence about what you most want to say right now."));
   }
 
-  if (hasUrgentSignal(messages)) {
+  const crisis = detectCrisis(messages.at(-1)?.content, locale);
+  if (crisis.isUrgent) {
     return res.status(200).json({
-      reply: aiText(
-        locale,
-        "你愿意把这件事说出来很重要。现在先不要一个人扛，请立刻联系身边可信任的大人，让对方陪着你；如果你正处于危险中，请拨打 110 或 120。",
-        "Speaking up about this matters. Please do not face it alone right now—contact a trusted adult nearby and ask them to stay with you. If you are in immediate danger, contact local emergency services now.",
-      ),
+      reply: getCrisisResponse(locale),
       urgent: true,
       suggestHumanSupport: true,
     });
@@ -94,11 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const urgent = result.urgent === true;
     res.status(200).json({
       reply: urgent
-        ? aiText(
-            locale,
-            "你愿意把这件事说出来很重要。现在先不要一个人扛，请立刻联系身边可信任的大人，让对方陪着你；如果你正处于危险中，请拨打 110 或 120。",
-            "Speaking up about this matters. Please do not face it alone right now—contact a trusted adult nearby and ask them to stay with you. If you are in immediate danger, contact local emergency services now.",
-          )
+        ? getCrisisResponse(locale)
         : shortText(result.reply, aiText(locale, "这件事里，现在最让你卡住的是哪一小部分？", "Which small part of this feels most difficult right now?")),
       urgent,
       suggestHumanSupport: result.suggestHumanSupport === true || urgent,
