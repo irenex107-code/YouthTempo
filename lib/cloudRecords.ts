@@ -512,12 +512,35 @@ export function buildProfileWritePayload(
   };
 }
 
+export function buildProfileUpdatePayload(
+  displayName: string,
+  updatedAt = new Date().toISOString(),
+) {
+  return {
+    display_name: displayName,
+    updated_at: updatedAt,
+  };
+}
+
 export async function saveProfile(user: User, displayName: string) {
   const supabase = getSupabase();
   if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const payload = buildProfileWritePayload(user, displayName);
-  const { data, error } = await supabase.from("profiles").upsert(payload).select("*").single();
-  if (error) throw error;
+  const updatePayload = buildProfileUpdatePayload(displayName, payload.updated_at);
+  const updated = await supabase
+    .from("profiles")
+    .update(updatePayload)
+    .eq("id", user.id)
+    .select("*")
+    .maybeSingle();
+  if (updated.error) throw updated.error;
+
+  const created = updated.data
+    ? null
+    : await supabase.from("profiles").insert(payload).select("*").single();
+  if (created?.error) throw created.error;
+  const data = updated.data || created?.data;
+  if (!data) throw new Error("账号资料保存失败，请稍后再试。");
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("youthtempo:profile-updated"));
   }

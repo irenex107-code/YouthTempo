@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
-import { buildProfileWritePayload } from "@/lib/cloudRecords";
+import { buildProfileUpdatePayload } from "@/lib/cloudRecords";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -91,10 +91,10 @@ test("profile role 只能由可信服务端流程修改", async ({}, testInfo) =
 
     const { data: existingGuardian, error: existingGuardianError } = await userClient
       .from("profiles")
-      .upsert(buildProfileWritePayload(
-        { id: userId, email },
+      .update(buildProfileUpdatePayload(
         "已有家长资料（已更新）",
       ))
+      .eq("id", userId)
       .select("id,display_name,role")
       .single();
     expect(existingGuardianError).toBeNull();

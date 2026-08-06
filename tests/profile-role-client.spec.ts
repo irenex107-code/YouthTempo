@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { buildProfileWritePayload } from "@/lib/cloudRecords";
+import { buildProfileUpdatePayload, buildProfileWritePayload } from "@/lib/cloudRecords";
 import { roleDisplayLabel } from "@/views/account/page";
 import type { TranslationKey, TranslationValues } from "@/lib/i18n/dictionaries";
 
@@ -19,6 +19,30 @@ test("客户端保存 profile 时不提交 role", () => {
     updated_at: "2026-08-06T00:00:00.000Z",
   });
   expect(payload).not.toHaveProperty("role");
+});
+
+test("客户端更新已有 profile 时只提交可编辑字段", () => {
+  const payload = buildProfileUpdatePayload("小林", "2026-08-06T00:00:00.000Z");
+
+  expect(payload).toEqual({
+    display_name: "小林",
+    updated_at: "2026-08-06T00:00:00.000Z",
+  });
+  expect(payload).not.toHaveProperty("id");
+  expect(payload).not.toHaveProperty("email");
+  expect(payload).not.toHaveProperty("role");
+});
+
+test("客户端保存已有 profile 时不使用可能触碰 role 的 upsert", async () => {
+  const source = await readFile(path.join(process.cwd(), "lib/cloudRecords.ts"), "utf8");
+  const saveProfileSource = source.slice(
+    source.indexOf("export async function saveProfile"),
+    source.indexOf("export async function listCloudSweetRecords"),
+  );
+
+  expect(saveProfileSource).toContain('.from("profiles")\n    .update(updatePayload)');
+  expect(saveProfileSource).toContain('.from("profiles").insert(payload)');
+  expect(saveProfileSource).not.toContain(".upsert(");
 });
 
 test("Account 保留已有角色的只读显示映射", () => {
