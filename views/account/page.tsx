@@ -127,7 +127,7 @@ function profileRoleLabel(value?: string | null) {
   return "学生";
 }
 
-function roleDisplayLabel(role: string, t: Translate) {
+export function roleDisplayLabel(role: string, t: Translate) {
   if (role === "学校学生") return t("account.roles.schoolStudent");
   if (role === "学校家长") return t("account.roles.schoolGuardian");
   if (role === "平台管理员") return t("account.roles.platformAdmin");
@@ -192,7 +192,6 @@ export default function AccountPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRequestInFlight = useRef(false);
   const [name, setName] = useState("");
-  const [role, setRole] = useState("学生");
   const [accountTab, setAccountTab] = useState<"profile" | "wechat" | "data">("profile");
   const [accountActionLoading, setAccountActionLoading] = useState(false);
   const [deletionEmail, setDeletionEmail] = useState("");
@@ -208,7 +207,7 @@ export default function AccountPage() {
   const [consentRead, setConsentRead] = useState(false);
 
   const isIdentityLoading = Boolean(user && identityChecking);
-  const displayRole = isIdentityLoading ? "正在确认" : accountStatus?.displayRole || profileRoleLabel(profile?.role || role);
+  const displayRole = isIdentityLoading ? "正在确认" : accountStatus?.displayRole || profileRoleLabel(profile?.role);
   const adminAccess = accountStatus?.adminAccess || null;
   const hasSchool = Boolean(accountStatus?.hasSchool || profile?.school_id);
   const isManagedSchoolRole = !isIdentityLoading && (displayRole === "学校负责人" || displayRole === "支持老师" || displayRole === "平台管理员");
@@ -322,7 +321,6 @@ export default function AccountPage() {
       setAccountStatus(nextAccountStatus);
       setProfile(nextProfile);
       setName(nextProfile?.display_name || "");
-      setRole(profileRoleLabel(nextProfile?.role));
       setRecords(nextRecords);
       setWechatIdentities(nextWechatIdentities);
       setConsentStatus(nextConsentStatus);
@@ -484,7 +482,7 @@ export default function AccountPage() {
       return;
     }
     try {
-      await saveProfile(user, name.trim(), role);
+      await saveProfile(user, name.trim());
       await refreshAccount();
       setNotice(t("account.notices.profileSaved"));
     } catch (profileError) {
@@ -767,17 +765,12 @@ export default function AccountPage() {
                         autoFocus
                       />
                     </label>
-                    <label className="grid gap-2 text-sm font-bold text-ink">
-                      {t("account.profile.accountType")}
-                      <select
-                        className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
-                        value={role}
-                        onChange={(event) => setRole(event.target.value)}
-                      >
-                        <option value="学生">{t("account.roles.student")}</option>
-                        <option value="家长">{t("account.roles.guardian")}</option>
-                      </select>
-                    </label>
+                    <div className="grid gap-2 text-sm font-bold text-ink">
+                      <p>{t("account.profile.accountType")}</p>
+                      <p className="rounded-xl border border-ink/15 bg-cream px-4 py-3 text-sm">
+                        {roleDisplayLabel(displayRole, t)}
+                      </p>
+                    </div>
                   </div>
                   <div className="mt-5 grid gap-3 sm:flex">
                     <button type="submit" className="button-primary w-full sm:w-auto" disabled={!name.trim()}>
@@ -951,17 +944,12 @@ export default function AccountPage() {
                             {t("account.profile.name")}
                             <input className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage" value={name} onChange={(event) => setName(event.target.value)} />
                           </label>
-                          <label className="grid gap-2 text-sm font-bold text-ink">
-                            {t("account.profile.accountType")}
-                            <select
-                              className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
-                              value={role}
-                              onChange={(event) => setRole(event.target.value)}
-                            >
-                              <option value="学生">{t("account.roles.student")}</option>
-                              <option value="家长">{t("account.roles.guardian")}</option>
-                            </select>
-                          </label>
+                          <div className="grid gap-2 text-sm font-bold text-ink">
+                            <p>{t("account.profile.accountType")}</p>
+                            <p className="rounded-xl border border-ink/15 bg-cream px-4 py-3 text-sm">
+                              {roleDisplayLabel(confirmedRoleLabel, t)}
+                            </p>
+                          </div>
                           <div className="grid gap-3 sm:flex">
                             <button type="submit" className="button-primary w-full sm:w-auto">{t("account.actions.saveProfile")}</button>
                             <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>{t("account.actions.signOut")}</button>

@@ -499,16 +499,23 @@ export async function getProfile(user: User) {
   return { ...data, role: normalizeRole(data.role) } as CloudProfile;
 }
 
-export async function saveProfile(user: User, displayName: string, role: string) {
-  const supabase = getSupabase();
-  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
-  const payload = {
+export function buildProfileWritePayload(
+  user: Pick<User, "id" | "email">,
+  displayName: string,
+  updatedAt = new Date().toISOString(),
+) {
+  return {
     id: user.id,
     email: user.email || null,
     display_name: displayName,
-    role: normalizeRole(role),
-    updated_at: new Date().toISOString(),
+    updated_at: updatedAt,
   };
+}
+
+export async function saveProfile(user: User, displayName: string) {
+  const supabase = getSupabase();
+  if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
+  const payload = buildProfileWritePayload(user, displayName);
   const { data, error } = await supabase.from("profiles").upsert(payload).select("*").single();
   if (error) throw error;
   if (typeof window !== "undefined") {
