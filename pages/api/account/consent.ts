@@ -216,7 +216,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "无法识别的确认操作。" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "知情同意状态更新失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "知情同意状态暂时无法更新，请稍后再试。" });
   }
 }
 

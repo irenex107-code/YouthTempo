@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { PILOT_FEEDBACK_VERSION, parsePilotFeedback, resolvePilotFeedbackRole } from "@/lib/pilotFeedback";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { enforceUserRateLimit } from "@/lib/rateLimit";
 
 const feedbackFields = "id,role,form_version,overall_experience,clarity,safety,most_helpful,hard_to_use,suggestion,may_contact,created_at,updated_at";
 
@@ -30,6 +31,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (role === "student") await requireActiveStudentConsent(supabase, user.id);
+    if (!(await enforceUserRateLimit({
+      supabase,
+      req,
+      userId: user.id,
+      action: "pilot_feedback_submit",
+      limit: 10,
+      windowSeconds: 60 * 60,
+      res,
+      message: "提交得有些频繁，请稍后再试。",
+      area: "save",
+      unavailableMessage: "反馈暂时无法提交，请稍后再试。",
+    }))) return;
     const feedback = parsePilotFeedback((req.body || {}) as Record<string, unknown>);
     const { data, error } = await supabase
       .from("pilot_feedback")
@@ -48,6 +61,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const message = error instanceof Error ? error.message : "反馈暂时没能保存，请稍后再试。";
     const statusCode = (error as Error & { statusCode?: number })?.statusCode;
     const status = statusCode || (message.includes("请先登录") ? 401 : message.includes("选择 1 到 5") || message.includes("1000 字") ? 400 : 500);
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "反馈暂时没能保存，请稍后再试。" : message });
   }
 }

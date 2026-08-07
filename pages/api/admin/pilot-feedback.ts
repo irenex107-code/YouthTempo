@@ -56,6 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "试点反馈暂时无法读取。";
-    return res.status(message.includes("请先登录") ? 401 : message.includes("只有平台管理员") ? 403 : 500).json({ error: message });
+    const status = message.includes("请先登录") ? 401 : message.includes("只有平台管理员") ? 403 : 500;
+    return res.status(status).json({ error: status >= 500 ? "试点反馈暂时无法读取，请稍后再试。" : message });
   }
 }

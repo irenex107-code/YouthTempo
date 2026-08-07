@@ -3,6 +3,7 @@ import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { moderateStudentMessage } from "@/lib/messageSafety";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { normalizeLocale } from "@/lib/i18n/config";
+import { enforceUserRateLimit } from "@/lib/rateLimit";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "PATCH"].includes(req.method || "")) {
@@ -17,6 +18,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === "POST") {
       await requireActiveStudentConsent(supabase, user.id);
+      if (!(await enforceUserRateLimit({
+        supabase,
+        req,
+        userId: user.id,
+        action: "message_send",
+        limit: 20,
+        windowSeconds: 10 * 60,
+        res,
+        message: "发送得有些频繁，请稍等一会儿再试。",
+        area: "save",
+        unavailableMessage: "留言服务暂时不可用，请稍后再试。",
+      }))) return;
       const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : undefined);
       const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
       const recipientType = req.body?.recipientType;
@@ -167,6 +180,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     const message = error instanceof Error ? error.message : "留言服务暂时不可用。";
     const statusCode = error && typeof error === "object" && "statusCode" in error ? Number(error.statusCode) : 500;
-    return res.status(statusCode).json({ error: message });
+    return res.status(statusCode).json({ error: statusCode >= 500 ? "留言服务暂时不可用，请稍后再试。" : message });
   }
 }

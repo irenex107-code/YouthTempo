@@ -29,6 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ scene, expiresAt, qrCodeDataUrl });
   } catch (error) {
     const message = error instanceof Error ? error.message : "微信绑定会话创建失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "微信绑定会话暂时无法创建，请稍后再试。" });
   }
 }

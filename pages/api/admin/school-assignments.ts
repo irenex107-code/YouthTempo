@@ -370,6 +370,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     const message = error instanceof Error ? error.message : "学校空间分配失败。";
     const status = message.includes("没有") || message.includes("只有") || message.includes("只能") || message.includes("不能") ? 403 : message.includes("请先登录") ? 401 : 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "学校空间分配暂时无法完成，请稍后再试。" : message });
   }
 }

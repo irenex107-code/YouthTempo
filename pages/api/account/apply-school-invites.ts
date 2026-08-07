@@ -21,6 +21,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "学校空间同步失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "学校空间暂时无法同步，请稍后再试。" });
   }
 }

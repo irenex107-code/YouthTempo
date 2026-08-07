@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { getCommunityBlockedUserIds, getCommunityIdentity } from "@/lib/community";
 import {
   communityReportCategory,
@@ -16,7 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: "请先登录。" });
     const supabase = getSupabaseAdmin();
-
     if (req.method === "GET") {
       const { data, error } = await supabase
         .from("community_reports")
@@ -27,6 +27,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (error) throw error;
       return res.status(200).json({ reports: data || [] });
     }
+
+    if (!(await enforceUserRateLimit({
+      supabase,
+      req,
+      userId: user.id,
+      action: "community_report_submit",
+      limit: 20,
+      windowSeconds: 60 * 60,
+      res,
+      message: "举报提交得有些频繁，请稍后再试。",
+      area: "community",
+      unavailableMessage: "举报服务暂时不可用，请稍后再试。",
+    }))) return;
 
     const postId = typeof req.body?.postId === "string" ? req.body.postId.trim() : null;
     const commentId = typeof req.body?.commentId === "string" ? req.body.commentId.trim() : null;
@@ -118,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (message.includes("community_reports_open_")) {
       return res.status(409).json({ error: "你已经举报过这条内容，平台正在查看。" });
     }
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "举报暂时无法提交，请稍后再试。" });
   }
 }
 

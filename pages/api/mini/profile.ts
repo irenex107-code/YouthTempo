@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "个人使用状态加载失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "个人使用状态暂时无法加载，请稍后再试。" });
   }
 }
 

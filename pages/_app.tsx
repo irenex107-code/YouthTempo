@@ -32,6 +32,11 @@ const remainingPageTitles: Record<string, string> = {
   "/admin": "管理工作台 | YouthTempo",
 };
 
+const privateOrUserContentRoutes = new Set([
+  "/account", "/admin", "/check-in", "/community", "/feedback", "/messages",
+  "/mood-journal", "/talk", "/worry-time",
+]);
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <I18nProvider>
@@ -58,6 +63,9 @@ function AppContent({ Component, pageProps }: AppContentProps) {
         />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <meta name="theme-color" content="#fbf7ed" />
+        {privateOrUserContentRoutes.has(router.pathname) ? (
+          <meta name="robots" content="noindex, nofollow, noarchive" />
+        ) : null}
       </Head>
       <div className="page-shell">
         <Navbar />

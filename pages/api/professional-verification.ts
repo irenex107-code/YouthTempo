@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { parseProfessionalVerificationSubmission } from "@/lib/professionalVerification";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { enforceUserRateLimit } from "@/lib/rateLimit";
 
 const selectFields = [
   "status",
@@ -72,6 +73,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    if (!(await enforceUserRateLimit({
+      supabase,
+      req,
+      userId: user.id,
+      action: "professional_verification_submit",
+      limit: 5,
+      windowSeconds: 60 * 60,
+      res,
+      message: "提交得有些频繁，请稍后再试。",
+      area: "save",
+      unavailableMessage: "专业身份资料暂时无法提交，请稍后再试。",
+    }))) return;
     const submission = parseProfessionalVerificationSubmission(req.body);
     const { data, error } = await supabase.rpc("submit_professional_verification", {
       p_user_id: user.id,

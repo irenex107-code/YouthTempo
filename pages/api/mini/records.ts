@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     const message = error instanceof Error ? error.message : "SWEET 记录处理失败。";
     const status = (error as Error & { statusCode?: number })?.statusCode || 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "SWEET 记录暂时无法处理，请稍后再试。" : message });
   }
 }
 

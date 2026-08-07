@@ -123,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: "回复暂时无法发送，请稍后再试。" });
     }
     const message = error instanceof Error ? error.message : "回复暂时无法发送。";
-    return res.status(statusCode).json({ error: message });
+    return res.status(statusCode).json({ error: statusCode >= 500 ? "回复暂时无法发送，请稍后再试。" : message });
   }
 }
 

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /admin
+Disallow: /api/
+Disallow: /check-in
+Disallow: /community
+Disallow: /feedback
+Disallow: /messages
+Disallow: /mood-journal
+Disallow: /talk
+Disallow: /worry-time

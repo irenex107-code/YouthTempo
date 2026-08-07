@@ -334,7 +334,6 @@ export default function CheckInPage() {
       setSaveStatus(t("checkIn.messages.saved"));
     } catch (saveError) {
       reportClientOperationFailure("save", "sweet_record_save", saveError);
-      console.error("SWEET record save failed", saveError);
       setSaveStatus(recordSaveErrorMessage(saveError));
     } finally {
       setSaving(false);

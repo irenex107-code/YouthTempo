@@ -80,6 +80,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : message.includes("请先登录")
         ? 401
         : 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "学校空间操作暂时无法完成，请稍后再试。" : message });
   }
 }

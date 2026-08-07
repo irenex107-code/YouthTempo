@@ -240,7 +240,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: "社区暂时不可用，请稍后再试。" });
     }
     const message = error instanceof Error ? error.message : "社区请求无法完成。";
-    return res.status(statusCode).json({ error: message });
+    return res.status(statusCode).json({ error: statusCode >= 500 ? "社区请求暂时无法完成，请稍后再试。" : message });
   }
 }
 

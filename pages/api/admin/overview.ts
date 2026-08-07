@@ -464,6 +464,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     const message = error instanceof Error ? error.message : "管理员概览加载失败。";
     const status = message.includes("没有") ? 403 : message.includes("请先登录") ? 401 : 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "管理员概览暂时无法加载，请稍后再试。" : message });
   }
 }

@@ -68,6 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "社区屏蔽设置暂时无法保存。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "社区屏蔽设置暂时无法保存，请稍后再试。" });
   }
 }

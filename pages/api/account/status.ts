@@ -24,8 +24,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       await applySchoolInvitesForUser(supabase, user);
-    } catch (error) {
-      inviteSyncError = error instanceof Error ? error.message : "学校邀请同步失败。";
+    } catch {
+      inviteSyncError = "学校邀请暂时无法同步。";
     }
 
     const email = user.email.trim().toLowerCase();
@@ -155,6 +155,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "账户状态加载失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "账户状态暂时无法加载，请稍后再试。" });
   }
 }

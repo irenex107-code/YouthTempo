@@ -32,6 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ status: data.status, bound: data.status === "confirmed", confirmedAt: data.confirmed_at });
   } catch (error) {
     const message = error instanceof Error ? error.message : "微信绑定状态检查失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "微信绑定状态暂时无法检查，请稍后再试。" });
   }
 }

@@ -207,6 +207,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ deleted: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "账户数据操作失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "账户数据暂时无法处理，请稍后再试。" });
   }
 }

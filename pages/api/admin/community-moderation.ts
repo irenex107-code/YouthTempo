@@ -317,6 +317,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           : message.includes("invalid_")
             ? 400
             : 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "社区审核队列暂时无法处理，请稍后再试。" : message });
   }
 }

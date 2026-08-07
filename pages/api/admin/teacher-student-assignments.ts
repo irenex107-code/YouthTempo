@@ -168,6 +168,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : message.includes("请先登录")
           ? 401
           : 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "老师负责学生关系暂时无法保存，请稍后再试。" : message });
   }
 }

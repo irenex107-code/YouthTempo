@@ -68,6 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "微信绑定失败。";
-    return res.status(500).json({ error: message });
+    return res.status(500).json({ error: "微信绑定暂时无法完成，请稍后再试。" });
   }
 }

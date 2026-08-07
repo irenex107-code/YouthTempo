@@ -254,7 +254,6 @@ export default function AccountPage() {
         currentUser = await withTimeout(getCurrentUser(), 4_000, t("account.errors.serviceTimeout"));
       } catch (authError) {
         reportClientOperationFailure("auth", "auth_session", authError);
-        console.warn("Initial auth check timed out", authError);
         setUser(null);
         setProfile(null);
         setAccountStatus(null);
@@ -289,7 +288,7 @@ export default function AccountPage() {
         nextAccountStatus = await getAccountStatus();
         nextProfile = nextAccountStatus.profile;
       } catch (statusError) {
-        console.warn("Account status failed", statusError);
+        reportClientOperationFailure("auth", "account_status", statusError);
         nonFatalNotice = t("account.notices.identitySyncing");
       }
 
@@ -297,23 +296,23 @@ export default function AccountPage() {
         try {
           nextProfile = await getProfile(currentUser);
         } catch (profileError) {
-          console.warn("Profile fallback failed", profileError);
+          reportClientOperationFailure("auth", "account_profile", profileError);
           nonFatalNotice = nonFatalNotice || t("account.notices.profileIncomplete");
         }
       }
 
       const [nextRecords, nextWechatIdentities, nextConsentStatus] = await Promise.all([
         listCloudSweetRecords().catch((recordsError) => {
-          console.warn("Cloud records failed", recordsError);
+          reportClientOperationFailure("save", "account_records", recordsError);
           nonFatalNotice = nonFatalNotice || t("account.notices.recordsUnavailable");
           return [] as CloudSweetRecord[];
         }),
         listWechatIdentities().catch((wechatError) => {
-          console.warn("Wechat identities failed", wechatError);
+          reportClientOperationFailure("auth", "wechat_identities", wechatError);
           return [] as WechatIdentity[];
         }),
         getStudentConsentStatus().catch((consentError) => {
-          console.warn("Student consent status failed", consentError);
+          reportClientOperationFailure("auth", "student_consent", consentError);
           return null;
         }),
       ]);

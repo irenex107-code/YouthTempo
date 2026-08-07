@@ -14,12 +14,12 @@ export default function ForParentsPage() {
     { letter: "E", title: t("forParents.sweet.items.exercise.title"), question: t("forParents.sweet.items.exercise.question"), text: t("forParents.sweet.items.exercise.text") },
     { letter: "T", title: t("forParents.sweet.items.task.title"), question: t("forParents.sweet.items.task.question"), text: t("forParents.sweet.items.task.text") },
   ];
-  const aidetSteps = [
-    { step: "01", title: "Acknowledge", label: t("forParents.aidet.items.acknowledge.label"), example: t("forParents.aidet.items.acknowledge.example") },
-    { step: "02", title: "Introduce", label: t("forParents.aidet.items.introduce.label"), example: t("forParents.aidet.items.introduce.example") },
-    { step: "03", title: "Duration", label: t("forParents.aidet.items.duration.label"), example: t("forParents.aidet.items.duration.example") },
-    { step: "04", title: "Explanation", label: t("forParents.aidet.items.explanation.label"), example: t("forParents.aidet.items.explanation.example") },
-    { step: "05", title: "Thank you", label: t("forParents.aidet.items.thankYou.label"), example: t("forParents.aidet.items.thankYou.example") },
+  const sweetTalkSteps = [
+    { step: "01", title: "Acknowledge", label: t("forParents.sweetTalk.items.acknowledge.label"), example: t("forParents.sweetTalk.items.acknowledge.example") },
+    { step: "02", title: "Introduce", label: t("forParents.sweetTalk.items.introduce.label"), example: t("forParents.sweetTalk.items.introduce.example") },
+    { step: "03", title: "Duration", label: t("forParents.sweetTalk.items.duration.label"), example: t("forParents.sweetTalk.items.duration.example") },
+    { step: "04", title: "Explanation", label: t("forParents.sweetTalk.items.explanation.label"), example: t("forParents.sweetTalk.items.explanation.example") },
+    { step: "05", title: "Thank you", label: t("forParents.sweetTalk.items.thankYou.label"), example: t("forParents.sweetTalk.items.thankYou.example") },
   ];
   const phrases = [
     t("forParents.conversation.phrases.one"),
@@ -128,21 +128,21 @@ export default function ForParentsPage() {
         </div>
       </section>
 
-      <section className="section" data-section="aidet-conversation">
+      <section className="section" data-section="sweet-talk-conversation">
         <div className="container">
           <SectionHeader
-            title={t("forParents.aidet.title")}
-            description={t("forParents.aidet.description")}
+            title={t("forParents.sweetTalk.title")}
+            description={t("forParents.sweetTalk.description")}
           />
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {aidetSteps.map((item) => (
+            {sweetTalkSteps.map((item) => (
               <article
                 key={item.title}
                 className="group flex flex-col rounded-[1.75rem] border border-ink/[0.08] bg-white/90 p-5 shadow-soft transition hover:-translate-y-1 hover:border-sage/30 hover:bg-white hover:shadow-lift lg:min-h-[19rem]"
               >
                 <div className="mb-5 flex items-center gap-3">
                   <span className="flex h-12 min-w-12 items-center justify-center rounded-2xl bg-cream-deep/75 px-3 text-sm font-extrabold text-sage-dark">{item.step}</span>
-                  <span className="text-xs font-extrabold tracking-[0.16em] text-sage-dark">AIDET</span>
+                  <span className="text-xs font-extrabold tracking-[0.12em] text-sage-dark">SWEET Talk</span>
                 </div>
                 <h3 className="text-[1.05rem] font-extrabold leading-snug text-ink">{item.title}</h3>
                 <p className="mt-3 text-[0.95rem] font-bold leading-7 text-sage-dark">{item.label}</p>

@@ -6,6 +6,11 @@ export const monitoredClientOperations = [
   "auth_redirect",
   "auth_otp_send",
   "auth_otp_verify",
+  "account_status",
+  "account_profile",
+  "account_records",
+  "wechat_identities",
+  "student_consent",
   "sweet_record_save",
 ] as const;
 export type MonitoredClientOperation = (typeof monitoredClientOperations)[number];

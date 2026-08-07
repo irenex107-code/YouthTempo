@@ -233,9 +233,9 @@
         "task": { "title": "Task engagement", "question": "Is it difficult to start schoolwork or everyday tasks?", "text": "Look beyond outcomes and notice whether starting and staying with a task has become harder." }
       }
     },
-    "aidet": {
-      "title": "AIDET: a way for parents to begin the conversation",
-      "description": "AIDET breaks a conversation into five steps. You do not need to use the terminology—just follow the order to express your care clearly.",
+    "sweetTalk": {
+      "title": "SWEET Talk: a communication tool for parents",
+      "description": "This five-step conversation tool is based on the AIDET communication framework. It is separate from the SWEET daily-rhythm model and is not a sixth rhythm dimension. You do not need to use the terminology—just follow the order to express your care clearly.",
       "items": {
         "acknowledge": { "label": "Acknowledge how your child may feel", "example": "I know you may be really tired lately, and that you are not putting things off on purpose." },
         "introduce": { "label": "Explain why you are here", "example": "I am not here to tell you off. I just want to understand how you have been lately." },
@@ -448,7 +448,7 @@
     "groups": {
       "parents": { "title": "For parents: what to notice and how to begin", "items": {
         "rhythm": { "title": "Notice changes in rhythm first", "text": "Look for ongoing difficulty with sleep, waking, meals, movement, or task engagement without rushing to conclusions.", "action": "View the parent guide" },
-        "communication": { "title": "Reduce conflict in conversations", "text": "Begin with what you have noticed and why you care, then give your child time to respond. Avoid repeated questions, comparisons, or immediate lectures.", "action": "View conversation starters" },
+        "communication": { "title": "Begin with SWEET Talk", "text": "SWEET Talk is based on the AIDET communication framework: begin with what you have noticed and why you care, then give your child time to respond without repeated questions, comparisons, or immediate lectures.", "action": "View SWEET Talk" },
         "support": { "title": "Know when to seek support", "text": "When the situation continues to affect learning, relationships, or daily life, discuss next steps with the school or a qualified professional.", "action": "View support pathways" }
       } },
       "school": { "title": "For teachers and schools: how to respond and follow up", "items": {

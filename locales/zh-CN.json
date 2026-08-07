@@ -233,9 +233,9 @@
         "task": { "title": "Task engagement 任务参与", "question": "学习或生活任务是否很难开始？", "text": "重点不是只看结果，而是看启动和维持是否变难。" }
       }
     },
-    "aidet": {
-      "title": "AIDET：家长可以怎么开口谈",
-      "description": "AIDET 把一次对话分成五步。不用照着术语念，照着顺序把关心说清楚就可以。",
+    "sweetTalk": {
+      "title": "SWEET Talk 家长沟通工具",
+      "description": "这是一个基于 AIDET 沟通框架的五步开口工具，和 SWEET 日常节律模型相互独立，不是第六个节律维度。不用照着术语念，按顺序把关心说清楚就可以。",
       "items": {
         "acknowledge": { "label": "先看见孩子的感受", "example": "我知道你最近可能真的很累，也不是故意拖延。" },
         "introduce": { "label": "说明自己的来意", "example": "我不是来骂你，我只是想了解你最近状态。" },
@@ -448,7 +448,7 @@
     "groups": {
       "parents": { "title": "家长：怎么观察和开口", "items": {
         "rhythm": { "title": "先看节律变化", "text": "留意睡眠、起床、饮食、运动和任务参与是否持续变难，不急着给变化下结论。", "action": "查看家长指引" },
-        "communication": { "title": "降低沟通冲突", "text": "先说观察和关心，再给孩子一点表达时间，避免连续追问、比较或马上讲道理。", "action": "查看沟通句式" },
+        "communication": { "title": "使用 SWEET Talk 开始对话", "text": "SWEET Talk 基于 AIDET 沟通框架：先说观察和关心，再给孩子一点表达时间，避免连续追问、比较或马上讲道理。", "action": "查看 SWEET Talk" },
         "support": { "title": "知道何时求助", "text": "当状态持续影响学习、关系或日常生活时，和学校或专业支持资源一起讨论下一步。", "action": "查看支持路径" }
       } },
       "school": { "title": "老师与学校：怎么回应和跟进", "items": {

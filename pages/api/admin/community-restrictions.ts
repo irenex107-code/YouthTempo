@@ -92,6 +92,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : message.includes("invalid_")
           ? 400
           : 500;
-    return res.status(status).json({ error: message });
+    return res.status(status).json({ error: status >= 500 ? "社区账号限制暂时无法保存，请稍后再试。" : message });
   }
 }

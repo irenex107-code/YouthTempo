@@ -85,6 +85,8 @@ export async function enforceUserRateLimit({
   windowSeconds,
   res,
   message,
+  area = "save",
+  unavailableMessage = "服务暂时不可用，请稍后再试。",
 }: {
   supabase: SupabaseClient;
   req: NextApiRequest;
@@ -94,6 +96,8 @@ export async function enforceUserRateLimit({
   windowSeconds: number;
   res: NextApiResponse;
   message: string;
+  area?: "auth" | "save" | "ai" | "community";
+  unavailableMessage?: string;
 }) {
   try {
     const result = await consumeRateLimit(supabase, {
@@ -110,12 +114,12 @@ export async function enforceUserRateLimit({
   } catch (error) {
     await reportOperationalError({
       req,
-      area: "community",
+      area,
       operation: `${action}_rate_limit`,
       error,
       statusCode: 503,
     });
-    res.status(503).json({ error: "社区服务暂时不可用，请稍后再试。" });
+    res.status(503).json({ error: unavailableMessage });
     return false;
   }
 }
