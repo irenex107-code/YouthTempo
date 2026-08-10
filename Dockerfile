@@ -18,9 +18,9 @@ WORKDIR /app
 
 COPY . .
 
-# These are public browser credentials. CloudBase does not expose service
-# runtime variables during the Docker build, so provide production defaults
-# while still allowing other environments to override them with build args.
+# These are public browser credentials. Provide production defaults for the
+# standalone image while still allowing other environments to override them
+# with build arguments.
 ARG NEXT_PUBLIC_SUPABASE_URL=https://saqkzfsmabsgbwdvuras.supabase.co
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv
 

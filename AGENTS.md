@@ -8,6 +8,8 @@ Treat `ROADMAP.md` as the single source of truth for priorities and completion s
 
 For pilot-readiness work, keep `PILOT_READINESS_AUDIT.md`, `SECURITY_PERMISSION_MATRIX.md`, `PILOT_MANUAL_CHECKLIST.md`, `SCHOOL_PILOT_READINESS_CHECKLIST.md`, and `PARENTAL_ACCESS_POLICY_DECISION.md` aligned with the roadmap. Do not mark the product READY while a roadmap PILOT BLOCKER remains open.
 
+The current operational conclusion is **READY WITH CONDITIONS**, not **READY**. A healthy production site or a completed technical check does not close human sign-off, school-operation, physical-device, mail-delivery, recovery-operation, or external-alert blockers. Do not mark those items complete without the dated evidence required by `ROADMAP.md`.
+
 ## Product Boundaries
 
 - Young people can complete SWEET check-ins and use reflection tools such as Mood Journal, Talk, Worry Time, and Referral.
@@ -85,10 +87,14 @@ Never trust a role, school ID, verification state, moderation state, or relation
 
 ## Deployment
 
-- The formal deployment target is Tencent Cloud CloudBase Run.
+- The formal production target is Tencent Cloud Lighthouse in Hong Kong, served at `https://youthtempo.com`; `www.youthtempo.com` redirects to the apex domain.
 - The application is built as a Next.js standalone Docker image.
-- `scripts/cloudbase-server.mjs` serves precompressed static assets and proxies application traffic to the standalone Next.js server.
-- Vercel is not the formal production site.
+- Production runs behind Nginx with HTTPS termination; the application container is bound to localhost rather than exposed directly to the public internet.
+- `scripts/cloudbase-server.mjs` remains the runtime adapter inside the image despite its legacy name: it serves precompressed static assets and proxies application traffic to the standalone Next.js server.
+- `.github/workflows/deploy-production.yml` deploys only after the `Verify` workflow succeeds on `main`. It uses a restricted command-only SSH key; never replace it with a maintainer's normal login key.
+- `scripts/deploy-lighthouse.sh` builds the exact verified commit, health-checks a candidate container on localhost port 3001, cuts over the production container on port 3000, and restores the previous image if the post-cutover check fails.
+- Vercel and the former CloudBase deployment are not formal production sites. Do not deploy to, reconnect, or modify them unless the user explicitly authorizes that operation.
+- Changes to the production server, container, Nginx, TLS, DNS, or domain records require explicit production authorization and proportionate verification.
 - Never place service-role keys, AI keys, SMTP credentials, database URLs, or user data in the Docker image or repository.
 
 # Development Rules
@@ -125,9 +131,21 @@ Never trust a role, school ID, verification state, moderation state, or relation
 ## Data lifecycle and recovery
 
 - The current Free Supabase plan does not provide automatic daily backups or PITR.
-- Backup and restore scripts exist, but a real encrypted off-site backup and isolated recovery drill are still required before recovery readiness can be marked complete.
+- A real encrypted off-site backup and isolated recovery drill was completed on 2026-08-11. The database-only logical restore took 24 seconds; restored relationships, JWT/RLS role boundaries, and account-deletion replay were verified.
+- The Hong Kong server runs a daily encrypted backup task, and a restricted maintainer device performs off-site synchronization. Two consecutive successful runs and checksum verification have been recorded, but cross-day stability and an external failure alert are still open.
+- The registered disposable recovery project is `sebtakwjwubvdqdswtdi`; the formal project is `saqkzfsmabsgbwdvuras`. Never point a restore, cleanup, deletion replay, or recovery-app drill at the formal project.
+- The recovery project was sanitized after the drill. Before every new drill, manually confirm that the target is the registered disposable project and contains no data that must be retained.
 - Never run a restore drill against production.
 - Recovery work must follow `docs/DATABASE_RECOVERY.md`, verify the target project manually, protect connection strings, and avoid recording personal data in reports.
+- Do not mark the recovery blocker complete until the isolated application passes a real Email OTP/session check, automated backups have the required cross-day observation, an external failure alert is proven, and complete business RPO/RTO is recorded.
+
+## Pilot evidence boundaries
+
+- Do not infer policy approval from implemented authorization. Guardian-access policy completion requires the designated product, school, and privacy signatories.
+- Do not mark iPhone, Android, WeChat in-app browser, or mini-program acceptance complete from desktop automation; retain dated physical-device evidence.
+- Do not mark school crisis operations complete without named escalation contacts, duty hours, response owners, and the offline emergency path supplied by the school.
+- Do not create production test users, send external OTPs or email, or manufacture production failures without explicit authorization for that action and scope.
+- Controlled production failure tests require an agreed window, rollback path, and confirmation that logs and alerts contain no message body, email address, token, OTP, or sensitive youth data.
 
 # Safety Rules
 

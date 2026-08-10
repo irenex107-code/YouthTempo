@@ -1,0 +1,88 @@
+name: Deploy Production
+
+on:
+  workflow_run:
+    workflows: [Verify]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: youthtempo-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+
+    steps:
+      - name: Resolve verified commit
+        id: release
+        env:
+          WORKFLOW_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          sha="$WORKFLOW_SHA"
+
+          if ! printf '%s' "$sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "A full lowercase 40-character commit SHA is required." >&2
+            exit 1
+          fi
+
+          printf 'sha=%s\n' "$sha" >>"$GITHUB_OUTPUT"
+
+      - name: Configure restricted deployment key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.LIGHTHOUSE_DEPLOY_SSH_KEY }}
+        run: |
+          if [ -z "$DEPLOY_SSH_KEY" ]; then
+            echo "LIGHTHOUSE_DEPLOY_SSH_KEY is not configured." >&2
+            exit 1
+          fi
+
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" >"$HOME/.ssh/youthtempo_deploy"
+          chmod 0600 "$HOME/.ssh/youthtempo_deploy"
+          ssh-keygen -y -f "$HOME/.ssh/youthtempo_deploy" >/dev/null
+
+          cat >"$HOME/.ssh/known_hosts" <<'KNOWN_HOSTS'
+          43.129.71.61 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEoxqAhZYvl5Ym7VG1omukkJjoveOJcq1q17F7h9cV6W
+          KNOWN_HOSTS
+          chmod 0600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy verified release
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          ssh \
+            -i "$HOME/.ssh/youthtempo_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            ubuntu@43.129.71.61 \
+            "deploy $RELEASE_SHA"
+
+      - name: Verify public production site
+        run: |
+          for attempt in $(seq 1 12); do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --location \
+              --max-time 15 \
+              https://youthtempo.com/api/health \
+              | grep --quiet '"status":"ok"'; then
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "The public production health check did not recover in time." >&2
+          exit 1

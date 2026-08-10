@@ -1,6 +1,6 @@
 # YouthTempo
 
-> Project Documentation v2.0 · 项目文档 v2.0
+> Project Documentation v2.1 · 项目文档 v2.1
 
 YouthTempo is a bilingual youth mental health support platform preparing for a small-scale school pilot. It helps young people understand emotions, build healthier everyday rhythms, and reach appropriate support before challenges become crises.
 
@@ -10,9 +10,9 @@ YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健
 
 **试点重点：**14–18 岁青少年，以及与他们相关的家长、老师、学校负责人、平台管理员和经过验证的专业支持者。
 
-[Visit the YouthTempo pilot site](https://youthtempo-web-287026-8-1457638967.sh.run.tcloudbase.com)
+[Visit the YouthTempo pilot site](https://youthtempo.com)
 
-[访问 YouthTempo 试点网站](https://youthtempo-web-287026-8-1457638967.sh.run.tcloudbase.com)
+[访问 YouthTempo 试点网站](https://youthtempo.com)
 
 ## 1. Project Overview
 
@@ -198,9 +198,9 @@ The product includes user data export, account deletion, consent withdrawal, and
 
 产品提供用户数据导出、账户注销、同意撤回和学校退出后的数据处理流程，但不作“绝对保密”或“零风险存储”的承诺。敏感凭据和用户内容不得提交到源代码仓库，也不得暴露在客户端代码中。
 
-Backup and isolated recovery tooling has been prepared. A real encrypted off-site backup and recovery drill remains an active pilot-readiness task.
+An encrypted off-site backup and isolated recovery drill was completed on 11 August 2026. Daily encrypted backups on the Hong Kong server and off-site synchronization to a restricted maintainer device are enabled, and two consecutive runs have been verified. Recovery readiness remains conditional on cross-day observation, external failure alerts, and a real Email OTP/session check against the isolated recovery application.
 
-备份和隔离恢复工具已经准备完成；真实的加密异地备份与恢复演练仍是当前试点准备中的任务。
+2026 年 8 月 11 日已完成一次真实加密异地备份与隔离恢复演练。香港服务器的每日加密备份和到受限维护设备的异地同步均已启用，并已验证连续两次运行。恢复准备状态仍取决于跨日连续观察、外部失败告警，以及隔离恢复应用上的真实 Email OTP/session 验收。
 
 ## 10. Technical Architecture
 
@@ -229,9 +229,9 @@ Supabase provides Email OTP authentication and PostgreSQL persistence. API route
 
 Supabase 提供 Email OTP 身份认证和 PostgreSQL 数据存储。API 会验证调用者身份，并从可信数据库关系中判断访问范围，而不是信任客户端提交的角色；RLS 和数据库触发器提供进一步保护。
 
-The production application is built as a standalone Docker image and deployed to Tencent Cloud CloudBase Run.
+The production application is built as a standalone Docker image and deployed to Tencent Cloud Lighthouse in Hong Kong. Nginx terminates HTTPS and proxies requests to the application container bound to localhost. The canonical production URL is [`https://youthtempo.com`](https://youthtempo.com), and `www.youthtempo.com` redirects to the apex domain.
 
-正式应用构建为 standalone Docker 镜像，并部署在腾讯云 CloudBase Run。
+正式应用构建为 standalone Docker 镜像，并部署在腾讯云香港轻量应用服务器（Lighthouse）。Nginx 负责 HTTPS 与反向代理，应用容器仅绑定本机回环地址。正式地址为 [`https://youthtempo.com`](https://youthtempo.com)，`www.youthtempo.com` 会跳转到主域名。
 
 ## 11. Technology Stack
 
@@ -245,7 +245,7 @@ The production application is built as a standalone Docker image and deployed to
 | Authorization | Server checks, RLS, database triggers |
 | AI integration | OpenAI-compatible structured JSON APIs |
 | Testing | Playwright, TypeScript checks, production builds |
-| Deployment | Docker, Tencent Cloud CloudBase Run |
+| Deployment | Docker, Nginx, Tencent Cloud Lighthouse (Hong Kong) |
 
 | 层级 | 技术 |
 |---|---|
@@ -257,7 +257,17 @@ The production application is built as a standalone Docker image and deployed to
 | 权限控制 | 服务端校验、RLS、数据库触发器 |
 | AI 接入 | 兼容 OpenAI 接口的结构化 JSON API |
 | 测试 | Playwright、TypeScript 检查、生产构建 |
-| 部署 | Docker、腾讯云 CloudBase Run |
+| 部署 | Docker、Nginx、腾讯云香港轻量应用服务器 |
+
+### Production deployment automation / 正式环境自动部署
+
+Every push to `main` first runs the repository's `Verify` workflow. A production deployment starts only after that workflow succeeds. GitHub Actions connects with a dedicated command-only SSH key, builds the exact verified commit on the Hong Kong server, starts a candidate container on localhost port 3001, and checks it before replacing the production container on port 3000. If the post-cutover health check fails, the deployment script restores the previous image.
+
+每次推送到 `main` 后，仓库都会先执行 `Verify`。只有该工作流全部通过，正式部署才会开始。GitHub Actions 使用一把只能执行部署命令的专用 SSH 密钥，香港服务器会构建已经验证的准确 commit，先在本机 3001 端口启动候选容器并完成健康检查，再替换 3000 端口上的正式容器；如果切换后的检查失败，部署脚本会恢复上一镜像。
+
+The production environment file and all private credentials remain on the server or in GitHub Actions Secrets; they are not stored in the repository. Re-running a deployment should be done by re-running the corresponding `Deploy Production` workflow rather than bypassing `Verify`.
+
+正式环境文件和所有私密凭据只保存在服务器或 GitHub Actions Secrets 中，不进入仓库。需要重新部署时，应重新运行对应的 `Deploy Production` 工作流，不得绕过 `Verify`。
 
 ## 12. Internationalization
 
@@ -327,6 +337,8 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - Message and community safety review paths.
 - Eight-digit Email OTP flow, session creation, safe errors, and historical delivery evidence; current multi-provider delivery revalidation remains a pilot condition.
 - CI, permission-boundary tests, security headers, rate limiting, and production deployment.
+- Real encrypted off-site database backup, isolated logical restore, relationship validation, JWT/RLS role checks, and account-deletion replay; the measured database-only logical restore time was 24 seconds.
+- Daily encrypted backup on the Hong Kong server and restricted off-site synchronization, with two consecutive successful runs and checksum verification.
 
 - SWEET 生成、云端记录、历史查看和删除。
 - 学生、家长、老师、学校负责人和平台管理员的角色体验。
@@ -338,35 +350,37 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - 消息和社区安全复核路径。
 - 八位 Email OTP、session 创建、安全错误和历史投递证据；多邮箱当次投递复验仍是试点准入条件。
 - CI、权限边界测试、安全响应头、频率限制和正式部署。
+- 真实加密异地数据库备份、隔离逻辑恢复、关系校验、JWT/RLS 角色边界验证和账号删除重放；本次仅数据库逻辑恢复实测为 24 秒。
+- 香港服务器每日加密备份和受限异地同步，已连续成功两次并完成校验和复核。
 
 ### In progress before or during pilot operations / 试点前或试点运营期间仍在推进
 
-- Encrypted off-site backup and isolated recovery drill.
-- Final external alert receiver and controlled failure validation.
+- Recovery closure: real Email OTP/session validation on the isolated recovery application, cross-day backup observation, external failure alerts, and complete business RPO/RTO validation.
+- Final external alert receiver and controlled failure validation for login, save, AI, and community paths.
 - Manual acceptance on physical iPhone, Android, and WeChat in-app browsers.
-- Formal custom domain and ICP process.
 - Custom SMTP, sender-domain authentication, and current QQ/163/Outlook delivery revalidation.
+- Signed guardian-access policy and confirmed school crisis-escalation contacts, duty hours, and offline response path.
 
-- 加密异地备份和隔离恢复演练。
-- 正式外部告警接收端及受控失败验收。
+- 恢复闭环收口：隔离恢复应用真实 Email OTP/session、跨日备份观察、外部失败告警和完整业务 RPO/RTO 验收。
+- 正式外部告警接收端，以及登录、保存、AI、社区四类受控失败验收。
 - iPhone、安卓和微信内置浏览器真机验收。
-- 正式域名与 ICP 流程。
 - 自有 SMTP、发件域认证和 QQ/163/Outlook 当次投递复验。
+- 监护人访问政策签署，以及学校危机升级联系人、值班时段和线下应急路径确认。
 
 ## 15. Roadmap
 
 YouthTempo's roadmap prioritizes pilot readiness over feature expansion:
 
-1. Complete backup and recovery validation.
-2. Close operational monitoring and physical-device acceptance.
+1. Close Email OTP delivery, recovery-operation, and external-alert conditions.
+2. Complete signed policy, school-response, and physical-device acceptance.
 3. Run a small, consent-based school pilot and collect role-specific feedback.
 4. Review usability, safety operations, participation patterns, and data governance before expanding scope.
 5. Improve infrastructure, documentation, and partner workflows based on pilot evidence.
 
 YouthTempo 的路线图优先保障试点可用，而不是继续堆叠功能：
 
-1. 完成备份和恢复验证。
-2. 收口运行监控和真机验收。
+1. 收口 Email OTP 投递、恢复运行和外部告警条件。
+2. 完成政策签署、学校应急路径和真机验收。
 3. 在知情同意基础上开展小规模学校试点，并收集不同角色的反馈。
 4. 在扩大范围前，复盘易用性、安全运营、参与情况和数据治理。
 5. 根据试点证据继续完善基础设施、文档和合作流程。
@@ -375,7 +389,13 @@ Current priorities and acceptance criteria are maintained in [`ROADMAP.md`](./RO
 
 当前优先级和验收标准统一维护在 [`ROADMAP.md`](./ROADMAP.md)。
 
+The current overall status is **READY WITH CONDITIONS**, not **READY**. Technical deployment health does not close human sign-off, school-operation, real-device, mail-delivery, or external-alert blockers.
+
+当前总体状态为 **READY WITH CONDITIONS**，而不是 **READY**。正式网站可访问并不代表人工签署、学校运营、真机、邮件投递或外部告警等阻塞项已经关闭。
+
 Pilot evidence and sign-off documents: [`PILOT_READINESS_AUDIT.md`](./PILOT_READINESS_AUDIT.md), [`SECURITY_PERMISSION_MATRIX.md`](./SECURITY_PERMISSION_MATRIX.md), [`PILOT_MANUAL_CHECKLIST.md`](./PILOT_MANUAL_CHECKLIST.md), [`SCHOOL_PILOT_READINESS_CHECKLIST.md`](./SCHOOL_PILOT_READINESS_CHECKLIST.md), and [`PARENTAL_ACCESS_POLICY_DECISION.md`](./PARENTAL_ACCESS_POLICY_DECISION.md).
+
+Recovery procedures and the latest drill evidence are maintained in [`docs/DATABASE_RECOVERY.md`](./docs/DATABASE_RECOVERY.md).
 
 试点证据、人工验收、学校准备与监护人访问决策均在上述文件中维护；当前总体结论为 **READY WITH CONDITIONS**。
 

@@ -1,6 +1,6 @@
 # YouthTempo 唯一路线图
 
-更新时间：2026-08-07
+更新时间：2026-08-11
 
 本文件是唯一优先级与完成状态来源。当前结论：**READY WITH CONDITIONS**；代码和自动化准入已通过，真实学生入组前仍须关闭下列人工/外部条件。
 
@@ -18,22 +18,22 @@
 - [x] AI、社区、消息、反馈、举报、专业认证等高滥用入口限流；API 5xx 和监控事件脱敏。
 - [x] 中英文核心流程、响应式 320–1440 px、基础无障碍、移动浏览器自动化与安全响应头。
 - [x] Supabase 版本迁移、25 张业务表 RLS、空库 baseline 恢复验证；依赖审计无已知漏洞。
-- [x] Next.js standalone Docker 与腾讯云 CloudBase Run 部署架构；仓库无 Vercel 专用部署配置。
+- [x] Next.js standalone Docker、腾讯云香港 Lighthouse、Nginx/HTTPS 和正式域名部署架构；GitHub Actions 仅在 `main` 的 Verify 全部通过后使用受限 SSH 密钥自动部署，并带候选容器检查和失败回滚。
 - [x] 微信小程序一期工程：OTP、同意、SWEET、AI 小结、本人历史读取/删除和支持入口。
 
 ## PILOT BLOCKERS / 真实学生入组前必须关闭
 
 - [ ] 配置自有 SMTP、SPF/DKIM/DMARC，并当次实测 QQ、163、Outlook 收件、八位 OTP、session 持久化与安全失败提示。
-- [ ] 完成一次加密异地真实备份及**隔离项目**恢复演练，记录校验和、RPO/RTO；禁止在生产库恢复。
-- [ ] 配置正式告警接收端，并分别制造登录、保存、AI、社区四类受控失败，确认 CloudBase 日志和告警均无正文、邮箱、token 或验证码。
+- [ ] 完成备份恢复闭环：加密异地真实备份、隔离数据库恢复、校验和、数据库 RTO 24 秒、恢复关系 JWT/RLS 验收、账号删除重放、香港每日加密任务和 Mac 异地同步已完成；仍需真实邮箱 OTP/session 的隔离应用验收、连续周期观察、外部失败告警和完整业务 RPO/RTO。禁止在生产库恢复。
+- [ ] 配置正式告警接收端，并分别制造登录、保存、AI、社区四类受控失败，确认 Lighthouse、Nginx、容器日志和告警均无正文、邮箱、token 或验证码。
 - [ ] 产品/学校/隐私负责人签署监护人访问政策：当前为“经学校核验的 active 监护关系可看孩子完整 SWEET 记录和小结”，并确认同意文案与学校告知一致。
 - [ ] 在真实 iPhone Safari、安卓 Chrome、微信内置浏览器各完成 OTP、同意、SWEET 保存/历史/删除、退出登录。
 - [ ] 学校确认危机升级联系人、值班时段、举报 2/24/72 小时处理责任人和线下应急路径。
 
 ## PILOT MANUAL VERIFICATION / 开放前人工核对
 
-- [ ] 完成 ICP 与正式域名绑定；正式域名确定后添加 canonical 和 sitemap，并复核 robots/noindex。
-- [ ] 在 Vercel 账户侧断开 GitHub 自动部署集成，确认 CloudBase 是唯一正式部署目标。
+- [ ] 正式域名与香港 Lighthouse 已绑定；仍需确定试点期是否保持 `noindex`，并据此复核 canonical、sitemap、robots 及适用备案/合规事项。
+- [ ] 在 Vercel 账户侧断开旧 GitHub 自动部署集成，确认香港 Lighthouse 的 `Deploy Production` 是唯一正式自动部署目标。
 - [ ] 运行虚拟学校 fixture 后完成全角色允许/拒绝矩阵，并留存当次测试报告。
 - [ ] 使用两所虚拟学校检查跨校隔离、监护关系撤销、老师取消分配、学校退出和旧 session。
 - [ ] 由学校核对家长告知书、学生同意、隐私说明、数据保留/删除和退出试点流程。
