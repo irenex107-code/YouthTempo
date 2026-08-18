@@ -18,7 +18,7 @@ Worry Time 自 2026-08-18 起也不再属于 AI 生成场景：普通整理只�
 
 当前调用 provider 的网页场景仅为 SWEET Check-in 与 Mood Journal，另有小程序 Check-in。三者使用告知版本 `ai-notice-2026-08-18-v2`。模型不再直接撰写最终展示文本，只能从服务端生成的最小化 `sourceFields` 中选择有限数量的字段 ID；服务器拒绝未知、重复、超量或附带额外字段的输出，再用经过脱敏的来源片段和固定模板组成小结。关注维度、可选行动、下一工具和支持路径继续由固定规则或用户原文决定。
 
-生成能力采用 fail-closed 配置：`AI_GENERATION_ENABLED` 只有精确为 `true` 时才开放；`OPENAI_BASE_URL` 的 HTTPS 主机必须列入 `AI_ALLOWED_PROVIDER_HOSTS`，`OPENAI_MODEL` 必须列入 `AI_ALLOWED_MODELS`。默认 OpenAI 配置使用日期快照 `gpt-4.1-mini-2025-04-14`，OpenAI 别名模型即使列入白名单也会被拒绝。正式启用前仍须由负责人核对供应商与模型获批证据，不能仅凭环境变量存在即视为完成治理。
+首批小范围试点保持受限 AI 小结开启；设置 `AI_GENERATION_ENABLED=false` 可立即暂停普通生成。`OPENAI_BASE_URL` 的 HTTPS 主机必须列入 `AI_ALLOWED_PROVIDER_HOSTS`，`OPENAI_MODEL` 必须列入 `AI_ALLOWED_MODELS`。当前默认允许 `gpt-4.1-mini` 及其已知日期版本，日期快照固定和供应商书面核对作为试点后的治理优化继续完成。
 
 发送前的常见标识移除覆盖邮箱、中国大陆及常见国际电话号码、身份证号、带标签的姓名、学校、班级、住址、微信/QQ/其他社交账号和链接。自动脱敏不能保证识别所有自然语言中的姓名、地点或第三方身份，因此产品仍要求用户不要输入这些信息，并保留人工隐私评估条件。
 

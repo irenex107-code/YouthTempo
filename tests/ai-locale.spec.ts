@@ -116,7 +116,7 @@ test("英文请求使用英文 prompt 并返回英文 JSON", async () => {
   }
 });
 
-test("生成模型默认关闭，且 provider 主机与模型快照必须同时通过白名单", () => {
+test("生成模型支持总开关，且 provider 主机与模型必须通过白名单", () => {
   const restoreProvider = enableTestProvider();
   try {
     process.env.AI_GENERATION_ENABLED = "false";
@@ -129,13 +129,10 @@ test("生成模型默认关闭，且 provider 主机与模型快照必须同时�
     process.env.OPENAI_BASE_URL = "https://api.openai.com";
     process.env.OPENAI_MODEL = "gpt-4.1-mini";
     process.env.AI_ALLOWED_MODELS = "gpt-4.1-mini";
-    expect(() => resolveAiProviderConfiguration()).toThrow("dated snapshot");
+    expect(resolveAiProviderConfiguration()).toMatchObject({ model: "gpt-4.1-mini" });
 
-    process.env.OPENAI_MODEL = "gpt-4.1-mini-2025-04-14";
-    process.env.AI_ALLOWED_MODELS = "gpt-4.1-mini-2025-04-14";
-    expect(resolveAiProviderConfiguration()).toMatchObject({
-      model: "gpt-4.1-mini-2025-04-14",
-    });
+    process.env.OPENAI_MODEL = "unapproved-model";
+    expect(() => resolveAiProviderConfiguration()).toThrow("model is not allowlisted");
   } finally {
     restoreProvider();
   }

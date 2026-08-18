@@ -10,7 +10,8 @@ import { hasAcceptedCurrentAiNotice } from "@/lib/aiNotice";
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export type AiLocale = "zh-CN" | "en";
 const maxInputCharacters = 20_000;
-const defaultModelSnapshot = "gpt-4.1-mini-2025-04-14";
+const defaultModel = "gpt-4.1-mini";
+const defaultAllowedModels = "gpt-4.1-mini,gpt-4.1-mini-2025-04-14";
 const defaultProviderHost = "api.openai.com";
 
 export type AiSourceField = {
@@ -153,7 +154,7 @@ export function buildGroundedSummary(
 }
 
 export function isAiGenerationEnabled() {
-  return process.env.AI_GENERATION_ENABLED === "true";
+  return process.env.AI_GENERATION_ENABLED !== "false";
 }
 
 export function resolveAiProviderConfiguration() {
@@ -175,17 +176,14 @@ export function resolveAiProviderConfiguration() {
     throw new AiConfigurationError("AI provider host is not allowlisted.");
   }
 
-  const model = process.env.OPENAI_MODEL || defaultModelSnapshot;
+  const model = process.env.OPENAI_MODEL || defaultModel;
   const allowedModels = new Set(
-    (process.env.AI_ALLOWED_MODELS || defaultModelSnapshot)
+    (process.env.AI_ALLOWED_MODELS || defaultAllowedModels)
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean),
   );
   if (!allowedModels.has(model)) throw new AiConfigurationError("AI model is not allowlisted.");
-  if (endpoint.hostname.toLowerCase() === defaultProviderHost && !/-\d{4}-\d{2}-\d{2}$/.test(model)) {
-    throw new AiConfigurationError("OpenAI models must use a dated snapshot.");
-  }
 
   return { endpoint, model };
 }

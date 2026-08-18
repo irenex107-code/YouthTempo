@@ -24,7 +24,7 @@
 - [ ] 中英文高风险输入在 Check-in、Mood Journal、已关闭的 Talk API、Worry Time、Referral 均不调用普通 AI；Talk 早先消息命中后不会被后续普通消息冲掉；普通压力、难过、疲惫不过度危机化。
 - [ ] 五个工具的固定紧急文案、词表误报/漏报样例和“立即联系现实支持”的停止路径已经心理专业、安全/隐私及学校负责人共同审核并留存版本与日期。
 - [ ] 两个网页 AI 摘要工具及小程序 Check-in 均显示当前告知版本 `ai-notice-2026-08-18-v2`；未登录、有效同意缺失、未确认或版本过期的普通请求不会调用 provider；所有普通生成结果持续显示“AI 辅助记录小结·非评估或诊断”。
-- [ ] 正式环境仅在批准窗口显式设置 `AI_GENERATION_ENABLED=true`；现场核对 `AI_ALLOWED_PROVIDER_HOSTS`、`OPENAI_BASE_URL`、`AI_ALLOWED_MODELS` 与 `OPENAI_MODEL` 完全匹配已批准供应商及日期模型快照，关闭总开关后普通生成返回安全的 503 且危机固定路径仍可用。
+- [ ] 首批试点保持受限 AI 小结开启；现场核对 `AI_ALLOWED_PROVIDER_HOSTS`、`OPENAI_BASE_URL`、`AI_ALLOWED_MODELS` 与 `OPENAI_MODEL` 相互匹配。需要暂停时设置 `AI_GENERATION_ENABLED=false`，确认普通生成返回安全的 503 且危机固定路径仍可用。
 - [ ] Worry Time 显示固定规则版本和“非 AI 生成”边界；普通整理不需要 AI 告知且不会调用 provider。
 - [ ] Talk 页面显示首轮学校试点关闭状态、无输入框且不发送内容；普通 API 请求返回 `talk-closed-2026-08-18` 关闭版本，旧客户端的明确高风险输入仍优先进入固定现实支持路径。确认本项不影响家长端 SWEET Talk。
 - [ ] Referral 显示 `referral-rules-2026-08-18` 规则化、非 AI 路径；四类规则分支、自由补充文字不参与评分/不发送 provider、危机优先和真人升级条件已经心理专业及学校负责人审核。
