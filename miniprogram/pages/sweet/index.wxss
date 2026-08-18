@@ -3,6 +3,7 @@
 .option.selected { border-color: #5b927d; background: #e4f0eb; color: #315f51; font-weight: 800; }
 .consent { display: flex; align-items: flex-start; color: #667873; font-size: 26rpx; line-height: 1.7; }
 .consent checkbox { margin-right: 14rpx; }
+.ai-label { margin-bottom: 12rpx; color: #315f51; font-size: 22rpx; font-weight: 800; letter-spacing: 1rpx; }
 .summary { margin-top: 24rpx; font-size: 32rpx; font-weight: 700; line-height: 1.65; }
 .result-row { margin-top: 24rpx; padding: 24rpx; border-radius: 24rpx; background: #f4f1e8; line-height: 1.65; }
 .result-row text { display: block; margin-bottom: 8rpx; color: #315f51; font-weight: 800; }

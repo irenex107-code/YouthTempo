@@ -152,9 +152,9 @@ Chinese and English support across the public website, core authenticated experi
 
 ## 7. AI Support Philosophy
 
-YouthTempo uses AI as a supportive tool for reflection, organization, and communication. It can help summarize a check-in, offer one manageable next step, or help a user find words for an experience.
+YouthTempo uses AI only to create a faithful summary of the current SWEET Check-in or Mood Journal record. Optional actions, next tools, and support routes come from fixed rules or the user's own words; Worry Time and Referral are rule-based, and youth AI Talk is closed during the first school pilot.
 
-YouthTempo 将 AI 定位为辅助梳理、组织和表达的支持工具。它可以帮助总结一次日常记录、提供一个做得到的小行动，或协助用户找到描述经历的语言。
+YouthTempo 只使用 AI 忠实生成本次 SWEET 节律记录或心情拼图的小结。可选行动、下一工具和支持路径来自固定规则或用户原文；Worry Time 与 Referral 使用固定规则，青少年 AI Talk 在首轮学校试点关闭。
 
 AI is not treated as a therapist, clinician, decision-maker, or substitute for human relationships. Responses avoid diagnosis and exaggerated reassurance, remain grounded in what the user has shared, and direct users toward real-world support when digital assistance is no longer appropriate.
 
@@ -170,7 +170,7 @@ YouthTempo follows a safety-first, layered approach:
 
 1. Validate request method, input shape, and input size.
 2. Apply deterministic bilingual safety checks before the relevant AI call.
-3. Stop ordinary AI reflection when urgent support may be needed.
+3. Stop ordinary processing when urgent support may be needed.
 4. Route higher-risk messages and community content into human review workflows.
 5. Apply authentication, consent, relationship, and role checks before protected actions.
 6. Use rate limits, safe error responses, audit records, and operational monitoring as additional safeguards.
@@ -179,7 +179,7 @@ YouthTempo 采用安全优先的分层架构：
 
 1. 先检查请求方式、输入结构和输入长度。
 2. 在相关 AI 调用之前完成确定性的中英文安全识别。
-3. 当用户可能需要紧急支持时，停止普通 AI 梳理流程。
+3. 当用户可能需要紧急支持时，停止普通整理流程。
 4. 将风险较高的消息和社区内容送入人工复核流程。
 5. 在受保护操作前验证身份、同意状态、关联关系和角色权限。
 6. 通过频率限制、安全错误提示、审计记录和运行监控提供额外保护。

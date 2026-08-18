@@ -6,6 +6,7 @@ import { CommunityModerationQueue } from "@/components/CommunityModerationQueue"
 import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
 import { SchoolOperationsOverview } from "@/components/SchoolOperationsOverview";
 import { ProfessionalVerificationQueue } from "@/components/ProfessionalVerificationQueue";
+import { AiGeneratedLabel } from "@/components/AiTransparencyNotice";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
 import { findStudentRelationshipGaps } from "@/lib/schoolRelationshipGaps";
@@ -1808,7 +1809,12 @@ export default function AdminPage() {
                         </p>
                       ))}
                     </div>
-                    {item.summary ? <p className="mt-4 text-sm leading-7 text-muted">{item.summary}</p> : null}
+                    {item.summary ? (
+                      <div className="mt-4">
+                        <AiGeneratedLabel />
+                        <p className="mt-2 text-sm leading-7 text-muted">{item.summary}</p>
+                      </div>
+                    ) : null}
 
                     <div className="mt-6 grid gap-4 border-t border-ink/10 pt-5 lg:grid-cols-[12rem_1fr_auto] lg:items-end">
                       <label className="grid gap-2 text-sm font-bold text-ink">
@@ -1919,7 +1925,8 @@ export default function AdminPage() {
                         </span>
                       </div>
                       {record.student_email ? <p className="mt-1 break-all text-xs text-muted">{record.student_email}</p> : null}
-                      <p className="mt-4 text-sm leading-7 text-muted">{record.summary}</p>
+                      <AiGeneratedLabel className="mt-4" />
+                      <p className="mt-2 text-sm leading-7 text-muted">{record.summary}</p>
                     </div>
                     <p className="rounded-full bg-cream px-4 py-2 text-xs font-bold text-sage-dark">{formatDate(record.created_at)}</p>
                   </div>

@@ -1,4 +1,5 @@
 const { api, getSession } = require("../../utils/api");
+const AI_NOTICE_VERSION = "ai-notice-2026-08-18-v2";
 
 const steps = [
   { id: "sleep", title: "睡眠", label: "Sleep", question: "昨晚睡得怎么样？", options: ["比较安稳", "还可以", "容易醒", "入睡困难", "睡得很乱"] },
@@ -24,7 +25,7 @@ Page({
     this.setData({ submitting: true, message: "", isError: false, result: null });
     const records = recordPayload(this.data.answers);
     try {
-      const result = await api("/api/ai/check-in", { method: "POST", data: { currentDate: new Date().toISOString(), sensitiveConsentAccepted: true, records } });
+      const result = await api("/api/ai/check-in", { method: "POST", data: { currentDate: new Date().toISOString(), sensitiveConsentAccepted: true, aiNoticeAccepted: true, aiNoticeVersion: AI_NOTICE_VERSION, records } });
       await api("/api/mini/records", { method: "POST", data: { records, summary: result.summary, smallStep: result.smallStep, recommendedNextTool: result.recommendedNextTool } });
       this.setData({ result, message: "已经保存到你的历史记录。" });
     } catch (error) { this.setData({ message: error.message, isError: true }); }

@@ -3,8 +3,13 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
+import { AiUrgentNotice } from "@/components/AiUrgentNotice";
+import { AiGeneratedLabel, AiTransparencyNotice } from "@/components/AiTransparencyNotice";
+import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
+import { aiRequestHeaders } from "@/lib/aiClient";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
+import { isAiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
 
 const emotionGroups = [
   { key: "pressure", labelKey: "moodJournal.emotions.groups.pressure.title" as TranslationKey, words: [
@@ -80,6 +85,8 @@ export default function MoodJournalPage() {
   const [starterIndex, setStarterIndex] = useState(0);
   const [showAllStarters, setShowAllStarters] = useState(false);
   const [aiResult, setAiResult] = useState<MoodAiResult | null>(null);
+  const [urgentReply, setUrgentReply] = useState("");
+  const [aiNoticeAccepted, setAiNoticeAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
@@ -109,7 +116,7 @@ export default function MoodJournalPage() {
     try {
       const response = await fetch("/api/ai/mood-journal", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: await aiRequestHeaders(),
         body: JSON.stringify({
           locale,
           selectedWords,
@@ -117,11 +124,19 @@ export default function MoodJournalPage() {
           bodyFeeling: body,
           recurringThought: understanding,
           desiredSupport: support,
-          communicationStarter: starter.value,
+          communicationStarter: t(starter.key),
+          aiNoticeAccepted,
+          aiNoticeVersion: AI_NOTICE_VERSION,
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || t("moodJournal.messages.connectionFailed"));
+      if (isAiUrgentResponse(data)) {
+        setAiResult(null);
+        setUrgentReply(data.reply);
+        return;
+      }
+      setUrgentReply("");
       setAiResult(data);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t("moodJournal.messages.responseUnavailable"));
@@ -207,6 +222,11 @@ export default function MoodJournalPage() {
                 <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => setSupport(e.target.value)} />
                 <VoiceInputButton value={support} onChange={setSupport} />
               </label>
+              <AiTransparencyNotice
+                id="mood-journal-ai-notice"
+                checked={aiNoticeAccepted}
+                onChange={setAiNoticeAccepted}
+              />
               <button type="button" className="button-primary w-fit" onClick={generateAiResponse} disabled={loading}>
                 {loading ? t("moodJournal.actions.organizing") : t("moodJournal.actions.organize")}
               </button>
@@ -245,9 +265,16 @@ export default function MoodJournalPage() {
           </div>
         </div>
 
+        {urgentReply ? (
+          <div className="container mt-8">
+            <AiUrgentNotice message={urgentReply} />
+          </div>
+        ) : null}
+
         {aiResult ? (
           <div className="container mt-8">
             <div className="rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
+              <AiGeneratedLabel className="mb-3" />
               <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("moodJournal.result.title")}</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>

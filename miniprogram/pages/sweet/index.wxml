@@ -11,11 +11,12 @@
     </view>
   </view>
 
-  <label class="card consent"><checkbox checked="{{consentAccepted}}" bindtap="toggleConsent" color="#315f51" /><text>我同意把这次填写的内容发送给 AI 生成小结。内容只用于本次回应和保存记录，不用于广告。</text></label>
+  <label class="card consent"><checkbox checked="{{consentAccepted}}" bindtap="toggleConsent" color="#315f51" /><text>我知道 AI 只生成记录小结，不是真人或心理咨询；AI 可能出错，也不做诊断、治疗或风险判断。我同意把本次必要内容发送给 AI 服务提供方，仅用于生成小结；系统会移除常见邮箱和手机号，但我仍不会填写姓名、学校班级、住址或联系方式。告知版本：ai-notice-2026-08-18-v2。</text></label>
   <button class="primary" bindtap="generateAndSave" disabled="{{submitting || completed < 5 || !consentAccepted}}">{{submitting ? '正在整理并保存…' : '生成小结并保存'}}</button>
   <view wx:if="{{message}}" class="notice {{isError ? 'error' : ''}}">{{message}}</view>
 
   <view wx:if="{{result}}" class="card result">
+    <view class="ai-label">AI 辅助记录小结 · 非评估或诊断</view>
     <view class="card-title">今天的小结</view>
     <view class="summary">{{result.summary}}</view>
     <view class="result-row"><text>可以先做：</text>{{result.smallStep}}</view>

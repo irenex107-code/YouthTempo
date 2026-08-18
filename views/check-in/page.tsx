@@ -2,10 +2,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
+import { AiUrgentNotice } from "@/components/AiUrgentNotice";
+import { AiGeneratedLabel, AiTransparencyNotice } from "@/components/AiTransparencyNotice";
+import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
+import { aiRequestHeaders } from "@/lib/aiClient";
 import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
+import { isAiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
+import type { AiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
 
 type StepId = "sleep" | "wake" | "eat" | "exercise" | "task";
 type FieldType = "single" | "multi" | "text";
@@ -187,6 +193,7 @@ export default function CheckInPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [urgentReply, setUrgentReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [sensitiveConsentAccepted, setSensitiveConsentAccepted] = useState(false);
   const [error, setError] = useState("");
@@ -238,6 +245,7 @@ export default function CheckInPage() {
     setSavedRecordKey("");
     setSensitiveConsentAccepted(false);
     setAiResult(null);
+    setUrgentReply("");
   }
 
   function toggleMultiValue(fieldId: string, value: string) {
@@ -251,6 +259,7 @@ export default function CheckInPage() {
     setSaveStatus("");
     setSavedRecordKey("");
     setAiResult(null);
+    setUrgentReply("");
   }
 
   function setTextValue(fieldId: string, value: string) {
@@ -259,6 +268,7 @@ export default function CheckInPage() {
     setSaveStatus("");
     setSavedRecordKey("");
     setAiResult(null);
+    setUrgentReply("");
   }
 
   function goNext() {
@@ -274,6 +284,7 @@ export default function CheckInPage() {
     setAnswers(initialAnswers);
     setCurrentStep(0);
     setAiResult(null);
+    setUrgentReply("");
     setError("");
     setValidation("");
     setSaveStatus("");
@@ -340,21 +351,23 @@ export default function CheckInPage() {
     }
   }
 
-  async function requestSummary(): Promise<AiResult> {
+  async function requestSummary(): Promise<AiResult | AiUrgentResponse> {
     const payload = {
       locale,
       currentDate: new Date().toISOString(),
       sensitiveConsentAccepted,
+      aiNoticeAccepted: sensitiveConsentAccepted,
+      aiNoticeVersion: AI_NOTICE_VERSION,
       records: getRecordPayload().map((item) => ({ ...item, dimension: `${item.label} ${item.title}` })),
     };
     const response = await fetch("/api/ai/check-in", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: await aiRequestHeaders(),
       body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || t("checkIn.messages.summaryFailed"));
-    return data as AiResult;
+    return data as AiResult | AiUrgentResponse;
   }
 
   async function generateSummary() {
@@ -370,6 +383,12 @@ export default function CheckInPage() {
     setSaveStatus("");
     try {
       const result = await requestSummary();
+      if (isAiUrgentResponse(result)) {
+        setAiResult(null);
+        setUrgentReply(result.reply);
+        return;
+      }
+      setUrgentReply("");
       setAiResult(result);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t("checkIn.messages.responseUnavailable"));
@@ -391,6 +410,12 @@ export default function CheckInPage() {
     setSaveStatus("");
     try {
       const result = await requestSummary();
+      if (isAiUrgentResponse(result)) {
+        setAiResult(null);
+        setUrgentReply(result.reply);
+        return;
+      }
+      setUrgentReply("");
       setAiResult(result);
       await saveCurrentRecord(result);
     } catch (requestError) {
@@ -556,10 +581,12 @@ export default function CheckInPage() {
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
 
               {currentStep === steps.length - 1 ? (
-                <label className="mt-7 flex items-start gap-3 rounded-2xl border border-sage/25 bg-mist/60 px-4 py-4 text-sm leading-6 text-muted">
-                  <input type="checkbox" className="mt-1" checked={sensitiveConsentAccepted} onChange={(event) => setSensitiveConsentAccepted(event.target.checked)} />
-                  <span>{t("checkIn.consent.text")}<Link href="/privacy-safety#student-consent" className="ml-1 font-bold text-sage-dark underline underline-offset-4">{t("checkIn.consent.link")}</Link></span>
-                </label>
+                <AiTransparencyNotice
+                  id="check-in-ai-notice"
+                  className="mt-7"
+                  checked={sensitiveConsentAccepted}
+                  onChange={setSensitiveConsentAccepted}
+                />
               ) : null}
 
               <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
@@ -571,7 +598,7 @@ export default function CheckInPage() {
                     {t("checkIn.actions.next")}
                   </button>
                 ) : (
-                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || !sensitiveConsentAccepted || loading || saving} onClick={generateAndSave}>
+                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading || saving} onClick={generateAndSave}>
                     {loading || saving ? t("checkIn.actions.generatingAndSaving") : t("checkIn.actions.generateAndSave")}
                   </button>
                 )}
@@ -593,8 +620,11 @@ export default function CheckInPage() {
               </div>
             ) : null}
 
+            {urgentReply ? <AiUrgentNotice message={urgentReply} className="mt-8" /> : null}
+
             {aiResult ? (
               <section ref={resultRef} className="mt-8 scroll-mt-24 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:scroll-mt-28 sm:p-8">
+                <AiGeneratedLabel className="mb-3" />
                 <div className="grid items-center gap-6 lg:grid-cols-[1fr_18rem]">
                   <div>
                     <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("checkIn.result.title")}</h2>

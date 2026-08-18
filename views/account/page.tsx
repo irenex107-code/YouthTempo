@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ProfessionalVerificationCard } from "@/components/ProfessionalVerificationCard";
+import { AiGeneratedLabel } from "@/components/AiTransparencyNotice";
 import {
   AccountStatus,
   CloudProfile,
@@ -1097,6 +1098,7 @@ export default function AccountPage() {
                       </div>
                       <div className="mt-5 rounded-2xl bg-cream px-5 py-5">
                         <p className="text-xs font-bold text-sage-dark">{t("account.relationships.latestSummary")}</p>
+                        {relatedOverview.latestSummary ? <AiGeneratedLabel className="mt-2" /> : null}
                         <p className="mt-2 text-sm leading-7 text-muted">
                           {relatedOverview.latestSummary || t("account.relationships.noSummary")}
                         </p>
@@ -1186,7 +1188,12 @@ export default function AccountPage() {
                           })}
                         </div>
                       </details>
-                      {record.summary ? <p className="mt-4 text-[0.95rem] leading-7 text-muted">{record.summary}</p> : null}
+                      {record.summary ? (
+                        <div className="mt-4">
+                          <AiGeneratedLabel />
+                          <p className="mt-2 text-[0.95rem] leading-7 text-muted">{record.summary}</p>
+                        </div>
+                      ) : null}
                       {record.small_step ? <p className="mt-4 rounded-xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{t("account.records.smallStepPrefix")}{record.small_step}</p> : null}
                       {record.recommended_next_tool ? <p className="mt-3 text-sm leading-7 text-muted">{t("account.records.nextToolPrefix")}{record.recommended_next_tool}</p> : null}
                     </article>

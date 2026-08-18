@@ -3,10 +3,14 @@ import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+import { AiUrgentNotice } from "@/components/AiUrgentNotice";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
+import { isAiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
 
-type AiWorryResult = {
+type WorryResult = {
+  decisionMethod: "deterministic_rules";
+  decisionVersion: string;
   controllableParts: string;
   canWaitUntilTomorrow: string;
   tomorrowSmallAction: string;
@@ -34,7 +38,8 @@ export default function WorryTimePage() {
   const [controls, setControls] = useState(["", "", ""]);
   const [action, setAction] = useState("");
   const [done, setDone] = useState(false);
-  const [aiResult, setAiResult] = useState<AiWorryResult | null>(null);
+  const [result, setResult] = useState<WorryResult | null>(null);
+  const [urgentReply, setUrgentReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [validation, setValidation] = useState("");
   const [error, setError] = useState("");
@@ -53,14 +58,16 @@ export default function WorryTimePage() {
     setWorries((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
     setDone(false);
     setValidation("");
-    setAiResult(null);
+    setResult(null);
+    setUrgentReply("");
   }
 
   function updateControl(index: number, value: string) {
     setControls((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
     setDone(false);
     setValidation("");
-    setAiResult(null);
+    setResult(null);
+    setUrgentReply("");
   }
 
   function resetTimer() {
@@ -75,12 +82,13 @@ export default function WorryTimePage() {
     setControls(["", "", ""]);
     setAction("");
     setDone(false);
-    setAiResult(null);
+    setResult(null);
+    setUrgentReply("");
     setValidation("");
     setError("");
   }
 
-  async function generateAiResponse() {
+  async function organizeWorries() {
     const filledWorries = worries.filter((item) => item.trim().length > 0);
     if (filledWorries.length === 0) {
       setValidation(t("worryTime.messages.addWorry"));
@@ -97,7 +105,13 @@ export default function WorryTimePage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || t("worryTime.messages.connectionFailed"));
-      setAiResult(data);
+      if (isAiUrgentResponse(data)) {
+        setResult(null);
+        setUrgentReply(data.reply);
+        return;
+      }
+      setUrgentReply("");
+      setResult(data);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t("worryTime.messages.responseUnavailable"));
     } finally {
@@ -228,7 +242,11 @@ export default function WorryTimePage() {
               </div>
             </article>
             <article className="card flex flex-col justify-center">
-              <button type="button" className="button-primary w-full" onClick={generateAiResponse} disabled={loading}>
+              <div className="mb-5 rounded-2xl border border-sage/25 bg-mist/60 p-5">
+                <p className="text-xs font-extrabold tracking-[0.1em] text-sage-dark">{t("worryTime.ruleBased.label")}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{t("worryTime.ruleBased.description")}</p>
+              </div>
+              <button type="button" className="button-primary w-full" onClick={organizeWorries} disabled={loading}>
                 {loading ? t("worryTime.actions.organizing") : t("worryTime.actions.organize")}
               </button>
               <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
@@ -242,29 +260,32 @@ export default function WorryTimePage() {
             </article>
           </div>
 
-          {aiResult ? (
+          {urgentReply ? <AiUrgentNotice message={urgentReply} className="mt-8" /> : null}
+
+          {result ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/85 p-6 shadow-soft sm:p-8">
+              <p className="mb-3 text-xs font-extrabold tracking-[0.08em] text-sage-dark">{t("worryTime.ruleBased.resultLabel")}</p>
               <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("worryTime.result.title")}</h2>
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
                   <h3 className="text-lg font-bold text-ink">{t("worryTime.result.controllable")}</h3>
-                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.controllableParts}</p>
+                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{result.controllableParts}</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-ink">{t("worryTime.result.tomorrow")}</h3>
-                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.canWaitUntilTomorrow}</p>
+                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{result.canWaitUntilTomorrow}</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-ink">{t("worryTime.result.smallAction")}</h3>
-                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.tomorrowSmallAction}</p>
+                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{result.tomorrowSmallAction}</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-ink">{t("worryTime.result.bedtimeSentence")}</h3>
-                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.bedtimeSentence}</p>
+                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{result.bedtimeSentence}</p>
                 </div>
               </div>
               <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">
-                {aiResult.supportReminder}
+                {result.supportReminder}
               </p>
             </div>
           ) : null}

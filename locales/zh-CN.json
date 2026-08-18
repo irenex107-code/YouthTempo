@@ -144,7 +144,7 @@
     "support": {
       "label": "从记录到支持",
       "title": "按生活里的顺序，一步一步来",
-      "description": "先看看最近的生活，再整理当下的感受。一个人处理不动时，就找信任的人一起想办法。",
+      "description": "先看看最近的生活，再整理当下的感受。一个人处理不动时，就和家人、老师或其他可信任的人一起想办法。",
       "steps": {
         "daily": {
           "title": "先记下最近的日常",
@@ -159,7 +159,7 @@
         "people": {
           "title": "需要时找人一起想办法",
           "label": "家人、老师或专业帮助",
-          "text": "如果一个人很难撑住，可以把近况告诉信任的人，再决定下一步找谁。"
+          "text": "如果一个人很难撑住，可以把近况告诉家人、老师或其他可信任的人，再一起决定下一步找谁。"
         }
       }
     },
@@ -171,7 +171,7 @@
       "items": {
         "one": "1. 不会用一次记录给你下结论",
         "two": "2. 小结只整理你写下的内容",
-        "three": "3. 需要时会提示你联系可信任的人"
+        "three": "3. 需要时会提示你联系家长、老师或其他可信任的人"
       }
     }
   },
@@ -191,14 +191,14 @@
       "cards": {
         "rhythm": { "title": "我想看看今天状态", "text": "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。", "action": "做 SWEET 节律记录", "alt": "睡眠、醒来、饮食、运动和任务投入组成的日常节律" },
         "mood": { "title": "我有点说不清自己的感受", "text": "先不用解释清楚，选几个接近的情绪词，再慢慢补充发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
-        "talk": { "title": "我想先找个地方说说", "text": "从眼前最卡住的一件事开始，一问一答地把想法捋清一点。", "action": "陪我捋一捋", "alt": "把打结的感受慢慢整理清楚" },
+        "talk": { "title": "AI 对话在首轮试点暂不开放", "text": "你仍可以使用心情拼图、固定规则支持路径，或给家长、老师写一条悄悄话。", "action": "查看替代支持", "alt": "从自助整理逐步连接家长、老师和其他支持" },
         "messages": { "title": "我有些话想告诉老师或家长", "text": "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。", "action": "打开悄悄话信箱", "alt": "装着信件的绿色信箱" },
         "worry": { "title": "我睡前总是想很多", "text": "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。", "action": "今晚先放下", "alt": "在月光下把担心暂时安放好" },
         "referral": { "title": "我想知道下一步可以怎么做", "text": "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。", "action": "看看下一步找谁", "alt": "沿着温和路径逐步找到合适支持" }
       }
     },
     "youngAdults": { "title": "已经满 18 岁，想独立使用？", "description": "18–25 岁可以自己完成知情确认，不需要学校或监护人加入。", "action": "查看独立使用入口" },
-    "support": { "title": "最近一直很难撑住？", "description": "先找一个可信任的大人或老师聊一聊，也可以查看适合的支持路径。", "action": "看看下一步找谁" },
+    "support": { "title": "最近一直很难撑住？", "description": "先和家长、老师或其他可信任的成年人聊一聊，也可以查看适合的支持路径。", "action": "看看下一步找谁" },
     "feedback": { "title": "用过之后，有哪里想改？", "description": "花两分钟告诉我们哪里顺手、哪里卡住。", "action": "说说我的感受" }
   },
   "forParents": {
@@ -288,7 +288,7 @@
     "independence": {
       "confirmation": { "label": "独立确认", "title": "已满 18 岁，可以自己确认", "text": "登录后只需选择“已满 18 岁”，阅读数据说明并确认，不需要监护人同意，也不要求加入学校。" },
       "records": { "label": "你的记录", "title": "默认只有你能看到", "text": "未加入学校时，学校和老师无法查看。你可以导出、删除单条记录，也可以注销账户。" },
-      "boundary": { "label": "使用边界", "title": "它不是诊断或急救服务", "text": "如果你正面临伤害自己或他人的危险，请立即联系当地急救、警方，或身边能够到场的人。" }
+      "boundary": { "label": "使用边界", "title": "它不是诊断或急救服务", "text": "如果你正面临伤害自己或他人的即时危险，请立即联系家人、老师或其他能够到场的可信任成年人，并拨打当地急救或报警电话。" }
     },
     "teens": { "title": "还在 14–18 岁学校试点范围内？", "description": "青少年入口包含家长、老师和学校支持关系。", "action": "回到青少年入口" }
   },
@@ -310,12 +310,30 @@
       "task": { "title": "任务投入", "question": "今天是否能完成基本学习或生活任务？", "summary": "任务投入反映学习、生活和社交功能是否还在稳定运转。", "example": "学习压力追踪、任务分解、成就感记录。" }
     }
   },
+  "aiSafety": {
+    "urgent": {
+      "label": "安全优先",
+      "title": "现在先联系现实中的人",
+      "description": "这是由固定安全规则触发的提示，不是 AI 对你的诊断或风险评分。普通整理已停止，请不要等待平台或 AI 回应。"
+    }
+  },
+  "aiTransparency": {
+    "label": "AI 辅助记录整理",
+    "title": "发送前，请先了解 AI 如何整理本次记录",
+    "notHuman": "AI 只生成一段记录小结，不是真人老师、心理咨询师或医疗人员。",
+    "limits": "AI 可能理解错误；它不做诊断、治疗、风险判断或重要决定。需要紧急帮助时，请直接联系家长、老师或其他可信任的成年人及紧急服务。",
+    "dataUse": "勾选并提交后，你本次填写的必要内容会发送给 AI 服务提供方，仅用于生成记录小结；系统会移除常见邮箱和手机号，但仍请不要填写姓名、学校、班级、住址或联系方式。",
+    "confirm": "我已阅读并同意将本次必要内容发送给 AI 生成记录小结。",
+    "version": "告知版本：{{version}}。",
+    "details": "查看隐私与安全说明",
+    "generatedLabel": "AI 辅助记录小结 · 非评估或诊断"
+  },
   "checkIn": {
     "metadata": { "title": "SWEET 节律记录 | YouthTempo" },
     "hero": { "title": "SWEET 节律记录", "description": "约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。", "imageAlt": "SWEET 五个日常节律组成的循环插画" },
     "progress": { "step": "第 {{current}} 步 / {{total}}", "completed": "已完成 {{completed}} / {{total}} 个维度" },
     "form": { "label": "SWEET 日常记录", "optional": "可选", "expandDetails": "想补充更多", "collapseDetails": "收起补充问题", "collapse": "收起" },
-    "consent": { "text": "我知道本次 SWEET 回答会发送给 AI 生成小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次回应而处理这些内容。", "link": "查看说明" },
+    "consent": { "text": "我知道本次 SWEET 回答会发送给 AI 生成记录小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次小结而处理这些内容。", "link": "查看说明" },
     "steps": {
       "sleep": {
         "title": "睡眠", "description": "先选一个最接近昨晚睡眠的状态。",
@@ -368,7 +386,7 @@
       "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "网络连接不稳定，请检查网络后重新保存。", "saveFailed": "这次没有保存成功，请稍后再试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。"
     },
     "actions": { "previous": "上一步", "next": "下一步", "generatingAndSaving": "正在生成并保存...", "generateAndSave": "生成小结并保存", "retrying": "正在重试...", "regenerate": "重新生成", "saving": "正在保存...", "saveFirst": "先保存记录", "savedToAccount": "已保存到账号", "saveToAccount": "保存到账号", "openMoodJournal": "打开心情拼图", "openWorryTime": "今晚先放下", "viewReferral": "查看支持路径", "reset": "重新填写" },
-    "result": { "title": "今日 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "今天可以多留意：{{areas}}", "rhythmClue": "今天的一条节律线索", "smallStep": "明天只做这一小步", "nextTool": "接下来可以去哪里", "disclaimer": "这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。" }
+    "result": { "title": "今日 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "按固定规则整理的关注维度：{{areas}}", "rhythmClue": "按固定规则整理的节律线索", "smallStep": "可自行选择的小行动", "nextTool": "可自行选择的下一步", "disclaimer": "AI 只整理你本次明确填写的内容；关注维度和可选步骤来自固定规则。两者都不是评估、诊断或专业建议，请以你的原始记录为准。" }
   },
   "moodJournal": {
     "metadata": { "title": "心情拼图 | YouthTempo" },
@@ -390,17 +408,15 @@
     },
     "messages": { "completeRequired": "请先完成必要问题，再生成回应。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "暂时无法生成回应，请稍后再试。" },
     "actions": { "organizing": "正在整理，请稍等……", "organize": "整理我的感受", "changeStarter": "换一条表达句式", "hideStarters": "收起其他句式", "showStarters": "查看其他句式" },
-    "result": { "title": "把现在的感受说清一点", "emotions": "你今天可能正在经历的情绪", "support": "这件事里你可能最需要的支持", "expression": "可以试着这样表达", "smallStep": "今天可以先做的一件小事", "disclaimer": "这里的回应只能帮助你理清当前状态和可选的下一步，不能代替专业支持。" }
+    "result": { "title": "回看你刚才写下的内容", "emotions": "AI 辅助记录小结", "support": "你明确写下的支持偏好", "expression": "由你决定是否使用的表达模板", "smallStep": "这次整理的范围", "disclaimer": "AI 小结可能出错，也可能遗漏信息；如不符合原意，请以你自己的原始记录为准。" }
   },
   "talk": {
-    "metadata": { "title": "陪我捋一捋 | YouthTempo" },
-    "hero": { "title": "陪我捋一捋", "description": "不用一次说清楚。先写下眼前最卡住的一件事，再一问一答地把它捋清一点。", "imageAlt": "把打结的感受慢慢整理成清晰路径的插画" },
-    "session": { "title": "本次对话", "description": "内容只保留在当前页面，刷新或离开后会清空。这里的文字整理不能代替真人或专业支持。", "organizing": "正在整理你的话…" },
-    "starters": { "title": "可以从一句话开始", "lingering": "我最近有件事一直放不下。", "confused": "我现在有点乱，不知道从哪里说。", "listen": "我只想先找个人听我说说。" },
-    "form": { "label": "写下想说的话", "limitPlaceholder": "这次先聊到这里。", "placeholder": "写下你现在最想说的话…" },
-    "messages": { "connectionFailed": "这次没有连接成功，请稍后再试。", "pause": "我们可以先停一下。", "connectionFailedWithReferral": "这次没有连接成功，可以稍后再试，或先转到支持路径。" },
-    "support": { "title": "什么时候转向真人支持", "description": "如果已经影响睡眠、吃饭、学习或安全，不用继续在这里解释，可以直接找可信任的大人或学校老师。", "tellSomeoneTitle": "可以让一个人知道", "tellSomeoneText": "你可以直接说：“我最近有点难撑，能先陪我聊一会儿吗？”" },
-    "actions": { "send": "发送", "viewReferral": "看看下一步找谁", "clear": "结束并清空" }
+    "metadata": { "title": "陪我捋一捋（试点暂不开放） | YouthTempo" },
+    "hero": { "label": "首轮学校试点暂不开放", "title": "陪我捋一捋", "description": "这个 AI 对话功能目前已关闭。你仍然可以使用规则化支持路径、自助整理工具，或直接联系家长、老师及其他可信任的人。", "imageAlt": "把打结的感受慢慢整理成清晰路径的插画" },
+    "closed": { "status": "功能已关闭", "title": "这里暂时不会提供 AI 对话", "description": "为了在学校试点中保持清晰的支持边界，我们先暂停这个功能，并继续评估它是否适合青少年使用。这里不会收集或发送对话内容。", "dataNotice": "这项调整只涉及青少年端的“陪我捋一捋”，不影响家长端基于 AIDET 的 SWEET Talk 沟通指引。" },
+    "support": { "title": "现在可以怎么做", "description": "你可以用“下一步找谁”按固定规则整理支持路径，给老师或家长发一条悄悄话，或先用心情拼图记录当前感受。" },
+    "urgent": { "title": "如果现在无法保证安全", "description": "不要等待平台回应。请立即告诉家长、学校老师或其他身边可信任的成年人，请对方陪着你；如有即时危险，请拨打 110 或 120。没有即时危险但需要心理支持时，也可以拨打 12356。" },
+    "actions": { "viewReferral": "看看下一步找谁", "openMessages": "打开悄悄话信箱", "openMoodJournal": "打开心情拼图" }
   },
   "worryTime": {
     "metadata": { "title": "今晚先放下 | YouthTempo" },
@@ -410,6 +426,7 @@
     "sorting": { "title": "把担心分一分", "description": "不需要判断对错，只是先看看：哪些可以做一点点，哪些今晚可以先放下。" },
     "controls": { "actionable": "我可以做一点点", "uncontrollable": "我暂时控制不了", "unsure": "我还不确定" },
     "action": { "title": "明天可以做的一个小行动", "placeholder": "明天我可以先做的一件小事是……" },
+    "ruleBased": { "label": "固定规则整理 · 不使用 AI", "description": "结果只按照你填写的担心、可控性选择和明日行动进行归类，不会发送给 AI，也不会评估或诊断你。", "resultLabel": "规则化整理 · 非 AI 生成" },
     "messages": { "addWorry": "可以先写下至少一个担心，再生成整理。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "暂时无法完成整理，请稍后再试。" },
     "actions": { "start": "开始", "pause": "暂停", "resetTimer": "重置", "organizing": "正在整理……", "organize": "帮我分一分", "complete": "完成整理", "reset": "重新填写", "backToSweet": "回到 SWEET 节律", "openMoodJournal": "打开心情拼图" },
     "result": { "title": "先把担心分一分", "controllable": "可以先做一点点的部分", "tomorrow": "可以暂时放到明天的部分", "smallAction": "明天最小行动", "bedtimeSentence": "睡前可以对自己说的一句话" },
@@ -417,24 +434,25 @@
   },
   "referral": {
     "metadata": { "title": "下一步找谁 | YouthTempo" },
-    "hero": { "title": "下一步找谁", "description": "当自己整理还不够时，用几道题判断现在适合继续自助、告诉可信任的人，还是尽快连接更多支持。", "imageAlt": "穿过自然山丘、逐步靠近支持的路径插画" },
-    "flow": { "select": "选择当前状态", "generate": "生成支持路径建议", "view": "查看下一步入口", "step": "第 {{number}} 步", "completed": "已完成" },
+    "hero": { "title": "下一步找谁", "description": "当自己整理还不够时，用几道题整理一个起点：可以继续使用自助工具、告诉家长或老师，或连接更多支持。这里不会判断你的心理状态。", "imageAlt": "穿过自然山丘、逐步靠近支持的路径插画" },
+    "flow": { "select": "选择当前状态", "generate": "整理支持路径", "view": "查看下一步入口", "step": "第 {{number}} 步", "completed": "已完成" },
     "questions": {
       "multiInstruction": "可多选",
       "currentState": { "title": "你现在最接近哪种状态？", "instruction": "可多选，选择最接近你的 1–3 项", "options": { "emotionalPressure": "情绪压力比较大", "sleep": "最近睡眠不太稳定", "tasks": "学习或任务很难开始", "family": "和家人沟通有点困难", "eatingOrPhysical": "吃饭或身体状态受到影响", "expression": "不知道怎么表达自己", "organize": "只是想先整理一下", "unsure": "不太确定" } },
       "duration": { "title": "这些状态大概持续多久了？", "options": { "today": "只是今天", "days": "几天以内", "weeks": "一两周", "longer": "更久一些", "unsure": "不太确定" } },
       "impact": { "title": "是否影响到睡眠、学习或日常生活？", "options": { "none": "基本没有", "some": "有一点影响", "significant": "已经明显影响", "unsure": "不太确定" } },
       "affectedAreas": { "title": "主要影响到哪些方面？", "options": { "sleep": "睡眠", "tasks": "学习或任务", "eating": "吃饭", "physical": "身体状态", "family": "家庭沟通", "expression": "情绪表达", "dailyLife": "日常生活", "none": "基本没有", "unsure": "不太确定" } },
-      "trustedAdult": { "title": "你现在愿意和可信任的大人说吗？", "options": { "willing": "愿意", "unsureHow": "可能愿意，但不知道怎么开口", "notNow": "暂时不想", "unsure": "不太确定" } },
+      "trustedAdult": { "title": "你现在愿意和家长、老师或其他可信任的大人说吗？", "options": { "willing": "愿意", "unsureHow": "可能愿意，但不知道怎么开口", "notNow": "暂时不想", "unsure": "不太确定" } },
       "supportType": { "title": "你更希望先获得哪类支持？", "options": { "self": "自己先整理一下", "listener": "有人听我说", "school": "学校支持", "professional": "专业资源", "unsure": "不太确定" } },
       "currentNeed": { "title": "你现在最需要的是哪一种？", "options": { "understood": "被理解", "smallStep": "一个具体小步骤", "direction": "帮我判断下一步", "expression": "帮我和别人表达", "unsure": "不太确定" } }
     },
     "status": { "selectedCount": "已选择 {{count}} 项", "multi": "可多选", "selected": "已选择", "single": "单选" },
     "messages": { "maxSelections": "这题最多选择 {{count}} 项。", "selectCurrentState": "可以先选择一个最接近你现在状态的选项。", "completeQuestions": "可以先选择几个最接近你现在状态的选项。", "responseUnavailable": "暂时无法生成回应，请稍后再试。" },
-    "generate": { "title": "生成支持路径建议", "progress": "已选择 {{selected}} / {{total}} 项。选择越接近当前状态，建议会越具体。", "description": "这不是评判，只是帮助你整理下一步可以从哪里开始。", "noteLabel": "还有什么想补充的吗？", "notePlaceholder": "可以写一句，也可以先留空。" },
-    "actions": { "generating": "正在生成支持路径建议……", "generate": "生成支持路径建议" },
-    "paths": { "moreSupport": "整理当前状态，并连接更多支持", "lowPressure": "从一个低压力入口开始", "moodFirst": "先拼一拼现在的心情", "worryFirst": "今晚先放下一点", "rhythmAndExpression": "从节律和表达开始", "expressionAndTell": "先整理表达，再让一个可信任的人知道", "rhythmAndTell": "记录节律，并让可信任的人知道", "checkInFirst": "先做 SWEET 节律记录", "selfOrganize": "先自己整理一下", "lowBarrier": "从低门槛记录开始", "tellAdult": "尝试和可信任的大人说" },
+    "generate": { "title": "整理支持路径", "progress": "已选择 {{selected}} / {{total}} 项。选择越接近当前状态，路径会越具体。", "description": "这不是评判或诊断，只按固定规则帮助你整理下一步。", "noteLabel": "还有什么想补充的吗？", "notePlaceholder": "可以写一句，也可以先留空；补充内容只做安全检查，不参与路径评分。" },
+    "actions": { "generating": "正在整理支持路径……", "generate": "查看支持路径" },
+    "paths": { "moreSupport": "整理当前状态，并连接更多支持", "lowPressure": "从一个低压力入口开始", "moodFirst": "先拼一拼现在的心情", "worryFirst": "今晚先放下一点", "rhythmAndExpression": "从节律和表达开始", "expressionAndTell": "先整理表达，再让家长、老师或其他可信任的人知道", "rhythmAndTell": "记录节律，并让家长、老师或其他可信任的人知道", "checkInFirst": "先做 SWEET 节律记录", "selfOrganize": "先自己整理一下", "lowBarrier": "从低门槛记录开始", "tellAdult": "尝试和家长、老师或其他可信任的大人说" },
     "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET 节律记录", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
+    "ruleBased": { "label": "规则化支持路径 · 非 AI 生成", "description": "结果只根据结构化选项和固定版本规则生成，不对你评分或诊断，补充文字不会交给 AI 判断。" },
     "result": { "label": "支持建议", "title": "你的下一步支持路径", "answerSummary": "{{question}}：{{answers}}", "noSelection": "你还没有选择当前状态。", "path": "建议路径", "reason": "为什么这样建议", "howToStart": "可以怎么开始", "fallbackStarter": "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”", "links": "推荐入口" },
     "direct": { "title": "你也可以直接让一个人知道", "description": "不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。", "action": "打开悄悄话信箱" }
   },
@@ -540,12 +558,12 @@
       "title": "你可以怎么保护自己的信息", "description": "这里说明会保存什么、谁能看到，以及需要帮助或想删除数据时可以怎么做。",
       "noLabels": { "title": "不贴标签", "text": "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。" },
       "minimum": { "title": "只保存需要的内容", "text": "只保存完成记录和提供服务所需要的信息，不收集无关隐私。" },
-      "safety": { "title": "安全优先", "text": "当用户表达明显危险或无法保证安全时，会优先提醒联系可信任的大人、学校或紧急资源。" },
+      "safety": { "title": "安全优先", "text": "当用户表达明显危险或无法保证安全时，会优先提醒联系家长、老师或其他可信任的成年人；即时危险时联系紧急服务。" },
       "control": { "title": "自己可以管理", "text": "登录后可以查看、下载或删除自己的内容；不同身份只能看到获得授权的记录。" }
     },
     "community": {
       "title": "未成年人社区安全与举报处理", "description": "社区规则适用于帖子和回应。举报人身份不会告诉内容作者；越可能伤害到人的情况，会越早查看。", "reviewLabel": "首次复核",
-      "urgent": { "title": "紧急优先 · 目标 2 小时", "text": "明确的即时危险、鼓励自伤自杀、涉未成年人色情或性侵害进入紧急队列。有人正处于危险时，请不要等待平台处理，立即联系可信任的成年人并拨打 110 或 120。" },
+      "urgent": { "title": "紧急优先 · 目标 2 小时", "text": "明确的即时危险、鼓励自伤自杀、涉未成年人色情或性侵害进入紧急队列。有人正处于危险时，请不要等待平台处理，立即联系家长、老师或其他可信任的成年人，并拨打 110 或 120。" },
       "high": { "title": "优先处理 · 目标 24 小时", "text": "欺凌、辱骂、威胁、泄露个人信息及其他明显危险或不适宜内容优先复核，并视情况隐藏内容、限制账号或保留必要记录。" },
       "standard": { "title": "常规处理 · 目标 72 小时", "text": "诈骗、广告、刷屏及其他规则问题进入常规队列。复杂情况完成调查可能超过首次复核目标，状态会在社区的“我的举报进度”中更新。" },
       "legalPrefix": "上述 2/24/72 小时是我们争取完成首次查看的时间，并不是法律规定的统一时限。有人正处于危险时，请不要等待社区处理。社区规则依据"
@@ -562,9 +580,9 @@
       "title": "未成年人及监护人知情同意", "description": "YouthTempo 当前试点面向 14–18 岁在校青少年。学生本人需要清楚知道数据如何使用；14–17 岁学校试点学生还需要已核验监护人确认。",
       "student": { "title": "学生先确认", "text": "学生阅读数据范围、用途、可见角色和撤回方式，只选择年龄范围，不填写具体生日。" },
       "guardian": { "title": "监护人再确认", "text": "14–17 岁学生参加学校试点时，由学校已确认关联的监护人在自己的账户中完成确认。" },
-      "summary": { "title": "生成小结前再确认", "text": "生成小结前会再次说明本次回答可能包含敏感生活与健康信息，由用户主动勾选。" },
+      "summary": { "title": "每次使用 AI 前再确认", "text": "SWEET 节律记录和心情拼图在发送必要内容给 AI 生成记录小结前，会显示处理说明和版本号，并要求用户主动勾选。今晚先放下和下一步找谁使用固定规则，不调用 AI；陪我捋一捋在首轮学校试点期间关闭。固定紧急安全提示也不依赖 AI，不会等待这项确认。" },
       "withdraw": { "title": "随时可以撤回", "text": "学生或监护人可在账户页撤回；撤回后不能继续保存新记录、发送留言或在社区发布。" },
-      "coverage": { "title": "同意覆盖什么", "text": "账号资料、SWEET 日常节律回答、AI 生成小结、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。" },
+      "coverage": { "title": "同意覆盖什么", "text": "账号资料、SWEET 日常节律回答、AI 辅助记录小结、规则化工具结果、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。" },
       "afterWithdrawal": { "title": "撤回后会怎样", "text": "撤回后不能继续保存新记录、发送留言或在社区发布。已有内容仍可查看、下载或逐条删除，也可以注销账号并删除关联数据。" },
       "legalPrefix": "法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是我们增加的一层保护。查看"
     },
@@ -590,10 +608,10 @@
       "sweet": { "title": "SWEET 节律记录", "text": "睡眠、起床、饮食、运动、任务参与等日常节律信息。" },
       "account": { "title": "账号资料", "text": "邮箱、显示名称和用户选择的身份，用于登录和区分支持角色。" },
       "school": { "title": "学校关系", "text": "学校、学生、支持老师及师生分配关系，用于限制记录的可见范围。" },
-      "summary": { "title": "整理后的小结", "text": "根据用户主动填写的内容生成的小结、沟通句式和下一步提示。" }
+      "summary": { "title": "整理后的小结", "text": "包括 AI 忠实生成的当次记录小结、由用户选择的沟通句式，以及固定规则整理的可选下一步。" }
     },
     "laws": { "minorProtection": "《未成年人网络保护条例》", "personalInformation": "《个人信息保护法》", "networkData": "《网络数据安全管理条例》", "and": "和" },
-    "emergency": { "title": "危机与紧急情况", "text": "YouthTempo 不能替代紧急救助或专业诊疗。如果用户处在即时危险中，应尽快联系可信任的大人、学校负责人、当地医疗或紧急服务。" },
+    "emergency": { "title": "危机与紧急情况", "text": "YouthTempo 不能替代紧急救助或专业诊疗。如果用户处在即时危险中，应立即联系家长、老师或其他可信任的成年人，并拨打 110 或 120；没有即时危险但需要心理支持时，可以拨打 12356。" },
     "contact": { "title": "有隐私或安全问题？", "text": "如果你正在通过学校使用 YouthTempo，或想了解数据如何使用，可以通过联系我们页面说明具体问题。", "action": "联系我们" }
   },
   "community": {
@@ -615,14 +633,14 @@
       "harm": { "title": "不传播危险内容", "text": "不发布色情、暴力、赌博、违法内容，不鼓励自伤自杀，也不诱导他人模仿不安全行为。" },
       "authentic": { "title": "真实且不牟利", "text": "不冒充专业人士，不诈骗、索要钱款、发布可疑链接、刷屏或借社区营销。" },
       "targets": { "urgent": "紧急优先：目标 2 小时内首次复核", "high": "欺凌、隐私等：目标 24 小时内首次复核", "standard": "其他违规：目标 72 小时内首次复核" },
-      "targetDisclaimer": "以上时间是我们争取完成首次查看的时间，不是紧急救助时限。有人正处于即时危险时，不要等待社区回复，请联系可信任的成年人并拨打 110 或 120。"
+      "targetDisclaimer": "以上时间是我们争取完成首次查看的时间，不是紧急救助时限。有人正处于即时危险时，不要等待社区回复，请联系家长、老师或其他可信任的成年人，并拨打 110 或 120。"
     },
     "visitor": { "title": "登录后才能阅读和参与讨论", "description": "登录后，我们会按你的身份显示可以阅读和回应的内容。加入社区不会让其他人看到你的个人记录。", "action": "登录或创建账户" },
     "loading": "正在打开社区…",
     "member": { "role": "你正在以“{{role}}”身份参与", "roleDescription": "这里只显示向这个身份开放的内容，你的个人记录不会出现在社区里。" },
     "content": { "post": "帖子", "comment": "评论", "reply": "回应" },
     "report": {
-      "label": "社区安全", "title": "举报这条内容", "description": "请选择最接近的情况。举报人身份不会向内容作者公开。", "detailsLabel": "补充说明（选填）", "detailsPlaceholder": "不用重复粘贴内容，可以说明你担心什么。", "targetPrefix": "该类型目标在", "targetHours": "{{hours}} 小时内完成首次复核", "targetSuffix": "。这不是紧急救助渠道；如有人正处于即时危险中，请立刻联系可信任的成年人，并拨打 110 或 120。",
+      "label": "社区安全", "title": "举报这条内容", "description": "请选择最接近的情况。举报人身份不会向内容作者公开。", "detailsLabel": "补充说明（选填）", "detailsPlaceholder": "不用重复粘贴内容，可以说明你担心什么。", "targetPrefix": "该类型目标在", "targetHours": "{{hours}} 小时内完成首次复核", "targetSuffix": "。这不是紧急救助渠道；如有人正处于即时危险中，请立刻联系家长、老师或其他可信任的成年人，并拨打 110 或 120。",
       "categories": {
         "immediateDanger": { "label": "有人正处于危险中", "hint": "明确威胁、正在被伤害、鼓励自伤自杀或无法保证安全。" },
         "sexualHarm": { "label": "涉未成年人色情或性侵害", "hint": "性诱导、性剥削、索要私密影像或传播相关内容。" },
@@ -638,7 +656,7 @@
     },
     "delete": { "title": "删除这条{{type}}？", "description": "删除后，这条{{type}}会立即从社区中消失，无法由你自行恢复。" },
     "block": { "confirm": "屏蔽“{{name}}”后，你们将无法在社区看到彼此的帖子和回应，也不能继续互动。其他 YouthTempo 功能不会受到影响。\n\n确定继续吗？", "blocked": "已屏蔽 {{name}}。你们的社区内容已互相隐藏。", "failed": "屏蔽设置保存失败。", "unblocked": "已解除对 {{name}} 的屏蔽。", "unblockFailed": "解除屏蔽失败。", "summary": "已屏蔽成员（{{count}}）", "description": "你们不会在社区中看到彼此的帖子和回应。解除后，仍需遵守原帖设置的查看和回应范围。", "unblockAction": "{{name}} · 解除屏蔽" },
-    "messages": { "loadFailed": "社区内容加载失败。", "postSafety": "这段内容可能涉及紧急安全风险，已暂不公开。请同时联系可信任的成年人或专业支持。", "postPublished": "话题已发布，只有你选择的身份可以看到和参与。", "postFailed": "暂时无法发布。", "commentSafety": "这段回复可能涉及紧急安全风险，已暂不公开。请尽快联系现实中的可信任支持。", "commentPublished": "回应已发布。", "commentFailed": "暂时无法回应。", "postDeleted": "帖子已删除。", "commentDeleted": "评论已删除。", "deleteFailed": "暂时无法删除。", "reportFailed": "举报提交失败。" },
+    "messages": { "loadFailed": "社区内容加载失败。", "postSafety": "这段内容可能涉及紧急安全风险，已暂不公开。请立即联系家长、老师或其他可信任的成年人；如有即时危险，请拨打 110 或 120。", "postPublished": "话题已发布，只有你选择的身份可以看到和参与。", "postFailed": "暂时无法发布。", "commentSafety": "这段回复可能涉及紧急安全风险，已暂不公开。请立即联系家长、老师或其他可信任的成年人；如有即时危险，请拨打 110 或 120。", "commentPublished": "回应已发布。", "commentFailed": "暂时无法回应。", "postDeleted": "帖子已删除。", "commentDeleted": "评论已删除。", "deleteFailed": "暂时无法删除。", "reportFailed": "举报提交失败。" },
     "topics": { "ariaLabel": "社区话题", "label": "最新讨论", "title": "社区正在聊", "count": "{{count}} 个话题", "emptyTitle": "还没有向你开放的话题", "emptyText": "可以发布第一个话题，并邀请希望一起参与的人。" },
     "comments": { "count": "{{count}} 条回应", "ariaLabel": "{{title}}的回应", "title": "大家的回应", "total": "共 {{count}} 条", "empty": "还没有回应", "formLabel": "写下你的回应", "formDescription": "具体、友善地说说你的经验，不急着替对方下结论。", "placeholder": "我想回应的是……", "readOnly": "这条内容向你开放阅读，但发布者没有向你的身份开放回应。" },
     "audience": { "visiblePrefix": "看得到 ·", "commentPrefix": "可回应 ·", "readOnly": "仅阅读" },
@@ -651,7 +669,7 @@
     "member": { "hero": { "title": "悄悄话信箱", "studentDescription": "有些话不容易当面说，可以先写给老师、家长或自己。", "supporterDescription": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" } },
     "compose": { "title": "先写下来，再决定给谁看", "description": "写给老师时可以匿名。若内容涉及明确的安全危险，获授权的学校负责人可以确认来源并及时提供帮助。", "recipientType": "写给谁", "recipientOptions": { "self": "写给自己", "teacher": "写给老师", "guardian": "写给家长" }, "recipient": "收件人", "selectRecipient": "请选择", "message": "想说的话", "placeholder": "不用组织得很完整，先写下最想让对方知道的事情。", "anonymousDescription": "对老师匿名。只有出现明确安全危险时，获授权的学校负责人才能确认来源。", "sending": "正在送出…", "saveForSelf": "保存给自己", "send": "送出这段话" },
     "lists": { "sentTitle": "我写过的话", "safetyTitle": "需要安全跟进的话", "receivedTitle": "收到的话", "sentEmpty": "你写下并保存或送出的话，会显示在这里。", "receivedEmpty": "目前还没有收到新的内容。", "anonymousToTeacher": "对老师匿名", "reviewSoon": "请尽快了解", "senderAnonymous": "这名学生选择了对老师匿名。" },
-    "notices": { "noTeacher": "学校还没有为你安排负责老师。", "noGuardian": "学校还没有确认关联家长。", "safetySent": "这段话已经送出。请尽快联系身边可信任的大人；如果正处于危险中，请立即联系当地紧急服务。", "savedForSelf": "已经替你保存下来。", "sent": "已经送出。" },
+    "notices": { "noTeacher": "学校还没有为你安排负责老师。", "noGuardian": "学校还没有确认关联家长。", "safetySent": "这段话已经送出。请立即联系家长、老师或其他身边可信任的成年人，请对方陪着你；如有即时危险，请拨打 110 或 120。", "savedForSelf": "已经替你保存下来。", "sent": "已经送出。" },
     "errors": { "loadFailed": "暂时无法加载想说的话。", "sendFailed": "暂时无法发送，请稍后再试。" }
   }
 }

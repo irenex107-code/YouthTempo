@@ -2,8 +2,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
+import { AiUrgentNotice } from "@/components/AiUrgentNotice";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
+import { isAiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
 
 const flowStepKeys: TranslationKey[] = [
   "referral.flow.select",
@@ -11,12 +13,22 @@ const flowStepKeys: TranslationKey[] = [
   "referral.flow.view",
 ];
 
-type ReferralAiResult = {
+type ReferralResult = {
   recommendedSupport: string;
   reason: string;
   nextStep: string;
   whenToSeekMoreSupport: string;
   supportReminder: string;
+  decisionMethod: "deterministic_rules";
+  decisionVersion: string;
+  supportTier: "self_guided" | "trusted_adult" | "school_support" | "professional_support";
+};
+
+const supportTierTitleKeys: Record<ReferralResult["supportTier"], TranslationKey> = {
+  self_guided: "referral.paths.lowPressure",
+  trusted_adult: "referral.paths.tellAdult",
+  school_support: "referral.paths.moreSupport",
+  professional_support: "referral.paths.moreSupport",
 };
 
 type Question = {
@@ -69,7 +81,7 @@ const questionnaire: Question[] = [
   },
   {
     id: "trustedAdult",
-    title: "你现在愿意和可信任的大人说吗？",
+    title: "你现在愿意和家长、老师或其他可信任的大人说吗？",
     type: "single",
     options: ["愿意", "可能愿意，但不知道怎么开口", "暂时不想", "不太确定"],
   },
@@ -254,7 +266,8 @@ export default function ReferralPage() {
   const { locale, t } = useTranslation();
   const [answers, setAnswers] = useState<Answers>({});
   const [note, setNote] = useState("");
-  const [aiResult, setAiResult] = useState<ReferralAiResult | null>(null);
+  const [referralResult, setReferralResult] = useState<ReferralResult | null>(null);
+  const [urgentReply, setUrgentReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
@@ -263,6 +276,9 @@ export default function ReferralPage() {
   const complete = questionnaire.every((item) => getSelections(answers, item.id).length > 0);
   const recommendedPath = getRecommendedPath(answers);
   const resultLinks = recommendedPath.links as RecommendationLink[];
+  const resultPathTitleKey: TranslationKey = referralResult
+    ? supportTierTitleKeys[referralResult.supportTier]
+    : recommendedPath.titleKey;
 
   function handleOptionClick(item: Question, option: string) {
     const currentSelections = getSelections(answers, item.id);
@@ -295,7 +311,7 @@ export default function ReferralPage() {
       }
       return updated;
     });
-    setAiResult(null);
+    setReferralResult(null);
     setValidation("");
     setError("");
   }
@@ -342,8 +358,14 @@ export default function ReferralPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "AI request failed");
-      setAiResult(data);
+      if (!response.ok) throw new Error(data.error || t("referral.messages.responseUnavailable"));
+      if (isAiUrgentResponse(data)) {
+        setReferralResult(null);
+        setUrgentReply(data.reply);
+        return;
+      }
+      setUrgentReply("");
+      setReferralResult(data);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : t("referral.messages.responseUnavailable"));
     } finally {
@@ -369,10 +391,10 @@ export default function ReferralPage() {
           <div className="mb-6 grid gap-3 md:grid-cols-3">
             {flowStepKeys.map((titleKey, index) => {
               const active =
-                (!loading && !aiResult && index === 0) ||
+                (!loading && !referralResult && index === 0) ||
                 (loading && index === 1) ||
-                (Boolean(aiResult) && index === 2);
-              const completed = Boolean(aiResult) && index < 2;
+                (Boolean(referralResult) && index === 2);
+              const completed = Boolean(referralResult) && index < 2;
               return (
                 <div
                   key={titleKey}
@@ -470,8 +492,12 @@ export default function ReferralPage() {
             </div>
           </div>
 
-          {aiResult ? (
+          {urgentReply ? <AiUrgentNotice message={urgentReply} className="mt-8" /> : null}
+
+          {referralResult ? (
             <div className="mt-8 rounded-3xl border border-sage/25 bg-white/90 p-6 shadow-soft sm:p-8">
+              <p className="text-xs font-extrabold tracking-[0.08em] text-sage-dark">{t("referral.ruleBased.label")}</p>
+              <p className="mt-2 text-xs leading-6 text-muted">{t("referral.ruleBased.description")}</p>
               <p className="text-sm font-bold text-sage">{t("referral.result.label")}</p>
               <h2 className="mt-2 text-[1.7rem] font-bold leading-[1.25] text-ink">{t("referral.result.title")}</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{buildAnsweredSummary(answers, t)}</p>
@@ -479,17 +505,17 @@ export default function ReferralPage() {
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div className="rounded-2xl bg-cream p-5">
                   <h3 className="text-lg font-bold text-ink">{t("referral.result.path")}</h3>
-                  <p className="mt-2 text-xl font-extrabold text-sage-dark">{t(recommendedPath.titleKey)}</p>
-                  <p className="mt-3 text-[0.95rem] leading-7 text-muted">{aiResult.recommendedSupport}</p>
+                  <p className="mt-2 text-xl font-extrabold text-sage-dark">{t(resultPathTitleKey)}</p>
+                  <p className="mt-3 text-[0.95rem] leading-7 text-muted">{referralResult.recommendedSupport}</p>
                 </div>
                 <div className="rounded-2xl bg-cream p-5">
                   <h3 className="text-lg font-bold text-ink">{t("referral.result.reason")}</h3>
-                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{aiResult.reason}</p>
+                  <p className="mt-2 text-[0.95rem] leading-7 text-muted">{referralResult.reason}</p>
                 </div>
                 <div className="rounded-2xl bg-cream p-5">
                   <h3 className="text-lg font-bold text-ink">{t("referral.result.howToStart")}</h3>
                   <p className="mt-2 text-[0.95rem] leading-7 text-muted">
-                    {aiResult.nextStep ||
+                    {referralResult.nextStep ||
                       t("referral.result.fallbackStarter")}
                   </p>
                 </div>
@@ -509,9 +535,9 @@ export default function ReferralPage() {
                 </div>
               </div>
               <p className="mt-5 rounded-2xl bg-mist p-4 text-sm font-bold leading-7 text-sage-dark">
-                {aiResult.supportReminder}
+                {referralResult.supportReminder}
               </p>
-              <p className="mt-3 text-xs leading-6 text-muted">{aiResult.whenToSeekMoreSupport}</p>
+              <p className="mt-3 text-xs leading-6 text-muted">{referralResult.whenToSeekMoreSupport}</p>
             </div>
           ) : null}
         </div>
