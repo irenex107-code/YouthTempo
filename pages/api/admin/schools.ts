@@ -65,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let query = context.supabase
       .from("schools")
       .select("id,name,status,created_at")
+      .eq("status", "active")
       .order("created_at", { ascending: false });
 
     if (context.kind === "school") query = query.in("id", context.managedSchoolIds);

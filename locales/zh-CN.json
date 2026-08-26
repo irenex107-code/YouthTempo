@@ -487,7 +487,7 @@
       "privacy": { "title": "隐私与数据问题", "text": "如果你想了解登录、数据保存、记录删除或学校权限配置，可以优先说明你的角色和问题。" },
       "promotion": { "title": "校园推广团队", "text": "如果你希望参与校园推广、用户测试或反馈收集，可以留下学校、年级和可参与方式。" }
     },
-    "details": { "title": "联系信息", "project": "YouthTempo 项目", "description": "请通过邀请你使用 YouthTempo 的学校联系人或项目负责人 Irene 取得联系。", "owner": "负责人：Irene", "purpose": "用途：学校合作、产品反馈、隐私与数据问题" },
+    "details": { "title": "联系信息", "project": "YouthTempo 项目", "description": "请通过邀请你使用 YouthTempo 的学校联系人或项目负责人 Irene 取得联系。", "owner": "负责人：Irene", "email": "联系邮箱：youthtempo@163.com", "purpose": "用途：学校合作、产品反馈、隐私与数据问题" },
     "messageTips": { "title": "发送反馈时可以包含", "identity": "你是谁：学生、家长、老师、学校负责人或合作伙伴。", "topic": "你想咨询什么：页面内容、学校合作、隐私数据、校园推广或产品反馈。", "reply": "你希望我们如何回复：邮件、微信或后续会议。" },
     "privacy": { "title": "关于数据与登录", "text": "如果你的问题和用户登录、数据保存、记录删除或学校权限配置有关，可以先查看隐私与安全页面。", "cardTitle": "查看隐私与安全说明", "cardText": "我们会把账号、数据保存和反馈收集尽量设计得清楚、克制、可解释。", "action": "隐私与安全" }
   },

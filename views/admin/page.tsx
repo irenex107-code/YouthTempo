@@ -159,18 +159,18 @@ function adminTitle(overview: AdminOverview | null) {
 function adminSubtitle(overview: AdminOverview | null) {
   if (overview?.admin.role === "支持老师") return "先查看负责学生，再记录必要的支持进度。";
   if (overview?.admin.scope === "school") return "管理本校成员和负责关系，及时了解学生的近期变化。";
-  return "管理学校空间、负责人和全平台协作关系。";
+  return "优先处理审核与反馈，再维护学校空间和全平台协作关系。";
 }
 
 function workspaceActions(overview: AdminOverview) {
   if (overview.admin.scope === "platform") {
     return [
-      { href: "#monthly-trends", label: "月度趋势", description: "按学校查看近 4 周参与变化" },
-      { href: "#weekly-summary", label: "老师摘要", description: "按老师查看最近 7 天负责学生情况" },
-      { href: "#schools-overview", label: "学校总览", description: "查看学校、老师、学生与家庭关系" },
+      { href: "#community-moderation", label: "社区审核", description: "优先处理举报与安全待确认内容" },
+      { href: "#pilot-feedback", label: "试点反馈", description: "查看学生、家长和老师的反馈" },
+      { href: "#professional-verifications", label: "专业身份", description: "核对专业支持者机构与资质" },
+      { href: "#operations-analytics", label: "试点运营", description: "查看学校参与和关系完整度" },
       { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
       { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
-      { href: "#community-moderation", label: "社区审核", description: "查看举报与安全待确认内容" },
     ];
   }
 
@@ -232,7 +232,7 @@ export default function AdminPage() {
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const activeSchools = overview?.schools.filter((school) => school.status === "active") || [];
-  const selectedSchool = overview?.schools.find((school) => school.id === selectedSchoolId) || activeSchools[0] || overview?.schools[0];
+  const selectedSchool = activeSchools.find((school) => school.id === selectedSchoolId) || activeSchools[0];
   const selectedDirectory = overview?.schoolDirectories.find(
     (directory) => directory.school_id === selectedSchool?.id,
   );
@@ -280,7 +280,7 @@ export default function AdminPage() {
       setSelectedSchoolId((current) =>
         nextOverview.schools.some((school) => school.id === current && school.status === "active")
           ? current
-          : nextOverview.schools.find((school) => school.status === "active")?.id || nextOverview.schools[0]?.id || "",
+          : nextOverview.schools.find((school) => school.status === "active")?.id || "",
       );
       setAssignmentRole((current) =>
         nextOverview.admin.scope === "school" && current === "学校负责人" ? "学生" : current,
@@ -821,9 +821,9 @@ export default function AdminPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "所有学校的近期记录。" : "本校学生记录。"}</p>
                 </div>
                 <div className="card">
-                  <p className="text-xs font-bold text-sage">学校空间</p>
+                  <p className="text-xs font-bold text-sage">在用学校</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schools}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "已创建的学校。" : "你可管理的学校。"}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "当前正在试点的学校。" : "你可管理的学校。"}</p>
                 </div>
               </div>
             </div>
@@ -1052,9 +1052,14 @@ export default function AdminPage() {
 
             <div className="card">
               <p className="eyebrow">学校</p>
-              <h2 className="mt-3 text-[1.5rem] font-bold text-ink">{isPlatformAdmin ? "学校列表" : "我的学校"}</h2>
+              <h2 className="mt-3 text-[1.5rem] font-bold text-ink">{isPlatformAdmin ? "在用学校" : "我的学校"}</h2>
+              {isPlatformAdmin ? (
+                <p className="mt-2 text-sm leading-6 text-muted">
+                  这里只显示正在试点的学校。已退出学校保留审计记录，但不再出现在日常管理列表中。
+                </p>
+              ) : null}
               <div className="mt-6 grid gap-3">
-                {overview.schools.length > 0 ? overview.schools.map((school) => {
+                {activeSchools.length > 0 ? activeSchools.map((school) => {
                   const directory = overview.schoolDirectories.find(
                     (item) => item.school_id === school.id,
                   );
@@ -1286,7 +1291,7 @@ export default function AdminPage() {
                 : "先了解每位老师负责学生的整体情况，需要时再进入下方查看具体记录。"}
             />
             <div className="grid gap-5">
-              {overview.schools.map((school) => {
+              {activeSchools.map((school) => {
                 const directory = overview.schoolDirectories.find(
                   (item) => item.school_id === school.id,
                 );
@@ -1881,7 +1886,7 @@ export default function AdminPage() {
                 </Link>
               </div>
             ) : null}
-            {isPlatformAdmin && overview.schools.length ? (
+            {isPlatformAdmin && activeSchools.length ? (
               <div className="mb-6">
                 <p className="mb-3 text-sm font-bold text-ink">记录范围</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="按学校筛选记录">
@@ -1896,7 +1901,7 @@ export default function AdminPage() {
                   >
                     全部学校
                   </button>
-                  {overview.schools.map((school) => (
+                  {activeSchools.map((school) => (
                     <button
                       key={school.id}
                       type="button"

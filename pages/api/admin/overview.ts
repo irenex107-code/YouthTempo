@@ -90,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const schoolsQuery = supabase
       .from("schools")
       .select("id,name,status,created_at")
+      .eq("status", "active")
       .order("created_at", { ascending: false });
 
     const { data: schools, error: schoolsError } = context.kind === "school"

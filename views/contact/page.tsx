@@ -51,6 +51,12 @@ export default function ContactPage() {
             <p className="mt-5 text-[0.95rem] leading-7 text-muted">{t("contact.details.description")}</p>
             <div className="mt-6 grid gap-3 text-sm font-bold text-ink/80">
               <p className="rounded-2xl bg-cream px-4 py-3">{t("contact.details.owner")}</p>
+              <a
+                href="mailto:youthtempo@163.com"
+                className="rounded-2xl bg-cream px-4 py-3 transition hover:bg-mint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
+              >
+                {t("contact.details.email")}
+              </a>
               <p className="rounded-2xl bg-cream px-4 py-3">{t("contact.details.purpose")}</p>
             </div>
           </div>
