@@ -171,7 +171,7 @@ YouthTempo follows a safety-first, layered approach:
 1. Validate request method, input shape, and input size.
 2. Apply deterministic bilingual safety checks before the relevant AI call.
 3. Stop ordinary processing when urgent support may be needed.
-4. Route higher-risk messages and community content into human review workflows.
+4. Route higher-risk messages and community content into human review workflows; the student-only pilot can use a separately authorized duty queue without creating a fake school relationship.
 5. Apply authentication, consent, relationship, and role checks before protected actions.
 6. Use rate limits, safe error responses, audit records, and operational monitoring as additional safeguards.
 
@@ -180,7 +180,7 @@ YouthTempo 采用安全优先的分层架构：
 1. 先检查请求方式、输入结构和输入长度。
 2. 在相关 AI 调用之前完成确定性的中英文安全识别。
 3. 当用户可能需要紧急支持时，停止普通整理流程。
-4. 将风险较高的消息和社区内容送入人工复核流程。
+4. 将风险较高的消息和社区内容送入人工复核流程；纯学生试用可使用独立授权的值班队列，不伪造学校关系。
 5. 在受保护操作前验证身份、同意状态、关联关系和角色权限。
 6. 通过频率限制、安全错误提示、审计记录和运行监控提供额外保护。
 
@@ -335,6 +335,7 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - Chinese and English public pages and core authenticated experiences.
 - Locale-aware AI responses and bilingual safety detection.
 - Message and community safety review paths.
+- An optional student-only pilot duty queue with audited handling and metadata-only email alerts; its production migrations are applied, while SMTP, duty hours, and real delivery verification remain open conditions.
 - Eight-digit Email OTP flow, session creation, safe errors, and historical delivery evidence; current multi-provider delivery revalidation remains a pilot condition.
 - CI, permission-boundary tests, security headers, rate limiting, and production deployment.
 - Real encrypted off-site database backup, isolated logical restore, relationship validation, JWT/RLS role checks, and account-deletion replay; the measured database-only logical restore time was 24 seconds.
@@ -348,6 +349,7 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - 中英文公开页面和核心登录后体验。
 - 跟随语言的 AI 回应与双语安全识别。
 - 消息和社区安全复核路径。
+- 可选的纯学生试点值班队列、处理审计和仅含元数据的邮件提醒；正式迁移已应用，SMTP、值班时段和真实投递仍是开放条件。
 - 八位 Email OTP、session 创建、安全错误和历史投递证据；多邮箱当次投递复验仍是试点准入条件。
 - CI、权限边界测试、安全响应头、频率限制和正式部署。
 - 真实加密异地数据库备份、隔离逻辑恢复、关系校验、JWT/RLS 角色边界验证和账号删除重放；本次仅数据库逻辑恢复实测为 24 秒。
@@ -360,12 +362,14 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - Manual acceptance on physical iPhone, Android, and WeChat in-app browsers.
 - Custom SMTP, sender-domain authentication, and current QQ/163/Outlook delivery revalidation.
 - Signed guardian-access policy and confirmed school crisis-escalation contacts, duty hours, and offline response path.
+- Production enablement and real delivery validation for the student-only pilot duty queue, including a backup duty contact and an offline path.
 
 - 恢复闭环收口：隔离恢复应用真实 Email OTP/session、跨日备份观察、外部失败告警和完整业务 RPO/RTO 验收。
 - 正式外部告警接收端，以及登录、保存、AI、社区四类受控失败验收。
 - iPhone、安卓和微信内置浏览器真机验收。
 - 自有 SMTP、发件域认证和 QQ/163/Outlook 当次投递复验。
 - 监护人访问政策签署，以及学校危机升级联系人、值班时段和线下应急路径确认。
+- 纯学生试点值班队列的正式启用与真实投递验收，包括替补值班人和线下路径。
 
 ## 15. Roadmap
 

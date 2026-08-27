@@ -222,18 +222,34 @@ create table if not exists public.student_messages (
   id uuid primary key default gen_random_uuid(),
   school_id uuid references public.schools(id) on delete set null,
   sender_user_id uuid not null references auth.users(id) on delete cascade,
-  recipient_type text not null check (recipient_type in ('teacher', 'guardian', 'self')),
+  recipient_type text not null check (recipient_type in ('teacher', 'guardian', 'self', 'pilot_duty')),
   recipient_user_id uuid references auth.users(id) on delete cascade,
   anonymous_to_recipient boolean not null default false,
   body text not null check (char_length(body) between 1 and 1000),
   moderation_status text not null default 'sent' check (moderation_status in ('sent', 'blocked', 'safety_review')),
   moderation_reason text,
   read_at timestamptz,
+  duty_status text not null default 'not_applicable' check (duty_status in ('not_applicable', 'new', 'in_progress', 'resolved')),
+  duty_updated_at timestamptz,
+  duty_updated_by uuid references auth.users(id) on delete set null,
+  alert_delivery_status text not null default 'not_requested' check (alert_delivery_status in ('not_requested', 'pending', 'sent', 'failed', 'not_configured')),
+  alert_last_attempt_at timestamptz,
   created_at timestamptz not null default now(),
   check (
     (recipient_type = 'self' and recipient_user_id = sender_user_id and anonymous_to_recipient = false)
     or (recipient_type in ('teacher', 'guardian') and recipient_user_id is not null)
+    or (recipient_type = 'pilot_duty' and recipient_user_id is null and anonymous_to_recipient = false)
   )
+);
+
+create table if not exists public.student_message_duty_actions (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.student_messages(id) on delete cascade,
+  previous_status text not null check (previous_status in ('new', 'in_progress', 'resolved')),
+  new_status text not null check (new_status in ('new', 'in_progress', 'resolved')),
+  note text not null check (char_length(note) between 1 and 500),
+  actor_user_id uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now()
 );
 
 create index if not exists student_messages_sender_created_idx
@@ -244,6 +260,19 @@ on public.student_messages (recipient_user_id, created_at desc);
 
 create index if not exists student_messages_school_created_idx
 on public.student_messages (school_id, created_at desc);
+
+create index if not exists student_messages_duty_queue_idx
+on public.student_messages (duty_status, created_at desc)
+where duty_status <> 'not_applicable';
+
+create index if not exists student_messages_duty_updated_by_idx
+on public.student_messages (duty_updated_by);
+
+create index if not exists student_message_duty_actions_message_created_idx
+on public.student_message_duty_actions (message_id, created_at desc);
+
+create index if not exists student_message_duty_actions_actor_user_idx
+on public.student_message_duty_actions (actor_user_id);
 
 insert into public.admin_roles (email, role, status)
 values
@@ -273,6 +302,7 @@ alter table public.wechat_bind_sessions enable row level security;
 alter table public.admin_roles enable row level security;
 alter table public.school_followups enable row level security;
 alter table public.student_messages enable row level security;
+alter table public.student_message_duty_actions enable row level security;
 
 -- Users may maintain their own public profile fields, but school assignment is
 -- controlled exclusively by trusted server routes using the service role.
@@ -340,6 +370,75 @@ for each row execute function public.enforce_profile_role_assignment();
 -- authenticated server routes using the service role.
 revoke all privileges on table public.school_followups from anon, authenticated;
 revoke all privileges on table public.student_messages from anon, authenticated;
+revoke all privileges on table public.student_message_duty_actions from anon, authenticated;
+
+create or replace function public.apply_student_message_duty_action(
+  p_message_id uuid,
+  p_new_status text,
+  p_note text,
+  p_actor_user_id uuid
+)
+returns table (
+  message_id uuid,
+  duty_status text,
+  duty_updated_at timestamptz
+)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_previous_status text;
+  v_updated_at timestamptz := now();
+begin
+  if p_new_status not in ('new', 'in_progress', 'resolved') then
+    raise exception 'invalid_duty_status' using errcode = '22023';
+  end if;
+  if nullif(btrim(p_note), '') is null or char_length(btrim(p_note)) > 500 then
+    raise exception 'invalid_duty_note' using errcode = '22023';
+  end if;
+
+  select message.duty_status
+  into v_previous_status
+  from public.student_messages message
+  where message.id = p_message_id
+    and message.duty_status <> 'not_applicable'
+  for update;
+
+  if v_previous_status is null then
+    raise exception 'duty_message_not_found' using errcode = 'P0002';
+  end if;
+
+  update public.student_messages message
+  set duty_status = p_new_status,
+      duty_updated_at = v_updated_at,
+      duty_updated_by = p_actor_user_id,
+      read_at = case
+        when p_new_status in ('in_progress', 'resolved') then coalesce(message.read_at, v_updated_at)
+        else message.read_at
+      end
+  where message.id = p_message_id;
+
+  insert into public.student_message_duty_actions (
+    message_id,
+    previous_status,
+    new_status,
+    note,
+    actor_user_id
+  ) values (
+    p_message_id,
+    v_previous_status,
+    p_new_status,
+    btrim(p_note),
+    p_actor_user_id
+  );
+
+  return query select p_message_id, p_new_status, v_updated_at;
+end;
+$$;
+
+revoke all on function public.apply_student_message_duty_action(uuid, text, text, uuid) from public, anon, authenticated;
+grant execute on function public.apply_student_message_duty_action(uuid, text, text, uuid) to service_role;
 
 drop policy if exists "schools_select_member" on public.schools;
 create policy "schools_select_member"

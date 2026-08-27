@@ -6,6 +6,7 @@ import { CommunityModerationQueue } from "@/components/CommunityModerationQueue"
 import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
 import { SchoolOperationsOverview } from "@/components/SchoolOperationsOverview";
 import { ProfessionalVerificationQueue } from "@/components/ProfessionalVerificationQueue";
+import { PilotDutyMessageQueue } from "@/components/PilotDutyMessageQueue";
 import { AiGeneratedLabel } from "@/components/AiTransparencyNotice";
 import { getSupabase } from "@/lib/supabaseClient";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
@@ -830,6 +831,8 @@ export default function AdminPage() {
           ) : null}
         </div>
       </section>
+
+      {isPlatformAdmin && accessToken ? <PilotDutyMessageQueue accessToken={accessToken} /> : null}
 
       {isPlatformAdmin && accessToken ? <CommunityModerationQueue accessToken={accessToken} /> : null}
 

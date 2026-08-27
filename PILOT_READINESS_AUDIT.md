@@ -9,7 +9,7 @@
 - 审计前工作区已有用户修改：`README.md` 与未跟踪的 `AGENTS.md`；本次保留并纳入最终文档更新。
 - Node `24.18.0`，pnpm `11.16.0`；项目声明 Node `>=20.9 <27`、pnpm `11.9.0`。
 - Next.js `16.2.12` Pages Router、React `19.2.8`、TypeScript 5、Supabase JS `2.50.0`。
-- 40 个 migration、25 张业务表；schema 中 Data API 业务表均启用 RLS。
+- 42 个 migration、26 张业务表；schema 中 Data API 业务表均启用 RLS。
 - 当前正式部署目标：香港腾讯云 Lighthouse 上的 standalone Docker，经 Nginx 提供 `https://youthtempo.com`；Vercel 与原 CloudBase 均不是正式站。
 
 ## 发现与修复
@@ -33,6 +33,7 @@
 | P2 | 首屏插图有 LCP eager 提示 | 未修复；不影响功能，列入试点后优化 |
 | P2 | 危机词规则对第三人称引用/学术讨论可能保守误报 | 未弱化安全规则；列入安全负责人参与的后续调优 |
 | P1 | 当前试用只有学生参与，14–17 岁学生本人确认后仍被学校核验监护人门槛阻止使用 AI 与保存 | 2026-08-28 已批准独立的学生自主试用依据：仅接收 14 岁及以上学生；14–17 岁完成本人敏感信息与 AI 处理单独确认后可使用本人功能。该依据不得伪装成监护人确认，不创建任何关系或额外读取权限；正式学校试点须启用新同意版本并重新审核。技术实现与验证结果见本次增量记录。 |
+| P0 | 学生自主试用没有学校承接；高风险“写给自己”留言进入 `safety_review` 后没有明确真人接收人，现有提示可能让学生误以为已经送达真人 | 2026-08-28 已批准试点值班负责人方案。学生主动联系入口、无学校高风险留言值班队列、active 平台管理员后台、原子状态/处理审计和不含身份或正文的 SMTP 提醒已实现；两项正式 migration 已应用并复核 advisors，邮件失败不丢留言且不向学生声称已送达。香港 SMTP、真实收件、值班时段、替补与线下路径仍未完成，故保持阻塞。 |
 
 ## 权限与数据结论
 
@@ -62,11 +63,13 @@
 - 2026-08-18 Talk 首轮关闭增量：版本化 410 关闭状态、普通请求零 provider 调用、旧客户端危机优先、页面无输入、替代支持入口、青少年入口移除及中英文/窄屏回归共 76 passed（desktop/mobile Chromium）；`pnpm typecheck` 与 `pnpm build` 通过。
 - 2026-08-18 AI 范围收敛与全站安全文案增量：AI/API/危机/消息社区/双语文案 82 passed（desktop/mobile Chromium）；扩展规则、Talk 关闭、i18n、内容安全与试点加固批次 92 passed，另有 2 个旧文案断言按新“家长、老师或其他可信任成年人”要求更新后 Referral 批次 10 passed。最终 `pnpm typecheck` 与 `pnpm build` 通过，构建 63 routes。
 - 2026-08-18 AI 来源约束与配置收口增量：模型只选来源字段 ID、服务器严格校验与固定模板、扩展标识移除、生成总开关、provider/model allowlist 及 B–G 越界输出拒绝共 90 passed（desktop/mobile Chromium）；`pnpm typecheck` 与 `pnpm build` 通过，构建 63 routes。未调用真实 provider，供应商后台与正式环境配置仍需人工验收。
-- 2026-08-28 学生自主试用同意增量：`pnpm typecheck` 与 `pnpm build` 通过；策略、迁移/schema 一致性、公开说明、小程序与双语安全文案专项 26 passed；完整不注入真实凭据的回归 347 passed、47 skipped by design。正式 Supabase 未获授权应用迁移，依赖新 schema 的学生确认→AI→保存→读取→撤回真实生命周期没有执行，不能据此宣称正式站已生效。
+- 2026-08-28 学生自主试用同意增量：`pnpm typecheck` 与 `pnpm build` 通过；策略、迁移/schema 一致性、公开说明、小程序与双语安全文案专项 26 passed；完整不注入真实凭据的回归 347 passed、47 skipped by design。正式 Supabase 迁移 `20260827174237_enable_student_self_pilot_consent` 随后已应用并完成结构核对，但依赖真实生产数据写入的学生确认→AI→保存→读取→撤回生命周期没有获得单独授权，不能据此宣称该生产写入生命周期已实测。
+- 2026-08-28 试点值班增量：学生主动联系、无学校 `safety_review` 入队、最小化邮件内容、active 平台管理员 API、处理审计和中英文非实时提示专项 90 passed；完整无真实凭据回归 357 passed、47 skipped by design；`pnpm typecheck` 与 `pnpm build` 通过。依赖审计发现的 `nanoid` 高危拒绝服务公告已用精确覆盖升级到 3.3.18，复验为无已知漏洞。正式迁移 `20260827200529` 与 `20260827200713` 已应用；安全 advisor 没有新增 ERROR，高风险外键无索引提示已消除。SMTP、真实收件和失败重试尚未执行，本项不能视为生产可用证据。
 
 ## 未能自动证明的事项
 
 - QQ、163、Outlook 当次外部邮件投递，自有 SMTP 与 DNS 信誉。
+- 试点值班提醒的香港 SMTP 配置、真实收件/失败重试，以及值班时段、替补人与线下路径。
 - 真实 iPhone/Android/微信内置浏览器、真实微信小程序 AppID 与审核。
 - 外部告警接收端，以及 Lighthouse、Nginx 和应用容器的受控故障告警闭环。
 - 五个支持入口（含已关闭 Talk 的兼容 API）的危机固定文案、词表误报/漏报样例和校内线下承接流程仍需心理专业、安全/隐私及学校负责人共同审核签字；自动化通过不能替代该审核。

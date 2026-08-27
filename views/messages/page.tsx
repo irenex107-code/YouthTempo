@@ -17,7 +17,7 @@ import {
   sendStudentMessage,
 } from "@/lib/cloudRecords";
 
-type RecipientType = "teacher" | "guardian" | "self";
+type RecipientType = "teacher" | "guardian" | "self" | "pilot_duty";
 
 function formatDate(value: string, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-CN", {
@@ -41,6 +41,8 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [pilotDutyAvailable, setPilotDutyAvailable] = useState(false);
+  const [pilotDutyEmailConfigured, setPilotDutyEmailConfigured] = useState(false);
 
   const displayRole = accountStatus?.displayRole || "";
   const isStudent = displayRole === "学生";
@@ -50,7 +52,10 @@ export default function MessagesPage() {
   const showVisitorCopy = !loading && !user;
 
   async function refreshMessages() {
-    setMessages(await listStudentMessages());
+    const payload = await listStudentMessages();
+    setMessages(payload.messages);
+    setPilotDutyAvailable(payload.pilotDutyAvailable);
+    setPilotDutyEmailConfigured(payload.pilotDutyEmailConfigured);
   }
 
   useEffect(() => {
@@ -64,7 +69,9 @@ export default function MessagesPage() {
           listStudentMessages(),
         ]);
         setAccountStatus(status);
-        setMessages(nextMessages);
+        setMessages(nextMessages.messages);
+        setPilotDutyAvailable(nextMessages.pilotDutyAvailable);
+        setPilotDutyEmailConfigured(nextMessages.pilotDutyEmailConfigured);
       } catch (loadError) {
         setError(localizedCloudErrorMessage(loadError, locale, t("messages.errors.loadFailed")));
       } finally {
@@ -84,7 +91,7 @@ export default function MessagesPage() {
     if (!user || sending) return;
     const candidates = recipientType === "teacher" ? assignedTeachers : recipientType === "guardian" ? linkedGuardians : [];
     const recipientUserId = recipientType === "self" ? user.id : recipientId || candidates[0]?.id || "";
-    if (recipientType !== "self" && !recipientUserId) {
+    if (["teacher", "guardian"].includes(recipientType) && !recipientUserId) {
       setNotice(recipientType === "teacher" ? t("messages.notices.noTeacher") : t("messages.notices.noGuardian"));
       return;
     }
@@ -103,7 +110,15 @@ export default function MessagesPage() {
       setAnonymous(false);
       setNotice(
         result.safetyNotice
-          ? t("messages.notices.safetySent")
+          ? result.dutyEscalated
+            ? result.dutyAlertStatus === "sent"
+              ? t("messages.notices.safetyDutyAlerted")
+              : t("messages.notices.safetyDutyQueued")
+            : t("messages.notices.safetyPrivate")
+          : recipientType === "pilot_duty"
+            ? result.dutyAlertStatus === "sent"
+              ? t("messages.notices.dutyAlerted")
+              : t("messages.notices.dutyQueued")
           : recipientType === "self"
             ? t("messages.notices.savedForSelf")
             : t("messages.notices.sent"),
@@ -170,11 +185,12 @@ export default function MessagesPage() {
                       }}
                     >
                       <option value="self">{t("messages.compose.recipientOptions.self")}</option>
+                      {pilotDutyAvailable ? <option value="pilot_duty">{t("messages.compose.recipientOptions.pilotDuty")}</option> : null}
                       <option value="teacher">{t("messages.compose.recipientOptions.teacher")}</option>
                       <option value="guardian">{t("messages.compose.recipientOptions.guardian")}</option>
                     </select>
                   </label>
-                  {recipientType !== "self" ? (
+                  {["teacher", "guardian"].includes(recipientType) ? (
                     <label className="grid gap-2 text-sm font-bold text-ink">
                       {t("messages.compose.recipient")}
                       <select
@@ -210,8 +226,17 @@ export default function MessagesPage() {
                     <span>{t("messages.compose.anonymousDescription")}</span>
                   </label>
                 ) : null}
+                {recipientType === "pilot_duty" ? (
+                  <p className="mt-3 rounded-2xl border border-sage/20 bg-mint px-4 py-3 text-sm leading-6 text-sage-dark">
+                    {pilotDutyEmailConfigured
+                      ? t("messages.compose.dutyDisclosureEmail")
+                      : t("messages.compose.dutyDisclosureQueue")}
+                  </p>
+                ) : pilotDutyAvailable ? (
+                  <p className="mt-3 text-xs leading-6 text-muted">{t("messages.compose.safetyDisclosure")}</p>
+                ) : null}
                 <button type="submit" className="button-primary mt-5 w-full sm:w-auto" disabled={sending || !body.trim()}>
-                  {sending ? t("messages.compose.sending") : recipientType === "self" ? t("messages.compose.saveForSelf") : t("messages.compose.send")}
+                  {sending ? t("messages.compose.sending") : recipientType === "self" ? t("messages.compose.saveForSelf") : recipientType === "pilot_duty" ? t("messages.compose.sendToDuty") : t("messages.compose.send")}
                 </button>
                 {notice ? <p className="mt-4 rounded-xl bg-mint px-4 py-3 text-sm font-bold leading-6 text-sage-dark">{notice}</p> : null}
               </form>

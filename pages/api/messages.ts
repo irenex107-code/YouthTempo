@@ -4,6 +4,12 @@ import { moderateStudentMessage } from "@/lib/messageSafety";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { normalizeLocale } from "@/lib/i18n/config";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
+import {
+  isPilotDutyEmailConfigured,
+  isPilotDutyEnabled,
+  sendPilotDutyAlert,
+} from "@/lib/pilotDutyAlerts";
+import { reportOperationalError } from "@/lib/operationalMonitoring";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!["GET", "POST", "PATCH"].includes(req.method || "")) {
@@ -36,11 +42,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const requestedRecipientId =
         typeof req.body?.recipientUserId === "string" ? req.body.recipientUserId.trim() : "";
       const anonymous = recipientType === "teacher" && req.body?.anonymous === true;
+      const pilotDutyEnabled = isPilotDutyEnabled();
 
       if (!body) return res.status(400).json({ error: "请先写下你想说的话。" });
       if (body.length > 1000) return res.status(400).json({ error: "请把内容控制在 1000 字以内。" });
-      if (!["teacher", "guardian", "self"].includes(recipientType)) {
+      if (!["teacher", "guardian", "self", "pilot_duty"].includes(recipientType)) {
         return res.status(400).json({ error: "请选择这段话要写给谁。" });
+      }
+      if (recipientType === "pilot_duty" && !pilotDutyEnabled) {
+        return res.status(503).json({ error: "试点值班联系入口暂时没有开放。" });
       }
 
       const { data: profile, error: profileError } = await supabase
@@ -51,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (profileError) throw profileError;
       if (profile?.role !== "学生") return res.status(403).json({ error: "这个入口只用于学生写下想说的话。" });
 
-      let recipientUserId = user.id;
+      let recipientUserId: string | null = user.id;
       let schoolId = profile.school_id as string | null;
       if (recipientType === "teacher") {
         const { data: relationship, error } = await supabase
@@ -77,12 +87,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!relationship) return res.status(403).json({ error: "只能发送给学校确认关联的家长。" });
         recipientUserId = relationship.guardian_user_id as string;
         schoolId = relationship.school_id as string;
+      } else if (recipientType === "pilot_duty") {
+        recipientUserId = null;
+        schoolId = null;
       }
 
       const result = moderateStudentMessage(body, locale);
       if (result.status === "blocked") {
         return res.status(422).json({ error: result.reason, blocked: true });
       }
+
+      const needsPilotDuty = pilotDutyEnabled && (
+        recipientType === "pilot_duty"
+        || (result.status === "safety_review" && schoolId === null)
+      );
 
       const { data: message, error: insertError } = await supabase
         .from("student_messages")
@@ -95,14 +113,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           body,
           moderation_status: result.status,
           moderation_reason: result.reason,
+          duty_status: needsPilotDuty ? "new" : "not_applicable",
+          alert_delivery_status: needsPilotDuty ? "pending" : "not_requested",
         })
         .select("id,created_at,moderation_status")
         .single();
       if (insertError) throw insertError;
 
+      let dutyAlertStatus: "sent" | "failed" | "not_configured" | null = null;
+      if (needsPilotDuty) {
+        dutyAlertStatus = await sendPilotDutyAlert({
+          messageId: message.id as string,
+          createdAt: message.created_at as string,
+          kind: result.status === "safety_review" ? "safety_review" : "student_request",
+        });
+        const { error: alertStatusError } = await supabase
+          .from("student_messages")
+          .update({
+            alert_delivery_status: dutyAlertStatus,
+            alert_last_attempt_at: new Date().toISOString(),
+          })
+          .eq("id", message.id);
+        if (alertStatusError) {
+          reportOperationalError({
+            req,
+            area: "save",
+            operation: "pilot_duty_alert_status",
+            error: alertStatusError,
+          });
+        }
+        if (dutyAlertStatus !== "sent") {
+          reportOperationalError({
+            req,
+            area: "save",
+            operation: "pilot_duty_alert_delivery",
+            error: new Error(`pilot_duty_alert_${dutyAlertStatus}`),
+            statusCode: 503,
+          });
+        }
+      }
+
       return res.status(201).json({
         message,
         safetyNotice: result.status === "safety_review",
+        dutyEscalated: needsPilotDuty,
+        dutyAlertStatus,
       });
     }
 
@@ -118,7 +173,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ ok: true });
     }
 
-    const [{ data: profile, error: profileError }, { data: memberships, error: membershipError }] =
+    const normalizedEmail = user.email?.trim().toLowerCase() || "";
+    const [{ data: profile, error: profileError }, { data: memberships, error: membershipError }, { data: platformAdmin, error: platformAdminError }] =
       await Promise.all([
         supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
         supabase
@@ -127,18 +183,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .eq("user_id", user.id)
           .eq("member_role", "school_admin")
           .eq("status", "active"),
+        normalizedEmail
+          ? supabase
+              .from("admin_roles")
+              .select("id")
+              .eq("email", normalizedEmail)
+              .eq("status", "active")
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
       ]);
     if (profileError) throw profileError;
     if (membershipError) throw membershipError;
+    if (platformAdminError) throw platformAdminError;
 
     const schoolAdminIds = (memberships || []).map((membership) => membership.school_id as string);
     let query = supabase
       .from("student_messages")
-      .select("id,school_id,sender_user_id,recipient_type,recipient_user_id,anonymous_to_recipient,body,moderation_status,read_at,created_at")
+      .select("id,school_id,sender_user_id,recipient_type,recipient_user_id,anonymous_to_recipient,body,moderation_status,duty_status,alert_delivery_status,read_at,created_at")
       .order("created_at", { ascending: false })
       .limit(100);
 
-    if (schoolAdminIds.length) {
+    if (platformAdmin) {
+      query = query.neq("duty_status", "not_applicable");
+    } else if (schoolAdminIds.length) {
       query = query.in("school_id", schoolAdminIds).eq("moderation_status", "safety_review");
     } else if (profile?.role === "学生") {
       query = query.eq("sender_user_id", user.id);
@@ -150,8 +217,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (messagesError) throw messagesError;
     const profileIds = Array.from(new Set((messages || []).flatMap((message) => [
       message.sender_user_id as string,
-      message.recipient_user_id as string,
-    ])));
+      message.recipient_user_id as string | null,
+    ]).filter((id): id is string => Boolean(id))));
     const { data: profiles, error: profilesError } = profileIds.length
       ? await supabase.from("profiles").select("id,display_name,email").in("id", profileIds)
       : { data: [], error: null };
@@ -165,17 +232,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const hideSender =
           message.anonymous_to_recipient &&
           message.recipient_user_id === user.id &&
-          !schoolAdminIds.length;
+          !schoolAdminIds.length
+          && !platformAdmin;
         return {
           ...message,
           sender_name: hideSender ? "匿名学生" : sender?.display_name || sender?.email || "学生",
           recipient_name:
             message.recipient_type === "self"
               ? "写给自己"
+              : message.recipient_type === "pilot_duty"
+                ? "试点值班负责人"
               : recipient?.display_name || recipient?.email || "收件人",
-          canRevealSender: Boolean(schoolAdminIds.length && message.moderation_status === "safety_review"),
+          canRevealSender: Boolean(platformAdmin || (schoolAdminIds.length && message.moderation_status === "safety_review")),
         };
       }),
+      pilotDutyAvailable: isPilotDutyEnabled(),
+      pilotDutyEmailConfigured: isPilotDutyEmailConfigured(),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "留言服务暂时不可用。";

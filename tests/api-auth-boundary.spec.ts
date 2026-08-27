@@ -8,6 +8,7 @@ const protectedReads = [
   "/api/admin/teacher-student-assignments?schoolId=school-a",
   "/api/admin/community-moderation",
   "/api/admin/community-restrictions",
+  "/api/admin/message-duty",
   "/api/community/blocks",
   "/api/community/reports",
   "/api/messages",

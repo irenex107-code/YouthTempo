@@ -106,11 +106,13 @@ export type StudentMessage = {
   id: string;
   school_id: string | null;
   sender_user_id: string;
-  recipient_type: "teacher" | "guardian" | "self";
-  recipient_user_id: string;
+  recipient_type: "teacher" | "guardian" | "self" | "pilot_duty";
+  recipient_user_id: string | null;
   anonymous_to_recipient: boolean;
   body: string;
   moderation_status: "sent" | "safety_review";
+  duty_status: "not_applicable" | "new" | "in_progress" | "resolved";
+  alert_delivery_status: "not_requested" | "pending" | "sent" | "failed" | "not_configured";
   read_at: string | null;
   created_at: string;
   sender_name: string;
@@ -358,11 +360,15 @@ export async function listStudentMessages() {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "留言加载失败。");
-  return (data.messages || []) as StudentMessage[];
+  return {
+    messages: (data.messages || []) as StudentMessage[],
+    pilotDutyAvailable: data.pilotDutyAvailable === true,
+    pilotDutyEmailConfigured: data.pilotDutyEmailConfigured === true,
+  };
 }
 
 export async function sendStudentMessage(input: {
-  recipientType: "teacher" | "guardian" | "self";
+  recipientType: "teacher" | "guardian" | "self" | "pilot_duty";
   recipientUserId?: string;
   anonymous?: boolean;
   body: string;
@@ -379,7 +385,11 @@ export async function sendStudentMessage(input: {
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "留言发送失败。");
-  return data as { safetyNotice?: boolean };
+  return data as {
+    safetyNotice?: boolean;
+    dutyEscalated?: boolean;
+    dutyAlertStatus?: "sent" | "failed" | "not_configured" | null;
+  };
 }
 
 export async function markStudentMessageRead(id: string) {
