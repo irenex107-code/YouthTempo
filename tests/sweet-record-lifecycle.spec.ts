@@ -26,19 +26,6 @@ async function studentSession() {
   return { supabase, session: data.session, userId: data.user.id };
 }
 
-async function guardianSession() {
-  if (!password) throw new Error("缺少 E2E_PERMISSION_TEST_PASSWORD");
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: fixture.users.guardianOne.email,
-    password,
-  });
-  if (error || !data.session || !data.user) throw error || new Error("无法登录 SWEET 生命周期虚拟家长");
-  return { session: data.session };
-}
-
 async function findRecordByMarker(supabase: SupabaseClient, userId: string, marker: string) {
   const { data, error } = await supabase
     .from("sweet_records")
@@ -63,19 +50,15 @@ test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录
   test.setTimeout(120_000);
 
   const { supabase, session, userId } = await studentSession();
-  const guardian = await guardianSession();
   const marker = `[E2E-LIFECYCLE] ${Date.now()}`;
 
   const studentHeaders = { Authorization: `Bearer ${session.access_token}` };
-  const guardianHeaders = { Authorization: `Bearer ${guardian.session.access_token}` };
-  expect((await request.post("/api/account/consent", {
+  const consentResponse = await request.post("/api/account/consent", {
     headers: studentHeaders,
     data: { action: "student_assent", ageBand: "14_17" },
-  })).status()).toBe(200);
-  expect((await request.post("/api/account/consent", {
-    headers: guardianHeaders,
-    data: { action: "guardian_consent", studentUserId: userId },
-  })).status()).toBe(200);
+  });
+  expect(consentResponse.status()).toBe(200);
+  await expect(consentResponse.json()).resolves.toMatchObject({ consent: { status: "active", consentBasis: "student_self_pilot" } });
 
   await page.addInitScript(
     ({ key, value }: { key: string; value: Session }) => {

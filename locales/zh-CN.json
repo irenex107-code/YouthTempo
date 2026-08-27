@@ -290,7 +290,7 @@
       "records": { "label": "你的记录", "title": "默认只有你能看到", "text": "未加入学校时，学校和老师无法查看。你可以导出、删除单条记录，也可以注销账户。" },
       "boundary": { "label": "使用边界", "title": "它不是诊断或急救服务", "text": "如果你正面临伤害自己或他人的即时危险，请立即联系家人、老师或其他能够到场的可信任成年人，并拨打当地急救或报警电话。" }
     },
-    "teens": { "title": "还在 14–18 岁学校试点范围内？", "description": "青少年入口包含家长、老师和学校支持关系。", "action": "回到青少年入口" }
+    "teens": { "title": "正在参加 14 岁及以上学生自主试用？", "description": "学生可先使用个人记录与支持工具；没有有效关系时，家长、老师和学校不能查看。", "action": "回到青少年入口" }
   },
   "sweetModel": {
     "metadata": { "title": "SWEET 模型 | YouthTempo" },
@@ -505,11 +505,11 @@
     "profile": { "name": "姓名", "namePlaceholder": "怎么称呼你", "accountType": "账号类型" },
     "summary": { "currentRole": "当前身份", "confirming": "正在确认", "confirmingRole": "正在确认身份…", "visibleRecords": "可见记录", "recordCountOne": "{{count}} 条", "recordCount": "{{count}} 条", "savedToAccount": "保存在当前账号", "lastSevenDays": "最近 7 天", "daysRecordedOne": "{{count}} 天有记录", "daysRecorded": "{{count}} 天有记录", "notEveryDay": "不需要每天都完成", "schoolSpace": "学校空间", "joined": "已加入", "notJoined": "未加入", "configuredBySchool": "由学校管理员配置" },
     "consent": {
-      "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和学校支持，不用于广告或公开展示；学生或监护人可随时撤回。完整说明见", "privacyLink": "隐私与安全", "sentenceEnd": "。",
-      "activeTitle": "已完成知情确认", "adultActive": "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。", "minorActive": "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。", "policyVersion": "当前版本：{{version}}。", "withdraw": "撤回确认",
-      "pendingTitle": "学生确认已完成，等待监护人确认", "askGuardian": "请已关联家长登录自己的账户完成确认。", "noGuardian": "当前还没有学校确认的监护人关联，请联系学校负责人。", "withdrawStudent": "撤回学生确认", "ineligible": "当前试点面向 14–18 岁在校青少年。14 岁以下请由监护人联系学校负责人。",
-      "ageRange": "你的年龄范围（不收集具体生日）", "age14to17": "14–17 岁", "age18Plus": "已满 18 岁", "ageUnder14": "未满 14 岁", "acknowledgement": "我已阅读说明，理解会处理哪些信息、用途、谁能查看以及如何撤回，并自愿确认。", "completeStudent": "完成学生确认",
-      "bothComplete": "学生与监护人确认均已完成。", "withdrawGuardian": "撤回监护人确认", "guardianPrompt": "孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。", "agreeChild": "同意孩子参加试点", "waitingChild": "等待孩子先登录自己的账户阅读说明并完成学生确认。", "noLinkedChild": "尚未关联孩子。亲子关系需由学校负责人确认。"
+      "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和适用的支持，不用于广告或公开展示；学生可随时撤回。没有有效关系时，家长、老师和学校不能查看。完整说明见", "privacyLink": "隐私与安全", "sentenceEnd": "。",
+      "activeTitle": "已完成知情确认", "adultActive": "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。", "minorSelfActive": "你已按学生自主试用方式完成本人单独确认，可以生成 AI 小结、保存记录并使用个人支持工具；这不代表监护人或学校已经确认。", "minorActive": "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。", "policyVersion": "当前版本：{{version}}。", "withdraw": "撤回确认",
+      "pendingTitle": "学生确认已完成，等待监护人确认", "askGuardian": "请已关联家长登录自己的账户完成确认。", "noGuardian": "当前还没有学校确认的监护人关联，请联系学校负责人。", "withdrawStudent": "撤回学生确认", "ineligible": "当前自主试用仅接收 14 岁及以上学生。未满 14 岁暂时不能参加。",
+      "ageRange": "你的年龄范围（不收集具体生日）", "age14to17": "14–17 岁", "age18Plus": "已满 18 岁", "ageUnder14": "未满 14 岁", "acknowledgement": "我已阅读说明，理解可能处理敏感生活与健康信息、AI 用途、保存方式、谁能查看以及如何撤回，并单独同意按说明处理这些信息。", "completeStudent": "完成学生确认",
+      "bothComplete": "学生与监护人确认均已完成。", "selfPilotChildActive": "该学生已按自主试用方式完成本人确认；这不是监护人确认，不能由监护人在此撤回。", "withdrawGuardian": "撤回监护人确认", "guardianPrompt": "孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。", "agreeChild": "同意孩子参加试点", "waitingChild": "等待孩子先登录自己的账户阅读说明并完成学生确认。", "noLinkedChild": "尚未关联孩子。亲子关系需由学校负责人确认。"
     },
     "settings": {
       "title": "账户设置", "description": "资料、数据导出、注销与退出", "schoolIdentity": "学校身份", "profile": "账号资料", "wechat": "微信绑定", "data": "数据与注销",
@@ -525,7 +525,7 @@
       "loading": "正在加载记录…", "recordTitle": "SWEET 节律记录", "childRecord": "{{name}}的 SWEET 记录", "delete": "删除", "viewFull": "查看完整记录", "notProvided": "未填写", "smallStepPrefix": "可以先做的一件小事：", "nextToolPrefix": "推荐下一步：", "emptyTitle": "暂时没有可见记录", "start": "开始记录", "contactSchool": "联系学校确认关系", "admin": "进入管理台",
       "empty": { "student": "完成一次 SWEET 节律记录并保存后，会显示在这里。", "guardian": "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由学校管理员确认。", "teacher": "学校负责人分配学生后，这里会显示你负责学生的记录。", "schoolLead": "本校学生保存 SWEET 记录后，会显示在这里。", "default": "保存记录后，会显示在这里。" }
     },
-    "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前试点暂不接收 14 岁以下学生，请联系学校负责人。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生确认已记录，下一步请已关联的监护人登录完成确认。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
+    "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前自主试用暂不接收 14 岁以下学生。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生自主试用确认已完成，现在可以生成 AI 小结并保存本人记录。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
     "errors": { "serviceTimeout": "账户服务响应超时。", "loadFailed": "账户信息加载失败。", "redirectFailed": "登录链接处理失败，请重新发送验证码。", "wechatQrExpired": "二维码已过期，请重新生成。", "wechatStatusFailed": "微信绑定状态检查失败。", "otpUnauthorized": "当前邮箱暂时无法收到登录验证码，请联系平台负责人处理。", "otpRateLimited": "验证码请求有些频繁，请稍后再试。", "otpSendNetwork": "网络连接不稳定，请检查网络后重新发送。", "otpSendFailed": "验证码发送失败，请稍后重试。", "otpIncomplete": "请输入完整的 {{count}} 位验证码。", "otpInvalid": "验证码不正确或已过期，请重新输入，或重新发送。", "otpVerifyRateLimited": "验证尝试有些频繁，请稍后再试。", "otpVerifyNetwork": "网络连接不稳定，请检查网络后重新验证。", "otpVerifyFailed": "验证码验证失败，请稍后重试。", "nameRequired": "请填写姓名。", "profileSaveFailed": "资料保存失败。", "recordDeleteFailed": "删除记录失败。", "exportFailed": "账户数据导出失败。", "deletionConfirmationRequired": "请输入当前登录邮箱，并勾选不可恢复确认。", "accountDeleteFailed": "账户注销失败。", "studentAssentFailed": "学生确认提交失败。", "guardianConsentFailed": "监护人确认提交失败。", "consentWithdrawFailed": "撤回确认失败。", "wechatQrFailed": "微信绑定二维码生成失败。" },
     "professional": {
       "label": "专业支持者", "title": "让大家知道你的专业身份已经过确认", "description": "提交所在机构和可核验的资质信息。只有平台管理员能查看这些资料；通过后，社区会显示“专业身份已确认”。", "loading": "正在加载确认状态…", "noticeSubmitted": "资料已经交给平台确认。审核期间，你仍可以正常使用其他功能。", "submittedAt": "提交于 {{date}}", "reviewNote": "平台说明：{{note}}", "legacyConfirmed": "此前已由平台确认", "institution": "机构：{{value}}", "position": "专业方向：{{value}}", "credential": "资质：{{value}}", "expires": "有效期：{{value}}", "noExpiry": "未注明到期日", "disclaimer": "提交不代表自动通过。平台会核对机构和资质；资料不完整时，会说明需要补充什么。", "resubmit": "更新并重新提交", "submit": "提交确认资料",
@@ -577,14 +577,14 @@
       "export": { "title": "导出与注销", "text": "登录后可即时下载自己的数据副本，或永久注销账号。平台不保存导出文件。" }
     },
     "consent": {
-      "title": "未成年人及监护人知情同意", "description": "YouthTempo 当前试点面向 14–18 岁在校青少年。学生本人需要清楚知道数据如何使用；14–17 岁学校试点学生还需要已核验监护人确认。",
-      "student": { "title": "学生先确认", "text": "学生阅读数据范围、用途、可见角色和撤回方式，只选择年龄范围，不填写具体生日。" },
-      "guardian": { "title": "监护人再确认", "text": "14–17 岁学生参加学校试点时，由学校已确认关联的监护人在自己的账户中完成确认。" },
+      "title": "学生自主试用知情确认", "description": "YouthTempo 当前自主试用面向 14 岁及以上学生。14–17 岁学生可在充分了解敏感信息与 AI 处理方式后由本人单独确认，不需要学校、老师或监护人加入。",
+      "student": { "title": "学生本人单独确认", "text": "学生阅读数据范围、用途、AI 处理、可能的可见角色和撤回方式，只选择年龄范围，不填写具体生日。确认后可以生成 AI 小结并保存本人记录。" },
+      "guardian": { "title": "关系不会自动建立", "text": "自主试用确认不代表监护人或学校确认，也不会创建任何关系。没有学校核验的 active 关系时，家长、老师和学校不能查看记录；未来正式学校试点会发布新的同意版本并重新审核适用确认。" },
       "summary": { "title": "每次使用 AI 前再确认", "text": "SWEET 节律记录和心情拼图在发送必要内容给 AI 生成记录小结前，会显示处理说明和版本号，并要求用户主动勾选。今晚先放下和下一步找谁使用固定规则，不调用 AI；陪我捋一捋在首轮学校试点期间关闭。固定紧急安全提示也不依赖 AI，不会等待这项确认。" },
-      "withdraw": { "title": "随时可以撤回", "text": "学生或监护人可在账户页撤回；撤回后不能继续保存新记录、发送留言或在社区发布。" },
+      "withdraw": { "title": "随时可以撤回", "text": "学生可在账户页撤回自主试用确认；撤回后不能继续保存新记录、发送留言或在社区发布。" },
       "coverage": { "title": "同意覆盖什么", "text": "账号资料、SWEET 日常节律回答、AI 辅助记录小结、规则化工具结果、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。" },
       "afterWithdrawal": { "title": "撤回后会怎样", "text": "撤回后不能继续保存新记录、发送留言或在社区发布。已有内容仍可查看、下载或逐条删除，也可以注销账号并删除关联数据。" },
-      "legalPrefix": "法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。YouthTempo 对 14–17 岁学校试点同时要求学生与监护人确认，是我们增加的一层保护。查看"
+      "legalPrefix": "法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。当前自主试用不接收未满 14 岁用户；正式学校试点前将重新审核适用的学生与监护人确认。查看"
     },
     "retention": {
       "title": "数据导出、注销与保存期限", "description": "用户可以在账户设置中直接行使这些权利，不需要先联系学校或平台说明理由。导出只包含当前账号的数据，不会额外打包关联孩子、学生或其他用户的私密记录。",

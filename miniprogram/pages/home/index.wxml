@@ -10,12 +10,12 @@
     <picker mode="selector" range="{{ageOptions}}" range-key="label" value="{{ageIndex}}" bindchange="setAge">
       <view class="field">{{ageOptions[ageIndex].label}}</view>
     </picker>
-    <label class="muted" style="display:flex;margin-top:24rpx;"><checkbox checked="{{agreed}}" bindtap="toggleAgreement" color="#315f51" /><text>我已阅读数据说明，理解会保存 SWEET 回答和 AI 小结，也知道如何撤回和删除。</text></label>
+    <label class="muted" style="display:flex;margin-top:24rpx;"><checkbox checked="{{agreed}}" bindtap="toggleAgreement" color="#315f51" /><text>我已阅读数据说明，理解会处理和保存可能包含敏感生活与健康信息的 SWEET 回答和 AI 小结，也知道谁能查看、如何撤回和删除；我单独同意按说明处理这些信息。</text></label>
     <button class="primary" bindtap="completeProfile" disabled="{{saving || !displayName || !agreed}}">{{saving ? '正在保存…' : '完成确认'}}</button>
   </view>
   <view wx:elif="{{!ready}}" class="card">
-    <view class="card-title">等待监护人确认</view>
-    <view class="muted" style="margin-top:16rpx;">你的个人确认已保存。请让学校已经关联的监护人登录 YouthTempo 网页账户完成确认，之后就能保存记录。</view>
+    <view class="card-title">请重新完成当前确认</view>
+    <view class="muted" style="margin-top:16rpx;">当前确认尚未生效。请返回个人确认，阅读最新说明并重新提交，之后即可保存记录。</view>
   </view>
   <view wx:else class="card">
     <view class="card-title">现在最想做什么？</view>

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
-import { STUDENT_CONSENT_POLICY_VERSION, type StudentAgeBand } from "@/lib/studentConsent";
+import { STUDENT_CONSENT_POLICY_VERSION, isActiveStudentConsent, type StudentAgeBand } from "@/lib/studentConsent";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -40,13 +40,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       if (profileError) throw profileError;
 
-      const status = ageBand === "18_plus" ? "active" : "pending_guardian";
+      const consentBasis = ageBand === "18_plus" ? "adult_self" : "student_self_pilot";
       const { error: consentError } = await supabase.from("student_consents").upsert({
         student_user_id: user.id,
         school_id: existingProfile?.school_id || null,
         age_band: ageBand,
+        consent_basis: consentBasis,
         policy_version: STUDENT_CONSENT_POLICY_VERSION,
-        status,
+        status: "active",
         student_assented_at: now,
         guardian_user_id: null,
         guardian_consented_at: null,
@@ -61,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         actor_user_id: user.id,
         event_type: "student_assented",
         age_band: ageBand,
+        consent_basis: consentBasis,
         policy_version: STUDENT_CONSENT_POLICY_VERSION,
       });
       if (eventError) throw eventError;
@@ -68,14 +70,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const [{ data: profile, error: profileError }, { data: consent, error: consentError }] = await Promise.all([
       supabase.from("profiles").select("id,display_name,role,school_id").eq("id", user.id).maybeSingle(),
-      supabase.from("student_consents").select("age_band,status,policy_version").eq("student_user_id", user.id).maybeSingle(),
+      supabase.from("student_consents").select("age_band,consent_basis,status,policy_version,student_assented_at,guardian_user_id,guardian_consented_at").eq("student_user_id", user.id).maybeSingle(),
     ]);
     if (profileError) throw profileError;
     if (consentError) throw consentError;
     return res.status(200).json({
       profile,
       consent: consent?.policy_version === STUDENT_CONSENT_POLICY_VERSION ? consent : null,
-      ready: Boolean(profile?.role === "学生" && consent?.status === "active" && consent.policy_version === STUDENT_CONSENT_POLICY_VERSION),
+      ready: Boolean(profile?.role === "学生" && isActiveStudentConsent(consent)),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "个人使用状态加载失败。";

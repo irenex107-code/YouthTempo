@@ -106,6 +106,7 @@ create table if not exists public.student_consents (
   student_user_id uuid primary key references auth.users(id) on delete cascade,
   school_id uuid references public.schools(id) on delete set null,
   age_band text not null check (age_band in ('under_14', '14_17', '18_plus')),
+  consent_basis text not null default 'student_guardian' check (consent_basis in ('not_applicable', 'adult_self', 'student_self_pilot', 'student_guardian')),
   policy_version text not null,
   status text not null check (status in ('pending_guardian', 'active', 'withdrawn', 'ineligible')),
   student_assented_at timestamptz,
@@ -117,7 +118,20 @@ create table if not exists public.student_consents (
   updated_at timestamptz not null default now(),
   check (guardian_user_id is null or guardian_user_id <> student_user_id),
   check (
-    (status = 'active' and student_assented_at is not null and (age_band = '18_plus' or guardian_consented_at is not null))
+    (
+      status = 'active'
+      and student_assented_at is not null
+      and (
+        (age_band = '18_plus' and consent_basis = 'adult_self')
+        or (age_band = '14_17' and consent_basis = 'student_self_pilot')
+        or (
+          age_band = '14_17'
+          and consent_basis = 'student_guardian'
+          and guardian_user_id is not null
+          and guardian_consented_at is not null
+        )
+      )
+    )
     or status <> 'active'
   )
 );
@@ -130,6 +144,7 @@ create table if not exists public.student_consent_events (
   actor_user_id uuid not null,
   event_type text not null check (event_type in ('student_assented', 'guardian_consented', 'consent_withdrawn', 'declared_under_14')),
   age_band text not null check (age_band in ('under_14', '14_17', '18_plus')),
+  consent_basis text not null default 'student_guardian' check (consent_basis in ('not_applicable', 'adult_self', 'student_self_pilot', 'student_guardian')),
   policy_version text not null,
   created_at timestamptz not null default now()
 );
@@ -514,8 +529,19 @@ begin
       select 1
       from public.student_consents consent
       where consent.student_user_id = new.user_id
-        and consent.policy_version = '2026-08-03'
+        and consent.policy_version = '2026-08-28'
         and consent.status = 'active'
+        and consent.student_assented_at is not null
+        and (
+          (consent.age_band = '18_plus' and consent.consent_basis = 'adult_self')
+          or (consent.age_band = '14_17' and consent.consent_basis = 'student_self_pilot')
+          or (
+            consent.age_band = '14_17'
+            and consent.consent_basis = 'student_guardian'
+            and consent.guardian_user_id is not null
+            and consent.guardian_consented_at is not null
+          )
+        )
     ) then
       raise exception 'student_consent_required' using errcode = '42501';
     end if;

@@ -24,7 +24,7 @@ async function consentStatus(request: APIRequestContext, accessToken: string) {
   return response.json();
 }
 
-test("14–17 岁学生与已关联监护人完成双向确认并可撤回", async ({ request }, testInfo) => {
+test("14–17 岁学生自主确认后可使用本人功能，监护人不能代为撤回", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "API 权限流程无需按视口重复执行");
   test.skip(!password, "需要先初始化虚拟账号并配置 E2E_PERMISSION_TEST_PASSWORD");
 
@@ -59,27 +59,25 @@ test("14–17 岁学生与已关联监护人完成双向确认并可撤回", asy
       data: { action: "student_assent", ageBand: "14_17" },
     });
     expect(studentAssent.status()).toBe(200);
-    expect((await studentAssent.json()).consent.status).toBe("pending_guardian");
-
-    const blockedPost = await request.post("/api/community/posts", {
-      headers: auth(student.accessToken),
-      data: { title: "", body: "", viewerRoles: [], commenterRoles: [] },
+    expect((await studentAssent.json()).consent).toMatchObject({
+      status: "active",
+      consentBasis: "student_self_pilot",
+      guardianUserId: null,
+      guardianConsentedAt: null,
     });
-    expect(blockedPost.status()).toBe(403);
-
-    const guardianConsent = await request.post("/api/account/consent", {
-      headers: auth(guardian.accessToken),
-      data: { action: "guardian_consent", studentUserId: student.userId },
-    });
-    expect(guardianConsent.status()).toBe(200);
-    const child = (await guardianConsent.json()).children.find((item: { studentUserId: string }) => item.studentUserId === student.userId);
-    expect(child?.status).toBe("active");
 
     const passedConsentGate = await request.post("/api/community/posts", {
       headers: auth(student.accessToken),
       data: { title: "", body: "", viewerRoles: [], commenterRoles: [] },
     });
     expect(passedConsentGate.status()).toBe(400);
+
+    const guardianWithdraw = await request.delete("/api/account/consent", {
+      headers: auth(guardian.accessToken),
+      data: { studentUserId: student.userId },
+    });
+    expect(guardianWithdraw.status()).toBe(403);
+    await expect(guardianWithdraw.json()).resolves.toMatchObject({ error: "学生自主试用确认只能由学生本人撤回。" });
 
     const { error: directReadError } = await directClient.from("student_consents").select("student_user_id").limit(1);
     expect(directReadError).not.toBeNull();
@@ -94,12 +92,10 @@ test("14–17 岁学生与已关联监护人完成双向确认并可撤回", asy
     createdRecordId = allowedRecord?.id || "";
 
     const withdraw = await request.delete("/api/account/consent", {
-      headers: auth(guardian.accessToken),
-      data: { studentUserId: student.userId },
+      headers: auth(student.accessToken),
     });
     expect(withdraw.status()).toBe(200);
-    const withdrawnChild = (await withdraw.json()).children.find((item: { studentUserId: string }) => item.studentUserId === student.userId);
-    expect(withdrawnChild?.status).toBe("withdrawn");
+    expect((await withdraw.json()).consent.status).toBe("withdrawn");
 
     const { error: blockedAfterWithdrawError } = await directClient.from("sweet_records").insert({
       user_id: student.userId,
@@ -113,10 +109,6 @@ test("14–17 岁学生与已关联监护人完成双向确认并可撤回", asy
       await request.post("/api/account/consent", {
         headers: auth(student.accessToken),
         data: { action: "student_assent", ageBand: "14_17" },
-      });
-      await request.post("/api/account/consent", {
-        headers: auth(guardian.accessToken),
-        data: { action: "guardian_consent", studentUserId: student.userId },
       });
     }
   }

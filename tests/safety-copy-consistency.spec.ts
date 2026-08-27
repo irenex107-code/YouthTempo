@@ -69,6 +69,13 @@ test("公开说明准确区分 AI 摘要、固定规则与关闭功能", async (
   expect(enSummary).toContain("Worry Time and Find the Right Support use fixed rules and do not call AI");
   expect(enSummary).toContain("Talk It Through is closed");
 
+  expect(zh.privacySafety.consent.description).toContain("14–17 岁学生可");
+  expect(zh.privacySafety.consent.guardian.text).toContain("不会创建任何关系");
+  expect(en.privacySafety.consent.description).toContain("Students aged 14–17 may provide separate personal consent");
+  expect(en.privacySafety.consent.guardian.text).toContain("does not create any relationship");
+  expect(zh.account.consent.acknowledgement).toContain("单独同意");
+  expect(en.account.consent.acknowledgement).toContain("separately consent");
+
   expect(zh.checkIn.result.disclaimer).toContain("AI 只整理你本次明确填写的内容");
   expect(zh.checkIn.result.disclaimer).toContain("固定规则");
   expect(en.checkIn.result.disclaimer).toContain("AI only summarizes what you explicitly entered");

@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 test("知情同意说明公开可查，账户接口拒绝未登录访问", async ({ page, request }) => {
   await page.goto("/privacy-safety#student-consent");
-  await expect(page.getByRole("heading", { name: "未成年人及监护人知情同意" })).toBeVisible();
-  await expect(page.getByText("学生先确认", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "学生自主试用知情确认" })).toBeVisible();
+  await expect(page.getByText("学生本人单独确认", { exact: true })).toBeVisible();
   await expect(page.getByText("随时可以撤回", { exact: true })).toBeVisible();
 
   const response = await request.get("/api/account/consent");

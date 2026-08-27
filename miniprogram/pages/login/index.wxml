@@ -9,5 +9,5 @@
     <button wx:if="{{codeSent}}" class="primary" bindtap="verifyCode" disabled="{{verifying || token.length !== 8}}">{{verifying ? '正在登录…' : '登录'}}</button>
     <view wx:if="{{message}}" class="notice {{isError ? 'error' : ''}}">{{message}}</view>
   </view>
-  <view class="muted" style="margin-top: 28rpx;">未满 18 岁的用户还需要本人确认和已关联监护人确认；已满 18 岁可以独立确认。</view>
+  <view class="muted" style="margin-top: 28rpx;">当前自主试用面向 14 岁及以上学生。14–17 岁完成本人单独确认后即可使用，不需要学校或监护人加入。</view>
 </view>

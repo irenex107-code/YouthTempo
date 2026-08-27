@@ -6,7 +6,7 @@ import {
   consentSummary,
 } from "@/lib/studentConsent";
 
-const consentFields = "student_user_id,age_band,policy_version,status,student_assented_at,guardian_user_id,guardian_consented_at,withdrawn_at";
+const consentFields = "student_user_id,age_band,consent_basis,policy_version,status,student_assented_at,guardian_user_id,guardian_consented_at,withdrawn_at";
 
 async function loadConsentResponse(supabase: ReturnType<typeof getSupabaseAdmin>, userId: string) {
   const [{ data: profile, error: profileError }, { data: guardianLinks, error: guardianError }] = await Promise.all([
@@ -99,11 +99,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (profile?.role !== "学生") return res.status(403).json({ error: "只有学生账号需要完成学生确认。" });
 
       const now = new Date().toISOString();
-      const status = ageBand === "under_14" ? "ineligible" : ageBand === "18_plus" ? "active" : "pending_guardian";
+      const status = ageBand === "under_14" ? "ineligible" : "active";
+      const consentBasis = ageBand === "under_14" ? "not_applicable" : ageBand === "18_plus" ? "adult_self" : "student_self_pilot";
       const { error } = await supabase.from("student_consents").upsert({
         student_user_id: user.id,
         school_id: profile.school_id || null,
         age_band: ageBand,
+        consent_basis: consentBasis,
         policy_version: STUDENT_CONSENT_POLICY_VERSION,
         status,
         student_assented_at: ageBand === "under_14" ? null : now,
@@ -120,6 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         actor_user_id: user.id,
         event_type: ageBand === "under_14" ? "declared_under_14" : "student_assented",
         age_band: ageBand,
+        consent_basis: consentBasis,
         policy_version: STUDENT_CONSENT_POLICY_VERSION,
       });
       if (eventError) throw eventError;
@@ -140,11 +143,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!link) return res.status(403).json({ error: "只有学校已确认关联的监护人可以完成确认。" });
       const { data: consent, error: consentError } = await supabase
         .from("student_consents")
-        .select("age_band,policy_version,status,student_assented_at")
+        .select("age_band,consent_basis,policy_version,status,student_assented_at")
         .eq("student_user_id", studentUserId)
         .maybeSingle();
       if (consentError) throw consentError;
-      if (!consent || consent.age_band !== "14_17" || !consent.student_assented_at || consent.policy_version !== STUDENT_CONSENT_POLICY_VERSION) {
+      if (
+        !consent ||
+        consent.age_band !== "14_17" ||
+        consent.consent_basis !== "student_guardian" ||
+        consent.status !== "pending_guardian" ||
+        !consent.student_assented_at ||
+        consent.policy_version !== STUDENT_CONSENT_POLICY_VERSION
+      ) {
         return res.status(409).json({ error: "请先让孩子在自己的账户中阅读说明并完成学生确认。" });
       }
       const now = new Date().toISOString();
@@ -152,6 +162,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         school_id: link.school_id,
         guardian_user_id: user.id,
         guardian_consented_at: now,
+        consent_basis: "student_guardian",
         status: "active",
         withdrawn_at: null,
         withdrawn_by: null,
@@ -165,6 +176,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         actor_user_id: user.id,
         event_type: "guardian_consented",
         age_band: "14_17",
+        consent_basis: "student_guardian",
         policy_version: STUDENT_CONSENT_POLICY_VERSION,
       });
       if (eventError) throw eventError;
@@ -174,6 +186,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === "DELETE") {
       const requestedStudentId = typeof req.body?.studentUserId === "string" ? req.body.studentUserId.trim() : "";
       const studentUserId = requestedStudentId || user.id;
+      const { data: consent, error: consentError } = await supabase
+        .from("student_consents")
+        .select("age_band,consent_basis,policy_version,school_id,guardian_user_id")
+        .eq("student_user_id", studentUserId)
+        .maybeSingle();
+      if (consentError) throw consentError;
+      if (!consent) return res.status(404).json({ error: "尚未找到可撤回的确认。" });
+
       if (studentUserId !== user.id) {
         const { data: link, error: linkError } = await supabase
           .from("guardian_student_links")
@@ -184,14 +204,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .maybeSingle();
         if (linkError) throw linkError;
         if (!link) return res.status(403).json({ error: "你不能撤回这个学生账号的确认。" });
+        if (consent.consent_basis !== "student_guardian") {
+          return res.status(403).json({ error: "学生自主试用确认只能由学生本人撤回。" });
+        }
       }
-      const { data: consent, error: consentError } = await supabase
-        .from("student_consents")
-        .select("age_band,policy_version,school_id,guardian_user_id")
-        .eq("student_user_id", studentUserId)
-        .maybeSingle();
-      if (consentError) throw consentError;
-      if (!consent) return res.status(404).json({ error: "尚未找到可撤回的确认。" });
       const now = new Date().toISOString();
       const { error } = await supabase.from("student_consents").update({
         status: "withdrawn",
@@ -207,6 +223,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         actor_user_id: user.id,
         event_type: "consent_withdrawn",
         age_band: consent.age_band,
+        consent_basis: consent.consent_basis,
         policy_version: consent.policy_version,
       });
       if (eventError) throw eventError;

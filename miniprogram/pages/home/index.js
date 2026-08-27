@@ -19,7 +19,7 @@ Page({
     this.setData({ saving: true, message: "", isError: false });
     try {
       const data = await api("/api/mini/profile", { method: "POST", data: { displayName: this.data.displayName, ageBand: this.data.ageOptions[this.data.ageIndex].value } });
-      this.setData({ profile: data.profile, ready: data.ready, message: data.ready ? "确认完成，可以开始记录。" : "个人确认已保存，下一步等待监护人确认。" });
+      this.setData({ profile: data.profile, ready: data.ready, message: data.ready ? "确认完成，可以开始记录。" : "确认尚未生效，请重新阅读后再试。" });
     } catch (error) { this.setData({ message: error.message, isError: true }); }
     finally { this.setData({ saving: false }); }
   },

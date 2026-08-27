@@ -9,13 +9,13 @@ const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
 
 const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
 
-test("小程序成年虚拟用户可独立确认并保存、读取、删除本人记录", async ({ request }, testInfo) => {
+test("小程序 14–17 岁虚拟学生可自主确认并保存、读取、删除本人记录", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium", "数据流程与视口无关，无需重复执行");
   test.skip(!serviceRoleKey || !password || !supabaseAnonKey, "需要正式隔离测试配置");
   test.setTimeout(90_000);
 
   const admin = createClient(supabaseUrl, serviceRoleKey!, { auth: { autoRefreshToken: false, persistSession: false } });
-  const email = `e2e-mini-adult-${randomUUID()}@youthtempo.test`;
+  const email = `e2e-mini-student-${randomUUID()}@youthtempo.test`;
   const temporaryPassword = `${randomUUID()}Aa1!`;
   let userId = "";
 
@@ -33,14 +33,14 @@ test("小程序成年虚拟用户可独立确认并保存、读取、删除本�
 
     const profileResponse = await request.post("/api/mini/profile", {
       headers: auth(token),
-      data: { displayName: "小程序成年测试用户", ageBand: "18_plus" },
+      data: { displayName: "小程序学生测试用户", ageBand: "14_17" },
     });
     const profileText = await profileResponse.text();
     expect(profileResponse.status(), profileText).toBe(200);
     expect(JSON.parse(profileText)).toMatchObject({
       ready: true,
       profile: { id: userId, role: "学生", school_id: null },
-      consent: { age_band: "18_plus", status: "active" },
+      consent: { age_band: "14_17", consent_basis: "student_self_pilot", status: "active" },
     });
 
     const records = ["sleep", "wake", "eat", "exercise", "task"].map((id) => ({

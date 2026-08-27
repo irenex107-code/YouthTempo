@@ -35,6 +35,13 @@ test("SWEET 页面要求本次 AI 确认并通过本人 API 保存", () => {
   expect(script).toContain('api("/api/mini/records"');
 });
 
+test("小程序学生自主试用不再显示监护人确认门槛", () => {
+  const loginMarkup = fs.readFileSync(path.join(root, "pages/login/index.wxml"), "utf8");
+  const homeMarkup = fs.readFileSync(path.join(root, "pages/home/index.wxml"), "utf8");
+  expect(loginMarkup).toContain("14–17 岁完成本人单独确认后即可使用");
+  expect(homeMarkup).not.toContain("等待监护人确认");
+});
+
 test("历史记录通过服务端本人范围接口读取和删除", () => {
   const script = fs.readFileSync(path.join(root, "pages/history/index.js"), "utf8");
   expect(script).toContain('api("/api/mini/records")');

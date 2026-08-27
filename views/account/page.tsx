@@ -832,6 +832,8 @@ export default function AccountPage() {
                           <p className="mt-2 text-sm leading-6 text-muted">
                             {consentStatus.consent.ageBand === "18_plus"
                               ? t("account.consent.adultActive")
+                              : consentStatus.consent.consentBasis === "student_self_pilot"
+                                ? t("account.consent.minorSelfActive")
                               : t("account.consent.minorActive")}
                             {t("account.consent.policyVersion", { version: consentStatus.policyVersion })}
                           </p>
@@ -869,7 +871,9 @@ export default function AccountPage() {
                       {consentStatus.children.length ? consentStatus.children.map((child) => (
                         <div key={child.studentUserId} className="rounded-2xl bg-white/85 p-5">
                           <p className="font-bold text-ink">{child.studentName}</p>
-                          {child.status === "active" ? (
+                          {child.status === "active" && child.consentBasis === "student_self_pilot" ? (
+                            <p className="mt-2 text-sm text-muted">{t("account.consent.selfPilotChildActive")}</p>
+                          ) : child.status === "active" ? (
                             <><p className="mt-2 text-sm text-muted">{t("account.consent.bothComplete")}</p><button type="button" className="button-secondary mt-4" disabled={consentLoading} onClick={() => handleWithdrawConsent(child.studentUserId)}>{t("account.consent.withdrawGuardian")}</button></>
                           ) : child.status === "pending_guardian" ? (
                             <><p className="mt-2 text-sm leading-6 text-muted">{t("account.consent.guardianPrompt")}</p><button type="button" className="button-primary mt-4" disabled={consentLoading} onClick={() => handleGuardianConsent(child.studentUserId)}>{consentLoading ? t("account.actions.submitting") : t("account.consent.agreeChild")}</button></>

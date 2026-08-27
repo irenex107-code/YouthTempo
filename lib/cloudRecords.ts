@@ -135,6 +135,7 @@ export type StudentConsentSummary = {
   studentUserId: string;
   studentName: string;
   ageBand: "under_14" | "14_17" | "18_plus" | null;
+  consentBasis: "not_applicable" | "adult_self" | "student_self_pilot" | "student_guardian" | null;
   policyVersion: string;
   status: "not_started" | "pending_guardian" | "active" | "withdrawn" | "ineligible";
   studentAssentedAt: string | null;
@@ -575,7 +576,7 @@ export async function saveCloudSweetRecord(record: {
   if (profile?.role === "学生") {
     const consent = await getStudentConsentStatus();
     if (consent.consent?.status !== "active") {
-      throw new Error("请先在账户页完成学生确认和监护人知情同意，再保存记录。");
+      throw new Error("请先在账户页完成适用的知情确认，再保存记录。");
     }
   }
   const { data: latestRecord, error: latestError } = await supabase
