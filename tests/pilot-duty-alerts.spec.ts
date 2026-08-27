@@ -30,7 +30,7 @@ test("无学校的安全留言和学生主动求助会进入同一值班队列",
 
 test("值班迁移保持服务端专用访问、RLS 与原子处理审计", async () => {
   const migration = await readFile(
-    path.join(process.cwd(), "supabase/migrations/20260827194128_add_pilot_duty_message_queue.sql"),
+    path.join(process.cwd(), "supabase/migrations/20260827200529_add_pilot_duty_message_queue.sql"),
     "utf8",
   );
   expect(migration).toContain("alter table public.student_message_duty_actions enable row level security");
