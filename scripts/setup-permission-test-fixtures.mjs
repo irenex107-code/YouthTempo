@@ -138,6 +138,8 @@ async function removeFixtures() {
     .filter((user) => user.email && fixtureEmails.has(user.email.toLowerCase()))
     .map((user) => user.id);
 
+  const cleanupErrors = [];
+  const revokedUserIds = [];
   const authClient = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -149,34 +151,49 @@ async function removeFixtures() {
       password,
     });
     if (signInError || !sessionData.session?.access_token) {
-      throw new Error(`无法在删除前撤销虚拟账号 ${user.id} 的会话。`);
+      cleanupErrors.push(`无法在删除前撤销虚拟账号 ${user.id} 的会话`);
+      continue;
     }
-    assertResult(
-      await supabase.auth.admin.signOut(sessionData.session.access_token, "global"),
-      `撤销虚拟账号 ${user.id} 的会话`,
+    const { error: signOutError } = await supabase.auth.admin.signOut(
+      sessionData.session.access_token,
+      "global",
     );
+    if (signOutError) {
+      cleanupErrors.push(`撤销虚拟账号 ${user.id} 的会话失败：${signOutError.message}`);
+      continue;
+    }
+    revokedUserIds.push(user.id);
   }
 
-  const emailCleanupResults = await Promise.all([
-    supabase.from("admin_roles").delete().in("email", [...fixtureEmails]),
-    supabase.from("school_invites").delete().in("email", [...fixtureEmails]),
-    supabase.from("user_permissions").delete().in("grantee_email", [...fixtureEmails]),
-  ]);
-  emailCleanupResults.forEach((result, index) => {
-    assertResult(result, ["删除虚拟平台角色", "删除虚拟学校邀请", "删除虚拟邮箱权限"][index]);
-  });
-
-  for (const userId of fixtureUserIds) {
-    assertResult(await supabase.auth.admin.deleteUser(userId), `删除虚拟账号 ${userId}`);
+  const emailCleanupSteps = [
+    ["删除虚拟平台角色", () => supabase.from("admin_roles").delete().in("email", [...fixtureEmails])],
+    ["删除虚拟学校邀请", () => supabase.from("school_invites").delete().in("email", [...fixtureEmails])],
+    ["删除虚拟邮箱权限", () => supabase.from("user_permissions").delete().in("grantee_email", [...fixtureEmails])],
+  ];
+  for (const [label, operation] of emailCleanupSteps) {
+    const { error } = await operation();
+    if (error) cleanupErrors.push(`${label}：${error.message}`);
   }
-  assertResult(
-    await supabase
-      .from("schools")
-      .delete()
-      .in("id", Object.values(fixture.schools).map((school) => school.id)),
-    "删除虚拟学校",
+
+  let deletedUsers = 0;
+  for (const userId of fixtureUserIds.filter((id) => revokedUserIds.includes(id))) {
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+    if (error) cleanupErrors.push(`删除虚拟账号 ${userId}：${error.message}`);
+    else deletedUsers += 1;
+  }
+  const { error: schoolDeleteError } = await supabase
+    .from("schools")
+    .delete()
+    .in("id", Object.values(fixture.schools).map((school) => school.id));
+  if (schoolDeleteError) cleanupErrors.push(`删除虚拟学校：${schoolDeleteError.message}`);
+
+  console.log(
+    `已处理 ${fixtureUserIds.length} 个固定虚拟账号：成功撤销 ${revokedUserIds.length} 个账号的 session，删除 ${deletedUsers} 个 Auth 用户。`,
   );
-  console.log(`已清理 ${fixtureUserIds.length} 个虚拟账号和 2 所 [E2E] 虚拟学校。`);
+  if (cleanupErrors.length > 0) {
+    throw new Error(`fixture 清理仍有 ${cleanupErrors.length} 项失败：${cleanupErrors.join("；")}`);
+  }
+  console.log("固定虚拟账号、邮箱引用和 2 所 [E2E] 虚拟学校已清理。");
 }
 
 async function createFixtures() {
