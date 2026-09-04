@@ -6,6 +6,7 @@ import {
   otpRequestErrorMessage,
   otpVerificationErrorMessage,
 } from "../lib/emailOtp";
+import { shouldCreateUserForEmailOtp } from "../lib/cloudRecords";
 
 test("登录邮件模板保持纯 OTP 且不加载外部内容", async () => {
   const template = await readFile(path.join(process.cwd(), "supabase/email-templates/otp.html"), "utf8");
@@ -44,4 +45,10 @@ test("账户页与 8 位 OTP 配置一致", async ({ page }) => {
   await page.getByPlaceholder("name@example.com").fill("otp-readiness@example.com");
   expect(emailOtpLength).toBe(8);
   await expect(page.getByRole("button", { name: "发送验证码" })).toBeEnabled();
+});
+
+test("正式登录入口不会重新创建已清理的 E2E fixture 邮箱", () => {
+  expect(shouldCreateUserForEmailOtp("e2e.permission.student1@youthtempo.test")).toBe(false);
+  expect(shouldCreateUserForEmailOtp(" E2E.PERMISSION.GUARDIAN1@YOUTHTEMPO.TEST ")).toBe(false);
+  expect(shouldCreateUserForEmailOtp("young-person@example.com")).toBe(true);
 });

@@ -20,7 +20,7 @@
 | P1 | Messages、反馈、举报、专业认证缺少共享原子限流 | 已补齐按用户/动作限流和安全的 429/503 响应 |
 | P1 | AIDET 家长工具命名未落实最终产品决定 | 已更名 SWEET Talk，并明确“基于 AIDET、不是第六维” |
 | P1 | 真实社区测试依赖 fixture 残留状态 | 关键测试脚本现先重置两所虚拟学校 fixture |
-| P0 | GitHub Verify 曾直接连接正式 Supabase 并在主分支推送时重建 10 个固定 E2E 账号及关系数据 | 2026-09-04 改为仅接受独立 E2E 项目专用 secrets；正式/恢复项目增加代码级拒绝，CI 退出时强制清理；GitHub Actions 正式 `service_role` secret 已移除。正式库 10 个账号、2 所学校及关联数据已删除，Auth、业务表、邮箱引用和 Storage 所有权逐项核对为 0 |
+| P0 | GitHub Verify 曾直接连接正式 Supabase 并在主分支推送时重建 10 个固定 E2E 账号及关系数据 | 2026-09-04 改为仅接受独立 E2E 项目专用 secrets；正式/恢复项目增加代码级拒绝，CI 退出时强制清理；GitHub Actions 正式 `service_role` secret 已移除；公开 OTP 登录不会为 `@youthtempo.test` 创建新用户。正式库 10 个账号、2 所学校及关联数据已删除，Auth、业务表、邮箱引用和 Storage 所有权逐项核对为 0 |
 | P0 | 删除仍关联 active `student_guardian` 同意的监护人会触发 `student_consents_active_basis_check`，导致 Auth 删除返回 500 | fixture 清理已固定为学生优先、监护人最后并增加回归；真实监护人注销需要产品/隐私先决定关联学生同意的状态迁移，再实现原子服务端处理，本项保持 PILOT BLOCKER |
 | P1 | 用户内容/私密入口缺少明确搜索引擎策略 | 已加页面 `noindex` 及 `robots.txt`；canonical/sitemap 等待正式域名 |
 | P1 | AI 指令未显式声明用户输入不是系统指令 | 已增加中英文提示注入边界并测试 |

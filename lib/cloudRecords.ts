@@ -224,6 +224,10 @@ export async function getCurrentUser() {
   return data.user;
 }
 
+export function shouldCreateUserForEmailOtp(email: string) {
+  return !email.trim().toLowerCase().endsWith("@youthtempo.test");
+}
+
 export async function sendEmailOtp(email: string) {
   const supabase = getSupabase();
   if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
@@ -231,7 +235,9 @@ export async function sendEmailOtp(email: string) {
     email,
     options: {
       emailRedirectTo: authRedirectTo(),
-      shouldCreateUser: true,
+      // `.test` is reserved for automated fixtures. Never let the public OTP
+      // entry point recreate a fixture account after operational cleanup.
+      shouldCreateUser: shouldCreateUserForEmailOtp(email),
     },
   });
   if (error) throw error;

@@ -20,7 +20,7 @@
 - [x] Supabase 版本迁移、25 张业务表 RLS、空库 baseline 恢复验证；依赖审计无已知漏洞。
 - [x] Next.js standalone Docker、腾讯云香港 Lighthouse、Nginx/HTTPS 和正式域名部署架构；GitHub Actions 仅在 `main` 的 Verify 全部通过后使用受限 SSH 密钥自动部署，并带候选容器检查和失败回滚。
 - [x] 微信小程序一期工程：OTP、同意、SWEET、AI 小结、本人历史读取/删除和支持入口。
-- [x] 2026-09-04 关闭正式 Supabase 的 E2E fixture 污染：GitHub Verify 已移除正式项目地址和正式 `service_role` secret，正式/恢复项目由 fixture 脚本与 Playwright 双重拒绝；正式库中 10 个固定账号的 session、refresh token、Auth 用户、资料、2 所学校、关系、同意、SWEET 记录、认证、邮箱引用与 Storage 所有权已逐项只读核对为 0。
+- [x] 2026-09-04 关闭正式 Supabase 的 E2E fixture 污染：GitHub Verify 已移除正式项目地址和正式 `service_role` secret，正式/恢复项目由 fixture 脚本与 Playwright 双重拒绝，公开 OTP 登录入口不会为保留的 `@youthtempo.test` 测试域创建新用户；正式库中 10 个固定账号的 session、refresh token、Auth 用户、资料、2 所学校、关系、同意、SWEET 记录、认证、邮箱引用与 Storage 所有权已逐项只读核对为 0。
 
 ## PILOT BLOCKERS / 真实学生入组前必须关闭
 
