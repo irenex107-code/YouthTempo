@@ -6,11 +6,50 @@ import { createClient } from "@supabase/supabase-js";
 const fixturePath = fileURLToPath(
   new URL("../tests/fixtures/permission-boundary.json", import.meta.url),
 );
+const protectedProjectsPath = fileURLToPath(
+  new URL("../tests/fixtures/protected-supabase-projects.json", import.meta.url),
+);
 const fixture = JSON.parse(await readFile(fixturePath, "utf8"));
+const protectedProjects = JSON.parse(await readFile(protectedProjectsPath, "utf8"));
 const cleanup = process.argv.includes("--cleanup");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
+
+function projectRefFromUrl(value) {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL 不是有效网址。");
+  }
+
+  if (!parsed.hostname.endsWith(".supabase.co")) return null;
+  return parsed.hostname.slice(0, -".supabase.co".length);
+}
+
+const projectRef = supabaseUrl ? projectRefFromUrl(supabaseUrl) : null;
+const protectedEntry = Object.entries(protectedProjects).find(([, ref]) => ref === projectRef);
+if (protectedEntry) {
+  const [environment] = protectedEntry;
+  const confirmedProjectRef = process.argv
+    .find((argument) => argument.startsWith("--confirm-protected-cleanup="))
+    ?.split("=", 2)[1];
+  const protectedCleanupAuthorized = cleanup
+    && process.env.ALLOW_PROTECTED_FIXTURE_CLEANUP === "true"
+    && confirmedProjectRef === projectRef;
+
+  if (!protectedCleanupAuthorized) {
+    throw new Error(
+      `拒绝在受保护的 ${environment} Supabase 项目 ${projectRef} 创建或重置 E2E fixture。`,
+    );
+  }
+}
+
+if (!protectedEntry && process.env.ALLOW_E2E_FIXTURE_MUTATION !== "true") {
+  throw new Error("必须显式设置 ALLOW_E2E_FIXTURE_MUTATION=true 才能管理隔离 E2E fixture。");
+}
 
 if (!supabaseUrl || !serviceRoleKey) {
   throw new Error(
@@ -24,6 +63,10 @@ if (serviceRoleKey.startsWith("sb_publishable_")) {
 
 if (!cleanup && (!password || password.length < 16)) {
   throw new Error("E2E_PERMISSION_TEST_PASSWORD 至少需要 16 个字符，且不能提交到仓库。");
+}
+
+if (cleanup && (!supabaseAnonKey || !password)) {
+  throw new Error("清理 fixture 需要 NEXT_PUBLIC_SUPABASE_ANON_KEY 和 E2E_PERMISSION_TEST_PASSWORD，以便先撤销测试会话。");
 }
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -95,10 +138,34 @@ async function removeFixtures() {
     .filter((user) => user.email && fixtureEmails.has(user.email.toLowerCase()))
     .map((user) => user.id);
 
-  assertResult(
-    await supabase.from("admin_roles").delete().in("email", [...fixtureEmails]),
-    "删除虚拟平台角色",
-  );
+  const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  for (const user of (await listAllUsers()).filter(
+    (candidate) => candidate.email && fixtureEmails.has(candidate.email.toLowerCase()),
+  )) {
+    const { data: sessionData, error: signInError } = await authClient.auth.signInWithPassword({
+      email: user.email,
+      password,
+    });
+    if (signInError || !sessionData.session?.access_token) {
+      throw new Error(`无法在删除前撤销虚拟账号 ${user.id} 的会话。`);
+    }
+    assertResult(
+      await supabase.auth.admin.signOut(sessionData.session.access_token, "global"),
+      `撤销虚拟账号 ${user.id} 的会话`,
+    );
+  }
+
+  const emailCleanupResults = await Promise.all([
+    supabase.from("admin_roles").delete().in("email", [...fixtureEmails]),
+    supabase.from("school_invites").delete().in("email", [...fixtureEmails]),
+    supabase.from("user_permissions").delete().in("grantee_email", [...fixtureEmails]),
+  ]);
+  emailCleanupResults.forEach((result, index) => {
+    assertResult(result, ["删除虚拟平台角色", "删除虚拟学校邀请", "删除虚拟邮箱权限"][index]);
+  });
+
   for (const userId of fixtureUserIds) {
     assertResult(await supabase.auth.admin.deleteUser(userId), `删除虚拟账号 ${userId}`);
   }

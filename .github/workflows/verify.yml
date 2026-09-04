@@ -47,14 +47,26 @@ jobs:
 
       - name: Run authenticated permission, revocation, and community tests when configured
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://saqkzfsmabsgbwdvuras.supabase.co
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
           E2E_PERMISSION_TEST_PASSWORD: ${{ secrets.E2E_PERMISSION_TEST_PASSWORD }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          if [ -z "$E2E_PERMISSION_TEST_PASSWORD" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "Authenticated workflow tests require both E2E_PERMISSION_TEST_PASSWORD and SUPABASE_SERVICE_ROLE_KEY." >&2
-            exit 1
+          if [ -z "$E2E_SUPABASE_URL" ] || [ -z "$E2E_SUPABASE_ANON_KEY" ] || [ -z "$E2E_SUPABASE_SERVICE_ROLE_KEY" ] || [ -z "$E2E_PERMISSION_TEST_PASSWORD" ]; then
+            echo "::warning::Authenticated workflow tests are skipped until the isolated E2E Supabase secrets are configured."
+            exit 0
           fi
+
+          export NEXT_PUBLIC_SUPABASE_URL="$E2E_SUPABASE_URL"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="$E2E_SUPABASE_ANON_KEY"
+          export SUPABASE_SERVICE_ROLE_KEY="$E2E_SUPABASE_SERVICE_ROLE_KEY"
+          export ALLOW_E2E_FIXTURE_MUTATION=true
+
+          cleanup_fixtures() {
+            pnpm test:fixtures:permissions:cleanup
+          }
+          trap cleanup_fixtures EXIT INT TERM
+
           pnpm test:fixtures:permissions
           pnpm exec playwright test --workers=1 \
             tests/authenticated-permission-boundary.spec.ts \

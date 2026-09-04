@@ -1,4 +1,23 @@
 import { defineConfig, devices } from "@playwright/test";
+import protectedSupabaseProjects from "./tests/fixtures/protected-supabase-projects.json";
+
+const remoteTestCredentialsPresent = Boolean(
+  process.env.E2E_PERMISSION_TEST_PASSWORD || process.env.SUPABASE_SERVICE_ROLE_KEY,
+);
+
+if (remoteTestCredentialsPresent) {
+  const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!configuredUrl) {
+    throw new Error("远程认证测试必须显式设置隔离的 NEXT_PUBLIC_SUPABASE_URL。");
+  }
+  const projectRef = new URL(configuredUrl).hostname.split(".")[0];
+  if (Object.values(protectedSupabaseProjects).includes(projectRef)) {
+    throw new Error(`拒绝对受保护的 Supabase 项目 ${projectRef} 运行远程认证测试。`);
+  }
+  if (process.env.ALLOW_E2E_FIXTURE_MUTATION !== "true") {
+    throw new Error("远程认证测试必须显式设置 ALLOW_E2E_FIXTURE_MUTATION=true。");
+  }
+}
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 

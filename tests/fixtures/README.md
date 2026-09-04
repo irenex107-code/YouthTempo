@@ -4,7 +4,8 @@
 
 ## 初始化
 
-在 Supabase Dashboard 打开 YouthTempo 项目：
+在 Supabase Dashboard 打开专用的隔离 E2E 项目。禁止使用正式项目
+`saqkzfsmabsgbwdvuras` 或恢复演练项目 `sebtakwjwubvdqdswtdi`：
 
 1. 在 **Connect** 或 **Settings → API Keys** 复制 Project URL。
 2. 在 **Publishable key** 复制 `sb_publishable_...`，供浏览器客户端使用。
@@ -18,8 +19,9 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_...或旧版service_role
 E2E_PERMISSION_TEST_PASSWORD=...
-# 可选：直接验证腾讯云正式环境；不填则自动启动本地 Next.js
-PLAYWRIGHT_BASE_URL=https://youthtempo-web-287026-8-1457638967.sh.run.tcloudbase.com
+ALLOW_E2E_FIXTURE_MUTATION=true
+# 推荐留空并自动启动本地 Next.js；如指定其他地址，该应用也必须连接同一个隔离 E2E 项目
+PLAYWRIGHT_BASE_URL=
 ```
 
 收紧文件权限并确认 Git 会忽略它：
@@ -43,7 +45,7 @@ npm run test:e2e:community
 
 ## 验证
 
-对本地站点或腾讯云 CloudBase 正式地址运行 Playwright。只有配置了 `E2E_PERMISSION_TEST_PASSWORD` 时，真实登录与 RLS 隔离测试才会执行；成员撤销测试还需要 `SUPABASE_SERVICE_ROLE_KEY`，用于在测试后恢复固定虚拟关系。缺少相应变量时，测试会明确标记为跳过。
+对本地应用运行 Playwright，并让应用与测试同时连接同一个隔离 E2E Supabase 项目。只有配置了 `E2E_PERMISSION_TEST_PASSWORD` 时，真实登录与 RLS 隔离测试才会执行；成员撤销测试还需要隔离项目的 `SUPABASE_SERVICE_ROLE_KEY`，用于在测试后恢复固定虚拟关系。缺少相应变量时，测试会明确标记为跳过。测试配置和 fixture 脚本都会拒绝正式项目与恢复演练项目，即使误配服务端密钥也不会向这两个受保护项目写入夹具。
 
 SWEET 生命周期测试会用虚拟学生在页面中完成五个维度，真实生成 AI 小结并保存，再从账号页重新读取和删除。每条临时记录都带唯一 `[E2E-LIFECYCLE]` 标记，并在 `finally` 中再次清理。
 
@@ -57,4 +59,6 @@ SWEET 生命周期测试会用虚拟学生在页面中完成五个维度，真�
 npm run test:fixtures:permissions:cleanup
 ```
 
-清理脚本只删除 `permission-boundary.json` 中列出的固定虚拟账号和学校。
+清理脚本会先撤销固定虚拟账号的全局 Auth session，再删除
+`permission-boundary.json` 中列出的固定虚拟账号、邮箱引用和学校。GitHub Verify
+使用 `EXIT/INT/TERM` trap，无论测试成功、失败或被取消都会尝试执行清理。
