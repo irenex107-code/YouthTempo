@@ -86,6 +86,13 @@ test("E2E fixture tooling refuses production and recovery Supabase projects", ()
   }
 });
 
+test("E2E cleanup deletes students before guardians so active consent can cascade safely", () => {
+  const script = read("scripts/setup-permission-test-fixtures.mjs");
+
+  expect(script).toContain('role === "学生" ? 0 : role === "家长" ? 2 : 1');
+  expect(script).toContain("fixtureUsers.map((user) => user.id)");
+});
+
 test("GitHub Verify only accepts isolated E2E Supabase secrets and always cleans fixtures", () => {
   const workflow = read(".github/workflows/verify.yml");
   const protectedProjects = JSON.parse(

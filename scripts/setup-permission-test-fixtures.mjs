@@ -134,18 +134,25 @@ async function removeFixtures() {
   const fixtureEmails = new Set(
     Object.values(fixture.users).map((definition) => definition.email.toLowerCase()),
   );
-  const fixtureUserIds = (await listAllUsers())
+  const fixtureDefinitionsByEmail = new Map(
+    Object.values(fixture.users).map((definition) => [definition.email.toLowerCase(), definition]),
+  );
+  const fixtureUsers = (await listAllUsers())
     .filter((user) => user.email && fixtureEmails.has(user.email.toLowerCase()))
-    .map((user) => user.id);
+    .sort((left, right) => {
+      const leftRole = fixtureDefinitionsByEmail.get(left.email.toLowerCase())?.role;
+      const rightRole = fixtureDefinitionsByEmail.get(right.email.toLowerCase())?.role;
+      const priority = (role) => role === "学生" ? 0 : role === "家长" ? 2 : 1;
+      return priority(leftRole) - priority(rightRole);
+    });
+  const fixtureUserIds = fixtureUsers.map((user) => user.id);
 
   const cleanupErrors = [];
   const revokedUserIds = [];
   const authClient = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  for (const user of (await listAllUsers()).filter(
-    (candidate) => candidate.email && fixtureEmails.has(candidate.email.toLowerCase()),
-  )) {
+  for (const user of fixtureUsers) {
     const { data: sessionData, error: signInError } = await authClient.auth.signInWithPassword({
       email: user.email,
       password,

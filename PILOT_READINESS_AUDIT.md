@@ -20,7 +20,8 @@
 | P1 | Messages、反馈、举报、专业认证缺少共享原子限流 | 已补齐按用户/动作限流和安全的 429/503 响应 |
 | P1 | AIDET 家长工具命名未落实最终产品决定 | 已更名 SWEET Talk，并明确“基于 AIDET、不是第六维” |
 | P1 | 真实社区测试依赖 fixture 残留状态 | 关键测试脚本现先重置两所虚拟学校 fixture |
-| P0 | GitHub Verify 曾直接连接正式 Supabase 并在主分支推送时重建 10 个固定 E2E 账号及关系数据 | 2026-09-04 改为仅接受独立 E2E 项目专用 secrets；正式/恢复项目增加代码级拒绝，CI 退出时强制清理。正式库既有 fixture 待代码保护合入后撤销 session、删除并完成零残留核对 |
+| P0 | GitHub Verify 曾直接连接正式 Supabase 并在主分支推送时重建 10 个固定 E2E 账号及关系数据 | 2026-09-04 改为仅接受独立 E2E 项目专用 secrets；正式/恢复项目增加代码级拒绝，CI 退出时强制清理；GitHub Actions 正式 `service_role` secret 已移除。正式库 10 个账号、2 所学校及关联数据已删除，Auth、业务表、邮箱引用和 Storage 所有权逐项核对为 0 |
+| P0 | 删除仍关联 active `student_guardian` 同意的监护人会触发 `student_consents_active_basis_check`，导致 Auth 删除返回 500 | fixture 清理已固定为学生优先、监护人最后并增加回归；真实监护人注销需要产品/隐私先决定关联学生同意的状态迁移，再实现原子服务端处理，本项保持 PILOT BLOCKER |
 | P1 | 用户内容/私密入口缺少明确搜索引擎策略 | 已加页面 `noindex` 及 `robots.txt`；canonical/sitemap 等待正式域名 |
 | P1 | AI 指令未显式声明用户输入不是系统指令 | 已增加中英文提示注入边界并测试 |
 | P0 | 原先只有 Talk 最新一条消息进入确定性危机识别，其余四个自由文本 AI 工具可能先调用 provider；Talk 的早先高风险消息也可能被后续消息冲掉 | 五个支持入口现均在 provider 调用前执行共享中英文确定性识别；Talk 扫描本次会话全部用户消息；命中后只返回固定现实支持指引。Talk 普通生成已于 2026-08-18 对首轮学校试点关闭，兼容 API 仍保留危机优先路径。专业审核和学校线下承接仍是开放条件 |

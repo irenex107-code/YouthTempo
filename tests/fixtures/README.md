@@ -59,6 +59,6 @@ SWEET 生命周期测试会用虚拟学生在页面中完成五个维度，真�
 npm run test:fixtures:permissions:cleanup
 ```
 
-清理脚本会先撤销固定虚拟账号的全局 Auth session，再删除
+清理脚本会先撤销固定虚拟账号的全局 Auth session，再按学生优先、监护人最后的顺序删除
 `permission-boundary.json` 中列出的固定虚拟账号、邮箱引用和学校。GitHub Verify
 使用 `EXIT/INT/TERM` trap，无论测试成功、失败或被取消都会尝试执行清理。
