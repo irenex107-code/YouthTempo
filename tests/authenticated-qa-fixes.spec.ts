@@ -17,6 +17,15 @@ test("Account 为历史 SWEET 记录提供稳定的渲染 key fallback", async (
   expect(source).toContain('field.id || `${stepKey}-field-${fieldIndex}`');
 });
 
+test("平台管理员账户页只展示本人记录并保留删除入口", async () => {
+  const source = await readFile(path.join(process.cwd(), "views/account/page.tsx"), "utf8");
+
+  expect(source).toContain("records.filter((record) => record.user_id === user.id)");
+  expect(source).toContain('nextAccountStatus?.displayRole === "平台管理员" ? currentUser.id : undefined');
+  expect(source).toContain("{user && !needsPersonalProfile ? (");
+  expect(source).toContain("const canDelete = record.user_id === user.id");
+});
+
 test("Account 英文数量文案区分单复数且中文显示保持不变", () => {
   expect(en.account.summary.recordCountOne).toBe("{{count}} record");
   expect(en.account.summary.recordCount).toBe("{{count}} records");

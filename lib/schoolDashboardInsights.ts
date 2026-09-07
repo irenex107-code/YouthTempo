@@ -1,3 +1,8 @@
+import {
+  latestSweetRecordsPerUserDay,
+  sweetRecordCalendarDayNumber,
+} from "@/lib/sweetRecordDays";
+
 export type InsightRecord = {
   user_id: string;
   school_id: string;
@@ -17,7 +22,75 @@ export type InsightSchool = {
   student_count: number;
 };
 
+export type ParticipationStudent = {
+  school_id: string;
+  school_name: string;
+  user_id: string;
+  student_name: string;
+  student_email: string;
+};
+
+export type StudentParticipationStat = ParticipationStudent & {
+  record_count: number;
+  total_record_days: number;
+  last_7_active_days: number;
+  last_28_active_days: number;
+  current_streak_days: number;
+  longest_streak_days: number;
+  latest_record_at: string | null;
+};
+
 const dayMs = 24 * 60 * 60 * 1000;
+
+function longestConsecutiveRun(days: number[]) {
+  let longest = 0;
+  let run = 0;
+  let previous: number | null = null;
+  days.forEach((day) => {
+    run = previous !== null && day === previous + 1 ? run + 1 : 1;
+    longest = Math.max(longest, run);
+    previous = day;
+  });
+  return longest;
+}
+
+export function buildStudentParticipationStats(
+  records: InsightRecord[],
+  students: ParticipationStudent[],
+  now = new Date(),
+  timeZone = "Asia/Shanghai",
+): StudentParticipationStat[] {
+  const today = sweetRecordCalendarDayNumber(now, timeZone);
+  if (today === null) return [];
+
+  return students.map((student) => {
+    const studentRecords = latestSweetRecordsPerUserDay(
+      records.filter((record) => record.school_id === student.school_id && record.user_id === student.user_id),
+      timeZone,
+    )
+      .map((record) => ({ ...record, day: sweetRecordCalendarDayNumber(record.created_at, timeZone) }))
+      .filter((record): record is InsightRecord & { day: number } => record.day !== null && record.day <= today)
+      .sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
+    const days = Array.from(new Set(studentRecords.map((record) => record.day))).sort((a, b) => a - b);
+    const daySet = new Set(days);
+    const latestDay = days.at(-1) ?? null;
+    let currentStreakDays = 0;
+    if (latestDay !== null && latestDay >= today - 1) {
+      for (let day = latestDay; daySet.has(day); day -= 1) currentStreakDays += 1;
+    }
+
+    return {
+      ...student,
+      record_count: days.length,
+      total_record_days: days.length,
+      last_7_active_days: days.filter((day) => day >= today - 6).length,
+      last_28_active_days: days.filter((day) => day >= today - 27).length,
+      current_streak_days: currentStreakDays,
+      longest_streak_days: longestConsecutiveRun(days),
+      latest_record_at: studentRecords[0]?.created_at || null,
+    };
+  });
+}
 
 function recordsInRange(records: InsightRecord[], start: number, end: number) {
   return records.filter((record) => {
@@ -43,8 +116,10 @@ export function buildTeacherWeeklySummaries(
 
   return teachers.map((teacher) => {
     const studentSet = new Set(teacher.student_ids);
-    const teacherRecords = records.filter(
-      (record) => record.school_id === teacher.school_id && studentSet.has(record.user_id),
+    const teacherRecords = latestSweetRecordsPerUserDay(
+      records.filter(
+        (record) => record.school_id === teacher.school_id && studentSet.has(record.user_id),
+      ),
     );
     const currentRecords = recordsInRange(teacherRecords, currentStart, end);
     const previousRecords = recordsInRange(teacherRecords, previousStart, currentStart);
@@ -78,7 +153,9 @@ export function buildSchoolMonthlyTrends(
   const end = now.getTime();
 
   return schools.map((school) => {
-    const schoolRecords = records.filter((record) => record.school_id === school.school_id);
+    const schoolRecords = latestSweetRecordsPerUserDay(
+      records.filter((record) => record.school_id === school.school_id),
+    );
     const weeks = Array.from({ length: 4 }, (_, index) => {
       const weekEnd = end - (3 - index) * 7 * dayMs;
       const weekStart = weekEnd - 7 * dayMs;

@@ -3,6 +3,10 @@ import type { Locale } from "@/lib/i18n/config";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/sweetRecordTypes";
 import type { CommunityReportCategory, CommunityReportPriority } from "@/lib/communityReports";
+import {
+  latestSweetRecordsPerUserDay,
+  shanghaiCalendarDayRange,
+} from "@/lib/sweetRecordDays";
 
 export type UserRole = "学生" | "家长" | "学校支持人员" | "专业支持者";
 
@@ -566,16 +570,18 @@ export async function saveProfile(user: User, displayName: string) {
   return { ...data, role: normalizeRole(data.role) } as CloudProfile;
 }
 
-export async function listCloudSweetRecords() {
+export async function listCloudSweetRecords(ownerUserId?: string) {
   const supabase = getSupabase();
   if (!supabase) return [];
-  const { data, error } = await supabase
+  let query = supabase
     .from("sweet_records")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(50);
+  if (ownerUserId) query = query.eq("user_id", ownerUserId);
+  const { data, error } = await query;
   if (error) throw error;
-  return (data || []) as CloudSweetRecord[];
+  return latestSweetRecordsPerUserDay((data || []) as CloudSweetRecord[]);
 }
 
 export async function saveCloudSweetRecord(record: {
@@ -595,20 +601,37 @@ export async function saveCloudSweetRecord(record: {
       throw new Error("请先在账户页完成适用的知情确认，再保存记录。");
     }
   }
-  const { data: latestRecord, error: latestError } = await supabase
+  const dayRange = shanghaiCalendarDayRange();
+  const { data: todayRecords, error: latestError } = await supabase
     .from("sweet_records")
-    .select("id,user_id,school_id,records,summary,small_step,recommended_next_tool,created_at")
+    .select("*")
     .eq("user_id", user.id)
+    .gte("created_at", dayRange.start)
+    .lt("created_at", dayRange.end)
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(50);
   if (latestError) throw latestError;
+  const latestRecord = todayRecords?.[0] as CloudSweetRecord | undefined;
+  const cleanupOldRecords = async (recordIds: string[]) => {
+    if (!recordIds.length) return;
+    const { error: cleanupError } = await supabase
+      .from("sweet_records")
+      .delete()
+      .eq("user_id", user.id)
+      .in("id", recordIds);
+    if (cleanupError) console.warn("SWEET same-day record cleanup was deferred.");
+  };
   if (
     latestRecord &&
     JSON.stringify(latestRecord.records) === JSON.stringify(record.records) &&
-    Date.now() - new Date(latestRecord.created_at).getTime() < 10 * 60 * 1000
+    (latestRecord.summary || null) === (record.summary || null) &&
+    (latestRecord.small_step || null) === (record.smallStep || null) &&
+    (latestRecord.recommended_next_tool || null) === (record.recommendedNextTool || null)
   ) {
-    return latestRecord as CloudSweetRecord;
+    await cleanupOldRecords(
+      (todayRecords || []).slice(1).map((existingRecord) => existingRecord.id as string),
+    );
+    return latestRecord;
   }
   const { data, error } = await supabase
     .from("sweet_records")
@@ -623,13 +646,32 @@ export async function saveCloudSweetRecord(record: {
     .select("*")
     .single();
   if (error) throw error;
+  const oldRecordIds = (todayRecords || []).map((existingRecord) => existingRecord.id as string);
+  await cleanupOldRecords(oldRecordIds);
   return data as CloudSweetRecord;
 }
 
 export async function deleteCloudSweetRecord(recordId: string) {
   const supabase = getSupabase();
   if (!supabase) return;
-  const { error } = await supabase.from("sweet_records").delete().eq("id", recordId);
+  const user = await getCurrentUser();
+  if (!user) throw new Error("请先登录，再删除记录。");
+  const { data: targetRecord, error: targetError } = await supabase
+    .from("sweet_records")
+    .select("id,user_id,created_at")
+    .eq("id", recordId)
+    .maybeSingle();
+  if (targetError) throw targetError;
+  if (!targetRecord || targetRecord.user_id !== user.id) {
+    throw new Error("你只能删除自己的记录。");
+  }
+  const dayRange = shanghaiCalendarDayRange(targetRecord.created_at);
+  const { error } = await supabase
+    .from("sweet_records")
+    .delete()
+    .eq("user_id", user.id)
+    .gte("created_at", dayRange.start)
+    .lt("created_at", dayRange.end);
   if (error) throw error;
 }
 

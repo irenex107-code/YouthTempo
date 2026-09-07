@@ -65,6 +65,7 @@
 - 2026-08-18 Talk 首轮关闭增量：版本化 410 关闭状态、普通请求零 provider 调用、旧客户端危机优先、页面无输入、替代支持入口、青少年入口移除及中英文/窄屏回归共 76 passed（desktop/mobile Chromium）；`pnpm typecheck` 与 `pnpm build` 通过。
 - 2026-08-18 AI 范围收敛与全站安全文案增量：AI/API/危机/消息社区/双语文案 82 passed（desktop/mobile Chromium）；扩展规则、Talk 关闭、i18n、内容安全与试点加固批次 92 passed，另有 2 个旧文案断言按新“家长、老师或其他可信任成年人”要求更新后 Referral 批次 10 passed。最终 `pnpm typecheck` 与 `pnpm build` 通过，构建 63 routes。
 - 2026-08-18 AI 来源约束与配置收口增量：模型只选来源字段 ID、服务器严格校验与固定模板、扩展标识移除、生成总开关、provider/model allowlist 及 B–G 越界输出拒绝共 90 passed（desktop/mobile Chromium）；`pnpm typecheck` 与 `pnpm build` 通过，构建 63 routes。未调用真实 provider，供应商后台与正式环境配置仍需人工验收。
+- 2026-09-07 正式 AI 配置恢复：只读诊断确认失败来自实际 provider/model 未进入 allowlist，而非学生知情确认。经试点发起人明确授权后，将 `api-router.fly.dev` 与 `claude-haiku-4-5` 加入正式环境显式白名单；保留权限为 0600 的原配置备份。候选容器和切换后正式容器均通过无用户数据合成生成（HTTP 200 且返回内容），本机及公网健康检查正常，正式版本仍为 `dd15a339662ee12a511f07812d6b809baf2cff5c`。本项只证明技术链路恢复，不证明供应商数据保留、训练、处理地点或跨境条件已完成审核。
 - 2026-08-28 学生自主试用同意增量：`pnpm typecheck` 与 `pnpm build` 通过；策略、迁移/schema 一致性、公开说明、小程序与双语安全文案专项 26 passed；完整不注入真实凭据的回归 347 passed、47 skipped by design。正式 Supabase 迁移 `20260827174237_enable_student_self_pilot_consent` 随后已应用并完成结构核对，但依赖真实生产数据写入的学生确认→AI→保存→读取→撤回生命周期没有获得单独授权，不能据此宣称该生产写入生命周期已实测。
 - 2026-08-28 试点值班增量：学生主动联系、无学校 `safety_review` 入队、最小化邮件内容、active 平台管理员 API、处理审计和中英文非实时提示专项 90 passed；完整无真实凭据回归 357 passed、47 skipped by design；`pnpm typecheck` 与 `pnpm build` 通过。依赖审计发现的 `nanoid` 高危拒绝服务公告已用精确覆盖升级到 3.3.18，复验为无已知漏洞。正式迁移 `20260827200529` 与 `20260827200713` 已应用；安全 advisor 没有新增 ERROR，高风险外键无索引提示已消除。SMTP、真实收件和失败重试尚未执行，本项不能视为生产可用证据。
 

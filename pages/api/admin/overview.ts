@@ -4,9 +4,12 @@ import { getAdminContext } from "@/lib/adminAccess";
 import { assessSweetRecord } from "@/lib/attentionSignals";
 import {
   buildSchoolMonthlyTrends,
+  buildStudentParticipationStats,
   buildTeacherWeeklySummaries,
   type InsightTeacher,
+  type ParticipationStudent,
 } from "@/lib/schoolDashboardInsights";
+import { latestSweetRecordsPerUserDay } from "@/lib/sweetRecordDays";
 
 async function getCount(query: PromiseLike<{ count: number | null; error: unknown }>) {
   const { count, error } = await query;
@@ -40,6 +43,28 @@ async function getInsightRecords(
   }
 
   throw new Error("近四周记录量超出当前汇总上限，请联系平台负责人处理。");
+}
+
+async function getParticipationRecords(supabase: SupabaseClient, schoolIds: string[], studentIds: string[]) {
+  if (!schoolIds.length || !studentIds.length) return [];
+  const pageSize = 1000;
+  const maxRecords = 50_000;
+  const records: Array<{ user_id: string; school_id: string; created_at: string }> = [];
+
+  for (let from = 0; from < maxRecords; from += pageSize) {
+    const { data, error } = await supabase
+      .from("sweet_records")
+      .select("user_id,school_id,created_at")
+      .in("school_id", schoolIds)
+      .in("user_id", studentIds)
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    records.push(...(data || []));
+    if ((data || []).length < pageSize) return records;
+  }
+
+  throw new Error("学生参与记录量超出当前统计上限，请联系平台负责人处理。");
 }
 
 function recordPreview(records: unknown) {
@@ -238,6 +263,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    const schoolNameById = new Map(
+      (schools || []).map((school) => [school.id as string, school.name as string]),
+    );
+    const participationStudents: ParticipationStudent[] = schoolDirectories.flatMap((directory) =>
+      directory.students.map((student) => ({
+        school_id: directory.school_id,
+        school_name: schoolNameById.get(directory.school_id) || "学校",
+        user_id: student.id,
+        student_name: student.display_name || student.email || "未命名学生",
+        student_email: student.email,
+      })),
+    );
+    const ownSupportSchoolIds = context.kind === "school"
+      ? schoolIds.filter((schoolId) => context.schoolRoles[schoolId] === "school_support")
+      : [];
+    const { data: ownSupportAssignments, error: ownSupportAssignmentsError } = ownSupportSchoolIds.length
+      ? await supabase
+          .from("teacher_student_assignments")
+          .select("school_id,student_user_id")
+          .eq("teacher_user_id", context.user.id)
+          .eq("status", "active")
+          .in("school_id", ownSupportSchoolIds)
+      : { data: [], error: null };
+    if (ownSupportAssignmentsError) throw ownSupportAssignmentsError;
+    const ownSupportStudentIds = Array.from(new Set(
+      (ownSupportAssignments || []).map((assignment) => assignment.student_user_id as string),
+    ));
+    const { data: ownSupportProfiles, error: ownSupportProfilesError } = ownSupportStudentIds.length
+      ? await supabase
+          .from("profiles")
+          .select("id,email,display_name")
+          .in("id", ownSupportStudentIds)
+      : { data: [], error: null };
+    if (ownSupportProfilesError) throw ownSupportProfilesError;
+    const ownSupportProfileById = new Map(
+      (ownSupportProfiles || []).map((profile) => [profile.id as string, profile]),
+    );
+    (ownSupportAssignments || []).forEach((assignment) => {
+      const userId = assignment.student_user_id as string;
+      const schoolId = assignment.school_id as string;
+      const profile = ownSupportProfileById.get(userId);
+      participationStudents.push({
+        school_id: schoolId,
+        school_name: schoolNameById.get(schoolId) || "学校",
+        user_id: userId,
+        student_name: profile?.display_name || profile?.email || "未命名学生",
+        student_email: profile?.email || "",
+      });
+    });
+    const uniqueParticipationStudents = Array.from(
+      new Map(participationStudents.map((student) => [
+        `${student.school_id}:${student.user_id}`,
+        student,
+      ])).values(),
+    );
+    const participationRecords = await getParticipationRecords(
+      supabase,
+      Array.from(new Set(uniqueParticipationStudents.map((student) => student.school_id))),
+      Array.from(new Set(uniqueParticipationStudents.map((student) => student.user_id))),
+    );
+    const adminSchoolIdSet = new Set(directorySchoolIds);
+    const supportAssignmentKeySet = new Set(
+      (ownSupportAssignments || []).map((assignment) => `${assignment.school_id}:${assignment.student_user_id}`),
+    );
+    const authorizedParticipationRecords = context.kind === "platform"
+      ? participationRecords
+      : participationRecords.filter((record) =>
+          adminSchoolIdSet.has(record.school_id) ||
+          supportAssignmentKeySet.has(`${record.school_id}:${record.user_id}`),
+        );
+    const studentParticipationStats = buildStudentParticipationStats(
+      authorizedParticipationRecords,
+      uniqueParticipationStudents,
+    );
+
     let profileCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("profiles").select("id", { count: "exact", head: true });
@@ -274,7 +374,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from("sweet_records")
       .select("id,user_id,school_id,records,summary,created_at")
       .order("created_at", { ascending: false })
-      .limit(40);
+      .limit(200);
     if (context.kind === "school") recentRecordsQuery = recentRecordsQuery.in("school_id", schoolIds);
     if (isSupportOnly && assignedStudentIds.length > 0) {
       recentRecordsQuery = recentRecordsQuery.in("user_id", assignedStudentIds);
@@ -284,9 +384,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? { data: [], error: null }
         : await recentRecordsQuery;
     if (recordsError) throw recordsError;
+    const effectiveRecentRecords = latestSweetRecordsPerUserDay(recentRecords || []).slice(0, 40);
 
     const recentUserIds = Array.from(
-      new Set((recentRecords || []).map((record) => record.user_id as string)),
+      new Set(effectiveRecentRecords.map((record) => record.user_id as string)),
     );
     const { data: recentProfiles, error: recentProfileError } = recentUserIds.length
       ? await supabase
@@ -299,7 +400,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (recentProfiles || []).map((profile) => [profile.id as string, profile]),
     );
     const schoolById = new Map((schools || []).map((school) => [school.id as string, school]));
-    const recentRecordItems = (recentRecords || []).map((record) => {
+    const recentRecordItems = effectiveRecentRecords.map((record) => {
       const profile = recentProfileById.get(record.user_id as string);
       const school = record.school_id ? schoolById.get(record.school_id as string) : null;
       return {
@@ -404,22 +505,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .filter((assignment) => assignment.teacher_user_id === teacher.id)
         .map((assignment) => assignment.student_user_id),
     })));
-    const ownSupportSchoolIds = context.kind === "school"
-      ? schoolIds.filter((schoolId) => context.schoolRoles[schoolId] === "school_support")
-      : [];
     if (ownSupportSchoolIds.length > 0) {
-      const { data: ownAssignments, error: ownAssignmentsError } = await supabase
-        .from("teacher_student_assignments")
-        .select("school_id,student_user_id")
-        .eq("teacher_user_id", context.user.id)
-        .eq("status", "active")
-        .in("school_id", ownSupportSchoolIds);
-      if (ownAssignmentsError) throw ownAssignmentsError;
       insightTeachers = insightTeachers.concat(ownSupportSchoolIds.map((schoolId) => ({
         school_id: schoolId,
         teacher_user_id: context.user.id,
         teacher_name: context.email,
-        student_ids: (ownAssignments || [])
+        student_ids: (ownSupportAssignments || [])
           .filter((assignment) => assignment.school_id === schoolId)
           .map((assignment) => assignment.student_user_id as string),
       })));
@@ -461,6 +552,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       attentionQueue,
       teacherWeeklySummaries,
       schoolMonthlyTrends,
+      studentParticipationStats,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "管理员概览加载失败。";

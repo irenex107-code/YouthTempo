@@ -224,10 +224,13 @@ export default function AccountPage() {
     : isSchoolAssignedParent
       ? "学校家长"
       : displayRole;
-  const recentRecordDays = countRecentRecordDays(records, user?.id);
   const accountName = profile?.display_name?.trim() || user?.email || t("account.hero.accountFallback");
   const isInitialAccountLoad = loading && !user;
   const isPlatformAdmin = displayRole === "平台管理员";
+  const visibleAccountRecords = isPlatformAdmin && user
+    ? records.filter((record) => record.user_id === user.id)
+    : records;
+  const recentRecordDays = countRecentRecordDays(visibleAccountRecords, user?.id);
   const isSchoolLead = displayRole === "学校负责人";
   const isSupportTeacher = displayRole === "支持老师";
   const isParent = displayRole === "家长";
@@ -303,7 +306,9 @@ export default function AccountPage() {
       }
 
       const [nextRecords, nextWechatIdentities, nextConsentStatus] = await Promise.all([
-        listCloudSweetRecords().catch((recordsError) => {
+        listCloudSweetRecords(
+          nextAccountStatus?.displayRole === "平台管理员" ? currentUser.id : undefined,
+        ).catch((recordsError) => {
           reportClientOperationFailure("save", "account_records", recordsError);
           nonFatalNotice = nonFatalNotice || t("account.notices.recordsUnavailable");
           return [] as CloudSweetRecord[];
@@ -495,7 +500,7 @@ export default function AccountPage() {
     setError("");
     try {
       await deleteCloudSweetRecord(recordId);
-      setRecords(await listCloudSweetRecords());
+      setRecords(await listCloudSweetRecords(isPlatformAdmin ? user?.id : undefined));
       setNotice(t("account.notices.recordDeleted"));
     } catch (deleteError) {
       setError(accountError(deleteError, "account.errors.recordDeleteFailed"));
@@ -791,7 +796,7 @@ export default function AccountPage() {
                   </div>
                   <div className="rounded-2xl border border-ink/10 bg-white/80 px-5 py-5">
                     <p className="text-xs font-bold text-sage">{t("account.summary.visibleRecords")}</p>
-                    <p className="mt-2 text-xl font-bold text-ink">{recordCountLabel(records.length, locale, t)}</p>
+                    <p className="mt-2 text-xl font-bold text-ink">{recordCountLabel(visibleAccountRecords.length, locale, t)}</p>
                     <p className="mt-2 text-sm text-muted">{t("account.summary.savedToAccount")}</p>
                   </div>
                   {!isIdentityLoading && displayRole === "学生" ? (
@@ -1136,7 +1141,7 @@ export default function AccountPage() {
         <ProfessionalVerificationCard />
       ) : null}
 
-      {user && !needsPersonalProfile && !isPlatformAdmin ? (
+      {user && !needsPersonalProfile ? (
         <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">
           <div className="container">
             <SectionHeader title={recordsTitle(displayRole, t)} />
@@ -1150,9 +1155,9 @@ export default function AccountPage() {
               </div>
             ) : null}
             {loading ? <div className="rounded-2xl border border-ink/10 bg-white/75 px-5 py-6 text-sm font-bold text-muted">{t("account.records.loading")}</div> : null}
-            {!loading && records.length > 0 ? (
+            {!loading && visibleAccountRecords.length > 0 ? (
               <div className="grid gap-5">
-                {records.map((record) => {
+                {visibleAccountRecords.map((record) => {
                   const canDelete = record.user_id === user.id;
                   return (
                     <article key={record.id} className="card">
@@ -1205,7 +1210,7 @@ export default function AccountPage() {
                 })}
               </div>
             ) : null}
-            {!loading && records.length === 0 ? (
+            {!loading && visibleAccountRecords.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-sage/40 bg-white/55 px-5 py-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-7">
                 <div>
                   <h3 className="text-lg font-bold text-ink">{t("account.records.emptyTitle")}</h3>

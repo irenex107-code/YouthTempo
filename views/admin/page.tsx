@@ -98,6 +98,20 @@ type AdminOverview = {
       active_student_count: number;
     }>;
   }>;
+  studentParticipationStats: Array<{
+    school_id: string;
+    school_name: string;
+    user_id: string;
+    student_name: string;
+    student_email: string;
+    record_count: number;
+    total_record_days: number;
+    last_7_active_days: number;
+    last_28_active_days: number;
+    current_streak_days: number;
+    longest_streak_days: number;
+    latest_record_at: string | null;
+  }>;
 };
 
 type FollowupDraft = {
@@ -170,6 +184,7 @@ function workspaceActions(overview: AdminOverview) {
       { href: "#pilot-feedback", label: "试点反馈", description: "查看学生、家长和老师的反馈" },
       { href: "#professional-verifications", label: "专业身份", description: "核对专业支持者机构与资质" },
       { href: "#operations-analytics", label: "试点运营", description: "查看学校参与和关系完整度" },
+      { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
       { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
       { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
     ];
@@ -178,6 +193,7 @@ function workspaceActions(overview: AdminOverview) {
   if (overview.admin.role === "支持老师") {
     return [
       { href: "#weekly-summary", label: "本周摘要", description: "查看负责学生最近 7 天的参与变化" },
+      { href: "#participation-stats", label: "参与统计", description: "查看负责学生的记录日数" },
       { href: "#recent-changes", label: "需要了解", description: "先看负责学生的近期变化" },
       { href: "#recent-records", label: "学生记录", description: "查看负责学生的完整记录" },
       { href: "/referral", label: "支持路径", description: "需要时连接更多支持" },
@@ -186,6 +202,7 @@ function workspaceActions(overview: AdminOverview) {
 
   return [
     { href: "#monthly-trends", label: "月度趋势", description: "查看本校近 4 周总体参与变化" },
+    { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
     { href: "#schools-overview", label: "学校概览", description: "按老师查看近 4 周总体情况" },
     { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
     { href: "#member-management", label: "成员管理", description: "登记老师、学生和家长" },
@@ -249,6 +266,9 @@ export default function AdminPage() {
     recordSchoolFilter === "all"
       ? overview?.recentRecords || []
       : overview?.recentRecords.filter((record) => record.school_id === recordSchoolFilter) || [];
+  const visibleParticipationStats = selectedSchool
+    ? overview?.studentParticipationStats.filter((stat) => stat.school_id === selectedSchool.id) || []
+    : overview?.studentParticipationStats || [];
 
   async function loadAdminOverview() {
     setLoading(true);
@@ -1277,6 +1297,71 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="font-bold text-ink">暂时没有可生成摘要的老师负责关系。</p>
                   <p className="mt-2 text-sm text-muted">完成老师与学生分配后，这里会自动出现每周摘要。</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {overview ? (
+        <section id="participation-stats" className="section scroll-mt-24">
+          <div className="container">
+            <SectionHeader
+              title="学生参与统计"
+              description="用于依据活动规则人工核对奖励。同一天保存多次只计 1 天；系统不会自动判定或发放现金奖励。"
+            />
+            {selectedSchool ? (
+              <div className="mb-5 rounded-2xl border border-sage/25 bg-mint/70 px-4 py-4 text-sm leading-6 text-ink sm:px-5">
+                <p className="font-bold">当前学校：{selectedSchool.name}</p>
+                <p className="mt-1 text-muted">
+                  “当前连续”要求最近一次记录在今天或昨天；中断后归零。“最长连续”会保留曾经达到的连续天数。
+                </p>
+              </div>
+            ) : null}
+            <div className="grid gap-4">
+              {visibleParticipationStats.length ? visibleParticipationStats.map((stat) => (
+                <article key={`${stat.school_id}-${stat.user_id}`} className="card">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-bold text-ink">{stat.student_name}</h2>
+                      {stat.student_email ? <p className="mt-1 break-all text-xs text-muted">{stat.student_email}</p> : null}
+                    </div>
+                    <p className="rounded-full bg-cream px-3 py-2 text-xs font-bold text-sage-dark">
+                      {stat.latest_record_at ? `最近记录 ${formatDate(stat.latest_record_at)}` : "尚无记录"}
+                    </p>
+                  </div>
+                  <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <dt className="text-xs text-muted">近 7 天</dt>
+                      <dd className="mt-1 text-xl font-bold text-ink">{stat.last_7_active_days} 天</dd>
+                    </div>
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <dt className="text-xs text-muted">近 28 天</dt>
+                      <dd className="mt-1 text-xl font-bold text-ink">{stat.last_28_active_days} 天</dd>
+                    </div>
+                    <div className="rounded-2xl bg-mint px-3 py-3">
+                      <dt className="text-xs text-muted">当前连续</dt>
+                      <dd className="mt-1 text-xl font-bold text-ink">{stat.current_streak_days} 天</dd>
+                    </div>
+                    <div className="rounded-2xl bg-mint px-3 py-3">
+                      <dt className="text-xs text-muted">最长连续</dt>
+                      <dd className="mt-1 text-xl font-bold text-ink">{stat.longest_streak_days} 天</dd>
+                    </div>
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <dt className="text-xs text-muted">累计记录日</dt>
+                      <dd className="mt-1 text-xl font-bold text-ink">{stat.total_record_days} 天</dd>
+                    </div>
+                    <div className="rounded-2xl bg-cream px-3 py-3">
+                      <dt className="text-xs text-muted">累计记录数</dt>
+                      <dd className="mt-1 text-xl font-bold text-ink">{stat.record_count} 条</dd>
+                    </div>
+                  </dl>
+                </article>
+              )) : (
+                <div className="card">
+                  <p className="font-bold text-ink">当前范围内还没有可统计的学生。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">学校添加学生并完成老师分配后，统计会自动显示。</p>
                 </div>
               )}
             </div>
