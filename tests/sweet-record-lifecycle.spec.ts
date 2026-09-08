@@ -70,21 +70,21 @@ test("学生可以生成 AI 小结、保存、重新读取并删除 SWEET 记录
   try {
     await page.goto("/check-in", { waitUntil: "domcontentloaded" });
 
-    await page.getByRole("button", { name: "比较安稳", exact: true }).click();
+    await page.getByRole("button", { name: "睡得很好", exact: true }).click();
     await page.getByRole("button", { name: /想补充更多/ }).click();
     await page.getByPlaceholder("例如：昨晚很晚才睡，睡前一直在想明天的事情。").fill(marker);
     await page.getByRole("button", { name: "下一步", exact: true }).click();
 
-    await page.getByRole("button", { name: "平静", exact: true }).click();
+    await page.getByRole("button", { name: "很有精神", exact: true }).click();
     await page.getByRole("button", { name: "下一步", exact: true }).click();
 
-    await page.getByRole("button", { name: "基本规律", exact: true }).click();
+    await page.getByRole("button", { name: "很规律", exact: true }).click();
     await page.getByRole("button", { name: "下一步", exact: true }).click();
 
-    await page.getByRole("button", { name: "5-10 分钟", exact: true }).click();
+    await page.getByRole("button", { name: "1–9 分钟", exact: true }).click();
     await page.getByRole("button", { name: "下一步", exact: true }).click();
 
-    await page.getByRole("button", { name: "能完成基本任务", exact: true }).click();
+    await page.getByRole("button", { name: "比较顺利", exact: true }).click();
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "生成小结并保存", exact: true }).click();
 

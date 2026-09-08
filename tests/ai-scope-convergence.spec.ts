@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { assessSweetRecord } from "@/lib/attentionSignals";
 import { buildCheckInGuidance } from "@/lib/checkInRules";
 import { buildWorryTimeGuidance, WORRY_TIME_RULE_VERSION } from "@/lib/worryTimeRules";
 import { buildGroundedSummary, minimizeAiText, safeAiSummary, validateAiSourceSelection } from "@/pages/api/ai/_shared";
@@ -34,6 +35,30 @@ test("SWEET 规则负责维度、线索、下一工具和支持提醒", () => {
   expect(result.rhythmClue).toContain("一次记录不能说明原因");
   expect(result.recommendedNextTool).toContain("今晚先放下");
   expect(result.supportReminder).toContain("不是评估或诊断");
+});
+
+test("SWEET 新选项保持正向记录中性，并识别明确受影响的维度", () => {
+  const steady = buildCheckInGuidance([
+    { id: "sleep", fields: [{ value: "睡得很好" }] },
+    { id: "wake", fields: [{ value: "很有精神" }] },
+    { id: "eat", fields: [{ value: "很规律" }] },
+    { id: "exercise", fields: [{ value: "30 分钟以上" }] },
+    { id: "task", fields: [{ value: "很顺利" }] },
+  ], "zh-CN");
+  expect(steady.mainAffectedAreas).toEqual([]);
+
+  const affected = buildCheckInGuidance([
+    { id: "sleep", fields: [{ value: "很不好" }] },
+    { id: "wake", fields: [{ value: "很疲惫" }] },
+    { id: "eat", fields: [{ value: "很不规律" }] },
+    { id: "exercise", fields: [{ value: "0 分钟" }] },
+    { id: "task", fields: [{ value: "很不顺利" }] },
+  ], "zh-CN");
+  expect(affected.mainAffectedAreas).toEqual(["睡眠", "醒来"]);
+  expect(assessSweetRecord([
+    { id: "sleep", fields: [{ value: "很不好" }] },
+    { id: "task", fields: [{ value: "很不顺利" }] },
+  ])).toMatchObject({ level: "priority", score: 4 });
 });
 
 test("AI 摘要过滤诊断、排他依赖与提示词泄露内容", () => {

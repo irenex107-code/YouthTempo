@@ -336,19 +336,18 @@
     "consent": { "text": "I understand that my SWEET responses will be sent to AI to generate a summary and may include sensitive information about my daily life and health. I consent to this information being processed only to generate this response.", "link": "Read more" },
     "steps": {
       "sleep": {
-        "title": "Sleep", "description": "Choose the option that best matches your sleep last night.",
+        "title": "Sleep", "description": "Choose the option that best matches your overall sleep quality last night.",
         "fields": {
-          "quality": { "title": "How was your sleep?", "options": { "steady": "Fairly restful", "okay": "It was okay", "waking": "I woke up often", "fallingAsleep": "It was hard to fall asleep", "irregular": "It felt very irregular" } },
-          "duration": { "title": "About how long did you sleep last night?", "options": { "underFive": "Less than 5 hours", "fiveToSix": "5–6 hours", "sixToSeven": "6–7 hours", "sevenToEight": "7–8 hours", "overEight": "More than 8 hours", "unsure": "Not sure" } },
+          "quality": { "title": "Overall, how well did you sleep last night?", "options": { "veryGood": "Very well", "good": "Fairly well", "neutral": "Neither well nor poorly", "poor": "Not very well", "veryPoor": "Very poorly" } },
+          "duration": { "title": "About how long did you sleep last night?", "options": { "underFive": "Less than 5 hours", "fiveToSix": "5 to under 6 hours", "sixToSeven": "6 to under 7 hours", "sevenToEight": "7 to under 8 hours", "overEight": "8 hours or more", "unsure": "Not sure" } },
           "factors": { "title": "What may have affected your sleep?", "options": { "overthinking": "A busy mind before bed", "tasks": "Schoolwork or task pressure", "phone": "A lot of phone use", "relationships": "Family or relationship stress", "physical": "Physical discomfort", "unsure": "Not sure" } },
           "note": { "title": "Optional note", "placeholder": "For example: I went to sleep very late and kept thinking about tomorrow." }
         }
       },
       "wake": {
-        "title": "Wake", "description": "Choose the option that best matches this morning.",
+        "title": "Wake", "description": "Choose the option that best matches your energy after waking today.",
         "fields": {
-          "state": { "title": "How did you feel when you woke up today?", "options": { "calm": "Calm", "energized": "Energized", "tired": "A little tired", "tense": "Tense or irritable", "reluctant": "Not ready to start the day" } },
-          "startDifficulty": { "title": "How hard was it to get started today?", "options": { "easy": "Easy to start", "time": "I needed some time", "difficult": "A little difficult", "veryDifficult": "Very difficult" } },
+          "state": { "title": "How was your energy after waking today?", "options": { "veryEnergized": "Very energized", "energized": "Fairly energized", "neutral": "Neither energized nor tired", "tired": "A little tired", "veryTired": "Very tired" } },
           "factors": { "title": "What may have affected your morning?", "options": { "sleep": "Not enough sleep", "thoughts": "Many thoughts as soon as I woke up", "tasks": "Pressure from morning tasks", "physical": "My body felt tired", "emotions": "My emotions", "unsure": "Not sure" } },
           "note": { "title": "Optional note", "placeholder": "For example: I thought about schoolwork as soon as I woke up, so I did not want to begin." }
         }
@@ -356,27 +355,26 @@
       "eat": {
         "title": "Eat", "description": "Notice whether your meal rhythm has been regular today.",
         "fields": {
-          "rhythm": { "title": "How was your meal rhythm today?", "options": { "regular": "Mostly regular", "oneIrregular": "One meal was irregular", "irregular": "Meal times were quite irregular", "barelyAte": "I barely ate a proper meal" } },
-          "mealCount": { "title": "About how many meals did you have today?", "options": { "three": "Three fairly regular meals", "two": "Two meals", "one": "One meal", "scattered": "Small amounts at different times", "unsure": "Not sure" } },
+          "rhythm": { "title": "How regular was your meal rhythm today?", "options": { "veryRegular": "Very regular", "regular": "Fairly regular", "neutral": "Neither regular nor irregular", "irregular": "Not very regular", "veryIrregular": "Very irregular" } },
+          "mealCount": { "title": "About how many meals did you have today?", "options": { "three": "3 meals or more", "two": "2 meals", "one": "1 meal", "none": "No full meals", "unsure": "Not sure" } },
           "foodDetails": { "title": "What did you eat today?", "placeholder": "Add this only if you want to. You do not need to list every item." },
-          "factors": { "title": "What may have affected your eating today?", "options": { "busy": "I was too busy", "appetite": "I had little appetite", "schedule": "My schedule was irregular", "emotions": "My emotions", "forgot": "I forgot to eat", "limited": "Limited choices at home or school", "unsure": "Not sure" } },
-          "energyConnection": { "title": "Did eating affect your energy today?", "options": { "yes": "Yes, it seemed connected", "maybe": "Maybe a little", "unsure": "Not sure", "no": "Not really" } }
+          "factors": { "title": "What may have affected your eating today?", "options": { "busy": "I was too busy", "appetite": "I had little appetite", "schedule": "My schedule was irregular", "emotions": "My emotions", "forgot": "I forgot to eat", "limited": "Limited choices at home or school", "unsure": "Not sure" } }
         }
       },
       "exercise": {
         "title": "Exercise", "description": "Notice how much you moved your body today.",
         "fields": {
-          "duration": { "title": "About how long were you active today?", "options": { "none": "Almost no activity", "fiveToTen": "5–10 minutes", "tenToTwenty": "10–20 minutes", "twentyToThirty": "20–30 minutes", "overThirty": "More than 30 minutes", "unsure": "Not sure" } },
-          "activityTypes": { "title": "What kind of activity did you do today?", "options": { "walking": "Walking", "stretching": "Stretching", "pe": "Physical education class", "sports": "Sports, running, dance, or similar activity", "commute": "Stairs or active travel", "daily": "Housework or everyday activity", "none": "Almost none", "other": "Other" } },
+          "duration": { "title": "How long were you active in total today?", "options": { "none": "0 minutes", "oneToNine": "1–9 minutes", "tenToNineteen": "10–19 minutes", "twentyToTwentyNine": "20–29 minutes", "overThirty": "30 minutes or more", "unsure": "Not sure" } },
+          "activityTypes": { "title": "What kind of activity did you do today?", "options": { "walking": "Walking, active travel, or stairs", "stretching": "Stretching or light activity", "pe": "Physical education class", "sports": "Running, sports, dance, or similar activity", "daily": "Housework or everyday activity", "other": "Other" } },
           "activityNote": { "title": "Optional activity note", "placeholder": "For example: I walked home for about 15 minutes, or ran for a while in physical education class." },
-          "bodyState": { "title": "How did your body feel today?", "options": { "relaxed": "Fairly relaxed", "tense": "A little tense", "sitting": "Uncomfortable after sitting for a long time", "tired": "Too tired to move", "unsure": "Not sure" } },
+          "bodyState": { "title": "How was your physical energy today?", "options": { "veryEnergized": "Very energized", "energized": "Fairly energized", "neutral": "Neither energized nor tired", "tired": "A little tired", "veryTired": "Very tired" } },
           "factors": { "title": "What may have contributed to less activity?", "options": { "tired": "I was too tired", "time": "I did not have time", "motivation": "I had little motivation", "sitting": "I was sitting to study or work", "emotions": "My emotions", "physical": "Physical discomfort", "unsure": "Not sure" } }
         }
       },
       "task": {
-        "title": "Task engagement", "description": "Notice how it felt to begin learning or everyday tasks today.",
+        "title": "Task engagement", "description": "Notice how smoothly you engaged with learning or everyday tasks today.",
         "fields": {
-          "engagement": { "title": "How did learning or everyday tasks go today?", "options": { "smooth": "Fairly smoothly", "basic": "I managed the basic tasks", "difficult": "It was a little hard to start", "stuck": "It was very hard to start, or I kept putting it off" } },
+          "engagement": { "title": "How smoothly did you engage with learning or everyday tasks today?", "options": { "verySmooth": "Very smoothly", "smooth": "Fairly smoothly", "neutral": "Neither smoothly nor poorly", "difficult": "Not very smoothly", "veryDifficult": "Very poorly" } },
           "difficultyReasons": { "title": "What felt most difficult?", "options": { "tooMany": "There were too many tasks", "start": "I did not know where to begin", "performance": "I was worried I would not do it well", "pressure": "Pressure from others made me resist more", "emotional": "I felt emotionally drained", "unsure": "Not sure" } },
           "completedSmallTask": { "title": "Did you complete one small task today?", "placeholder": "For example: finished one page of schoolwork, packed my bag, or replied to a message." }
         }

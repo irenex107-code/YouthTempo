@@ -7,18 +7,18 @@ type AttentionAssessment = {
 };
 
 const prioritySignals = [
-  { pattern: /睡得很乱|少于 5 小时/, reason: "近期睡眠状态明显不稳定" },
-  { pattern: /不想开始今天/, reason: "早晨启动状态需要了解" },
-  { pattern: /几乎没有好好吃饭|一餐/, reason: "饮食节律明显受到影响" },
-  { pattern: /很难开始，或一直拖着/, reason: "学习或生活任务很难开始" },
+  { pattern: /很不好|睡得很乱|少于 5 小时/, reason: "近期睡眠状态明显不稳定" },
+  { pattern: /很疲惫|不想开始今天/, reason: "早晨精力状态需要了解" },
+  { pattern: /很不规律|没有吃正餐|几乎没有好好吃饭|一餐/, reason: "饮食节律明显受到影响" },
+  { pattern: /很不顺利|很难开始，或一直拖着/, reason: "学习或生活任务投入明显受阻" },
 ];
 
 const checkInSignals = [
-  { pattern: /入睡困难|容易醒/, reason: "睡眠质量出现变化" },
-  { pattern: /紧张或烦躁|很难开始/, reason: "早晨状态或启动较困难" },
-  { pattern: /时间比较乱|吃得比较零散/, reason: "饮食节律不太稳定" },
-  { pattern: /几乎没有活动|很累，不想动/, reason: "身体活动明显减少" },
-  { pattern: /开始有点困难|情绪很累/, reason: "任务参与出现阻力" },
+  { pattern: /不太好|入睡困难|容易醒/, reason: "睡眠质量出现变化" },
+  { pattern: /有点疲惫|紧张或烦躁|很难开始/, reason: "早晨精力或启动较困难" },
+  { pattern: /不太规律|1 餐|时间比较乱|吃得比较零散/, reason: "饮食节律不太稳定" },
+  { pattern: /(?:^|\s)(?:0 分钟|1–9 分钟)(?:\s|$)|几乎没有活动|很累，不想动/, reason: "身体活动明显减少" },
+  { pattern: /不太顺利|开始有点困难|情绪很累/, reason: "任务参与出现阻力" },
 ];
 
 function collectText(value: unknown, result: string[]) {

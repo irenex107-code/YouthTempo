@@ -336,19 +336,18 @@
     "consent": { "text": "我知道本次 SWEET 回答会发送给 AI 生成记录小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次小结而处理这些内容。", "link": "查看说明" },
     "steps": {
       "sleep": {
-        "title": "睡眠", "description": "先选一个最接近昨晚睡眠的状态。",
+        "title": "睡眠", "description": "先选一个最接近昨晚整体睡眠质量的选项。",
         "fields": {
-          "quality": { "title": "睡眠质量如何？", "options": { "steady": "比较安稳", "okay": "还可以", "waking": "容易醒", "fallingAsleep": "入睡困难", "irregular": "睡得很乱" } },
-          "duration": { "title": "昨晚大概睡了多久？", "options": { "underFive": "少于 5 小时", "fiveToSix": "5-6 小时", "sixToSeven": "6-7 小时", "sevenToEight": "7-8 小时", "overEight": "8 小时以上", "unsure": "不太确定" } },
+          "quality": { "title": "昨晚整体睡得怎么样？", "options": { "veryGood": "睡得很好", "good": "比较好", "neutral": "一般", "poor": "不太好", "veryPoor": "很不好" } },
+          "duration": { "title": "昨晚大概睡了多久？", "options": { "underFive": "少于 5 小时", "fiveToSix": "5 小时以上、不足 6 小时", "sixToSeven": "6 小时以上、不足 7 小时", "sevenToEight": "7 小时以上、不足 8 小时", "overEight": "8 小时以上", "unsure": "不太确定" } },
           "factors": { "title": "可能影响睡眠的因素", "options": { "overthinking": "睡前想太多", "tasks": "作业或任务压力", "phone": "手机使用时间较长", "relationships": "家庭或人际压力", "physical": "身体不舒服", "unsure": "不太确定" } },
           "note": { "title": "可选补充", "placeholder": "例如：昨晚很晚才睡，睡前一直在想明天的事情。" }
         }
       },
       "wake": {
-        "title": "醒来", "description": "先选一个最接近今天早晨的状态。",
+        "title": "醒来", "description": "先选一个最接近今天醒来后精力的选项。",
         "fields": {
-          "state": { "title": "今天醒来后的状态更接近哪一种？", "options": { "calm": "平静", "energized": "有精神", "tired": "有点疲惫", "tense": "紧张或烦躁", "reluctant": "不想开始今天" } },
-          "startDifficulty": { "title": "今天开始的难度", "options": { "easy": "很容易开始", "time": "需要一点时间", "difficult": "有点困难", "veryDifficult": "很难开始" } },
+          "state": { "title": "今天醒来后的精力怎么样？", "options": { "veryEnergized": "很有精神", "energized": "比较有精神", "neutral": "一般", "tired": "有点疲惫", "veryTired": "很疲惫" } },
           "factors": { "title": "可能影响晨间状态的因素", "options": { "sleep": "没睡够", "thoughts": "一醒来就想到很多事", "tasks": "早上任务压力大", "physical": "身体有点累", "emotions": "情绪影响", "unsure": "不太确定" } },
           "note": { "title": "可选补充", "placeholder": "例如：早上一醒来就想到作业，所以有点不想开始。" }
         }
@@ -356,27 +355,26 @@
       "eat": {
         "title": "饮食", "description": "先看看今天吃饭的节奏是否规律。",
         "fields": {
-          "rhythm": { "title": "今天饮食节奏如何？", "options": { "regular": "基本规律", "oneIrregular": "有一餐不太规律", "irregular": "时间比较乱", "barelyAte": "几乎没有好好吃饭" } },
-          "mealCount": { "title": "今天大概吃了几餐？", "options": { "three": "三餐比较规律", "two": "两餐", "one": "一餐", "scattered": "吃得比较零散", "unsure": "不太确定" } },
+          "rhythm": { "title": "今天吃饭的节奏怎么样？", "options": { "veryRegular": "很规律", "regular": "比较规律", "neutral": "一般", "irregular": "不太规律", "veryIrregular": "很不规律" } },
+          "mealCount": { "title": "今天大概吃了几餐？", "options": { "three": "3 餐或以上", "two": "2 餐", "one": "1 餐", "none": "没有吃正餐", "unsure": "不太确定" } },
           "foodDetails": { "title": "今天吃了什么？", "placeholder": "想记录时再写，不需要列出每一样食物。" },
-          "factors": { "title": "饮食状态可能和什么有关？", "options": { "busy": "太忙了", "appetite": "没胃口", "schedule": "作息太乱", "emotions": "情绪影响", "forgot": "忘记吃饭", "limited": "家里或学校选择有限", "unsure": "不太确定" } },
-          "energyConnection": { "title": "今天精力和饮食有关系吗？", "options": { "yes": "感觉有关系", "maybe": "好像有一点", "unsure": "不太确定", "no": "没什么关系" } }
+          "factors": { "title": "饮食状态可能和什么有关？", "options": { "busy": "太忙了", "appetite": "没胃口", "schedule": "作息太乱", "emotions": "情绪影响", "forgot": "忘记吃饭", "limited": "家里或学校选择有限", "unsure": "不太确定" } }
         }
       },
       "exercise": {
         "title": "运动", "description": "先看看今天身体大概活动了多久。",
         "fields": {
-          "duration": { "title": "今天大概活动了多久？", "options": { "none": "几乎没有活动", "fiveToTen": "5-10 分钟", "tenToTwenty": "10-20 分钟", "twentyToThirty": "20-30 分钟", "overThirty": "30 分钟以上", "unsure": "不太确定" } },
-          "activityTypes": { "title": "今天做了什么活动？", "options": { "walking": "走路", "stretching": "拉伸", "pe": "体育课", "sports": "球类/跑步/跳操等运动", "commute": "上下楼/通勤", "daily": "家务或日常活动", "none": "几乎没有", "other": "其他" } },
+          "duration": { "title": "今天一共活动了多久？", "options": { "none": "0 分钟", "oneToNine": "1–9 分钟", "tenToNineteen": "10–19 分钟", "twentyToTwentyNine": "20–29 分钟", "overThirty": "30 分钟以上", "unsure": "不太确定" } },
+          "activityTypes": { "title": "今天做了什么活动？", "options": { "walking": "步行、通勤或上下楼", "stretching": "拉伸或轻量活动", "pe": "体育课", "sports": "跑步、球类或跳操等运动", "daily": "家务或日常活动", "other": "其他" } },
           "activityNote": { "title": "活动补充", "placeholder": "例如：今天走路回家，大概 15 分钟；或者体育课跑了一会儿。" },
-          "bodyState": { "title": "今天身体状态更像哪种？", "options": { "relaxed": "比较放松", "tense": "有点紧绷", "sitting": "久坐后不太舒服", "tired": "很累，不想动", "unsure": "不太确定" } },
+          "bodyState": { "title": "今天身体的精力怎么样？", "options": { "veryEnergized": "很有活力", "energized": "比较有活力", "neutral": "一般", "tired": "有点疲惫", "veryTired": "很疲惫" } },
           "factors": { "title": "活动较少可能和什么有关？", "options": { "tired": "太累了", "time": "没有时间", "motivation": "没有动力", "sitting": "一直坐着学习或工作", "emotions": "情绪影响", "physical": "身体不舒服", "unsure": "不太确定" } }
         }
       },
       "task": {
-        "title": "任务投入", "description": "先看看今天开始学习或生活任务是否顺利。",
+        "title": "任务投入", "description": "先看看今天投入学习或生活任务是否顺利。",
         "fields": {
-          "engagement": { "title": "今天学习或生活任务完成得怎么样？", "options": { "smooth": "比较顺利", "basic": "能完成基本任务", "difficult": "开始有点困难", "stuck": "很难开始，或一直拖着" } },
+          "engagement": { "title": "今天投入学习或生活任务顺利吗？", "options": { "verySmooth": "很顺利", "smooth": "比较顺利", "neutral": "一般", "difficult": "不太顺利", "veryDifficult": "很不顺利" } },
           "difficultyReasons": { "title": "最卡住的是哪一部分？", "options": { "tooMany": "任务太多", "start": "不知道从哪里开始", "performance": "担心做不好", "pressure": "被催促后更抗拒", "emotional": "情绪很累", "unsure": "不太确定" } },
           "completedSmallTask": { "title": "今天有没有一个完成的小任务？", "placeholder": "例如：完成了一页作业、整理了书包、回复了一条消息。" }
         }

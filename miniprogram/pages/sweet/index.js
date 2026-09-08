@@ -2,11 +2,11 @@ const { api, getSession } = require("../../utils/api");
 const AI_NOTICE_VERSION = "ai-notice-2026-08-18-v2";
 
 const steps = [
-  { id: "sleep", title: "睡眠", label: "Sleep", question: "昨晚睡得怎么样？", options: ["比较安稳", "还可以", "容易醒", "入睡困难", "睡得很乱"] },
-  { id: "wake", title: "醒来", label: "Wake", question: "今天醒来后的状态呢？", options: ["平静", "有精神", "有点疲惫", "紧张或烦躁", "不想开始今天"] },
-  { id: "eat", title: "饮食", label: "Eat", question: "今天吃饭的节奏怎么样？", options: ["基本规律", "有一餐不太规律", "时间比较乱", "几乎没有好好吃饭"] },
-  { id: "exercise", title: "运动", label: "Exercise", question: "今天大概活动了多久？", options: ["几乎没有活动", "5–10 分钟", "10–20 分钟", "20–30 分钟", "30 分钟以上"] },
-  { id: "task", title: "任务投入", label: "Task", question: "今天开始学习、工作或生活任务顺利吗？", options: ["比较顺利", "能完成基本任务", "开始有点困难", "很难开始，或一直拖着"] },
+  { id: "sleep", title: "睡眠", label: "Sleep", question: "昨晚整体睡得怎么样？", options: ["睡得很好", "比较好", "一般", "不太好", "很不好"] },
+  { id: "wake", title: "醒来", label: "Wake", question: "今天醒来后的精力怎么样？", options: ["很有精神", "比较有精神", "一般", "有点疲惫", "很疲惫"] },
+  { id: "eat", title: "饮食", label: "Eat", question: "今天吃饭的节奏怎么样？", options: ["很规律", "比较规律", "一般", "不太规律", "很不规律"] },
+  { id: "exercise", title: "运动", label: "Exercise", question: "今天一共活动了多久？", options: ["0 分钟", "1–9 分钟", "10–19 分钟", "20–29 分钟", "30 分钟以上", "不太确定"] },
+  { id: "task", title: "任务投入", label: "Task", question: "今天投入学习或生活任务顺利吗？", options: ["很顺利", "比较顺利", "一般", "不太顺利", "很不顺利"] },
 ];
 
 function recordPayload(answers) {

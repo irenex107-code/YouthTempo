@@ -62,7 +62,7 @@ test("Sleep to Wake keeps the next question card in view on a phone viewport", a
   test.skip(testInfo.project.name.includes("mobile"), "The exact regression is covered once at 390px");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/check-in");
-  await page.getByRole("button", { name: "还可以", exact: true }).click();
+  await page.getByRole("button", { name: "一般", exact: true }).click();
   await page.getByRole("button", { name: "下一步" }).click();
   const wakeHeading = page.getByRole("heading", { level: 2, name: "Wake 醒来" });
   await expect(wakeHeading).toBeVisible();

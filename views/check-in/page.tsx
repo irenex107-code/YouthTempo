@@ -51,10 +51,10 @@ const steps: CheckStep[] = [
     id: "sleep",
     title: "睡眠",
     label: "Sleep",
-    description: "先选一个最接近昨晚睡眠的状态。",
+    description: "先选一个最接近昨晚整体睡眠质量的选项。",
     fields: [
-      { id: "quality", type: "single", title: "睡眠质量如何？", options: ["比较安稳", "还可以", "容易醒", "入睡困难", "睡得很乱"] },
-      { id: "duration", type: "single", title: "昨晚大概睡了多久？", required: false, options: ["少于 5 小时", "5-6 小时", "6-7 小时", "7-8 小时", "8 小时以上", "不太确定"] },
+      { id: "quality", type: "single", title: "昨晚整体睡得怎么样？", options: ["睡得很好", "比较好", "一般", "不太好", "很不好"] },
+      { id: "duration", type: "single", title: "昨晚大概睡了多久？", required: false, options: ["少于 5 小时", "5 小时以上、不足 6 小时", "6 小时以上、不足 7 小时", "7 小时以上、不足 8 小时", "8 小时以上", "不太确定"] },
       { id: "factors", type: "multi", title: "可能影响睡眠的因素", required: false, options: ["睡前想太多", "作业或任务压力", "手机使用时间较长", "家庭或人际压力", "身体不舒服", "不太确定"] },
       { id: "note", type: "text", title: "可选补充", required: false, placeholder: "例如：昨晚很晚才睡，睡前一直在想明天的事情。" },
     ],
@@ -63,10 +63,9 @@ const steps: CheckStep[] = [
     id: "wake",
     title: "醒来",
     label: "Wake",
-    description: "先选一个最接近今天早晨的状态。",
+    description: "先选一个最接近今天醒来后精力的选项。",
     fields: [
-      { id: "state", type: "single", title: "今天醒来后的状态更接近哪一种？", options: ["平静", "有精神", "有点疲惫", "紧张或烦躁", "不想开始今天"] },
-      { id: "startDifficulty", type: "single", title: "今天开始的难度", required: false, options: ["很容易开始", "需要一点时间", "有点困难", "很难开始"] },
+      { id: "state", type: "single", title: "今天醒来后的精力怎么样？", options: ["很有精神", "比较有精神", "一般", "有点疲惫", "很疲惫"] },
       { id: "factors", type: "multi", title: "可能影响晨间状态的因素", required: false, options: ["没睡够", "一醒来就想到很多事", "早上任务压力大", "身体有点累", "情绪影响", "不太确定"] },
       { id: "note", type: "text", title: "可选补充", required: false, placeholder: "例如：早上一醒来就想到作业，所以有点不想开始。" },
     ],
@@ -77,11 +76,10 @@ const steps: CheckStep[] = [
     label: "Eat",
     description: "先看看今天吃饭的节奏是否规律。",
     fields: [
-      { id: "rhythm", type: "single", title: "今天饮食节奏如何？", options: ["基本规律", "有一餐不太规律", "时间比较乱", "几乎没有好好吃饭"] },
-      { id: "mealCount", type: "single", title: "今天大概吃了几餐？", required: false, options: ["三餐比较规律", "两餐", "一餐", "吃得比较零散", "不太确定"] },
+      { id: "rhythm", type: "single", title: "今天吃饭的节奏怎么样？", options: ["很规律", "比较规律", "一般", "不太规律", "很不规律"] },
+      { id: "mealCount", type: "single", title: "今天大概吃了几餐？", required: false, options: ["3 餐或以上", "2 餐", "1 餐", "没有吃正餐", "不太确定"] },
       { id: "foodDetails", type: "text", title: "今天吃了什么？", required: false, placeholder: "想记录时再写，不需要列出每一样食物。" },
       { id: "factors", type: "multi", title: "饮食状态可能和什么有关？", required: false, options: ["太忙了", "没胃口", "作息太乱", "情绪影响", "忘记吃饭", "家里或学校选择有限", "不太确定"] },
-      { id: "energyConnection", type: "single", title: "今天精力和饮食有关系吗？", required: false, options: ["感觉有关系", "好像有一点", "不太确定", "没什么关系"] },
     ],
   },
   {
@@ -90,10 +88,10 @@ const steps: CheckStep[] = [
     label: "Exercise",
     description: "先看看今天身体大概活动了多久。",
     fields: [
-      { id: "duration", type: "single", title: "今天大概活动了多久？", options: ["几乎没有活动", "5-10 分钟", "10-20 分钟", "20-30 分钟", "30 分钟以上", "不太确定"] },
-      { id: "activityTypes", type: "multi", title: "今天做了什么活动？", required: false, options: ["走路", "拉伸", "体育课", "球类/跑步/跳操等运动", "上下楼/通勤", "家务或日常活动", "几乎没有", "其他"] },
+      { id: "duration", type: "single", title: "今天一共活动了多久？", options: ["0 分钟", "1–9 分钟", "10–19 分钟", "20–29 分钟", "30 分钟以上", "不太确定"] },
+      { id: "activityTypes", type: "multi", title: "今天做了什么活动？", required: false, options: ["步行、通勤或上下楼", "拉伸或轻量活动", "体育课", "跑步、球类或跳操等运动", "家务或日常活动", "其他"] },
       { id: "activityNote", type: "text", title: "活动补充", required: false, placeholder: "例如：今天走路回家，大概 15 分钟；或者体育课跑了一会儿。" },
-      { id: "bodyState", type: "single", title: "今天身体状态更像哪种？", required: false, options: ["比较放松", "有点紧绷", "久坐后不太舒服", "很累，不想动", "不太确定"] },
+      { id: "bodyState", type: "single", title: "今天身体的精力怎么样？", required: false, options: ["很有活力", "比较有活力", "一般", "有点疲惫", "很疲惫"] },
       { id: "factors", type: "multi", title: "活动较少可能和什么有关？", required: false, options: ["太累了", "没有时间", "没有动力", "一直坐着学习或工作", "情绪影响", "身体不舒服", "不太确定"] },
     ],
   },
@@ -101,9 +99,9 @@ const steps: CheckStep[] = [
     id: "task",
     title: "任务投入",
     label: "Task",
-    description: "先看看今天开始学习或生活任务是否顺利。",
+    description: "先看看今天投入学习或生活任务是否顺利。",
     fields: [
-      { id: "engagement", type: "single", title: "今天学习或生活任务完成得怎么样？", options: ["比较顺利", "能完成基本任务", "开始有点困难", "很难开始，或一直拖着"] },
+      { id: "engagement", type: "single", title: "今天投入学习或生活任务顺利吗？", options: ["很顺利", "比较顺利", "一般", "不太顺利", "很不顺利"] },
       { id: "difficultyReasons", type: "multi", title: "最卡住的是哪一部分？", required: false, options: ["任务太多", "不知道从哪里开始", "担心做不好", "被催促后更抗拒", "情绪很累", "不太确定"] },
       { id: "completedSmallTask", type: "text", title: "今天有没有一个完成的小任务？", required: false, placeholder: "例如：完成了一页作业、整理了书包、回复了一条消息。" },
     ],
@@ -127,7 +125,7 @@ const stepCopyKeys: Record<StepId, StepCopyKeys> = {
     title: "checkIn.steps.sleep.title",
     description: "checkIn.steps.sleep.description",
     fields: {
-      quality: { title: "checkIn.steps.sleep.fields.quality.title", options: ["checkIn.steps.sleep.fields.quality.options.steady", "checkIn.steps.sleep.fields.quality.options.okay", "checkIn.steps.sleep.fields.quality.options.waking", "checkIn.steps.sleep.fields.quality.options.fallingAsleep", "checkIn.steps.sleep.fields.quality.options.irregular"] },
+      quality: { title: "checkIn.steps.sleep.fields.quality.title", options: ["checkIn.steps.sleep.fields.quality.options.veryGood", "checkIn.steps.sleep.fields.quality.options.good", "checkIn.steps.sleep.fields.quality.options.neutral", "checkIn.steps.sleep.fields.quality.options.poor", "checkIn.steps.sleep.fields.quality.options.veryPoor"] },
       duration: { title: "checkIn.steps.sleep.fields.duration.title", options: ["checkIn.steps.sleep.fields.duration.options.underFive", "checkIn.steps.sleep.fields.duration.options.fiveToSix", "checkIn.steps.sleep.fields.duration.options.sixToSeven", "checkIn.steps.sleep.fields.duration.options.sevenToEight", "checkIn.steps.sleep.fields.duration.options.overEight", "checkIn.steps.sleep.fields.duration.options.unsure"] },
       factors: { title: "checkIn.steps.sleep.fields.factors.title", options: ["checkIn.steps.sleep.fields.factors.options.overthinking", "checkIn.steps.sleep.fields.factors.options.tasks", "checkIn.steps.sleep.fields.factors.options.phone", "checkIn.steps.sleep.fields.factors.options.relationships", "checkIn.steps.sleep.fields.factors.options.physical", "checkIn.steps.sleep.fields.factors.options.unsure"] },
       note: { title: "checkIn.steps.sleep.fields.note.title", placeholder: "checkIn.steps.sleep.fields.note.placeholder" },
@@ -137,8 +135,7 @@ const stepCopyKeys: Record<StepId, StepCopyKeys> = {
     title: "checkIn.steps.wake.title",
     description: "checkIn.steps.wake.description",
     fields: {
-      state: { title: "checkIn.steps.wake.fields.state.title", options: ["checkIn.steps.wake.fields.state.options.calm", "checkIn.steps.wake.fields.state.options.energized", "checkIn.steps.wake.fields.state.options.tired", "checkIn.steps.wake.fields.state.options.tense", "checkIn.steps.wake.fields.state.options.reluctant"] },
-      startDifficulty: { title: "checkIn.steps.wake.fields.startDifficulty.title", options: ["checkIn.steps.wake.fields.startDifficulty.options.easy", "checkIn.steps.wake.fields.startDifficulty.options.time", "checkIn.steps.wake.fields.startDifficulty.options.difficult", "checkIn.steps.wake.fields.startDifficulty.options.veryDifficult"] },
+      state: { title: "checkIn.steps.wake.fields.state.title", options: ["checkIn.steps.wake.fields.state.options.veryEnergized", "checkIn.steps.wake.fields.state.options.energized", "checkIn.steps.wake.fields.state.options.neutral", "checkIn.steps.wake.fields.state.options.tired", "checkIn.steps.wake.fields.state.options.veryTired"] },
       factors: { title: "checkIn.steps.wake.fields.factors.title", options: ["checkIn.steps.wake.fields.factors.options.sleep", "checkIn.steps.wake.fields.factors.options.thoughts", "checkIn.steps.wake.fields.factors.options.tasks", "checkIn.steps.wake.fields.factors.options.physical", "checkIn.steps.wake.fields.factors.options.emotions", "checkIn.steps.wake.fields.factors.options.unsure"] },
       note: { title: "checkIn.steps.wake.fields.note.title", placeholder: "checkIn.steps.wake.fields.note.placeholder" },
     },
@@ -147,21 +144,20 @@ const stepCopyKeys: Record<StepId, StepCopyKeys> = {
     title: "checkIn.steps.eat.title",
     description: "checkIn.steps.eat.description",
     fields: {
-      rhythm: { title: "checkIn.steps.eat.fields.rhythm.title", options: ["checkIn.steps.eat.fields.rhythm.options.regular", "checkIn.steps.eat.fields.rhythm.options.oneIrregular", "checkIn.steps.eat.fields.rhythm.options.irregular", "checkIn.steps.eat.fields.rhythm.options.barelyAte"] },
-      mealCount: { title: "checkIn.steps.eat.fields.mealCount.title", options: ["checkIn.steps.eat.fields.mealCount.options.three", "checkIn.steps.eat.fields.mealCount.options.two", "checkIn.steps.eat.fields.mealCount.options.one", "checkIn.steps.eat.fields.mealCount.options.scattered", "checkIn.steps.eat.fields.mealCount.options.unsure"] },
+      rhythm: { title: "checkIn.steps.eat.fields.rhythm.title", options: ["checkIn.steps.eat.fields.rhythm.options.veryRegular", "checkIn.steps.eat.fields.rhythm.options.regular", "checkIn.steps.eat.fields.rhythm.options.neutral", "checkIn.steps.eat.fields.rhythm.options.irregular", "checkIn.steps.eat.fields.rhythm.options.veryIrregular"] },
+      mealCount: { title: "checkIn.steps.eat.fields.mealCount.title", options: ["checkIn.steps.eat.fields.mealCount.options.three", "checkIn.steps.eat.fields.mealCount.options.two", "checkIn.steps.eat.fields.mealCount.options.one", "checkIn.steps.eat.fields.mealCount.options.none", "checkIn.steps.eat.fields.mealCount.options.unsure"] },
       foodDetails: { title: "checkIn.steps.eat.fields.foodDetails.title", placeholder: "checkIn.steps.eat.fields.foodDetails.placeholder" },
       factors: { title: "checkIn.steps.eat.fields.factors.title", options: ["checkIn.steps.eat.fields.factors.options.busy", "checkIn.steps.eat.fields.factors.options.appetite", "checkIn.steps.eat.fields.factors.options.schedule", "checkIn.steps.eat.fields.factors.options.emotions", "checkIn.steps.eat.fields.factors.options.forgot", "checkIn.steps.eat.fields.factors.options.limited", "checkIn.steps.eat.fields.factors.options.unsure"] },
-      energyConnection: { title: "checkIn.steps.eat.fields.energyConnection.title", options: ["checkIn.steps.eat.fields.energyConnection.options.yes", "checkIn.steps.eat.fields.energyConnection.options.maybe", "checkIn.steps.eat.fields.energyConnection.options.unsure", "checkIn.steps.eat.fields.energyConnection.options.no"] },
     },
   },
   exercise: {
     title: "checkIn.steps.exercise.title",
     description: "checkIn.steps.exercise.description",
     fields: {
-      duration: { title: "checkIn.steps.exercise.fields.duration.title", options: ["checkIn.steps.exercise.fields.duration.options.none", "checkIn.steps.exercise.fields.duration.options.fiveToTen", "checkIn.steps.exercise.fields.duration.options.tenToTwenty", "checkIn.steps.exercise.fields.duration.options.twentyToThirty", "checkIn.steps.exercise.fields.duration.options.overThirty", "checkIn.steps.exercise.fields.duration.options.unsure"] },
-      activityTypes: { title: "checkIn.steps.exercise.fields.activityTypes.title", options: ["checkIn.steps.exercise.fields.activityTypes.options.walking", "checkIn.steps.exercise.fields.activityTypes.options.stretching", "checkIn.steps.exercise.fields.activityTypes.options.pe", "checkIn.steps.exercise.fields.activityTypes.options.sports", "checkIn.steps.exercise.fields.activityTypes.options.commute", "checkIn.steps.exercise.fields.activityTypes.options.daily", "checkIn.steps.exercise.fields.activityTypes.options.none", "checkIn.steps.exercise.fields.activityTypes.options.other"] },
+      duration: { title: "checkIn.steps.exercise.fields.duration.title", options: ["checkIn.steps.exercise.fields.duration.options.none", "checkIn.steps.exercise.fields.duration.options.oneToNine", "checkIn.steps.exercise.fields.duration.options.tenToNineteen", "checkIn.steps.exercise.fields.duration.options.twentyToTwentyNine", "checkIn.steps.exercise.fields.duration.options.overThirty", "checkIn.steps.exercise.fields.duration.options.unsure"] },
+      activityTypes: { title: "checkIn.steps.exercise.fields.activityTypes.title", options: ["checkIn.steps.exercise.fields.activityTypes.options.walking", "checkIn.steps.exercise.fields.activityTypes.options.stretching", "checkIn.steps.exercise.fields.activityTypes.options.pe", "checkIn.steps.exercise.fields.activityTypes.options.sports", "checkIn.steps.exercise.fields.activityTypes.options.daily", "checkIn.steps.exercise.fields.activityTypes.options.other"] },
       activityNote: { title: "checkIn.steps.exercise.fields.activityNote.title", placeholder: "checkIn.steps.exercise.fields.activityNote.placeholder" },
-      bodyState: { title: "checkIn.steps.exercise.fields.bodyState.title", options: ["checkIn.steps.exercise.fields.bodyState.options.relaxed", "checkIn.steps.exercise.fields.bodyState.options.tense", "checkIn.steps.exercise.fields.bodyState.options.sitting", "checkIn.steps.exercise.fields.bodyState.options.tired", "checkIn.steps.exercise.fields.bodyState.options.unsure"] },
+      bodyState: { title: "checkIn.steps.exercise.fields.bodyState.title", options: ["checkIn.steps.exercise.fields.bodyState.options.veryEnergized", "checkIn.steps.exercise.fields.bodyState.options.energized", "checkIn.steps.exercise.fields.bodyState.options.neutral", "checkIn.steps.exercise.fields.bodyState.options.tired", "checkIn.steps.exercise.fields.bodyState.options.veryTired"] },
       factors: { title: "checkIn.steps.exercise.fields.factors.title", options: ["checkIn.steps.exercise.fields.factors.options.tired", "checkIn.steps.exercise.fields.factors.options.time", "checkIn.steps.exercise.fields.factors.options.motivation", "checkIn.steps.exercise.fields.factors.options.sitting", "checkIn.steps.exercise.fields.factors.options.emotions", "checkIn.steps.exercise.fields.factors.options.physical", "checkIn.steps.exercise.fields.factors.options.unsure"] },
     },
   },
@@ -169,7 +165,7 @@ const stepCopyKeys: Record<StepId, StepCopyKeys> = {
     title: "checkIn.steps.task.title",
     description: "checkIn.steps.task.description",
     fields: {
-      engagement: { title: "checkIn.steps.task.fields.engagement.title", options: ["checkIn.steps.task.fields.engagement.options.smooth", "checkIn.steps.task.fields.engagement.options.basic", "checkIn.steps.task.fields.engagement.options.difficult", "checkIn.steps.task.fields.engagement.options.stuck"] },
+      engagement: { title: "checkIn.steps.task.fields.engagement.title", options: ["checkIn.steps.task.fields.engagement.options.verySmooth", "checkIn.steps.task.fields.engagement.options.smooth", "checkIn.steps.task.fields.engagement.options.neutral", "checkIn.steps.task.fields.engagement.options.difficult", "checkIn.steps.task.fields.engagement.options.veryDifficult"] },
       difficultyReasons: { title: "checkIn.steps.task.fields.difficultyReasons.title", options: ["checkIn.steps.task.fields.difficultyReasons.options.tooMany", "checkIn.steps.task.fields.difficultyReasons.options.start", "checkIn.steps.task.fields.difficultyReasons.options.performance", "checkIn.steps.task.fields.difficultyReasons.options.pressure", "checkIn.steps.task.fields.difficultyReasons.options.emotional", "checkIn.steps.task.fields.difficultyReasons.options.unsure"] },
       completedSmallTask: { title: "checkIn.steps.task.fields.completedSmallTask.title", placeholder: "checkIn.steps.task.fields.completedSmallTask.placeholder" },
     },
@@ -252,7 +248,12 @@ export default function CheckInPage() {
     setAnswers((current) => {
       const existing = current[step.id][fieldId];
       const list = Array.isArray(existing) ? existing : [];
-      const next = list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+      const exclusiveOptions = new Set(["不太确定"]);
+      const next = list.includes(value)
+        ? list.filter((item) => item !== value)
+        : exclusiveOptions.has(value)
+          ? [value]
+          : [...list.filter((item) => !exclusiveOptions.has(item)), value];
       return { ...current, [step.id]: { ...current[step.id], [fieldId]: next } };
     });
     setValidation("");
@@ -525,6 +526,7 @@ export default function CheckInPage() {
                               <button
                                 key={option}
                                 type="button"
+                                aria-pressed={selected}
                                 onClick={() => toggleMultiValue(field.id, option)}
                                 className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition sm:rounded-full sm:py-2 sm:text-center ${
                                   selected ? "border-sage bg-mist text-sage-dark" : "border-ink/10 bg-white/80 text-muted hover:border-sage/50"
@@ -548,6 +550,7 @@ export default function CheckInPage() {
                             <button
                               key={option}
                               type="button"
+                              aria-pressed={selected}
                               onClick={() => setSingleValue(field.id, option)}
                               className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-sage/15 ${
                                 selected ? "border-sage bg-mist text-sage-dark" : "border-ink/10 bg-white/80 text-ink/75 hover:border-sage/50"

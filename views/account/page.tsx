@@ -36,44 +36,19 @@ import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 import { useTranslation } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/config";
-import { dictionaries, type TranslationKey, type TranslationValues } from "@/lib/i18n/dictionaries";
+import type { TranslationKey, TranslationValues } from "@/lib/i18n/dictionaries";
 import {
   emailOtpLength,
   otpRequestErrorMessage,
   otpVerificationErrorMessage,
 } from "@/lib/emailOtp";
 import { rhythmOverview } from "@/lib/rhythmInsights";
+import { localizedStoredCheckInValue, storedCheckInLabel } from "@/lib/checkInHistoryCopy";
 
 type Translate = (key: TranslationKey, values?: TranslationValues) => string;
 
-function collectParallelCopy(zhValue: unknown, enValue: unknown, copy: Map<string, string>) {
-  if (typeof zhValue === "string" && typeof enValue === "string") {
-    copy.set(zhValue, enValue);
-    return;
-  }
-  if (!zhValue || !enValue || typeof zhValue !== "object" || typeof enValue !== "object") return;
-  Object.keys(zhValue).forEach((key) => {
-    collectParallelCopy(
-      (zhValue as Record<string, unknown>)[key],
-      (enValue as Record<string, unknown>)[key],
-      copy,
-    );
-  });
-}
-
-const savedCheckInCopy = new Map<string, string>();
-collectParallelCopy(dictionaries["zh-CN"].checkIn.steps, dictionaries.en.checkIn.steps, savedCheckInCopy);
-
-function localizedStoredValue(value: string, locale: Locale) {
-  return locale === "en" ? savedCheckInCopy.get(value) || value : value;
-}
-
 function storedRecordLabel(locale: Locale, key: string, fallback: string) {
-  const value = key.split(".").reduce<unknown>((current, segment) => {
-    if (!current || typeof current !== "object") return undefined;
-    return (current as Record<string, unknown>)[segment];
-  }, dictionaries[locale]);
-  return typeof value === "string" ? value : fallback;
+  return storedCheckInLabel(locale, key, fallback);
 }
 
 function formatDate(value: string, locale: Locale) {
@@ -115,10 +90,10 @@ function countRecentRecordDays(records: CloudSweetRecord[], userId?: string) {
   return days.size;
 }
 
-function formatRecordValue(value: string | string[], locale: Locale, t: Translate) {
-  if (Array.isArray(value)) return value.length ? value.map((item) => localizedStoredValue(item, locale)).join(locale === "en" ? ", " : "、") : t("account.records.notProvided");
+function formatRecordValue(value: string | string[], locale: Locale, t: Translate, stepId: string, fieldId: string) {
+  if (Array.isArray(value)) return value.length ? value.map((item) => localizedStoredCheckInValue(item, locale, stepId, fieldId)).join(locale === "en" ? ", " : "、") : t("account.records.notProvided");
   const text = String(value || "").trim();
-  return text ? localizedStoredValue(text, locale) : t("account.records.notProvided");
+  return text ? localizedStoredCheckInValue(text, locale, stepId, fieldId) : t("account.records.notProvided");
 }
 
 function profileRoleLabel(value?: string | null) {
@@ -1188,7 +1163,7 @@ export default function AccountPage() {
                                   {step.fields.map((field, fieldIndex) => (
                                     <div key={field.id || `${stepKey}-field-${fieldIndex}`} className="rounded-xl bg-cream px-4 py-3">
                                       <dt className="text-xs font-bold leading-5 text-muted">{storedRecordLabel(locale, `checkIn.steps.${step.id}.fields.${field.id}.title`, field.title)}</dt>
-                                      <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value, locale, t)}</dd>
+                                      <dd className="mt-1 text-sm font-bold leading-6 text-ink/85">{formatRecordValue(field.value, locale, t, step.id, field.id)}</dd>
                                     </div>
                                   ))}
                                 </dl>

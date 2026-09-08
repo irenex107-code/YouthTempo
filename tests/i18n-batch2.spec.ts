@@ -52,10 +52,29 @@ test("Batch 2 locale 页面在窄屏下没有横向溢出", async ({ page }) => 
 
 test("自评选项显示词典文案并保持原有交互", async ({ page }) => {
   await page.goto("/check-in");
-  await page.getByRole("button", { name: zhCN.checkIn.steps.sleep.fields.quality.options.steady }).click();
+  await page.getByRole("button", { name: zhCN.checkIn.steps.sleep.fields.quality.options.veryGood }).click();
   await expect(page.getByRole("button", { name: zhCN.checkIn.actions.next })).toBeEnabled();
 
   await page.goto("/referral");
   await page.getByRole("button", { name: zhCN.referral.questions.currentState.options.emotionalPressure }).click();
   await expect(page.getByText(zhCN.referral.status.selectedCount.replace("{{count}}", "1"))).toBeVisible();
+});
+
+test("SWEET 多选中的不确定选项与具体原因互斥", async ({ page }) => {
+  await page.goto("/check-in");
+  await page.getByRole("button", { name: zhCN.checkIn.form.expandDetails }).click();
+
+  const factors = page.getByText(zhCN.checkIn.steps.sleep.fields.factors.title).locator("..");
+  const specificReason = factors.getByRole("button", {
+    name: zhCN.checkIn.steps.sleep.fields.factors.options.overthinking,
+  });
+  const unsure = factors.getByRole("button", {
+    name: zhCN.checkIn.steps.sleep.fields.factors.options.unsure,
+  });
+
+  await specificReason.click();
+  await expect(specificReason).toHaveAttribute("aria-pressed", "true");
+  await unsure.click();
+  await expect(unsure).toHaveAttribute("aria-pressed", "true");
+  await expect(specificReason).toHaveAttribute("aria-pressed", "false");
 });
