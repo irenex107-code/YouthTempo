@@ -34,6 +34,22 @@ assert.equal(
   "every public application table must retain RLS",
 );
 assert.equal(
+  query(`select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and not has_table_privilege('service_role', c.oid, 'SELECT')`),
+  "0",
+  "the server client must be able to read every application table",
+);
+assert.equal(
+  query(`select has_table_privilege('authenticated', 'public.sweet_records', 'SELECT')
+    and has_table_privilege('authenticated', 'public.profiles', 'SELECT')
+    and has_table_privilege('authenticated', 'public.school_members', 'SELECT')
+    and not has_table_privilege('authenticated', 'public.support_cases', 'SELECT')
+    and not has_table_privilege('authenticated', 'public.student_consents', 'SELECT')`),
+  "t",
+  "direct client grants must match the existing RLS and server-only boundaries",
+);
+assert.equal(
   query("select public from storage.buckets where id = 'support-staff-evidence'"),
   "f",
   "support evidence must remain in a private bucket",
@@ -43,4 +59,4 @@ assert.equal(
   "0",
   "seeded adult rooms must remain closed",
 );
-console.log(`isolated migration assertions passed: ${applied} migrations, feedback policy, public RLS, private storage, closed rooms`);
+console.log(`isolated migration assertions passed: ${applied} migrations, feedback policy, public RLS, core grants, private storage, closed rooms`);

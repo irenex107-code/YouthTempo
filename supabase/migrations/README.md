@@ -22,6 +22,15 @@ commands on production without separate authorization.
 If replay stops between the two repair files, retain the deny-only guard and
 apply the final repair; never restore browser access as a rollback shortcut.
 
+`20260919200001_grant_core_table_access.sql` makes the baseline tables' server
+and RLS-scoped browser grants explicit. A clean local Supabase project did not
+inherit the historical project's DML default privileges: its service role
+could not even insert a synthetic school, and authenticated owners could not
+select SWEET rows. The migration grants server CRUD on the 16 affected core
+tables and only the browser operations already protected by their RLS policies.
+It does not grant browser access to consent, messages, support cases, or staff
+materials. Keep `supabase/schema.sql` synchronized with these grants.
+
 The original incremental SQL is retained in
 `supabase/migration-archive/applied-before-baseline` for audit purposes. Files in
 that archive are not part of the executable migration chain.

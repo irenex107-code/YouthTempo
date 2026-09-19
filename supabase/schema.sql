@@ -3910,3 +3910,37 @@ revoke all on function public.review_support_case_feedback(uuid, uuid, text)
   from public, anon, authenticated;
 grant execute on function public.review_support_case_feedback(uuid, uuid, text)
   to service_role;
+
+-- Explicit core-table grants keep fresh installs independent of project-level
+-- default privileges. Existing row policies still decide each user's access.
+grant select, insert, update, delete on
+  public.admin_roles,
+  public.guardian_student_links,
+  public.profiles,
+  public.school_followups,
+  public.school_invites,
+  public.school_members,
+  public.schools,
+  public.student_consent_events,
+  public.student_consents,
+  public.student_message_duty_actions,
+  public.student_messages,
+  public.sweet_records,
+  public.teacher_student_assignments,
+  public.user_permissions,
+  public.wechat_bind_sessions,
+  public.wechat_identities
+to service_role;
+
+grant select on
+  public.admin_roles,
+  public.profiles,
+  public.school_invites,
+  public.school_members,
+  public.schools,
+  public.teacher_student_assignments,
+  public.wechat_bind_sessions,
+  public.wechat_identities
+to authenticated;
+grant select, insert, delete on public.sweet_records to authenticated;
+grant select, insert, update on public.user_permissions to authenticated;
