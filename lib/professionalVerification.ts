@@ -9,7 +9,7 @@ export const professionalVerificationStatuses = [
 export type ProfessionalVerificationStatus = (typeof professionalVerificationStatuses)[number];
 
 export type ProfessionalVerificationSubmission = {
-  institutionName: string;
+  institutionName: string | null;
   positionTitle: string;
   credentialType: string;
   credentialNumber: string;
@@ -53,8 +53,9 @@ export function parseProfessionalVerificationSubmission(
   value: unknown,
 ): ProfessionalVerificationSubmission {
   const input = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const institutionName = optionalText(input.institutionName, "所在机构", 120);
   return {
-    institutionName: requiredText(input.institutionName, "所在机构", 2, 120),
+    institutionName: institutionName || null,
     positionTitle: requiredText(input.positionTitle, "职务或专业方向", 2, 80),
     credentialType: requiredText(input.credentialType, "资质类型", 2, 80),
     credentialNumber: requiredText(input.credentialNumber, "资质编号", 2, 120),

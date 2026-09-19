@@ -103,7 +103,7 @@ export function ProfessionalVerificationQueue({ accessToken }: { accessToken: st
       <div className="container">
         <SectionHeader
           title="专业支持者身份确认"
-          description="逐项核对机构和资质。只有明确通过的账号，才会在社区显示专业身份标记。"
+          description="逐项核对个人资质和专业方向；机构信息可以不填。只有明确通过的账号，才会在社区显示专业身份标记。"
         />
         <div className="mb-5 flex flex-wrap gap-2 text-xs font-bold">
           <span className="rounded-full bg-white px-3 py-2 text-sage-dark">待确认 {pendingCount}</span>
@@ -115,7 +115,7 @@ export function ProfessionalVerificationQueue({ accessToken }: { accessToken: st
         {!loading && orderedItems.length === 0 ? <p className="card text-sm text-muted">暂时没有专业身份申请。</p> : null}
         <div className="grid gap-5">
           {orderedItems.map((item) => {
-            const canApprove = item.verification_basis === "document_review" && Boolean(item.institution_name && item.position_title && item.credential_type && item.credential_number && item.credential_issuer && item.evidence_reference);
+            const canApprove = item.verification_basis === "document_review" && Boolean(item.position_title && item.credential_type && item.credential_number && item.credential_issuer && item.evidence_reference);
             return (
               <article key={item.user_id} className="card">
                 <div className="flex flex-wrap items-start justify-between gap-4">
@@ -130,7 +130,7 @@ export function ProfessionalVerificationQueue({ accessToken }: { accessToken: st
                   <p className="mt-5 rounded-2xl bg-cream px-4 py-3 text-sm leading-6 text-muted">这是迁移前已由平台确认的记录。若需重新核验，可撤销后请对方补交资料。</p>
                 ) : (
                   <div className="mt-5 grid gap-3 rounded-2xl bg-white/80 p-4 text-sm leading-6 sm:grid-cols-2">
-                    <p><span className="font-bold text-ink">机构：</span>{item.institution_name || "未填写"}</p>
+                    <p><span className="font-bold text-ink">机构/单位（选填）：</span>{item.institution_name || "个人申请，未填写机构"}</p>
                     <p><span className="font-bold text-ink">职务/方向：</span>{item.position_title || "未填写"}</p>
                     <p><span className="font-bold text-ink">资质：</span>{item.credential_type || "未填写"}</p>
                     <p><span className="font-bold text-ink">编号：</span>{item.credential_number || "未填写"}</p>

@@ -54,7 +54,7 @@ test("隔离账号完成专业身份提交、补充、通过和撤销闭环", as
 
     const submission = {
       p_user_id: applicantId,
-      p_institution_name: "E2E 青少年支持中心",
+      p_institution_name: null,
       p_position_title: "心理咨询师",
       p_credential_type: "E2E 专业能力证书",
       p_credential_number: `E2E-${suffix}`,
@@ -74,7 +74,7 @@ test("隔离账号完成专业身份提交、补充、通过和撤销闭环", as
       await admin.rpc("review_professional_verification", {
         p_user_id: applicantId,
         p_action: "request_changes",
-        p_note: "请补充机构公开核验页面。",
+        p_note: "请补充可公开核验的资质页面。",
         p_actor_user_id: reviewerId,
       }),
       "要求补充资料",
