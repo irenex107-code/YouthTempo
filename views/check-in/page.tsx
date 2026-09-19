@@ -4,6 +4,7 @@ import { PageHero } from "@/components/PageHero";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { AiUrgentNotice } from "@/components/AiUrgentNotice";
 import { AiGeneratedLabel, AiTransparencyNotice } from "@/components/AiTransparencyNotice";
+import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
 import { aiRequestHeaders } from "@/lib/aiClient";
 import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
@@ -668,6 +669,7 @@ export default function CheckInPage() {
                 </div>
               </section>
             ) : null}
+            <MicroPilotFeedback feature="sweet" trigger={savedRecordKey} crisis={Boolean(urgentReply)} />
           </div>
         </div>
       </section>
