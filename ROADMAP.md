@@ -23,6 +23,8 @@
 
 **本分支验证状态：** 已编写上述模块的本地代码、迁移草案、双语文案和会前文档；`pnpm typecheck`、`pnpm build` 与无凭据浏览器测试已通过。隔离 PostgreSQL/Supabase 未能启动（Docker 镜像下载的 DNS 失败），所以 Migration 执行、RLS、Storage、旧 session、四类角色和咨询完整生命周期尚未验收；这些复选框继续开放。正式环境未变更，当前结论仍是 **READY WITH CONDITIONS**。
 
+**远端交付状态：** 主题提交保存在本地功能分支；2026-09-19 推送 `origin` 遇 GitHub 443 连接超时，远端分支未确认创建。网络恢复后须单独重试推送并核对远端 HEAD；这项交付保持未完成。
+
 ## COMPLETED / 已完成
 
 - [x] SWEET 五维记录、AI 小结、保存、历史详情与删除；Sleep→Wake 手机滚动回归已覆盖。

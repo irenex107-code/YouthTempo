@@ -2,6 +2,8 @@
 
 功能分支 `codex/teacher-review-product-realignment`；目标是下一轮独立审批后的 PR 与候选部署。本轮不能 merge、部署、改正式变量、执行正式 Migration 或修复真实关系。具体提交 hash 在分主题提交完成后从 `git log` 填入 PR，禁止把本手册当成生产执行授权。
 
+2026-09-19 远端状态：本地分主题提交已形成，`git push` 因 GitHub 443 连接失败而未成功；不能创建 PR 或开始部署。先恢复网络，再运行 `git push -u origin codex/teacher-review-product-realignment` 并核对远端 HEAD 与本地一致。
+
 ## 环境与开关
 
 | 变量 | 初始值 | 用途 |
