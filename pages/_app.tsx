@@ -13,6 +13,8 @@ const translatedPageTitleKeys: Partial<Record<string, TranslationKey>> = {
   "/for-parents": "forParents.metadata.title",
   "/for-teachers": "forTeachers.metadata.title",
   "/for-young-adults": "forYoungAdults.metadata.title",
+  "/peer-space": "peerSpace.metadata.title",
+  "/admin/peer-space": "peerSpaceStaff.metadata.title",
   "/sweet-model": "sweetModel.metadata.title",
   "/check-in": "checkIn.metadata.title",
   "/mood-journal": "moodJournal.metadata.title",
@@ -33,8 +35,8 @@ const remainingPageTitles: Record<string, string> = {
 };
 
 const privateOrUserContentRoutes = new Set([
-  "/account", "/admin", "/check-in", "/community", "/feedback", "/messages",
-  "/mood-journal", "/talk", "/worry-time",
+  "/account", "/admin", "/admin/peer-space", "/check-in", "/community", "/feedback", "/messages",
+  "/mood-journal", "/peer-space", "/talk", "/worry-time",
 ]);
 
 export default function App({ Component, pageProps }: AppProps) {
