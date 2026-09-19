@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { parseSchoolRosterCsv, rosterImportTemplate } from "../lib/schoolRosterImport";
 
 test("批量名单模板可解析学生、老师、家长和负责关系", () => {
-  const result = parseSchoolRosterCsv(rosterImportTemplate());
+  const result = parseSchoolRosterCsv(rosterImportTemplate(true), 100, true);
 
   expect(result.errors).toEqual([]);
   expect(result.rows).toHaveLength(3);
@@ -18,6 +18,8 @@ test("批量名单模板可解析学生、老师、家长和负责关系", () =>
 test("支持中英文表头、BOM、引号和 Windows 换行", () => {
   const result = parseSchoolRosterCsv(
     '\uFEFFname,email,role,teacher_email,parent_email\r\n"小,林",student@example.com,student,teacher@example.com,parent@example.com',
+    100,
+    true,
   );
 
   expect(result.errors).toEqual([]);
@@ -46,4 +48,15 @@ test("限制单次人数并拒绝缺少必填表头的文件", () => {
     ...Array.from({ length: 101 }, (_, index) => `学生${index},student${index}@example.com,学生`),
   ].join("\n");
   expect(parseSchoolRosterCsv(tooMany).errors[0]).toContain("最多导入 100 人");
+});
+
+test("当前学生自主试点模板不包含家长，上传家长关系时在写入前拒绝", () => {
+  expect(rosterImportTemplate()).not.toContain("家长邮箱");
+  expect(rosterImportTemplate()).not.toContain("parent@example.com");
+
+  const result = parseSchoolRosterCsv([
+    "姓名,邮箱,身份,老师邮箱,家长邮箱",
+    "小林,student@example.com,学生,,parent@example.com",
+  ].join("\n"));
+  expect(result.errors.join(" ")).toContain("当前学生自主试点尚未开放家长加入或亲子关系创建");
 });

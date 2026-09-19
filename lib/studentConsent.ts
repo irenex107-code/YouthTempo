@@ -99,7 +99,7 @@ export async function requireActiveStudentConsent(supabase: SupabaseClient, user
     .eq("id", userId)
     .maybeSingle();
   if (profileError) throw profileError;
-  if (profile?.role !== "学生") return;
+  if (profile?.role !== "学生") return null;
 
   const { data: consent, error: consentError } = await supabase
     .from("student_consents")
@@ -112,4 +112,5 @@ export async function requireActiveStudentConsent(supabase: SupabaseClient, user
     error.statusCode = 403;
     throw error;
   }
+  return consent;
 }

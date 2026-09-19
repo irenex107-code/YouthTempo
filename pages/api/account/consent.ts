@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED } from "@/lib/guardianAccessPolicy";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import {
   STUDENT_CONSENT_POLICY_VERSION,
@@ -19,6 +20,7 @@ async function loadConsentResponse(supabase: ReturnType<typeof getSupabaseAdmin>
   ]);
   if (profileError) throw profileError;
   if (guardianError) throw guardianError;
+  const availableGuardianLinks = CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? (guardianLinks || []) : [];
 
   if (profile?.role === "学生") {
     const { data: consent, error } = await supabase
@@ -34,14 +36,14 @@ async function loadConsentResponse(supabase: ReturnType<typeof getSupabaseAdmin>
         consent,
         userId,
         profile.display_name || profile.email || "学生",
-        (guardianLinks || []).some((link) => link.student_user_id === userId),
+        availableGuardianLinks.some((link) => link.student_user_id === userId),
       ),
       children: [],
     };
   }
 
   if (profile?.role === "家长") {
-    const childLinks = (guardianLinks || []).filter((link) => link.guardian_user_id === userId);
+    const childLinks = availableGuardianLinks.filter((link) => link.guardian_user_id === userId);
     const childIds = childLinks.map((link) => link.student_user_id as string);
     const [{ data: children, error: childrenError }, { data: consents, error: consentsError }] = childIds.length
       ? await Promise.all([
@@ -130,6 +132,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === "POST" && req.body?.action === "guardian_consent") {
+      if (!CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
+        return res.status(403).json({ error: "当前试点未开放家长确认。" });
+      }
       const studentUserId = typeof req.body?.studentUserId === "string" ? req.body.studentUserId.trim() : "";
       if (!studentUserId) return res.status(400).json({ error: "请选择孩子账号。" });
       const { data: link, error: linkError } = await supabase
@@ -186,6 +191,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === "DELETE") {
       const requestedStudentId = typeof req.body?.studentUserId === "string" ? req.body.studentUserId.trim() : "";
       const studentUserId = requestedStudentId || user.id;
+      if (studentUserId !== user.id && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
+        return res.status(403).json({ error: "当前试点只有学生本人可以撤回确认。" });
+      }
       const { data: consent, error: consentError } = await supabase
         .from("student_consents")
         .select("age_band,consent_basis,policy_version,school_id,guardian_user_id")

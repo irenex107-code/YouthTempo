@@ -29,19 +29,20 @@ test("学校运营概览只汇总参与、关系覆盖和支持信号", () => {
     records: 5,
     attentionCount: 1,
     participationRate: 50,
-    stableSchools: 0,
+    stableSchools: 1,
   });
   expect(operations.rows[0]).toMatchObject({
     participationRate: 50,
     teacherCoverage: 100,
     guardianCoverage: 50,
-    readiness: "补关系",
+    readiness: "稳定试点",
   });
 });
 
 test("导出文件不包含学生标识，只包含学校汇总", () => {
   const csv = schoolOperationsCsv(operations.rows);
-  expect(csv).toContain("测试学校,补关系,2,1,1,1,50%,5,100%,50%,1");
+  expect(csv).toContain("家长关系（本轮不适用）");
+  expect(csv).toContain("测试学校,稳定试点,2,1,1,1,50%,5,100%,不适用,1");
   expect(csv).not.toContain("student-a");
   expect(csv).not.toContain("leader");
 });

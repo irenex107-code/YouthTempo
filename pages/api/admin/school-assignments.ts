@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { canManageSchool, canManageSchoolMembers, findAuthUserByEmail, getAdminContext } from "@/lib/adminAccess";
+import {
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE,
+} from "@/lib/guardianAccessPolicy";
 import { inviteRoleFromLabel, memberRoleFromInvite } from "@/lib/schoolInvites";
 
 const roleLabels = ["学生", "家长", "支持老师", "学校负责人", "专业支持者"] as const;
@@ -171,6 +175,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (context.kind !== "platform" && assignmentRole === "专业支持者") {
       return res.status(403).json({ error: "专业支持者身份需要由平台管理员确认。" });
+    }
+    if (
+      !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED
+      && (assignmentRole === "家长" || guardianUserId || guardianEmail)
+    ) {
+      return res.status(409).json({ error: CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE });
     }
 
     if (assignmentRole === "学生" && teacherEmail && !teacherUserId) {

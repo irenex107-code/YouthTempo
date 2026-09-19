@@ -1,4 +1,5 @@
 import { buildSchoolOperations, schoolOperationsCsv, type OperationsDirectory, type OperationsTrend } from "@/lib/schoolOperations";
+import { CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED } from "@/lib/guardianAccessPolicy";
 
 type Props = {
   directories: OperationsDirectory[];
@@ -33,7 +34,7 @@ export function SchoolOperationsOverview(props: Props) {
           <div>
             <p className="eyebrow">试点运营</p>
             <h2 className="mt-3 text-[1.6rem] font-bold text-ink">学校合作进展</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">只看学校层面的参与和关系完整度，不比较学生、不做排名。导出的也是汇总数据，不含姓名、邮箱或原始回答。</p>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">只看学校层面的参与和负责老师覆盖，不比较学生、不做排名。当前试点不把家长关系作为完整度要求；导出数据不含姓名、邮箱或原始回答。</p>
           </div>
           <button type="button" className="button-secondary" onClick={downloadSummary} disabled={!operations.rows.length}>导出学校汇总</button>
         </div>
@@ -52,12 +53,12 @@ export function SchoolOperationsOverview(props: Props) {
           </div>
           {operations.rows.length ? operations.rows.map((row) => (
             <article key={row.schoolId} className="grid gap-4 border-b border-ink/10 px-5 py-5 last:border-0 lg:grid-cols-[1.3fr_0.8fr_repeat(5,0.72fr)] lg:items-center lg:gap-3">
-              <div><p className="font-bold text-ink">{row.schoolName}</p><p className="mt-1 text-xs text-muted">老师 {row.teachers} · 家长 {row.guardians} · 记录 {row.records}</p></div>
+              <div><p className="font-bold text-ink">{row.schoolName}</p><p className="mt-1 text-xs text-muted">老师 {row.teachers}{CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? ` · 家长 ${row.guardians}` : ""} · 记录 {row.records}</p></div>
               <div><span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${readinessStyle[row.readiness]}`}>{row.readiness}</span></div>
               <p className="text-sm"><span className="text-xs text-muted lg:hidden">学生 </span><strong>{row.students}</strong></p>
               <p className="text-sm"><span className="text-xs text-muted lg:hidden">近 4 周参与 </span><strong>{row.activeStudents}</strong> · {row.participationRate}%</p>
               <p className="text-sm"><span className="text-xs text-muted lg:hidden">老师关系 </span><strong>{row.teacherCoverage}%</strong></p>
-              <p className="text-sm"><span className="text-xs text-muted lg:hidden">家庭关系 </span><strong>{row.guardianCoverage}%</strong></p>
+              <p className="text-sm"><span className="text-xs text-muted lg:hidden">家庭关系 </span><strong>{CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? `${row.guardianCoverage}%` : "不适用"}</strong></p>
               <p className="text-sm"><span className="text-xs text-muted lg:hidden">建议了解 </span><strong>{row.attentionCount}</strong></p>
             </article>
           )) : <p className="px-5 py-8 text-sm text-muted">还没有学校试点数据。</p>}
