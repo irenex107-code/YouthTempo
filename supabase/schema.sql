@@ -485,19 +485,11 @@ using ((select auth.uid()) = user_id);
 
 drop policy if exists "sweet_records_select_authorized_grantee" on public.sweet_records;
 drop policy if exists "sweet_records_select_guardian" on public.sweet_records;
-create policy "sweet_records_select_guardian"
-on public.sweet_records for select
-to authenticated
-using (
-  exists (
-    select 1
-    from public.guardian_student_links guardian_link
-    where guardian_link.guardian_user_id = (select auth.uid())
-      and guardian_link.student_user_id = sweet_records.user_id
-      and guardian_link.school_id = sweet_records.school_id
-      and guardian_link.status = 'active'
-  )
-);
+
+alter table public.guardian_student_links
+  drop constraint if exists pilot_guardian_links_inactive;
+alter table public.guardian_student_links
+  add constraint pilot_guardian_links_inactive check (status <> 'active') not valid;
 
 drop policy if exists "sweet_records_select_school_members" on public.sweet_records;
 create policy "sweet_records_select_school_members"
@@ -505,6 +497,10 @@ on public.sweet_records for select
 to authenticated
 using (
   school_id is not null
+  and exists (
+    select 1 from public.profiles viewer
+    where viewer.id = (select auth.uid()) and viewer.role <> '家长'
+  )
   and exists (
     select 1 from public.school_members member
     where member.school_id = sweet_records.school_id
@@ -564,13 +560,10 @@ to authenticated
 using (teacher_user_id = (select auth.uid()));
 
 drop policy if exists "guardian_links_select_related" on public.guardian_student_links;
-create policy "guardian_links_select_related"
+create policy "guardian_links_select_student_own"
 on public.guardian_student_links for select
 to authenticated
-using (
-  guardian_user_id = (select auth.uid())
-  or student_user_id = (select auth.uid())
-);
+using (student_user_id = (select auth.uid()));
 
 revoke insert, update, delete on table public.guardian_student_links from anon, authenticated;
 revoke all on table public.guardian_student_links from anon;
@@ -1183,8 +1176,6 @@ create table if not exists public.professional_verifications (
           or (
             verified_by is not null
             and credential_verified
-            and institution_verified
-            and institution_name is not null
             and position_title is not null
             and credential_type is not null
             and credential_number is not null
@@ -1655,8 +1646,7 @@ begin
     from public.professional_verifications verification
     where verification.user_id = p_user_id
       and (
-        verification.institution_name is null
-        or verification.position_title is null
+        verification.position_title is null
         or verification.credential_type is null
         or verification.credential_number is null
         or verification.credential_issuer is null
@@ -1671,7 +1661,7 @@ begin
   set status = v_next_status,
       verified_by = p_actor_user_id,
       credential_verified = p_action = 'approve',
-      institution_verified = p_action = 'approve',
+      institution_verified = p_action = 'approve' and institution_name is not null,
       reviewed_at = v_reviewed_at,
       review_note = v_note,
       revoked_at = case when p_action = 'revoke' then v_reviewed_at else null end,
@@ -1780,3 +1770,2143 @@ select cron.schedule(
   '27 3 * * *',
   $$select public.expire_professional_verifications();$$
 );
+
+-- Adults-only Peer Space access foundation.
+-- This migration deliberately does not create messages, school rooms,
+-- Realtime topics, staff shifts, or any browser-direct business-table access.
+
+create table public.peer_spaces (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique check (code ~ '^[a-z0-9_]{3,48}$'),
+  age_scope text not null check (age_scope in ('18_plus', '14_17')),
+  status text not null default 'hidden' check (status in ('hidden', 'invite_only', 'active', 'paused', 'closed')),
+  rules_version text not null check (char_length(rules_version) between 1 and 40),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.peer_space_cohorts (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  partner_school_id uuid references public.schools(id) on delete set null,
+  internal_name text not null check (char_length(internal_name) between 1 and 120),
+  status text not null default 'scheduled' check (status in ('scheduled', 'active', 'paused', 'closed')),
+  starts_at timestamptz,
+  ends_at timestamptz,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (id, space_id),
+  check (ends_at is null or starts_at is null or ends_at > starts_at)
+);
+
+create table public.peer_space_memberships (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  cohort_id uuid not null,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'invited' check (status in ('invited', 'active', 'paused', 'left', 'removed')),
+  accepted_rules_version text check (accepted_rules_version is null or char_length(accepted_rules_version) between 1 and 40),
+  accepted_rules_at timestamptz,
+  invited_by uuid references auth.users(id) on delete set null,
+  invited_at timestamptz not null default now(),
+  ended_at timestamptz,
+  ended_reason text check (ended_reason is null or char_length(ended_reason) between 1 and 240),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (space_id, cohort_id, user_id),
+  unique (id, space_id),
+  foreign key (cohort_id, space_id)
+    references public.peer_space_cohorts(id, space_id) on delete restrict,
+  check ((accepted_rules_version is null) = (accepted_rules_at is null)),
+  check (status <> 'active' or accepted_rules_at is not null),
+  check (status not in ('left', 'removed') or ended_at is not null)
+);
+
+create table public.peer_space_rule_acceptance_events (
+  id uuid primary key default gen_random_uuid(),
+  membership_id uuid not null references public.peer_space_memberships(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  rules_version text not null check (char_length(rules_version) between 1 and 40),
+  accepted_at timestamptz not null default now(),
+  unique (membership_id, rules_version)
+);
+
+create table public.peer_space_rooms (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  room_type text not null default 'everyone' check (room_type = 'everyone'),
+  status text not null default 'closed' check (status in ('staffed_open', 'read_only', 'paused', 'closed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (id, space_id),
+  unique (space_id, room_type)
+);
+
+create table public.peer_space_room_memberships (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  room_id uuid not null,
+  membership_id uuid not null,
+  status text not null default 'active' check (status in ('active', 'left', 'removed')),
+  auto_join_suppressed boolean not null default false,
+  visible_from timestamptz not null default now(),
+  visible_until timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  foreign key (room_id, space_id)
+    references public.peer_space_rooms(id, space_id) on delete restrict,
+  foreign key (membership_id, space_id)
+    references public.peer_space_memberships(id, space_id) on delete cascade,
+  check (visible_until is null or visible_until > visible_from),
+  check (
+    (status = 'active' and visible_until is null)
+    or (status in ('left', 'removed') and visible_until is not null)
+  )
+);
+
+create unique index peer_space_room_memberships_active_once_idx
+on public.peer_space_room_memberships(room_id, membership_id)
+where status = 'active' and visible_until is null;
+
+create index peer_space_cohorts_space_status_idx
+on public.peer_space_cohorts(space_id, status, starts_at, ends_at);
+
+create index peer_space_cohorts_partner_school_idx
+on public.peer_space_cohorts(partner_school_id)
+where partner_school_id is not null;
+
+create index peer_space_memberships_user_status_idx
+on public.peer_space_memberships(user_id, status, created_at);
+
+create index peer_space_memberships_cohort_status_idx
+on public.peer_space_memberships(cohort_id, status);
+
+create index peer_space_memberships_invited_by_idx
+on public.peer_space_memberships(invited_by)
+where invited_by is not null;
+
+create index peer_space_rule_events_user_accepted_idx
+on public.peer_space_rule_acceptance_events(user_id, accepted_at desc);
+
+create index peer_space_room_memberships_member_period_idx
+on public.peer_space_room_memberships(membership_id, visible_from, visible_until);
+
+create index peer_space_room_memberships_room_period_idx
+on public.peer_space_room_memberships(room_id, visible_from, visible_until);
+
+alter table public.peer_spaces enable row level security;
+alter table public.peer_space_cohorts enable row level security;
+alter table public.peer_space_memberships enable row level security;
+alter table public.peer_space_rule_acceptance_events enable row level security;
+alter table public.peer_space_rooms enable row level security;
+alter table public.peer_space_room_memberships enable row level security;
+
+revoke all on table public.peer_spaces from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_cohorts from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_memberships from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_rule_acceptance_events from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_rooms from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_room_memberships from public, anon, authenticated, service_role;
+
+grant select on table public.peer_spaces to service_role;
+grant select, insert, update on table public.peer_space_cohorts to service_role;
+grant select, insert, update on table public.peer_space_memberships to service_role;
+grant select, insert on table public.peer_space_rule_acceptance_events to service_role;
+grant select, insert, update on table public.peer_space_rooms to service_role;
+grant select, insert, update on table public.peer_space_room_memberships to service_role;
+
+create policy peer_spaces_server_only on public.peer_spaces
+for all to authenticated using (false) with check (false);
+create policy peer_space_cohorts_server_only on public.peer_space_cohorts
+for all to authenticated using (false) with check (false);
+create policy peer_space_memberships_server_only on public.peer_space_memberships
+for all to authenticated using (false) with check (false);
+create policy peer_space_rule_events_server_only on public.peer_space_rule_acceptance_events
+for all to authenticated using (false) with check (false);
+create policy peer_space_rooms_server_only on public.peer_space_rooms
+for all to authenticated using (false) with check (false);
+create policy peer_space_room_memberships_server_only on public.peer_space_room_memberships
+for all to authenticated using (false) with check (false);
+
+insert into public.peer_spaces (id, code, age_scope, status, rules_version)
+values (
+  '00000000-0000-4000-8000-000000000018',
+  'adult_peer_space',
+  '18_plus',
+  'invite_only',
+  '2026-09-17'
+)
+on conflict (code) do nothing;
+
+insert into public.peer_space_rooms (id, space_id, room_type, status)
+select
+  '00000000-0000-4000-8000-000000001800',
+  space.id,
+  'everyone',
+  'closed'
+from public.peer_spaces space
+where space.code = 'adult_peer_space'
+on conflict (space_id, room_type) do nothing;
+
+create or replace function public.accept_peer_space_rules(
+  p_user_id uuid,
+  p_membership_id uuid,
+  p_rules_version text
+)
+returns table (
+  accepted_membership_id uuid,
+  joined_room_id uuid,
+  room_membership_id uuid
+)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_membership public.peer_space_memberships%rowtype;
+  v_room_id uuid;
+  v_room_membership_id uuid;
+  v_rules_version text;
+  v_now timestamptz := now();
+begin
+  select membership.*
+  into v_membership
+  from public.peer_space_memberships membership
+  join public.peer_spaces space on space.id = membership.space_id
+  join public.peer_space_cohorts cohort
+    on cohort.id = membership.cohort_id
+   and cohort.space_id = membership.space_id
+  where membership.id = p_membership_id
+    and membership.user_id = p_user_id
+    and membership.status in ('invited', 'active')
+    and space.age_scope = '18_plus'
+    and space.status in ('invite_only', 'active')
+    and cohort.status = 'active'
+    and (cohort.starts_at is null or cohort.starts_at <= v_now)
+    and (cohort.ends_at is null or cohort.ends_at > v_now)
+    and exists (
+      select 1
+      from public.profiles profile
+      where profile.id = p_user_id
+        and profile.role = '学生'
+    )
+    and exists (
+      select 1
+      from public.student_consents consent
+      where consent.student_user_id = p_user_id
+        and consent.age_band = '18_plus'
+        and consent.consent_basis = 'adult_self'
+        and consent.policy_version = '2026-08-28'
+        and consent.status = 'active'
+        and consent.student_assented_at is not null
+    )
+  for update of membership;
+
+  if not found then
+    raise exception 'peer_space_unavailable' using errcode = '42501';
+  end if;
+
+  select space.rules_version
+  into v_rules_version
+  from public.peer_spaces space
+  where space.id = v_membership.space_id;
+
+  if p_rules_version is distinct from v_rules_version then
+    raise exception 'peer_space_rules_version_mismatch' using errcode = '22023';
+  end if;
+
+  if exists (
+    select 1
+    from public.peer_space_room_memberships room_membership
+    where room_membership.membership_id = v_membership.id
+      and room_membership.auto_join_suppressed = true
+  ) then
+    raise exception 'peer_space_rejoin_requires_explicit_flow' using errcode = '42501';
+  end if;
+
+  select room.id
+  into v_room_id
+  from public.peer_space_rooms room
+  where room.space_id = v_membership.space_id
+    and room.room_type = 'everyone';
+
+  if v_room_id is null then
+    raise exception 'peer_space_room_unavailable' using errcode = '55000';
+  end if;
+
+  update public.peer_space_memberships
+  set status = 'active',
+      accepted_rules_at = case
+        when accepted_rules_version is distinct from v_rules_version then v_now
+        else coalesce(accepted_rules_at, v_now)
+      end,
+      accepted_rules_version = v_rules_version,
+      ended_at = null,
+      ended_reason = null,
+      updated_at = v_now
+  where id = v_membership.id;
+
+  insert into public.peer_space_rule_acceptance_events (
+    membership_id,
+    user_id,
+    rules_version,
+    accepted_at
+  ) values (
+    v_membership.id,
+    p_user_id,
+    v_rules_version,
+    v_now
+  )
+  on conflict (membership_id, rules_version) do nothing;
+
+  insert into public.peer_space_room_memberships (
+    space_id,
+    room_id,
+    membership_id,
+    status,
+    visible_from
+  ) values (
+    v_membership.space_id,
+    v_room_id,
+    v_membership.id,
+    'active',
+    v_now
+  )
+  on conflict do nothing;
+
+  select room_membership.id
+  into v_room_membership_id
+  from public.peer_space_room_memberships room_membership
+  where room_membership.room_id = v_room_id
+    and room_membership.membership_id = v_membership.id
+    and room_membership.status = 'active'
+    and room_membership.visible_until is null;
+
+  if v_room_membership_id is null then
+    raise exception 'peer_space_membership_unavailable' using errcode = '55000';
+  end if;
+
+  return query
+  select v_membership.id, v_room_id, v_room_membership_id;
+end;
+$$;
+
+revoke all on function public.accept_peer_space_rules(uuid, uuid, text)
+from public, anon, authenticated;
+grant execute on function public.accept_peer_space_rules(uuid, uuid, text)
+to service_role;
+
+-- Peer Space staff authorization and duty-shift foundation.
+-- This batch is server-only. It does not expose student content, enable Realtime,
+-- open the room, schedule production duty, or grant any browser-direct access.
+
+create table public.peer_space_staff_assignments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete restrict,
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  room_id uuid,
+  capability text not null check (capability in ('room_duty', 'content_moderator', 'safety_duty', 'config_admin')),
+  status text not null default 'active' check (status in ('active', 'revoked')),
+  starts_at timestamptz not null default now(),
+  ends_at timestamptz,
+  granted_by uuid not null references auth.users(id) on delete restrict,
+  granted_at timestamptz not null default now(),
+  revoked_by uuid references auth.users(id) on delete restrict,
+  revoked_at timestamptz,
+  revoke_reason text check (revoke_reason is null or char_length(revoke_reason) between 1 and 240),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (id, user_id, space_id),
+  foreign key (room_id, space_id)
+    references public.peer_space_rooms(id, space_id) on delete restrict,
+  check (ends_at is null or ends_at > starts_at),
+  check (
+    (status = 'active' and revoked_by is null and revoked_at is null and revoke_reason is null)
+    or (status = 'revoked' and revoked_by is not null and revoked_at is not null)
+  )
+);
+
+create table public.peer_space_staff_assignment_events (
+  id uuid primary key default gen_random_uuid(),
+  assignment_id uuid not null references public.peer_space_staff_assignments(id) on delete restrict,
+  staff_user_id uuid not null references auth.users(id) on delete restrict,
+  actor_user_id uuid not null references auth.users(id) on delete restrict,
+  action text not null check (action in ('granted', 'revoked')),
+  capability text not null check (capability in ('room_duty', 'content_moderator', 'safety_duty', 'config_admin')),
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  room_id uuid,
+  reason text check (reason is null or char_length(reason) between 1 and 240),
+  created_at timestamptz not null default now(),
+  foreign key (room_id, space_id)
+    references public.peer_space_rooms(id, space_id) on delete restrict
+);
+
+create table public.peer_space_duty_shifts (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.peer_spaces(id) on delete restrict,
+  room_id uuid not null,
+  primary_assignment_id uuid not null,
+  primary_staff_user_id uuid not null references auth.users(id) on delete restrict,
+  backup_assignment_id uuid not null,
+  backup_staff_user_id uuid not null references auth.users(id) on delete restrict,
+  scheduled_start_at timestamptz not null,
+  scheduled_end_at timestamptz not null,
+  status text not null default 'scheduled' check (status in ('scheduled', 'active', 'handoff_pending', 'ended', 'cancelled')),
+  checklist_version text check (checklist_version is null or char_length(checklist_version) between 1 and 40),
+  device_network_confirmed_at timestamptz,
+  backup_confirmed_at timestamptz,
+  safety_path_confirmed_at timestamptz,
+  rules_resources_confirmed_at timestamptz,
+  handoff_reviewed_at timestamptz,
+  actual_start_at timestamptz,
+  actual_end_at timestamptz,
+  last_heartbeat_at timestamptz,
+  lease_expires_at timestamptz,
+  created_by uuid not null references auth.users(id) on delete restrict,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  foreign key (room_id, space_id)
+    references public.peer_space_rooms(id, space_id) on delete restrict,
+  foreign key (primary_assignment_id, primary_staff_user_id, space_id)
+    references public.peer_space_staff_assignments(id, user_id, space_id) on delete restrict,
+  foreign key (backup_assignment_id, backup_staff_user_id, space_id)
+    references public.peer_space_staff_assignments(id, user_id, space_id) on delete restrict,
+  check (scheduled_end_at > scheduled_start_at),
+  check (primary_staff_user_id <> backup_staff_user_id),
+  check (primary_assignment_id <> backup_assignment_id),
+  check (
+    (status = 'scheduled' and actual_start_at is null and actual_end_at is null and lease_expires_at is null)
+    or (status in ('active', 'handoff_pending') and actual_start_at is not null and actual_end_at is null and lease_expires_at is not null)
+    or (status = 'ended' and actual_start_at is not null and actual_end_at is not null and lease_expires_at is null)
+    or (status = 'cancelled' and actual_end_at is not null and lease_expires_at is null)
+  )
+);
+
+create table public.peer_space_duty_shift_events (
+  id uuid primary key default gen_random_uuid(),
+  shift_id uuid not null references public.peer_space_duty_shifts(id) on delete restrict,
+  actor_user_id uuid references auth.users(id) on delete restrict,
+  actor_assignment_id uuid references public.peer_space_staff_assignments(id) on delete restrict,
+  event_type text not null check (event_type in ('started', 'heartbeat', 'handoff_started', 'ended', 'lease_expired')),
+  previous_status text check (previous_status is null or previous_status in ('scheduled', 'active', 'handoff_pending', 'ended', 'cancelled')),
+  new_status text not null check (new_status in ('scheduled', 'active', 'handoff_pending', 'ended', 'cancelled')),
+  lease_expires_at timestamptz,
+  checklist_version text check (checklist_version is null or char_length(checklist_version) between 1 and 40),
+  created_at timestamptz not null default now()
+);
+
+create unique index peer_space_staff_active_space_scope_idx
+on public.peer_space_staff_assignments(user_id, capability, space_id)
+where status = 'active' and room_id is null;
+
+create unique index peer_space_staff_active_room_scope_idx
+on public.peer_space_staff_assignments(user_id, capability, room_id)
+where status = 'active' and room_id is not null;
+
+create index peer_space_staff_assignments_space_status_idx
+on public.peer_space_staff_assignments(space_id, status, capability);
+
+create index peer_space_staff_assignments_user_idx
+on public.peer_space_staff_assignments(user_id);
+
+create index peer_space_staff_assignments_granted_by_idx
+on public.peer_space_staff_assignments(granted_by);
+
+create index peer_space_staff_assignments_revoked_by_idx
+on public.peer_space_staff_assignments(revoked_by)
+where revoked_by is not null;
+
+create index peer_space_staff_assignments_room_status_idx
+on public.peer_space_staff_assignments(room_id, status, capability)
+where room_id is not null;
+
+create index peer_space_staff_assignment_events_assignment_created_idx
+on public.peer_space_staff_assignment_events(assignment_id, created_at desc);
+
+create index peer_space_staff_assignment_events_actor_created_idx
+on public.peer_space_staff_assignment_events(actor_user_id, created_at desc);
+
+create index peer_space_staff_assignment_events_staff_created_idx
+on public.peer_space_staff_assignment_events(staff_user_id, created_at desc);
+
+create index peer_space_staff_assignment_events_space_created_idx
+on public.peer_space_staff_assignment_events(space_id, created_at desc);
+
+create index peer_space_staff_assignment_events_room_created_idx
+on public.peer_space_staff_assignment_events(room_id, created_at desc)
+where room_id is not null;
+
+create index peer_space_duty_shifts_room_schedule_idx
+on public.peer_space_duty_shifts(room_id, scheduled_start_at, scheduled_end_at);
+
+create index peer_space_duty_shifts_primary_schedule_idx
+on public.peer_space_duty_shifts(primary_staff_user_id, scheduled_start_at desc);
+
+create index peer_space_duty_shifts_backup_schedule_idx
+on public.peer_space_duty_shifts(backup_staff_user_id, scheduled_start_at desc);
+
+create index peer_space_duty_shifts_space_schedule_idx
+on public.peer_space_duty_shifts(space_id, scheduled_start_at desc);
+
+create index peer_space_duty_shifts_primary_assignment_idx
+on public.peer_space_duty_shifts(primary_assignment_id);
+
+create index peer_space_duty_shifts_backup_assignment_idx
+on public.peer_space_duty_shifts(backup_assignment_id);
+
+create index peer_space_duty_shifts_created_by_idx
+on public.peer_space_duty_shifts(created_by);
+
+create unique index peer_space_duty_one_active_room_per_primary_idx
+on public.peer_space_duty_shifts(primary_staff_user_id)
+where status in ('active', 'handoff_pending');
+
+-- One live primary per room; an outgoing handoff may briefly overlap the
+-- incoming active shift, but two shifts in the same state may not.
+create unique index peer_space_duty_one_active_shift_per_room_idx
+on public.peer_space_duty_shifts(room_id)
+where status = 'active';
+
+create unique index peer_space_duty_one_handoff_shift_per_room_idx
+on public.peer_space_duty_shifts(room_id)
+where status = 'handoff_pending';
+
+create index peer_space_duty_active_lease_idx
+on public.peer_space_duty_shifts(lease_expires_at)
+where status in ('active', 'handoff_pending');
+
+create index peer_space_duty_shift_events_shift_created_idx
+on public.peer_space_duty_shift_events(shift_id, created_at desc);
+
+create index peer_space_duty_shift_events_actor_created_idx
+on public.peer_space_duty_shift_events(actor_user_id, created_at desc)
+where actor_user_id is not null;
+
+create index peer_space_duty_shift_events_assignment_created_idx
+on public.peer_space_duty_shift_events(actor_assignment_id, created_at desc)
+where actor_assignment_id is not null;
+
+alter table public.peer_space_staff_assignments enable row level security;
+alter table public.peer_space_staff_assignment_events enable row level security;
+alter table public.peer_space_duty_shifts enable row level security;
+alter table public.peer_space_duty_shift_events enable row level security;
+
+revoke all on table public.peer_space_staff_assignments from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_staff_assignment_events from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_duty_shifts from public, anon, authenticated, service_role;
+revoke all on table public.peer_space_duty_shift_events from public, anon, authenticated, service_role;
+
+grant select, insert, update on table public.peer_space_staff_assignments to service_role;
+grant select, insert on table public.peer_space_staff_assignment_events to service_role;
+grant select, insert, update on table public.peer_space_duty_shifts to service_role;
+grant select, insert on table public.peer_space_duty_shift_events to service_role;
+
+create policy peer_space_staff_assignments_server_only on public.peer_space_staff_assignments
+for all to authenticated using (false) with check (false);
+create policy peer_space_staff_assignment_events_server_only on public.peer_space_staff_assignment_events
+for all to authenticated using (false) with check (false);
+create policy peer_space_duty_shifts_server_only on public.peer_space_duty_shifts
+for all to authenticated using (false) with check (false);
+create policy peer_space_duty_shift_events_server_only on public.peer_space_duty_shift_events
+for all to authenticated using (false) with check (false);
+
+create or replace function public.protect_peer_space_staff_assignment()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if old.status = 'revoked'
+    or new.user_id is distinct from old.user_id
+    or new.space_id is distinct from old.space_id
+    or new.room_id is distinct from old.room_id
+    or new.capability is distinct from old.capability
+    or new.starts_at is distinct from old.starts_at
+    or new.ends_at is distinct from old.ends_at
+    or new.granted_by is distinct from old.granted_by
+    or new.granted_at is distinct from old.granted_at
+    or new.created_at is distinct from old.created_at
+    or new.status <> 'revoked' then
+    raise exception 'peer_space_staff_assignment_immutable' using errcode = '42501';
+  end if;
+
+  return new;
+end;
+$$;
+
+create or replace function public.audit_peer_space_staff_assignment()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  insert into public.peer_space_staff_assignment_events (
+    assignment_id,
+    staff_user_id,
+    actor_user_id,
+    action,
+    capability,
+    space_id,
+    room_id,
+    reason,
+    created_at
+  ) values (
+    new.id,
+    new.user_id,
+    case when tg_op = 'INSERT' then new.granted_by else new.revoked_by end,
+    case when tg_op = 'INSERT' then 'granted' else 'revoked' end,
+    new.capability,
+    new.space_id,
+    new.room_id,
+    case when tg_op = 'INSERT' then null else new.revoke_reason end,
+    case when tg_op = 'INSERT' then new.granted_at else new.revoked_at end
+  );
+
+  return new;
+end;
+$$;
+
+create trigger protect_peer_space_staff_assignment_before_update
+before update on public.peer_space_staff_assignments
+for each row execute function public.protect_peer_space_staff_assignment();
+
+create trigger audit_peer_space_staff_assignment_after_insert
+after insert on public.peer_space_staff_assignments
+for each row execute function public.audit_peer_space_staff_assignment();
+
+create trigger audit_peer_space_staff_assignment_after_revoke
+after update of status on public.peer_space_staff_assignments
+for each row
+when (old.status is distinct from new.status)
+execute function public.audit_peer_space_staff_assignment();
+
+create or replace function public.peer_space_room_has_live_duty(
+  p_room_id uuid,
+  p_now timestamptz
+)
+returns boolean
+language sql
+security invoker
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.peer_space_duty_shifts shift
+    join public.peer_space_staff_assignments primary_assignment
+      on primary_assignment.id = shift.primary_assignment_id
+     and primary_assignment.user_id = shift.primary_staff_user_id
+     and primary_assignment.space_id = shift.space_id
+    join public.peer_space_staff_assignments backup_assignment
+      on backup_assignment.id = shift.backup_assignment_id
+     and backup_assignment.user_id = shift.backup_staff_user_id
+     and backup_assignment.space_id = shift.space_id
+    where shift.room_id = p_room_id
+      and shift.status in ('active', 'handoff_pending')
+      and shift.lease_expires_at > p_now
+      and shift.scheduled_end_at > p_now
+      and primary_assignment.capability = 'room_duty'
+      and primary_assignment.status = 'active'
+      and primary_assignment.starts_at <= p_now
+      and (primary_assignment.ends_at is null or primary_assignment.ends_at > p_now)
+      and (primary_assignment.room_id is null or primary_assignment.room_id = p_room_id)
+      and backup_assignment.capability in ('room_duty', 'safety_duty')
+      and backup_assignment.status = 'active'
+      and backup_assignment.starts_at <= p_now
+      and (backup_assignment.ends_at is null or backup_assignment.ends_at > p_now)
+      and (backup_assignment.room_id is null or backup_assignment.room_id = p_room_id)
+  );
+$$;
+
+create or replace function public.start_peer_space_duty_shift(
+  p_shift_id uuid,
+  p_user_id uuid,
+  p_assignment_id uuid,
+  p_checklist_version text,
+  p_device_network_confirmed boolean,
+  p_backup_confirmed boolean,
+  p_safety_path_confirmed boolean,
+  p_rules_resources_confirmed boolean,
+  p_handoff_reviewed boolean
+)
+returns table (
+  duty_shift_id uuid,
+  duty_status text,
+  duty_lease_expires_at timestamptz,
+  duty_last_heartbeat_at timestamptz
+)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_room_id uuid;
+  v_shift public.peer_space_duty_shifts%rowtype;
+  v_now timestamptz;
+  v_lease_expires_at timestamptz;
+begin
+  if p_checklist_version is distinct from '2026-09-17'
+    or not coalesce(p_device_network_confirmed, false)
+    or not coalesce(p_backup_confirmed, false)
+    or not coalesce(p_safety_path_confirmed, false)
+    or not coalesce(p_rules_resources_confirmed, false)
+    or not coalesce(p_handoff_reviewed, false) then
+    raise exception 'peer_space_duty_checklist_incomplete' using errcode = '22023';
+  end if;
+
+  select shift.room_id
+  into v_room_id
+  from public.peer_space_duty_shifts shift
+  where shift.id = p_shift_id;
+
+  if not found then
+    raise exception 'peer_space_duty_unavailable' using errcode = '42501';
+  end if;
+
+  -- All room-level transitions lock room before shift, including the sweeper.
+  perform 1 from public.peer_space_rooms room
+  where room.id = v_room_id
+  for update;
+
+  select shift.*
+  into v_shift
+  from public.peer_space_duty_shifts shift
+  where shift.id = p_shift_id and shift.room_id = v_room_id
+  for update;
+
+  if not found
+    or v_shift.primary_staff_user_id <> p_user_id
+    or v_shift.primary_assignment_id <> p_assignment_id then
+    raise exception 'peer_space_duty_unavailable' using errcode = '42501';
+  end if;
+
+  v_now := clock_timestamp();
+  v_lease_expires_at := least(v_now + interval '120 seconds', v_shift.scheduled_end_at);
+
+  if not exists (
+    select 1
+    from public.peer_space_staff_assignments assignment
+    where assignment.id = p_assignment_id
+      and assignment.user_id = p_user_id
+      and assignment.space_id = v_shift.space_id
+      and assignment.capability = 'room_duty'
+      and assignment.status = 'active'
+      and assignment.starts_at <= v_now
+      and (assignment.ends_at is null or assignment.ends_at > v_now)
+      and (assignment.room_id is null or assignment.room_id = v_shift.room_id)
+  ) then
+    raise exception 'peer_space_duty_unavailable' using errcode = '42501';
+  end if;
+
+  if not exists (
+    select 1
+    from public.peer_space_staff_assignments assignment
+    where assignment.id = v_shift.backup_assignment_id
+      and assignment.user_id = v_shift.backup_staff_user_id
+      and assignment.space_id = v_shift.space_id
+      and assignment.capability in ('room_duty', 'safety_duty')
+      and assignment.status = 'active'
+      and assignment.starts_at <= v_now
+      and (assignment.ends_at is null or assignment.ends_at > v_now)
+      and (assignment.room_id is null or assignment.room_id = v_shift.room_id)
+  ) then
+    raise exception 'peer_space_duty_backup_unavailable' using errcode = '55000';
+  end if;
+
+  if v_shift.status = 'active'
+    and v_shift.lease_expires_at > v_now
+    and v_shift.scheduled_end_at > v_now then
+    return query select v_shift.id, v_shift.status, v_shift.lease_expires_at, v_shift.last_heartbeat_at;
+    return;
+  end if;
+
+  if v_shift.status <> 'scheduled'
+    or v_now < v_shift.scheduled_start_at
+    or v_now >= v_shift.scheduled_end_at then
+    raise exception 'peer_space_duty_not_startable' using errcode = '55000';
+  end if;
+
+  update public.peer_space_duty_shifts
+  set status = 'active',
+      checklist_version = p_checklist_version,
+      device_network_confirmed_at = v_now,
+      backup_confirmed_at = v_now,
+      safety_path_confirmed_at = v_now,
+      rules_resources_confirmed_at = v_now,
+      handoff_reviewed_at = v_now,
+      actual_start_at = v_now,
+      last_heartbeat_at = v_now,
+      lease_expires_at = v_lease_expires_at,
+      updated_at = v_now
+  where id = v_shift.id;
+
+  insert into public.peer_space_duty_shift_events (
+    shift_id, actor_user_id, actor_assignment_id, event_type,
+    previous_status, new_status, lease_expires_at, checklist_version
+  ) values (
+    v_shift.id, p_user_id, p_assignment_id, 'started',
+    v_shift.status, 'active', v_lease_expires_at, p_checklist_version
+  );
+
+  return query select v_shift.id, 'active'::text, v_lease_expires_at, v_now;
+end;
+$$;
+
+create or replace function public.renew_peer_space_duty_lease(
+  p_shift_id uuid,
+  p_user_id uuid,
+  p_assignment_id uuid
+)
+returns table (
+  duty_shift_id uuid,
+  duty_status text,
+  duty_lease_expires_at timestamptz,
+  duty_last_heartbeat_at timestamptz
+)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_room_id uuid;
+  v_shift public.peer_space_duty_shifts%rowtype;
+  v_now timestamptz;
+  v_lease_expires_at timestamptz;
+begin
+  select shift.room_id
+  into v_room_id
+  from public.peer_space_duty_shifts shift
+  where shift.id = p_shift_id;
+
+  if not found then
+    raise exception 'peer_space_duty_lease_unavailable' using errcode = '42501';
+  end if;
+
+  perform 1 from public.peer_space_rooms room
+  where room.id = v_room_id
+  for update;
+
+  select shift.*
+  into v_shift
+  from public.peer_space_duty_shifts shift
+  where shift.id = p_shift_id and shift.room_id = v_room_id
+  for update;
+
+  if not found then
+    raise exception 'peer_space_duty_lease_unavailable' using errcode = '42501';
+  end if;
+
+  v_now := clock_timestamp();
+  v_lease_expires_at := least(v_now + interval '120 seconds', v_shift.scheduled_end_at);
+
+  if v_shift.primary_staff_user_id <> p_user_id
+    or v_shift.primary_assignment_id <> p_assignment_id
+    or v_shift.status not in ('active', 'handoff_pending')
+    or v_shift.lease_expires_at <= v_now
+    or v_shift.scheduled_end_at <= v_now
+    or not exists (
+      select 1
+      from public.peer_space_staff_assignments assignment
+      where assignment.id = p_assignment_id
+        and assignment.user_id = p_user_id
+        and assignment.space_id = v_shift.space_id
+        and assignment.capability = 'room_duty'
+        and assignment.status = 'active'
+        and assignment.starts_at <= v_now
+        and (assignment.ends_at is null or assignment.ends_at > v_now)
+        and (assignment.room_id is null or assignment.room_id = v_shift.room_id)
+    )
+    or not exists (
+      select 1
+      from public.peer_space_staff_assignments assignment
+      where assignment.id = v_shift.backup_assignment_id
+        and assignment.user_id = v_shift.backup_staff_user_id
+        and assignment.space_id = v_shift.space_id
+        and assignment.capability in ('room_duty', 'safety_duty')
+        and assignment.status = 'active'
+        and assignment.starts_at <= v_now
+        and (assignment.ends_at is null or assignment.ends_at > v_now)
+        and (assignment.room_id is null or assignment.room_id = v_shift.room_id)
+    ) then
+    raise exception 'peer_space_duty_lease_unavailable' using errcode = '42501';
+  end if;
+
+  update public.peer_space_duty_shifts
+  set last_heartbeat_at = v_now,
+      lease_expires_at = v_lease_expires_at,
+      updated_at = v_now
+  where id = v_shift.id;
+
+  insert into public.peer_space_duty_shift_events (
+    shift_id, actor_user_id, actor_assignment_id, event_type,
+    previous_status, new_status, lease_expires_at, checklist_version
+  ) values (
+    v_shift.id, p_user_id, p_assignment_id, 'heartbeat',
+    v_shift.status, v_shift.status, v_lease_expires_at, v_shift.checklist_version
+  );
+
+  return query select v_shift.id, v_shift.status, v_lease_expires_at, v_now;
+end;
+$$;
+
+create or replace function public.transition_peer_space_duty_shift(
+  p_shift_id uuid,
+  p_user_id uuid,
+  p_assignment_id uuid,
+  p_action text
+)
+returns table (
+  duty_shift_id uuid,
+  duty_status text,
+  duty_lease_expires_at timestamptz,
+  duty_last_heartbeat_at timestamptz
+)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_room_id uuid;
+  v_shift public.peer_space_duty_shifts%rowtype;
+  v_now timestamptz;
+  v_next_status text;
+  v_next_lease timestamptz;
+  v_event_type text;
+begin
+  if p_action is null or p_action not in ('begin_handoff', 'end') then
+    raise exception 'peer_space_duty_action_invalid' using errcode = '22023';
+  end if;
+
+  select shift.room_id
+  into v_room_id
+  from public.peer_space_duty_shifts shift
+  where shift.id = p_shift_id;
+
+  if not found then
+    raise exception 'peer_space_duty_unavailable' using errcode = '42501';
+  end if;
+
+  perform 1 from public.peer_space_rooms room
+  where room.id = v_room_id
+  for update;
+
+  select shift.*
+  into v_shift
+  from public.peer_space_duty_shifts shift
+  where shift.id = p_shift_id and shift.room_id = v_room_id
+  for update;
+
+  if not found then
+    raise exception 'peer_space_duty_unavailable' using errcode = '42501';
+  end if;
+
+  v_now := clock_timestamp();
+
+  if v_shift.primary_staff_user_id <> p_user_id
+    or v_shift.primary_assignment_id <> p_assignment_id
+    or v_shift.status not in ('active', 'handoff_pending')
+    or not exists (
+      select 1
+      from public.peer_space_staff_assignments assignment
+      where assignment.id = p_assignment_id
+        and assignment.user_id = p_user_id
+        and assignment.space_id = v_shift.space_id
+        and assignment.capability = 'room_duty'
+        and assignment.status = 'active'
+        and assignment.starts_at <= v_now
+        and (assignment.ends_at is null or assignment.ends_at > v_now)
+        and (assignment.room_id is null or assignment.room_id = v_shift.room_id)
+    ) then
+    raise exception 'peer_space_duty_unavailable' using errcode = '42501';
+  end if;
+
+  if p_action = 'begin_handoff' then
+    if v_shift.lease_expires_at <= v_now or v_shift.scheduled_end_at <= v_now then
+      raise exception 'peer_space_duty_lease_unavailable' using errcode = '55000';
+    end if;
+    if not exists (
+      select 1
+      from public.peer_space_staff_assignments assignment
+      where assignment.id = v_shift.backup_assignment_id
+        and assignment.user_id = v_shift.backup_staff_user_id
+        and assignment.space_id = v_shift.space_id
+        and assignment.capability in ('room_duty', 'safety_duty')
+        and assignment.status = 'active'
+        and assignment.starts_at <= v_now
+        and (assignment.ends_at is null or assignment.ends_at > v_now)
+        and (assignment.room_id is null or assignment.room_id = v_shift.room_id)
+    ) then
+      raise exception 'peer_space_duty_backup_unavailable' using errcode = '55000';
+    end if;
+    v_next_status := 'handoff_pending';
+    v_next_lease := least(v_now + interval '120 seconds', v_shift.scheduled_end_at);
+    v_event_type := 'handoff_started';
+  else
+    v_next_status := 'ended';
+    v_next_lease := null;
+    v_event_type := 'ended';
+  end if;
+
+  update public.peer_space_duty_shifts
+  set status = v_next_status,
+      actual_end_at = case when p_action = 'end' then v_now else actual_end_at end,
+      last_heartbeat_at = case when p_action = 'end' then last_heartbeat_at else v_now end,
+      lease_expires_at = v_next_lease,
+      updated_at = v_now
+  where id = v_shift.id;
+
+  insert into public.peer_space_duty_shift_events (
+    shift_id, actor_user_id, actor_assignment_id, event_type,
+    previous_status, new_status, lease_expires_at, checklist_version
+  ) values (
+    v_shift.id, p_user_id, p_assignment_id, v_event_type,
+    v_shift.status, v_next_status, v_next_lease, v_shift.checklist_version
+  );
+
+  if p_action = 'end' then
+    update public.peer_space_rooms
+    set status = 'read_only', updated_at = v_now
+    where id = v_shift.room_id
+      and status = 'staffed_open'
+      and not public.peer_space_room_has_live_duty(v_shift.room_id, v_now);
+  end if;
+
+  return query select v_shift.id, v_next_status, v_next_lease,
+    case when p_action = 'end' then v_shift.last_heartbeat_at else v_now end;
+end;
+$$;
+
+create or replace function public.expire_peer_space_duty_leases()
+returns integer
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_candidate record;
+  v_shift public.peer_space_duty_shifts%rowtype;
+  v_now timestamptz;
+  v_expired_count integer := 0;
+begin
+  for v_candidate in
+    select shift.id, shift.room_id
+    from public.peer_space_duty_shifts shift
+    where shift.status in ('active', 'handoff_pending')
+      and (shift.lease_expires_at <= clock_timestamp()
+        or shift.scheduled_end_at <= clock_timestamp())
+    order by shift.room_id, shift.id
+  loop
+    perform 1 from public.peer_space_rooms room
+    where room.id = v_candidate.room_id
+    for update skip locked;
+    if not found then
+      continue;
+    end if;
+
+    select shift.*
+    into v_shift
+    from public.peer_space_duty_shifts shift
+    where shift.id = v_candidate.id and shift.room_id = v_candidate.room_id
+    for update skip locked;
+    if not found then
+      continue;
+    end if;
+
+    v_now := clock_timestamp();
+    if v_shift.status not in ('active', 'handoff_pending')
+      or (v_shift.lease_expires_at > v_now and v_shift.scheduled_end_at > v_now) then
+      continue;
+    end if;
+
+    update public.peer_space_duty_shifts
+    set status = 'ended',
+        actual_end_at = v_now,
+        lease_expires_at = null,
+        updated_at = v_now
+    where id = v_shift.id;
+
+    update public.peer_space_rooms
+    set status = 'read_only', updated_at = v_now
+    where id = v_shift.room_id
+      and status = 'staffed_open'
+      and not public.peer_space_room_has_live_duty(v_shift.room_id, v_now);
+
+    insert into public.peer_space_duty_shift_events (
+      shift_id, event_type, previous_status, new_status, checklist_version, created_at
+    ) values (
+      v_shift.id, 'lease_expired', v_shift.status, 'ended', v_shift.checklist_version, v_now
+    );
+
+    v_expired_count := v_expired_count + 1;
+  end loop;
+
+  return v_expired_count;
+end;
+$$;
+
+revoke all on function public.start_peer_space_duty_shift(uuid, uuid, uuid, text, boolean, boolean, boolean, boolean, boolean)
+from public, anon, authenticated;
+revoke all on function public.renew_peer_space_duty_lease(uuid, uuid, uuid)
+from public, anon, authenticated;
+revoke all on function public.transition_peer_space_duty_shift(uuid, uuid, uuid, text)
+from public, anon, authenticated;
+revoke all on function public.expire_peer_space_duty_leases()
+from public, anon, authenticated;
+revoke all on function public.protect_peer_space_staff_assignment()
+from public, anon, authenticated;
+revoke all on function public.audit_peer_space_staff_assignment()
+from public, anon, authenticated;
+revoke all on function public.peer_space_room_has_live_duty(uuid, timestamptz)
+from public, anon, authenticated;
+
+grant execute on function public.start_peer_space_duty_shift(uuid, uuid, uuid, text, boolean, boolean, boolean, boolean, boolean)
+to service_role;
+grant execute on function public.renew_peer_space_duty_lease(uuid, uuid, uuid)
+to service_role;
+grant execute on function public.transition_peer_space_duty_shift(uuid, uuid, uuid, text)
+to service_role;
+grant execute on function public.expire_peer_space_duty_leases()
+to service_role;
+grant execute on function public.peer_space_room_has_live_duty(uuid, timestamptz)
+to service_role;
+
+-- Local-only room controls. No message or Realtime access is created here.
+-- Applying this migration does not schedule the duty-lease watchdog.
+
+create table public.peer_space_room_state_events (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.peer_space_rooms(id) on delete restrict,
+  actor_user_id uuid not null references auth.users(id) on delete restrict,
+  actor_assignment_id uuid not null references public.peer_space_staff_assignments(id) on delete restrict,
+  action text not null check (action in ('open', 'read_only', 'pause', 'resume_read_only')),
+  previous_status text not null check (previous_status in ('staffed_open', 'read_only', 'paused', 'closed')),
+  new_status text not null check (new_status in ('staffed_open', 'read_only', 'paused', 'closed')),
+  reason_code text check (reason_code is null or reason_code in (
+    'staffing_gap', 'safety_concern', 'operational_issue', 'resume_authorized'
+  )),
+  created_at timestamptz not null default now()
+);
+
+create index peer_space_room_state_events_room_created_idx
+on public.peer_space_room_state_events(room_id, created_at desc);
+
+create index peer_space_room_state_events_actor_created_idx
+on public.peer_space_room_state_events(actor_user_id, created_at desc);
+
+create index peer_space_room_state_events_assignment_idx
+on public.peer_space_room_state_events(actor_assignment_id);
+
+alter table public.peer_space_room_state_events enable row level security;
+revoke all on table public.peer_space_room_state_events from public, anon, authenticated, service_role;
+grant select, insert on table public.peer_space_room_state_events to service_role;
+
+create policy peer_space_room_state_events_server_only on public.peer_space_room_state_events
+for all to authenticated using (false) with check (false);
+
+create or replace function public.transition_peer_space_room_state(
+  p_room_id uuid,
+  p_actor_user_id uuid,
+  p_assignment_id uuid,
+  p_action text,
+  p_reason_code text default null
+)
+returns table (
+  changed_room_id uuid,
+  room_status text,
+  changed_at timestamptz
+)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_room public.peer_space_rooms%rowtype;
+  v_shift public.peer_space_duty_shifts%rowtype;
+  v_assignment public.peer_space_staff_assignments%rowtype;
+  v_backup public.peer_space_staff_assignments%rowtype;
+  v_next_status text;
+  v_now timestamptz;
+begin
+  if p_action is null or p_action not in ('open', 'read_only', 'pause', 'resume_read_only') then
+    raise exception 'peer_space_room_action_invalid' using errcode = '22023';
+  end if;
+
+  -- Use the established lock order: room, then shift, then assignments.
+  select room.* into v_room
+  from public.peer_space_rooms room
+  where room.id = p_room_id
+  for update;
+  if not found then
+    raise exception 'peer_space_room_unavailable' using errcode = '42501';
+  end if;
+  v_now := clock_timestamp();
+
+  if p_action = 'open' then
+    if v_room.status not in ('closed', 'read_only')
+      or not exists (
+        select 1 from public.peer_spaces space
+        where space.id = v_room.space_id
+          and space.age_scope = '18_plus'
+          and space.status in ('invite_only', 'active')
+      ) then
+      raise exception 'peer_space_room_not_openable' using errcode = '55000';
+    end if;
+
+    select shift.* into v_shift
+    from public.peer_space_duty_shifts shift
+    where shift.room_id = v_room.id
+      and shift.space_id = v_room.space_id
+      and shift.primary_staff_user_id = p_actor_user_id
+      and shift.primary_assignment_id = p_assignment_id
+      and shift.status in ('active', 'handoff_pending')
+      and shift.lease_expires_at > v_now
+      and shift.scheduled_end_at > v_now
+      and shift.checklist_version = '2026-09-17'
+      and shift.device_network_confirmed_at is not null
+      and shift.backup_confirmed_at is not null
+      and shift.safety_path_confirmed_at is not null
+      and shift.rules_resources_confirmed_at is not null
+      and shift.handoff_reviewed_at is not null
+    order by shift.actual_start_at desc
+    limit 1
+    for update;
+    if not found then
+      raise exception 'peer_space_room_duty_unavailable' using errcode = '42501';
+    end if;
+  end if;
+
+  select assignment.* into v_assignment
+  from public.peer_space_staff_assignments assignment
+  where assignment.id = p_assignment_id
+    and assignment.user_id = p_actor_user_id
+    and assignment.space_id = v_room.space_id
+    and assignment.status = 'active'
+    and assignment.starts_at <= v_now
+    and (assignment.ends_at is null or assignment.ends_at > v_now)
+    and (assignment.room_id is null or assignment.room_id = v_room.id)
+  for share;
+  if not found then
+    raise exception 'peer_space_room_permission_denied' using errcode = '42501';
+  end if;
+
+  if p_action = 'open' then
+    if v_assignment.capability <> 'room_duty'
+      or v_shift.primary_staff_user_id = v_shift.backup_staff_user_id then
+      raise exception 'peer_space_room_permission_denied' using errcode = '42501';
+    end if;
+
+    select assignment.* into v_backup
+    from public.peer_space_staff_assignments assignment
+    where assignment.id = v_shift.backup_assignment_id
+      and assignment.user_id = v_shift.backup_staff_user_id
+      and assignment.space_id = v_room.space_id
+      and assignment.capability in ('room_duty', 'safety_duty')
+      and assignment.status = 'active'
+      and assignment.starts_at <= v_now
+      and (assignment.ends_at is null or assignment.ends_at > v_now)
+      and (assignment.room_id is null or assignment.room_id = v_room.id)
+    for share;
+    if not found then
+      raise exception 'peer_space_room_backup_unavailable' using errcode = '55000';
+    end if;
+    v_next_status := 'staffed_open';
+  elsif p_action = 'read_only' then
+    if v_assignment.capability not in ('room_duty', 'safety_duty')
+      or v_room.status <> 'staffed_open'
+      or p_reason_code is null
+      or p_reason_code not in ('staffing_gap', 'safety_concern', 'operational_issue') then
+      raise exception 'peer_space_room_transition_denied' using errcode = '42501';
+    end if;
+    v_next_status := 'read_only';
+  elsif p_action = 'pause' then
+    if v_assignment.capability not in ('room_duty', 'safety_duty')
+      or v_room.status not in ('staffed_open', 'read_only')
+      or p_reason_code is null
+      or p_reason_code not in ('staffing_gap', 'safety_concern', 'operational_issue') then
+      raise exception 'peer_space_room_transition_denied' using errcode = '42501';
+    end if;
+    v_next_status := 'paused';
+  else
+    if v_assignment.capability <> 'safety_duty'
+      or v_room.status <> 'paused'
+      or p_reason_code is distinct from 'resume_authorized' then
+      raise exception 'peer_space_room_transition_denied' using errcode = '42501';
+    end if;
+    -- Safety review only clears the pause. A current room-duty shift must open separately.
+    v_next_status := 'read_only';
+  end if;
+
+  if p_action = 'open' and p_reason_code is not null then
+    raise exception 'peer_space_room_reason_invalid' using errcode = '22023';
+  end if;
+
+  update public.peer_space_rooms
+  set status = v_next_status, updated_at = v_now
+  where id = v_room.id;
+
+  insert into public.peer_space_room_state_events (
+    room_id, actor_user_id, actor_assignment_id, action,
+    previous_status, new_status, reason_code, created_at
+  ) values (
+    v_room.id, p_actor_user_id, p_assignment_id, p_action,
+    v_room.status, v_next_status, p_reason_code, v_now
+  );
+
+  return query select v_room.id, v_next_status, v_now;
+end;
+$$;
+
+revoke all on function public.transition_peer_space_room_state(uuid, uuid, uuid, text, text)
+from public, anon, authenticated;
+grant execute on function public.transition_peer_space_room_state(uuid, uuid, uuid, text, text)
+to service_role;
+
+-- Tempo Garden derives growth from these participation facts and existing
+-- sweet_records. No second mutable score, streak, or public profile field exists.
+create table if not exists public.tempo_check_ins (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  feeling text not null check (feeling in ('steady', 'mixed', 'heavy', 'unsure')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists tempo_check_ins_user_created_idx
+on public.tempo_check_ins(user_id, created_at desc);
+
+create table if not exists public.tempo_reminder_preferences (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  mode text not null default 'off' check (mode in ('off', 'daily', 'weekly')),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.tempo_check_ins enable row level security;
+alter table public.tempo_reminder_preferences enable row level security;
+revoke all on table public.tempo_check_ins, public.tempo_reminder_preferences from public, anon, authenticated;
+grant select, insert, delete on table public.tempo_check_ins to service_role;
+grant select, insert, update, delete on table public.tempo_reminder_preferences to service_role;
+
+-- Defense in depth: if table privileges are later changed, rows stay owner-only.
+drop policy if exists tempo_check_ins_own on public.tempo_check_ins;
+create policy tempo_check_ins_own on public.tempo_check_ins
+for all to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
+
+drop policy if exists tempo_reminder_preferences_own on public.tempo_reminder_preferences;
+create policy tempo_reminder_preferences_own on public.tempo_reminder_preferences
+for all to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
+
+-- Cross-school adult theme rooms start closed until a staffed duty approves opening.
+alter table public.peer_space_rooms
+  drop constraint if exists peer_space_rooms_room_type_check;
+alter table public.peer_space_rooms
+  add constraint peer_space_rooms_room_type_check check (room_type in ('everyone', 'theme'));
+alter table public.peer_space_rooms
+  drop constraint if exists peer_space_rooms_space_id_room_type_key;
+alter table public.peer_space_rooms
+  add column if not exists room_code text not null default 'everyone',
+  add column if not exists title_zh text not null default '大家的解忧室',
+  add column if not exists title_en text not null default 'Peer Space',
+  add column if not exists description_zh text not null default '一个有人值守、尊重边界的跨校空间。',
+  add column if not exists description_en text not null default 'A staffed cross-school space with clear boundaries.',
+  add column if not exists guidelines_zh text not null default '尊重他人，不分享联系方式；紧急时请联系现实支持。',
+  add column if not exists guidelines_en text not null default 'Respect others. Do not share contact details. Seek real-world help in an emergency.';
+alter table public.peer_space_rooms
+  add constraint peer_space_rooms_code_check check (room_code ~ '^[a-z0-9_]{3,48}$');
+create unique index if not exists peer_space_rooms_space_code_idx
+on public.peer_space_rooms(space_id, room_code);
+
+insert into public.peer_space_rooms
+  (space_id, room_type, room_code, status, title_zh, title_en, description_zh, description_en, guidelines_zh, guidelines_en)
+select space.id, 'theme', theme.code, 'closed', theme.title_zh, theme.title_en,
+       theme.description_zh, theme.description_en,
+       '尊重他人，不分享联系方式；紧急时请联系现实支持。',
+       'Respect others. Do not share contact details. Seek real-world help in an emergency.'
+from public.peer_spaces space
+cross join (values
+  ('study', '学习与压力', 'Study and pressure', '聊聊学习、工作和期待带来的压力。', 'Talk about pressure from study, work, and expectations.'),
+  ('connections', '关系与陪伴', 'Connection and company', '聊聊关系中的困惑、界限和被理解的时刻。', 'Talk about relationships, boundaries, and feeling understood.')
+) as theme(code, title_zh, title_en, description_zh, description_en)
+where space.code = 'adult_peer_space'
+on conflict (space_id, room_code) do nothing;
+
+create table if not exists public.peer_space_messages (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.peer_space_rooms(id) on delete restrict,
+  room_membership_id uuid not null references public.peer_space_room_memberships(id) on delete cascade,
+  author_user_id uuid not null references auth.users(id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 600),
+  moderation_status text not null default 'visible' check (moderation_status in ('visible', 'safety_review', 'hidden', 'deleted')),
+  risk_priority text not null default 'standard' check (risk_priority in ('standard', 'high', 'urgent')),
+  risk_source text not null default 'deterministic' check (risk_source in ('deterministic', 'ai_assisted')),
+  risk_category text not null default 'other' check (risk_category in ('crisis', 'privacy', 'harassment', 'report', 'other')),
+  created_at timestamptz not null default now(),
+  deleted_at timestamptz,
+  hidden_at timestamptz,
+  check ((moderation_status = 'deleted') = (deleted_at is not null))
+);
+create index if not exists peer_space_messages_room_created_idx
+on public.peer_space_messages(room_id, created_at desc);
+create index if not exists peer_space_messages_review_idx
+on public.peer_space_messages(moderation_status, risk_priority, created_at)
+where moderation_status = 'safety_review';
+
+create table if not exists public.peer_space_user_controls (
+  id uuid primary key default gen_random_uuid(),
+  room_id uuid not null references public.peer_space_rooms(id) on delete cascade,
+  actor_user_id uuid not null references auth.users(id) on delete cascade,
+  target_user_id uuid not null references auth.users(id) on delete cascade,
+  target_room_membership_id uuid not null references public.peer_space_room_memberships(id) on delete cascade,
+  control_type text not null check (control_type in ('block', 'mute')),
+  created_at timestamptz not null default now(),
+  unique (room_id, actor_user_id, target_user_id, control_type),
+  check (actor_user_id <> target_user_id)
+);
+create index if not exists peer_space_user_controls_target_idx
+on public.peer_space_user_controls(room_id, target_user_id, control_type);
+
+create table if not exists public.peer_space_message_reports (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null references public.peer_space_messages(id) on delete cascade,
+  room_id uuid not null references public.peer_space_rooms(id) on delete restrict,
+  reporter_user_id uuid not null references auth.users(id) on delete cascade,
+  reason_code text not null check (reason_code in ('privacy', 'harassment', 'safety', 'other')),
+  status text not null default 'pending' check (status in ('pending', 'reviewing', 'resolved')),
+  created_at timestamptz not null default now(),
+  resolved_at timestamptz,
+  unique (message_id, reporter_user_id)
+);
+
+create table if not exists public.peer_space_review_cases (
+  id uuid primary key default gen_random_uuid(),
+  message_id uuid not null unique references public.peer_space_messages(id) on delete cascade,
+  room_id uuid not null references public.peer_space_rooms(id) on delete restrict,
+  subject_user_id uuid not null references auth.users(id) on delete cascade,
+  category text not null check (category in ('crisis', 'privacy', 'harassment', 'report', 'other')),
+  priority text not null check (priority in ('standard', 'high', 'urgent')),
+  status text not null default 'pending'
+    check (status in ('pending', 'assigned', 'reviewing', 'action_required', 'referred', 'resolved', 'closed')),
+  assigned_to uuid references auth.users(id) on delete set null,
+  follow_up_required boolean not null default false,
+  escalated boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  closed_at timestamptz
+);
+create index if not exists peer_space_review_cases_queue_idx
+on public.peer_space_review_cases(status, priority, created_at);
+
+create table if not exists public.peer_space_review_events (
+  id uuid primary key default gen_random_uuid(),
+  case_id uuid not null references public.peer_space_review_cases(id) on delete cascade,
+  actor_user_id uuid references auth.users(id) on delete set null,
+  actor_ref text not null,
+  actor_capability text not null check (actor_capability in ('content_moderator', 'safety_duty')),
+  previous_status text,
+  next_status text not null,
+  note text check (note is null or char_length(note) <= 500),
+  follow_up_required boolean not null default false,
+  escalated boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists peer_space_review_events_case_created_idx
+on public.peer_space_review_events(case_id, created_at);
+
+create or replace function public.queue_peer_space_review_case()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if new.moderation_status = 'safety_review' then
+    insert into public.peer_space_review_cases
+      (message_id, room_id, subject_user_id, category, priority)
+    values (new.id, new.room_id, new.author_user_id, new.risk_category, new.risk_priority)
+    on conflict (message_id) do nothing;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists peer_space_review_case_queue on public.peer_space_messages;
+create trigger peer_space_review_case_queue
+after insert or update of moderation_status on public.peer_space_messages
+for each row execute function public.queue_peer_space_review_case();
+
+create or replace function public.validate_peer_space_message_author()
+returns trigger
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+begin
+  if not exists (
+    select 1
+    from public.peer_space_room_memberships room_member
+    join public.peer_space_memberships member on member.id = room_member.membership_id
+    join public.peer_spaces space on space.id = member.space_id
+    join public.peer_space_rooms room on room.id = room_member.room_id
+    join public.student_consents consent on consent.student_user_id = member.user_id
+    where room_member.id = new.room_membership_id
+      and room_member.room_id = new.room_id
+      and room_member.status = 'active'
+      and room_member.visible_until is null
+      and member.status = 'active'
+      and member.user_id = new.author_user_id
+      and space.age_scope = '18_plus'
+      and space.status in ('invite_only', 'active')
+      and room.status = 'staffed_open'
+      and exists (
+        select 1 from public.peer_space_duty_shifts shift
+        where shift.room_id = room.id
+          and shift.status in ('active', 'handoff_pending')
+          and shift.lease_expires_at > now()
+      )
+      and consent.age_band = '18_plus'
+      and consent.consent_basis = 'adult_self'
+      and consent.status = 'active'
+  ) then
+    raise exception 'peer_space_message_author_not_eligible' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists peer_space_message_author_check on public.peer_space_messages;
+create trigger peer_space_message_author_check
+before insert on public.peer_space_messages
+for each row execute function public.validate_peer_space_message_author();
+
+alter table public.peer_space_messages enable row level security;
+alter table public.peer_space_user_controls enable row level security;
+alter table public.peer_space_message_reports enable row level security;
+alter table public.peer_space_review_cases enable row level security;
+alter table public.peer_space_review_events enable row level security;
+revoke all on table public.peer_space_messages, public.peer_space_user_controls,
+  public.peer_space_message_reports, public.peer_space_review_cases,
+  public.peer_space_review_events from public, anon, authenticated;
+grant select, insert, update on table public.peer_space_messages to service_role;
+grant select, insert, delete on table public.peer_space_user_controls to service_role;
+grant select, insert, update on table public.peer_space_message_reports to service_role;
+grant select, insert, update on table public.peer_space_review_cases to service_role;
+grant select, insert on table public.peer_space_review_events to service_role;
+create policy peer_space_messages_server_only on public.peer_space_messages
+  for all to service_role using (true) with check (true);
+create policy peer_space_user_controls_server_only on public.peer_space_user_controls
+  for all to service_role using (true) with check (true);
+create policy peer_space_message_reports_server_only on public.peer_space_message_reports
+  for all to service_role using (true) with check (true);
+create policy peer_space_review_cases_server_only on public.peer_space_review_cases
+  for all to service_role using (true) with check (true);
+create policy peer_space_review_events_server_only on public.peer_space_review_events
+  for all to service_role using (true) with check (true);
+revoke all on function public.validate_peer_space_message_author() from public, anon, authenticated;
+revoke all on function public.queue_peer_space_review_case() from public, anon, authenticated;
+
+-- No chat table is added to the Realtime publication. Clients receive fresh
+-- messages through short polling of the authenticated API, so every read checks
+-- current age, invitation and room membership; old sockets receive no content.
+
+-- Human review actions are atomic with their minimal audit event.
+create or replace function public.process_peer_space_review_case(
+  p_case_id uuid,
+  p_actor_id uuid,
+  p_next_status text,
+  p_message_action text,
+  p_note text,
+  p_follow_up_required boolean,
+  p_escalated boolean
+)
+returns table (review_case_id uuid, review_status text)
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_case public.peer_space_review_cases%rowtype;
+  v_capability text;
+  v_previous text;
+begin
+  if p_next_status not in ('pending', 'assigned', 'reviewing', 'action_required', 'referred', 'resolved', 'closed')
+    or p_message_action not in ('none', 'hide', 'publish')
+    or char_length(coalesce(p_note, '')) > 500 then
+    raise exception 'invalid_peer_review_action' using errcode = '22023';
+  end if;
+  select * into v_case
+  from public.peer_space_review_cases
+  where id = p_case_id
+  for update;
+  if not found then
+    raise exception 'peer_review_case_not_found' using errcode = '22023';
+  end if;
+  select assignment.capability into v_capability
+  from public.peer_space_staff_assignments assignment
+  join public.peer_space_rooms room on room.id = v_case.room_id
+  where assignment.user_id = p_actor_id
+    and assignment.space_id = room.space_id
+    and (assignment.room_id is null or assignment.room_id = room.id)
+    and assignment.status = 'active'
+    and assignment.starts_at <= now()
+    and (assignment.ends_at is null or assignment.ends_at > now())
+    and assignment.capability in ('content_moderator', 'safety_duty')
+    and (
+      (v_case.category <> 'crisis' and v_case.priority <> 'urgent')
+      or assignment.capability = 'safety_duty'
+    )
+  order by case when assignment.capability = 'content_moderator' then 0 else 1 end
+  limit 1;
+  if v_capability is null then
+    raise exception 'peer_review_capability_required' using errcode = '42501';
+  end if;
+  if p_message_action = 'publish'
+    and (v_case.category = 'crisis' or v_case.priority = 'urgent'
+      or p_next_status not in ('resolved', 'closed')) then
+    raise exception 'unsafe_peer_review_publish' using errcode = '42501';
+  end if;
+  if p_message_action = 'hide' then
+    update public.peer_space_messages
+    set moderation_status = 'hidden', hidden_at = now()
+    where id = v_case.message_id and moderation_status <> 'deleted';
+  elsif p_message_action = 'publish' then
+    update public.peer_space_messages
+    set moderation_status = 'visible', hidden_at = null
+    where id = v_case.message_id and moderation_status <> 'deleted';
+  end if;
+  v_previous := v_case.status;
+  update public.peer_space_review_cases
+  set status = p_next_status,
+      assigned_to = case when p_next_status in ('assigned', 'reviewing') then p_actor_id else assigned_to end,
+      follow_up_required = p_follow_up_required,
+      escalated = p_escalated,
+      updated_at = now(),
+      closed_at = case when p_next_status = 'closed' then now() else null end
+  where id = p_case_id;
+  insert into public.peer_space_review_events (
+    case_id, actor_user_id, actor_ref, actor_capability, previous_status, next_status,
+    note, follow_up_required, escalated
+  ) values (
+    p_case_id, p_actor_id, encode(sha256(convert_to(p_actor_id::text, 'UTF8')), 'hex'),
+    v_capability, v_previous, p_next_status, nullif(trim(p_note), ''),
+    p_follow_up_required, p_escalated
+  );
+  return query select p_case_id, p_next_status;
+end;
+$$;
+revoke all on function public.process_peer_space_review_case(
+  uuid, uuid, text, text, text, boolean, boolean
+) from public, anon, authenticated;
+grant execute on function public.process_peer_space_review_case(
+  uuid, uuid, text, text, text, boolean, boolean
+) to service_role;
+
+-- A private, optional prompt record. Both dismissal and submission start the
+-- seven-day cooldown; the server decides age band and feature context.
+create table public.pilot_experience_feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  age_band text not null check (age_band in ('14_17', '18_plus')),
+  feature text not null check (feature in ('quick_check_in', 'sweet', 'peer_space', 'support', 'mood_journal', 'worry_time')),
+  outcome text not null check (outcome in ('dismissed', 'submitted')),
+  helpful boolean,
+  would_return boolean,
+  wants_human_support boolean,
+  comment text check (comment is null or char_length(comment) <= 500),
+  safety_review boolean not null default false,
+  review_status text not null default 'pending' check (review_status in ('pending', 'reviewed')),
+  created_at timestamptz not null default now(),
+  check (
+    (outcome = 'dismissed' and helpful is null and would_return is null
+      and wants_human_support is null and comment is null and safety_review = false)
+    or outcome = 'submitted'
+  )
+);
+create index pilot_experience_feedback_user_created_idx
+  on public.pilot_experience_feedback(user_id, created_at desc);
+create index pilot_experience_feedback_review_idx
+  on public.pilot_experience_feedback(safety_review, review_status, created_at desc);
+
+create or replace function public.enforce_pilot_experience_cooldown()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+begin
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(new.user_id::text, 20260919));
+  if exists (
+    select 1 from public.pilot_experience_feedback previous
+    where previous.user_id = new.user_id
+      and previous.created_at > now() - interval '7 days'
+  ) then
+    raise exception 'pilot_feedback_cooldown' using errcode = '23505';
+  end if;
+  return new;
+end;
+$$;
+create trigger pilot_experience_cooldown before insert
+  on public.pilot_experience_feedback
+  for each row execute function public.enforce_pilot_experience_cooldown();
+
+alter table public.pilot_experience_feedback enable row level security;
+revoke all on public.pilot_experience_feedback from public, anon, authenticated;
+grant select, insert, update on public.pilot_experience_feedback to service_role;
+create policy pilot_experience_feedback_server_only
+  on public.pilot_experience_feedback for all to service_role
+  using (true) with check (true);
+revoke all on function public.enforce_pilot_experience_cooldown() from public, anon, authenticated;
+
+-- Internal-only support workflow. Public consultation stays disabled by default
+-- in server configuration. These tables grant no browser Data API access.
+create table public.support_staff_applications (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  category text not null check (category in ('counselor', 'social_worker', 'listening_volunteer', 'school_duty_teacher')),
+  status text not null default 'pending' check (status in ('pending', 'trial', 'approved', 'paused', 'removed', 'rejected')),
+  legal_name text not null check (char_length(legal_name) between 2 and 120),
+  credential_type text check (credential_type is null or char_length(credential_type) <= 120),
+  credential_number text check (credential_number is null or char_length(credential_number) <= 120),
+  evidence_path text check (evidence_path is null or char_length(evidence_path) <= 300),
+  service_languages text[] not null default array['zh-CN']::text[],
+  age_scopes text[] not null default array['18_plus']::text[],
+  service_scope text not null check (char_length(service_scope) between 1 and 500),
+  availability text not null check (char_length(availability) between 1 and 500),
+  institution_name text check (institution_name is null or char_length(institution_name) <= 160),
+  boundaries_confirmed boolean not null,
+  crisis_rules_confirmed boolean not null,
+  privacy_rules_confirmed boolean not null,
+  invited_by uuid references auth.users(id) on delete set null,
+  reviewed_by uuid references auth.users(id) on delete set null,
+  review_note text check (review_note is null or char_length(review_note) <= 500),
+  submitted_at timestamptz not null default now(),
+  reviewed_at timestamptz,
+  updated_at timestamptz not null default now(),
+  check (service_languages <@ array['zh-CN','en']::text[]),
+  check (age_scopes <@ array['14_17','18_plus']::text[]),
+  check (cardinality(service_languages) > 0 and cardinality(age_scopes) > 0),
+  check ((boundaries_confirmed and crisis_rules_confirmed and privacy_rules_confirmed)
+    or (category = 'school_duty_teacher' and status = 'pending')),
+  check (category <> 'school_duty_teacher' or age_scopes = array['14_17']::text[])
+);
+create index support_staff_applications_status_idx on public.support_staff_applications(status, category);
+
+create or replace function public.validate_support_staff_invitation()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+begin
+  if new.category = 'school_duty_teacher' and new.invited_by is null then
+    raise exception 'school_duty_invitation_required' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+create trigger support_staff_invitation_check before insert
+on public.support_staff_applications for each row
+execute function public.validate_support_staff_invitation();
+
+create table public.support_staff_events (
+  id uuid primary key default gen_random_uuid(),
+  staff_user_id uuid not null references auth.users(id) on delete cascade,
+  actor_user_id uuid references auth.users(id) on delete set null,
+  actor_ref text not null,
+  previous_status text,
+  next_status text not null,
+  action text not null check (action in ('applied', 'invited', 'reviewed', 'paused', 'resumed', 'removed')),
+  note text check (note is null or char_length(note) <= 500),
+  created_at timestamptz not null default now()
+);
+create index support_staff_events_user_created_idx on public.support_staff_events(staff_user_id, created_at);
+
+create or replace function public.audit_support_staff_status()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+declare
+  v_actor uuid;
+  v_action text;
+begin
+  if tg_op = 'UPDATE' and old.status = new.status then return new; end if;
+  v_actor := coalesce(new.reviewed_by, new.invited_by, new.user_id);
+  v_action := case
+    when tg_op = 'INSERT' and new.invited_by is not null then 'invited'
+    when tg_op = 'INSERT' then 'applied'
+    when new.status = 'paused' then 'paused'
+    when new.status = 'removed' then 'removed'
+    when old.status = 'paused' and new.status = 'approved' then 'resumed'
+    else 'reviewed'
+  end;
+  insert into public.support_staff_events
+    (staff_user_id, actor_user_id, actor_ref, previous_status, next_status, action, note)
+  values
+    (new.user_id, v_actor, encode(sha256(convert_to(v_actor::text, 'UTF8')), 'hex'),
+      case when tg_op = 'INSERT' then null else old.status end,
+      new.status, v_action, new.review_note);
+  return new;
+end;
+$$;
+create trigger support_staff_status_audit after insert or update of status
+on public.support_staff_applications for each row
+execute function public.audit_support_staff_status();
+
+create table public.support_cases (
+  id uuid primary key default gen_random_uuid(),
+  student_user_id uuid not null references auth.users(id) on delete cascade,
+  school_id uuid references public.schools(id) on delete set null,
+  case_type text not null check (case_type in ('youth_request', 'adult_consultation')),
+  risk_priority text not null default 'standard' check (risk_priority in ('standard', 'urgent')),
+  status text not null default 'requested'
+    check (status in ('requested', 'triage', 'awaiting_assignment', 'assigned', 'active', 'paused', 'transfer_requested', 'transferred', 'referred', 'closed', 'cancelled')),
+  need_summary text not null check (char_length(need_summary) between 1 and 1000),
+  availability text check (availability is null or char_length(availability) <= 500),
+  appointment_at timestamptz,
+  appointment_status text not null default 'none'
+    check (appointment_status in ('none', 'proposed', 'accepted', 'reschedule_requested', 'cancelled')),
+  referral_type text check (referral_type is null or referral_type in ('school', 'social_work', 'medical', 'professional', 'community')),
+  student_authorization_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  closed_at timestamptz
+);
+create index support_cases_student_created_idx on public.support_cases(student_user_id, created_at desc);
+create index support_cases_queue_idx on public.support_cases(status, case_type, created_at);
+
+create table public.support_case_assignments (
+  id uuid primary key default gen_random_uuid(),
+  case_id uuid not null references public.support_cases(id) on delete cascade,
+  staff_user_id uuid not null references auth.users(id) on delete cascade,
+  assignment_role text not null check (assignment_role in ('primary', 'backup')),
+  status text not null default 'offered' check (status in ('offered', 'accepted', 'rejected', 'revoked')),
+  offered_by uuid references auth.users(id) on delete set null,
+  updated_by uuid references auth.users(id) on delete set null,
+  offered_at timestamptz not null default now(),
+  accepted_at timestamptz,
+  revoked_at timestamptz,
+  unique (case_id, staff_user_id, assignment_role)
+);
+create unique index support_case_assignments_one_primary_idx on public.support_case_assignments(case_id)
+where assignment_role = 'primary' and status in ('offered', 'accepted');
+create unique index support_case_assignments_one_backup_idx on public.support_case_assignments(case_id)
+where assignment_role = 'backup' and status in ('offered', 'accepted');
+create index support_case_assignments_staff_idx on public.support_case_assignments(staff_user_id, status);
+
+create table public.support_case_events (
+  id uuid primary key default gen_random_uuid(),
+  case_id uuid not null references public.support_cases(id) on delete cascade,
+  actor_user_id uuid references auth.users(id) on delete set null,
+  actor_ref text not null,
+  actor_role text not null check (actor_role in ('student', 'admin', 'staff')),
+  action text not null check (char_length(action) between 1 and 80),
+  previous_status text,
+  next_status text,
+  note text check (note is null or char_length(note) <= 500),
+  created_at timestamptz not null default now()
+);
+create index support_case_events_case_created_idx on public.support_case_events(case_id, created_at);
+
+create or replace function public.audit_support_case_creation()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+begin
+  insert into public.support_case_events
+    (case_id, actor_user_id, actor_ref, actor_role, action, next_status)
+  values
+    (new.id, new.student_user_id,
+      encode(sha256(convert_to(new.student_user_id::text, 'UTF8')), 'hex'),
+      'student', 'requested', new.status);
+  return new;
+end;
+$$;
+create trigger support_case_creation_audit after insert on public.support_cases
+for each row execute function public.audit_support_case_creation();
+
+create or replace function public.audit_support_case_assignment()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+declare
+  v_actor uuid;
+  v_previous_case_status text;
+begin
+  if tg_op = 'UPDATE' and old.status = new.status then return new; end if;
+  v_actor := case when tg_op = 'INSERT' then new.offered_by else new.updated_by end;
+  if v_actor is null then
+    raise exception 'support_assignment_actor_required' using errcode = '22023';
+  end if;
+  insert into public.support_case_events
+    (case_id, actor_user_id, actor_ref, actor_role, action, previous_status, next_status)
+  values (new.case_id, v_actor, encode(sha256(convert_to(v_actor::text, 'UTF8')), 'hex'),
+    case when tg_op = 'INSERT' or new.status = 'revoked' then 'admin' else 'staff' end,
+    'assignment_' || new.assignment_role || '_' || new.status,
+    case when tg_op = 'INSERT' then null else old.status end, new.status);
+  if tg_op = 'UPDATE' and new.assignment_role = 'primary' and new.status = 'accepted' then
+    select status into v_previous_case_status from public.support_cases
+    where id = new.case_id for update;
+    update public.support_cases
+    set status = 'assigned', updated_at = now()
+    where id = new.case_id and status in ('awaiting_assignment', 'transfer_requested', 'transferred', 'triage', 'requested');
+    if not found then
+      raise exception 'support_case_not_ready_for_acceptance' using errcode = '42501';
+    end if;
+    insert into public.support_case_events
+      (case_id, actor_user_id, actor_ref, actor_role, action, previous_status, next_status)
+    values (new.case_id, v_actor, encode(sha256(convert_to(v_actor::text, 'UTF8')), 'hex'),
+      'staff', 'primary_offer_accepted', v_previous_case_status, 'assigned');
+  end if;
+  return new;
+end;
+$$;
+create trigger support_case_assignment_audit after insert or update of status
+on public.support_case_assignments for each row
+execute function public.audit_support_case_assignment();
+
+create or replace function public.transition_support_case(
+  p_case_id uuid,
+  p_actor_id uuid,
+  p_actor_role text,
+  p_action text,
+  p_next_status text,
+  p_expected_status text,
+  p_note text,
+  p_appointment_at timestamptz,
+  p_appointment_status text,
+  p_referral_type text,
+  p_authorization_active boolean
+)
+returns table (case_id uuid, case_status text)
+language plpgsql security invoker set search_path = ''
+as $$
+declare
+  v_case public.support_cases%rowtype;
+begin
+  if p_actor_role not in ('student', 'admin', 'staff')
+    or char_length(coalesce(p_action, '')) not between 1 and 80
+    or char_length(coalesce(p_note, '')) > 500 then
+    raise exception 'invalid_support_transition' using errcode = '22023';
+  end if;
+  select * into v_case from public.support_cases where id = p_case_id for update;
+  if not found then raise exception 'support_case_not_found' using errcode = '22023'; end if;
+  if v_case.status <> p_expected_status
+    or (p_actor_role = 'student' and v_case.student_user_id <> p_actor_id)
+    or (not v_case.student_authorization_active and p_authorization_active) then
+    raise exception 'support_case_state_changed' using errcode = '42501';
+  end if;
+  if p_actor_role = 'student'
+    and not (
+      (p_action = 'cancel' and v_case.status in ('requested', 'triage', 'awaiting_assignment', 'assigned') and p_next_status = 'cancelled')
+      or (p_action = 'accept_assignment' and v_case.status = 'assigned' and p_next_status = 'active'
+        and exists (
+          select 1 from public.support_case_assignments assignment
+          join public.support_staff_applications staff on staff.user_id = assignment.staff_user_id
+          where assignment.case_id = p_case_id
+            and assignment.assignment_role = 'primary'
+            and assignment.status = 'accepted'
+            and staff.status = 'approved'
+        ))
+      or (p_action in ('reject_assignment', 'request_change')
+        and ((v_case.status = 'assigned' and p_action = 'reject_assignment')
+          or (v_case.status = 'active' and p_action = 'request_change'))
+        and p_next_status = 'transfer_requested')
+      or (p_action = 'withdraw_authorization' and v_case.status in ('active', 'paused', 'transfer_requested')
+        and p_next_status = 'paused' and not p_authorization_active)
+      or (p_action = 'close' and v_case.status in ('active', 'paused', 'transfer_requested', 'transferred', 'referred')
+        and p_next_status = 'closed' and not p_authorization_active)
+      or (p_action in ('accept_appointment', 'request_reschedule', 'cancel_appointment')
+        and v_case.status = 'active' and p_next_status = 'active')
+    ) then
+    raise exception 'support_case_student_action_invalid' using errcode = '42501';
+  end if;
+  update public.support_cases
+  set status = p_next_status,
+      appointment_at = p_appointment_at,
+      appointment_status = p_appointment_status,
+      referral_type = p_referral_type,
+      student_authorization_active = p_authorization_active,
+      updated_at = now(),
+      closed_at = case when p_next_status in ('closed', 'cancelled') then now() else null end
+  where id = p_case_id;
+  insert into public.support_case_events
+    (case_id, actor_user_id, actor_ref, actor_role, action, previous_status, next_status, note)
+  values (p_case_id, p_actor_id, encode(sha256(convert_to(p_actor_id::text, 'UTF8')), 'hex'),
+    p_actor_role, p_action, v_case.status, p_next_status, nullif(trim(p_note), ''));
+  return query select p_case_id, p_next_status;
+end;
+$$;
+
+create table public.support_case_feedback (
+  case_id uuid primary key references public.support_cases(id) on delete cascade,
+  student_user_id uuid not null references auth.users(id) on delete cascade,
+  felt_heard boolean,
+  found_help boolean,
+  boundaries_respected boolean,
+  would_choose_again boolean,
+  complaint boolean not null default false,
+  safety_review boolean not null default false,
+  comment text check (comment is null or char_length(comment) <= 500),
+  review_status text not null default 'pending' check (review_status in ('pending', 'reviewed')),
+  reviewed_by uuid references auth.users(id) on delete set null,
+  reviewed_at timestamptz,
+  review_note text check (review_note is null or char_length(review_note) <= 500),
+  created_at timestamptz not null default now()
+);
+
+create table public.support_case_feedback_events (
+  id uuid primary key default gen_random_uuid(),
+  case_id uuid not null references public.support_case_feedback(case_id) on delete cascade,
+  actor_user_id uuid references auth.users(id) on delete set null,
+  actor_ref text not null,
+  action text not null check (action in ('reviewed')),
+  note text check (note is null or char_length(note) <= 500),
+  created_at timestamptz not null default now()
+);
+
+create table public.support_staff_training_records (
+  id uuid primary key default gen_random_uuid(),
+  staff_user_id uuid not null references auth.users(id) on delete cascade,
+  training_title text not null check (char_length(training_title) between 1 and 160),
+  completed_at timestamptz not null,
+  verified_by uuid references auth.users(id) on delete set null,
+  note text check (note is null or char_length(note) <= 500),
+  created_at timestamptz not null default now()
+);
+create index support_staff_training_user_idx on public.support_staff_training_records(staff_user_id, completed_at desc);
+
+create or replace function public.review_support_case_feedback(
+  p_case_id uuid, p_actor_id uuid, p_note text
+)
+returns boolean language plpgsql security invoker set search_path = ''
+as $$
+begin
+  if char_length(coalesce(p_note, '')) > 500 then
+    raise exception 'invalid_feedback_review_note' using errcode = '22023';
+  end if;
+  update public.support_case_feedback
+  set review_status = 'reviewed', reviewed_by = p_actor_id,
+      reviewed_at = now(), review_note = nullif(trim(p_note), '')
+  where case_id = p_case_id and review_status = 'pending';
+  if not found then return false; end if;
+  insert into public.support_case_feedback_events
+    (case_id, actor_user_id, actor_ref, action, note)
+  values (p_case_id, p_actor_id,
+    encode(sha256(convert_to(p_actor_id::text, 'UTF8')), 'hex'),
+    'reviewed', nullif(trim(p_note), ''));
+  return true;
+end;
+$$;
+
+create or replace function public.validate_support_case()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+declare
+  v_role text;
+  v_school uuid;
+  v_age text;
+  v_basis text;
+  v_status text;
+  v_policy text;
+  v_assented timestamptz;
+begin
+  select role, school_id into v_role, v_school
+  from public.profiles where id = new.student_user_id;
+  select age_band, consent_basis, status, policy_version, student_assented_at
+  into v_age, v_basis, v_status, v_policy, v_assented
+  from public.student_consents where student_user_id = new.student_user_id;
+  if v_role <> '学生' or v_status <> 'active'
+    or v_policy <> '2026-08-28' or v_assented is null
+    or (new.case_type = 'adult_consultation' and (v_age <> '18_plus' or v_basis <> 'adult_self'))
+    or (new.case_type = 'youth_request' and v_age <> '14_17') then
+    raise exception 'support_case_student_not_eligible' using errcode = '42501';
+  end if;
+  new.school_id := v_school;
+  return new;
+end;
+$$;
+create trigger support_case_student_check before insert on public.support_cases
+for each row execute function public.validate_support_case();
+
+create or replace function public.validate_support_case_assignment()
+returns trigger language plpgsql security invoker set search_path = ''
+as $$
+declare
+  v_case public.support_cases%rowtype;
+  v_category text;
+begin
+  select * into v_case from public.support_cases where id = new.case_id;
+  select category into v_category from public.support_staff_applications
+  where user_id = new.staff_user_id and status = 'approved'
+    and (
+      (v_case.case_type = 'adult_consultation' and '18_plus' = any(age_scopes))
+      or (v_case.case_type = 'youth_request' and '14_17' = any(age_scopes))
+    );
+  if v_category is null
+    or v_case.status in ('closed', 'cancelled', 'referred')
+    or (v_case.case_type = 'adult_consultation' and v_category <> 'counselor')
+    or (v_category = 'school_duty_teacher' and not exists (
+      select 1 from public.teacher_student_assignments assignment
+      where assignment.teacher_user_id = new.staff_user_id
+        and assignment.student_user_id = v_case.student_user_id
+        and assignment.school_id = v_case.school_id
+        and assignment.status = 'active'
+    )) then
+    raise exception 'support_staff_not_eligible' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+create trigger support_case_assignment_check before insert
+on public.support_case_assignments for each row
+execute function public.validate_support_case_assignment();
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('support-staff-evidence', 'support-staff-evidence', false, 5242880,
+  array['application/pdf','image/jpeg','image/png']::text[])
+on conflict (id) do nothing;
+
+alter table public.support_staff_applications enable row level security;
+alter table public.support_staff_events enable row level security;
+alter table public.support_cases enable row level security;
+alter table public.support_case_assignments enable row level security;
+alter table public.support_case_events enable row level security;
+alter table public.support_case_feedback enable row level security;
+alter table public.support_case_feedback_events enable row level security;
+alter table public.support_staff_training_records enable row level security;
+revoke all on public.support_staff_applications, public.support_staff_events,
+  public.support_cases, public.support_case_assignments,
+  public.support_case_events, public.support_case_feedback,
+  public.support_case_feedback_events, public.support_staff_training_records
+  from public, anon, authenticated;
+grant select, insert, update on public.support_staff_applications to service_role;
+grant select, insert on public.support_staff_events to service_role;
+grant select, insert, update on public.support_cases to service_role;
+grant select, insert, update on public.support_case_assignments to service_role;
+grant select, insert on public.support_case_events to service_role;
+grant select, insert, update on public.support_case_feedback to service_role;
+grant select, insert on public.support_case_feedback_events to service_role;
+grant select, insert on public.support_staff_training_records to service_role;
+create policy support_staff_applications_server_only on public.support_staff_applications
+  for all to service_role using (true) with check (true);
+create policy support_staff_events_server_only on public.support_staff_events
+  for all to service_role using (true) with check (true);
+create policy support_cases_server_only on public.support_cases
+  for all to service_role using (true) with check (true);
+create policy support_case_assignments_server_only on public.support_case_assignments
+  for all to service_role using (true) with check (true);
+create policy support_case_events_server_only on public.support_case_events
+  for all to service_role using (true) with check (true);
+create policy support_case_feedback_server_only on public.support_case_feedback
+  for all to service_role using (true) with check (true);
+create policy support_case_feedback_events_server_only on public.support_case_feedback_events
+  for all to service_role using (true) with check (true);
+create policy support_staff_training_records_server_only on public.support_staff_training_records
+  for all to service_role using (true) with check (true);
+revoke all on function public.validate_support_case() from public, anon, authenticated;
+revoke all on function public.validate_support_case_assignment() from public, anon, authenticated;
+revoke all on function public.audit_support_staff_status() from public, anon, authenticated;
+revoke all on function public.validate_support_staff_invitation() from public, anon, authenticated;
+revoke all on function public.audit_support_case_assignment() from public, anon, authenticated;
+revoke all on function public.audit_support_case_creation() from public, anon, authenticated;
+revoke all on function public.transition_support_case(
+  uuid, uuid, text, text, text, text, text, timestamptz, text, text, boolean
+) from public, anon, authenticated;
+grant execute on function public.transition_support_case(
+  uuid, uuid, text, text, text, text, text, timestamptz, text, text, boolean
+) to service_role;
+revoke all on function public.review_support_case_feedback(uuid, uuid, text)
+  from public, anon, authenticated;
+grant execute on function public.review_support_case_feedback(uuid, uuid, text)
+  to service_role;
