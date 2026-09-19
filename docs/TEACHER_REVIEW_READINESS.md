@@ -2,7 +2,7 @@
 
 状态：**部分完成，内部演示代码待隔离数据库与登录态验收**。本文件描述功能分支，不代表正式站已更新；整体试点状态维持 **READY WITH CONDITIONS**。`ROADMAP.md` 是完成状态的唯一来源。
 
-远端交付亦未完成：本地功能分支已有分主题提交，GitHub 443 连接超时使推送失败；远端分支尚未确认存在。
+远端交付尚未完成：2026-09-20 只读查询确认远端功能分支仍在原 `bd2d27d`，本轮隔离修复尚未推送；验收后须推送、核对远端 HEAD 并创建 Draft PR。
 
 ## 本分支已实现的产品方向
 
@@ -46,4 +46,4 @@
 
 ## 当前验收边界
 
-`pnpm typecheck`、`pnpm build`、访客双语/移动浏览器及静态安全测试已有本地通过记录；真实登录态、数据库 RLS、Storage、迁移与完整支持生命周期尚无通过证据。本轮未触碰正式服务器、正式 Supabase 或真实历史监护关系。正式发布步骤见 `docs/TEACHER_REVIEW_DEPLOYMENT_RUNBOOK.md`。
+2026-09-20 在本地一次性 Supabase 中验证原 52 份迁移的 `42710` 重复 policy 故障，并以两份补偿迁移保持拒绝策略：54/54 全新安装、从 `20260827200713` 基线模拟升级均通过，最终 `public`/`storage` schema 规范化导出一致。登录态测试又发现基础表 grant 缺失，新增第 55 份显式授权迁移并在现有隔离库通过；55 份全新安装和升级路径尚待重跑。当前 55 张 `public` 表启用 RLS，材料 bucket 私有、种子房默认关闭，安全 advisor 与 DB lint 无错误。16 个本机合成 Auth 账号支持直接 Data API 4 允许/32 拒绝断言、成年人聊天室和支持事项完整本地流程、四类工作人员边界、Storage 文件及签名链接过期、反馈并发和成年人账号注销；`pnpm typecheck` 与本地构建通过，全量 Playwright 为 483 passed、0 failed、47 skipped，其中 30 项登录夹具用例仍须补测。旧 guardian session 和历史 active 关系注销须先重置一次性数据库到迁移前基线，自动审批要求单独授权；在此之前仍不能进入生产候选。正式服务器、正式 Supabase、真实历史关系和正式开关均未触碰。正式发布步骤见 `docs/TEACHER_REVIEW_DEPLOYMENT_RUNBOOK.md`。
