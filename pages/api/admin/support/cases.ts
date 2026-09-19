@@ -132,7 +132,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ status: nextStatus });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    const status = message.includes("请先登录") ? 401 : message.includes("只有平台管理员") ? 403 : 503;
+    const status = message.includes("请先登录") ? 401
+      : message.includes("只有平台管理员") || message.includes("没有学校工作台权限") ? 403 : 503;
     if (status === 503) await reportOperationalError({ req, area: "save", operation: "support_case_admin_action", error, statusCode: 503 });
     return res.status(status).json({ error: t("supportFlow.errors.unavailable") });
   }

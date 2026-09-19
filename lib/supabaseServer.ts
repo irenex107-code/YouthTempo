@@ -50,6 +50,9 @@ export async function getAuthenticatedUser(req: NextApiRequest) {
 
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase.auth.getUser(token);
-  if (error) throw error;
+  if (error) {
+    if (typeof error.status === "number" && error.status >= 400 && error.status < 500) return null;
+    throw error;
+  }
   return data.user;
 }
