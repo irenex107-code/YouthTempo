@@ -192,7 +192,7 @@
         "rhythm": { "title": "我想看看今天状态", "text": "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。", "action": "做 SWEET 节律记录", "alt": "睡眠、醒来、饮食、运动和任务投入组成的日常节律" },
         "mood": { "title": "我有点说不清自己的感受", "text": "先不用解释清楚，选几个接近的情绪词，再慢慢补充发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
         "talk": { "title": "AI 对话在首轮试点暂不开放", "text": "你仍可以使用心情拼图、固定规则支持路径，或给家长、老师写一条悄悄话。", "action": "查看替代支持", "alt": "从自助整理逐步连接家长、老师和其他支持" },
-        "messages": { "title": "我有些话想告诉老师或家长", "text": "不容易当面说的话，可以先写下来，选择送给老师、家长，或只留给自己。", "action": "打开悄悄话信箱", "alt": "装着信件的绿色信箱" },
+        "messages": { "title": "我有些话不容易当面说", "text": "当前试点可以写给已分配的老师或留给自己；未来只有在家长关系另行开放并确认后，才会出现家长收件。", "action": "打开悄悄话信箱", "alt": "装着信件的绿色信箱" },
         "worry": { "title": "我睡前总是想很多", "text": "把担心写下来，分清哪些可以先做一点，哪些可以先放一放。", "action": "今晚先放下", "alt": "在月光下把担心暂时安放好" },
         "referral": { "title": "我想知道下一步可以怎么做", "text": "当压力持续很多天，或生活学习明显受影响时，可以看看适合的支持路径。", "action": "看看下一步找谁", "alt": "沿着温和路径逐步找到合适支持" }
       }
@@ -285,23 +285,449 @@
         "support": { "title": "需要真人支持时知道找谁", "text": "当状态持续影响学习、工作或生活，可以按紧急程度找到更合适的支持。", "action": "看看下一步找谁", "alt": "逐步连接合适支持的路径" }
       }
     },
+    "peerSpace": { "label": "受邀成年人试点", "previewStatus": "界面预览", "title": "解忧室", "description": "有人值守时，和其他成年学生实时聊聊。学校默认隐藏，你可以用房间昵称或匿名参与。", "action": "进入解忧室" },
     "independence": {
       "confirmation": { "label": "独立确认", "title": "已满 18 岁，可以自己确认", "text": "登录后只需选择“已满 18 岁”，阅读数据说明并确认，不需要监护人同意，也不要求加入学校。" },
       "records": { "label": "你的记录", "title": "默认只有你能看到", "text": "未加入学校时，学校和老师无法查看。你可以导出、删除单条记录，也可以注销账户。" },
+      "baseline": { "label": "看自己的基线", "title": "大学生活习惯不等于心理异常", "text": "晚睡、晚起、吃外卖或作息不固定在大学阶段并不少见。不要只凭一种习惯下结论；更值得留意的是它是否明显偏离你自己的常态，并持续影响精力、学习、工作、关系或基本生活。" },
       "boundary": { "label": "使用边界", "title": "它不是诊断或急救服务", "text": "如果你正面临伤害自己或他人的即时危险，请立即联系家人、老师或其他能够到场的可信任成年人，并拨打当地急救或报警电话。" }
     },
     "teens": { "title": "正在参加 14 岁及以上学生自主试用？", "description": "学生可先使用个人记录与支持工具；没有有效关系时，家长、老师和学校不能查看。", "action": "回到青少年入口" }
+  },
+  "peerSpace": {
+    "metadata": { "title": "解忧室 | YouthTempo", "name": "解忧室" },
+    "previewNotice": "这是界面预览：本页不会保存规则确认、读取真实聊天记录或发送消息。",
+    "loading": "正在确认你是否可以进入…",
+    "rules": {
+      "label": "第一次进入",
+      "title": "进入解忧室前，先说清几件事",
+      "description": "解忧室让成年学生在有人值守时表达和倾听。它不是心理咨询、诊断、治疗、急救或交友服务。",
+      "items": {
+        "realtimeDuty": { "title": "这是实时群聊，也有人值守", "text": "通过安全检查的消息会发送给同一房间里的成年学生。消息不自动到期，但你只能看到加入以后、且仍在有效成员期内产生的内容。值班人员维护秩序与安全，不保证马上回复，也不替代专业或紧急支持。" },
+        "identityVisibility": { "title": "你决定别人怎样看到你", "text": "你可以选择匿名、房间昵称或经验证姓名。学校默认隐藏；匿名只对其他学生隐藏，不会绕过平台安全流程。" },
+        "privacySafety": { "title": "保护隐私，需要时进行安全复核", "text": "请不要发布姓名、班级、联系方式、位置等可识别信息。普通内容不会自动交给家长、老师、学校或专业人员；明确危险内容可能不会公开，并进入受权限保护的人工安全流程。" }
+      },
+      "confirmation": "我理解这些边界，并愿意遵守解忧室规则。",
+      "enterAction": "同意并进入",
+      "laterAction": "暂时不进入",
+      "supportAction": "需要更具体的支持？"
+    },
+    "unavailable": { "title": "这个入口目前不可用", "description": "这个入口目前不适用于你的账号。你仍然可以使用个人记录和支持工具。", "backAction": "返回我的入口", "supportAction": "查看支持路径" },
+    "room": {
+      "spaceLabel": "跨学校公共聊天室",
+      "title": "大家的解忧室",
+      "description": "来自不同学校的成年学生都可能在这里。你可以说说，也可以先安静看看。",
+      "backAction": "返回成年人入口",
+      "supportAction": "查看现实支持",
+      "status": { "open": "值班开放", "readOnly": "暂时只读", "paused": "房间已暂停" },
+      "identity": "当前身份：房间昵称",
+      "schoolHidden": "学校已隐藏",
+      "settings": {
+        "openAction": "调整身份与交流期待",
+        "closeAction": "收起身份设置",
+        "title": "我在这个房间里的样子",
+        "description": "身份和交流期待是房间设置，不会改变你的 YouthTempo 账号资料。正式功能中，当前身份会统一用于你在这个房间里的消息。",
+        "previewStatus": "仅当前页面",
+        "identity": {
+          "legend": "别人怎样看到我",
+          "description": "匿名只对其他学生隐藏身份；平台安全流程仍保留受限的账号关联。",
+          "nickname": { "title": "房间昵称", "text": "使用系统生成的昵称“云边纸船”，不显示账号姓名。", "summary": "当前身份：云边纸船" },
+          "anonymous": { "title": "匿名", "text": "其他学生会看到稳定的房间内标识“匿名同学·7K3”。", "summary": "当前身份：匿名同学·7K3" }
+        },
+        "expectations": {
+          "legend": "我现在希望怎样被回应",
+          "description": "这是可选提示，不保证其他同学一定回应，也不会自动把聊天内容转给专业人员。",
+          "summary": "交流期待：{{value}}",
+          "options": { "none": "暂时不选择", "vent": "只想说出来", "heard": "希望有人听见", "similar": "想听相似经历", "advice": "可以给我一些建议", "resources": "想了解支持资源" }
+        },
+        "future": { "summary": "更多身份方式（暂未开放）", "text": "经验证姓名只会在学校名单姓名确认和独立审计流程完成后出现；不收身份证件，也不会用可编辑账号姓名代替。学校始终默认隐藏，未来也只会由你本人选择是否展示。当前预览不会读取姓名或学校。" },
+        "previewHelp": "本页刷新或离开后，以上选择会恢复默认；当前不会写入浏览器存储、数据库或发送给任何人。",
+        "doneAction": "完成本页设置"
+      },
+      "empty": { "title": "现在比较安静", "text": "你可以从此刻最想被听见的一句话开始，也可以先感受房间里的交流方式，晚点再说。这里不会伪造在线人数或自动生成同伴回应。" },
+      "readOnly": { "title": "现在可以安静看看", "text": "当前没有完整值班支持，房间暂时只读。", "notice": "暂时不能发送新消息。恢复开放前，输入区会保持关闭。" },
+      "paused": { "title": "房间暂时停一下", "text": "聊天历史当前不继续展示。你仍可以离开房间或查看现实支持；这里不会显示内部安全事项或他人的处理信息。" },
+      "composer": { "label": "想说的话", "placeholder": "写下你现在想说的……请不要留下姓名、班级或联系方式。", "action": "发送", "previewHelp": "首个界面批次尚未连接消息服务，因此不会上传、保存或发送任何内容。" }
+    }
+  },
+  "adminSupport": {
+    "metadata": { "title": "支持事项审核 | YouthTempo" },
+    "back": "返回管理台",
+    "title": "支持人员与事项审核",
+    "description": "仅平台管理员可访问。人工确认资质、试用、暂停、承接、转介与结构化交接；不自动排名或淘汰人员。",
+    "applications": "人员申请",
+    "emptyApplications": "暂无申请。",
+    "evidence": "私有材料",
+    "viewEvidence": "临时查看材料",
+    "reviewStatus": "人工审核状态",
+    "reviewNote": "最小必要审核备注",
+    "review": "保存审核",
+    "trainingCount": "已核验培训记录",
+    "recordTraining": "记录培训（人工核验）",
+    "trainingTitle": "培训名称",
+    "trainingDate": "完成日期",
+    "saveTraining": "保存培训记录",
+    "inviteSchool": "邀请学校值班老师",
+    "userId": "已登记老师账号 ID",
+    "schoolId": "学校 ID",
+    "invite": "发送内部邀请记录",
+    "queue": "支持事项",
+    "emptyCases": "暂无事项。",
+    "case": "事项处理",
+    "private": "仅在授权管理界面显示请求摘要。请勿在备注中复制完整敏感正文。",
+    "action": "人工操作",
+    "actions": {
+      "triage": "进入人工评估", "ready_for_assignment": "等待分配",
+      "offer_primary": "邀请主要支持者", "offer_backup": "邀请后备支持者",
+      "transfer": "撤销旧授权并转接", "propose_appointment": "提出预约时间",
+      "pause": "暂停事项", "resume": "恢复事项", "refer": "转介",
+      "close": "结束事项"
+    },
+    "supporter": "获准支持者",
+    "choose": "请选择",
+    "appointment": "建议预约时间",
+    "referral": "转介方向",
+    "referralTypes": { "school": "学校", "social_work": "社工", "medical": "医疗", "professional": "专业支持", "community": "社区资源" },
+    "caseNote": "最小必要备注（转接必填）",
+    "saveCase": "保存事项操作",
+    "feedbackTitle": "服务后受限反馈",
+    "feedbackCount": "反馈数量",
+    "pendingComplaints": "待复核投诉或安全反馈",
+    "feedbackRatios": { "feltHeard": "感到被倾听", "foundHelp": "感到获得帮助", "boundariesRespected": "边界受到尊重", "wouldChooseAgain": "愿意再次选择" },
+    "privateFeedback": "受限意见与投诉",
+    "complaint": "投诉或不适",
+    "comment": "开放意见",
+    "safety": "安全复核",
+    "feedbackReviewNote": "最小必要复核备注",
+    "markReviewed": "标记人工已复核",
+    "reviewed": "人工已复核",
+    "saved": "操作已保存并记录审计事件。"
+  },
+  "supportWorkbench": {
+    "metadata": { "title": "我的支持事项 | YouthTempo" },
+    "label": "获准人员工作台",
+    "title": "我的支持事项",
+    "description": "只有人工审核通过并明确承接的主要支持者，才能在有效授权与事项进行期间看到最小请求摘要。后备支持者不会自动看到正文。",
+    "application": "查看申请状态",
+    "empty": "目前没有分配给你的事项。",
+    "adultCase": "成年人正式咨询",
+    "youthCase": "未成年人支持请求",
+    "accept": "接受承接邀请",
+    "reject": "拒绝承接邀请",
+    "limitedScope": "仅当前事项的最小授权摘要",
+    "noContent": "当前没有正文访问权；请等待事项确认或人工转接。",
+    "saved": "承接决定已记录。"
+  },
+  "supportStaff": {
+    "metadata": { "title": "申请成为支持人员 | YouthTempo" },
+    "label": "免费申请 · 人工审核",
+    "title": "申请成为支持人员",
+    "description": "专业咨询人员、社工与受训倾听志愿者分别申请。学校值班老师仅通过邀请加入。申请或试用状态不开放任何学生资料。",
+    "workbench": "我的承接工作台",
+    "statusTitle": "申请状态",
+    "status": { "pending": "等待人工审核", "trial": "试用中", "approved": "已获准", "paused": "已暂停", "removed": "已退出", "rejected": "未通过" },
+    "formTitle": "申请资料",
+    "schoolInvite": "确认学校邀请与服务边界",
+    "category": "申请类别",
+    "categories": { "counselor": "专业咨询人员", "social_worker": "社会工作者", "listening_volunteer": "受训倾听志愿者", "school_duty_teacher": "学校值班老师" },
+    "fields": { "legalName": "真实姓名", "credentialType": "资质或培训类型", "credentialNumber": "资质编号", "serviceScope": "可提供的支持范围", "availability": "可服务时间", "institutionName": "机构信息（可选）" },
+    "languages": "服务语言",
+    "ageScopes": "可服务年龄段",
+    "confirm": {
+      "boundaries": "我确认不诊断、不治疗，不查看超出授权范围的资料。",
+      "crisis": "我理解危机事项必须按既定路径升级，不单独处理。",
+      "privacy": "我理解隐私、最小访问和数据规则。"
+    },
+    "submit": "提交或更新申请",
+    "saved": "申请资料已保存，等待人工审核。",
+    "evidenceTitle": "私有资质或培训材料",
+    "evidenceHelp": "材料保存在私有空间，仅授权审核人员可临时查看；请避免上传无关个人资料。",
+    "evidenceUploaded": "材料已上传至私有空间。",
+    "evidenceMissing": "尚未上传材料。",
+    "file": "选择 PDF、JPG 或 PNG 文件（最多 5 MB）",
+    "upload": "上传材料",
+    "uploaded": "材料已上传。"
+  },
+  "supportFlow": {
+    "metadata": { "consultationTitle": "正式咨询 | YouthTempo", "requestTitle": "提交支持需要 | YouthTempo" },
+    "errors": {
+      "signIn": "请先登录。",
+      "noAccess": "当前账号不适用这项支持。",
+      "unavailable": "支持服务暂时无法处理，请稍后再试。",
+      "invalid": "请检查填写内容。",
+      "tooMany": "请求有些频繁，请稍后再试。",
+      "notReady": "事项当前不能执行这项操作，请刷新后再试。",
+      "locked": "当前状态不能修改，请联系平台。",
+      "staffScope": "人员尚未获准承接此类事项。",
+      "evidence": "请提交符合要求的私有资质或培训材料（PDF、JPG 或 PNG，最多 5 MB）。"
+    },
+    "closed": {
+      "label": "正式咨询",
+      "title": "服务正在准备中，暂未正式开放",
+      "description": "正式一对一咨询仍在内部测试和人工值班准备阶段。你可以先使用自我记录、受邀同伴空间或现有支持转介路径。",
+      "record": "自我记录",
+      "peer": "受邀同伴空间",
+      "referral": "查看转介与真人支持"
+    },
+    "portal": {
+      "youthLabel": "14–17 岁支持",
+      "youthTitle": "告诉我们你需要什么支持",
+      "youthDescription": "提交后由人工评估，再连接学校、社工、医疗或专业资源。这里不会让你直接预约咨询师。",
+      "adultLabel": "内部测试 · 正式咨询",
+      "adultTitle": "一对一支持事项",
+      "adultDescription": "这是仅供获准账号测试的流程。正式服务尚未向普通用户开放。",
+      "categoriesTitle": "支持人员各有边界",
+      "categories": {
+        "counselor": "专业咨询人员：资质经人工核验后承接正式咨询。",
+        "socialWorker": "社工：协助家庭、学校与社区资源及转介，不提供心理治疗。",
+        "listener": "受训倾听志愿者：陪伴和整理表达，不诊断、不单独处理危机。",
+        "schoolDuty": "学校值班老师：由学校或平台邀请，只处理明确的学校支持事项。"
+      },
+      "newTitle": "提出支持需要",
+      "need": "你希望获得哪方面的支持？",
+      "availability": "你方便的时间（可选）",
+      "submit": "提交给人工评估",
+      "saving": "正在提交…",
+      "submitted": "已收到请求。人工人员会评估下一步；这不是即时回复服务。",
+      "urgent": "如果你或他人正处于即时危险，请立刻联系身边可信任的人和当地急救或报警服务。提交事项不能替代紧急援助。",
+      "cases": "我的支持事项",
+      "empty": "还没有支持事项。",
+      "status": {
+        "requested": "已提出", "triage": "人工评估中", "awaiting_assignment": "等待分配",
+        "assigned": "待你确认承接人", "active": "进行中", "paused": "已暂停",
+        "transfer_requested": "正在协调更换", "transferred": "转接中",
+        "referred": "已转介", "closed": "已结束", "cancelled": "已取消"
+      },
+      "primary": "主要支持者",
+      "backup": "后备支持者",
+      "pendingOffer": "待承接人确认",
+      "appointment": "预约",
+      "appointmentStatus": { "none": "暂无预约", "proposed": "待确认", "accepted": "已确认", "reschedule_requested": "申请改期", "cancelled": "已取消" },
+      "timeline": "事项进度",
+      "actions": {
+        "cancel": "取消请求", "accept_assignment": "接受分配", "reject_assignment": "拒绝分配",
+        "request_change": "申请更换支持者", "withdraw_authorization": "撤回共享授权",
+        "close": "结束事项", "accept_appointment": "确认预约",
+        "request_reschedule": "申请改期", "cancel_appointment": "取消预约"
+      },
+      "actionSaved": "事项状态已更新。",
+      "feedbackTitle": "服务结束后的反馈",
+      "feedbackQuestions": {
+        "feltHeard": "我感到被倾听", "foundHelp": "我获得了帮助",
+        "boundariesRespected": "我的边界得到尊重", "wouldChooseAgain": "我愿意再次选择这类支持"
+      },
+      "complaint": "我有不适或投诉需要人工查看",
+      "comment": "补充意见（可选）",
+      "feedbackSubmit": "提交受限反馈",
+      "feedbackSaved": "反馈已保存，仅授权人员可查看。",
+      "feedbackDone": "已提交反馈"
+    }
+  },
+  "microFeedbackAdmin": {
+    "title": "轻量体验反馈",
+    "description": "仅平台管理员可查看汇总与开放意见。回答不用于诊断或公开评价。",
+    "stats": { "people": "反馈人数", "submissions": "提交次数", "helpful": "感到有帮助", "wouldReturn": "愿意再次使用", "wantsHumanSupport": "希望真人支持", "pendingSafety": "待处理安全反馈" },
+    "byFeature": "按功能",
+    "byAge": "按年龄段",
+    "comments": "受限开放意见",
+    "safety": "安全复核",
+    "noAnswers": "暂无回答",
+    "sampleLimited": "当前只显示最近 1000 条反馈，扩大试点前应接入完整汇总。"
+  },
+  "microFeedback": {
+    "title": "这次体验怎么样？",
+    "description": "只需点选，完全可跳过。我们最多每七天询问一次。",
+    "questions": {
+      "helpful": "这次体验对你有帮助吗？",
+      "wouldReturn": "你愿意再次使用吗？",
+      "wantsHumanSupport": "你现在希望获得真人支持吗？"
+    },
+    "yes": "是",
+    "no": "否",
+    "clear": "暂不回答",
+    "comment": "有什么地方让你不舒服，或希望我们改进？（可选）",
+    "skip": "跳过并收起",
+    "submit": "提交反馈",
+    "thanks": "谢谢你告诉我们。",
+    "urgent": "如果你正处于即时危险，请立即联系身边可信任的人及当地急救或报警服务。",
+    "support": "查看支持路径",
+    "errors": {
+      "signIn": "请先登录。",
+      "unavailable": "反馈暂时无法处理，请稍后再试。",
+      "invalid": "请检查反馈内容。",
+      "cooldown": "近期已经收到你的反馈，谢谢。"
+    }
+  },
+  "peerSpaceLive": {
+    "label": "受邀成年人试点",
+    "title": "主题解忧室",
+    "description": "仅向受邀成年用户开放。有人值守时可以参加跨校主题群聊；这里不提供诊断、治疗或紧急救援。",
+    "support": "查看现实支持",
+    "account": "登录或查看账号",
+    "rooms": "主题房间",
+    "noRooms": "目前还没有可进入的房间。",
+    "status": { "staffed_open": "有人值守 · 可交流", "read_only": "只读", "paused": "暂停", "closed": "尚未开放" },
+    "join": "加入房间",
+    "leave": "退出房间",
+    "joined": "已加入房间。",
+    "left": "已退出房间，不能继续读取新消息。",
+    "reviewPending": "这条消息正在人工安全复核，暂不向其他人显示。",
+    "urgent": "如果你或他人正处于即时危险，请立刻联系身边可信任的人和当地急救或报警服务。值班审核不能代替紧急援助。",
+    "report": "举报",
+    "reportPrompt": "请输入举报原因：privacy（隐私）、harassment（骚扰）、safety（安全）或 other（其他）。",
+    "reported": "已提交举报并移入人工复核。",
+    "block": "屏蔽",
+    "mute": "静音",
+    "delete": "删除我的消息",
+    "controls": "我的屏蔽与静音",
+    "undo": "取消",
+    "updated": "已更新。"
+  },
+  "peerSpaceReview": {
+    "back": "返回管理台",
+    "title": "解忧室人工审核",
+    "description": "仅授权值班审核人员可处理。AI 仅辅助预筛与排序，公开、隐藏、转介和结束均由人工决定。",
+    "empty": "当前没有待处理的审核事项。",
+    "queue": "待处理队列",
+    "case": "审核事项",
+    "priority": "优先级",
+    "messageStatus": "消息状态",
+    "noMessage": "消息不可用。",
+    "private": "敏感正文仅在此授权页面显示。备注请保持最小必要信息。",
+    "nextStatus": "处理状态",
+    "status": { "assigned": "已分配", "reviewing": "复核中", "action_required": "需要行动", "referred": "已转介", "resolved": "已处理", "closed": "已关闭" },
+    "messageAction": "消息处理",
+    "actions": { "none": "保持当前可见性", "hide": "隐藏", "publish": "人工核准公开" },
+    "note": "最小必要备注",
+    "followUp": "需要后续跟进",
+    "escalated": "已升级处理",
+    "save": "保存处理",
+    "saved": "已记录人工处理和审计事件。"
+  },
+  "peerSpaceChat": {
+    "errors": {
+      "signIn": "请先登录后再进入解忧室。",
+      "unavailable": "解忧室暂时不可用，请稍后再试。",
+      "noInvitation": "此账号目前没有成年人解忧室邀请。",
+      "rulesFirst": "请先阅读并同意房间规则。",
+      "invalidRoom": "找不到这个房间。",
+      "noRoomAccess": "你目前不能进入这个房间。",
+      "invalidMessage": "找不到这条消息。",
+      "bodyLength": "请输入 1 至 600 字的消息。",
+      "roomReadOnly": "房间目前没有完整值班支持，暂时不能发送。",
+      "tooMany": "发送太频繁了，请稍后再试。",
+      "invalidControl": "无法完成这项设置。",
+      "invalidReport": "请选择要举报的消息和原因。",
+      "alreadyReported": "你已举报过这条消息。",
+      "noReviewAccess": "你没有处理此审核事项的权限。",
+      "invalidReview": "请检查审核状态和处理内容。"
+    }
+  },
+  "peerSpaceStaff": {
+    "metadata": { "title": "解忧室人工审核 | YouthTempo" },
+    "navigation": { "back": "返回现有管理台", "studentPreview": "查看学生端预览" },
+    "header": {
+      "label": "解忧室工作人员端",
+      "title": "解忧室工作台",
+      "description": "按照当前班次完成准备、管理公共房间并交接未结事项。当前只演示操作顺序，不读取学生内容。",
+      "previewStatus": "非生产界面预览"
+    },
+    "context": {
+      "capabilityValue": "房间值班",
+      "scopeValue": "大家的解忧室",
+      "shiftPending": "尚未签到",
+      "shiftActive": "预览签到中"
+    },
+    "stage": {
+      "label": "当前任务",
+      "prepare": "完成开放前核对并签到",
+      "manage": "管理公共房间状态",
+      "handoff": "整理并交接本班未结事项"
+    },
+    "previewNotice": {
+      "title": "查看预览数据说明",
+      "text": "页面中的班次、联系人、数量和服务状态均为明确标注的界面占位；勾选和按钮只改变当前页面，不会授权、开房、通知或保存任何内容。"
+    },
+    "shift": {
+      "label": "今日班次",
+      "title": "开放前先完成值班准备",
+      "description": "正式功能中，每个开放房间都必须同时有正在值守人员和独立备班或安全联系人。",
+      "status": { "pending": "等待核对" },
+      "timeLabel": "示例时段",
+      "timeValue": "19:00–21:00 · Asia/Shanghai",
+      "coverageLabel": "人员与安全承接",
+      "coverageValue": "备班和安全联系人均为预览占位",
+      "signInAction": "模拟完成签到"
+    },
+    "checklist": {
+      "title": "签到前核对",
+      "description": "三组信息确认完成后才能签到；正式系统仍须从可信配置重新核验。",
+      "items": {
+        "workspace": { "title": "工作环境", "text": "设备、网络和工作环境适合持续值班。" },
+        "coverage": { "title": "人员与安全路径", "text": "备班人员可以联系，现实安全升级和线下路径有效。" },
+        "handoff": { "title": "规则与上一班交接", "text": "已查看房间规则、支持资源和上一班未结事项。" }
+      },
+      "pendingHelp": "完成三项核对后才可签到。",
+      "readyHelp": "准备完成；可以体验签到。",
+      "completedSummary": "开放前核对已完成 · 查看 3 项记录"
+    },
+    "room": {
+      "label": "唯一公共房间",
+      "title": "大家的解忧室",
+      "description": "跨学校成年学生的公共聊天室。首期不提供本校房间，也不展示成员名单。",
+      "status": {
+        "preparing": "准备中",
+        "open": "预览开放",
+        "readOnly": "预览只读",
+        "paused": "预览暂停",
+        "handoff": "等待预览交接"
+      },
+      "controlsTitle": "当前可执行操作",
+      "controlsDescription": "优先使用开放或只读；交接用于班次切换。暂停是风险操作，需要再次确认。",
+      "actions": { "open": "预览开放", "readOnly": "预览转为只读", "pause": "预览暂停", "handoff": "预览开始交接" },
+      "pauseLabel": "风险操作",
+      "pauseConfirm": {
+        "title": "确认暂停公共房间？",
+        "text": "正式功能中，暂停会停止普通历史展示和新消息发送，并记录内部原因。本页只演示确认步骤。",
+        "confirm": "确认预览暂停",
+        "cancel": "取消"
+      }
+    },
+    "tasks": {
+      "label": "当前待办",
+      "emptyTitle": "现在没有需要处理的事项",
+      "emptyText": "普通举报、安全事项和待交接事项均为预览空状态；不代表真实学生使用情况。",
+      "emptyStatus": "暂无待办"
+    },
+    "services": {
+      "summary": "关键服务详情 · 4 项未连接（预览）",
+      "description": "正式开放必须由服务端确认这些能力可用；当前预览没有连接任何服务。",
+      "items": { "realtime": "实时连接", "history": "历史消息 API", "review": "审核队列", "alert": "提醒通道" },
+      "notConnected": "未连接"
+    },
+    "feedback": {
+      "states": {
+        "idle": "尚未进行预览操作。先完成开放前核对。",
+        "signedIn": "已模拟签到。现在可以管理房间状态；操作只影响当前页面。",
+        "open": "房间已切换为“预览开放”；没有真实学生收到变化。",
+        "readOnly": "房间已切换为“预览只读”；没有真实发送能力被修改。",
+        "paused": "房间已切换为“预览暂停”；没有隐藏或处理任何真实内容。",
+        "handoff": "房间已切换为“等待预览交接”；没有通知真实人员。",
+        "reset": "预览已经恢复到尚未签到的初始状态。"
+      },
+      "resetAction": "重置本页预览"
+    }
   },
   "sweetModel": {
     "metadata": { "title": "SWEET 模型 | YouthTempo" },
     "hero": {
       "title": "SWEET 模型",
-      "description": "YouthTempo 从生活节律开始，为年轻人提供更早、更容易获得的支持。",
+      "description": "SWEET 是非诊断性的自我观察工具，帮助你了解自己的生活节律和变化，发现属于自己的趋势。单次结果不能定义你的心理健康，也不能替代专业诊断。",
       "imageAlt": "睡眠、醒来、饮食、运动和任务投入组成的日常节律循环插画"
     },
     "modules": {
       "title": "五个日常节律模块",
-      "description": "这些模块共同帮助年轻人、家长和学校更清楚地理解状态变化，而不是只在问题变严重后才行动。",
+      "description": "这五个维度帮助你观察与自己平时相比的变化。晚睡、晚起或不固定作息本身不是疾病信号；可以结合持续时间和日常影响理解。",
       "observationPrefix": "你可以这样观察：",
       "sleep": { "title": "睡眠", "question": "昨晚睡了多久？睡眠质量如何？", "summary": "睡眠和情绪稳定、注意力恢复、身体修复都有关系。", "example": "睡眠打卡、睡前情绪整理、睡眠习惯提示。" },
       "wake": { "title": "醒来", "question": "今天醒来后的状态是疲惫、平静还是紧张？", "summary": "一天开始的状态，会影响年轻人的情绪、专注和行动感。", "example": "晨间状态记录、柔和唤醒建议、早晨状态整理。" },
@@ -330,9 +756,9 @@
   },
   "checkIn": {
     "metadata": { "title": "SWEET 节律记录 | YouthTempo" },
-    "hero": { "title": "SWEET 节律记录", "description": "约 30–60 秒完成。五个维度各选一项，想补充时再展开更多问题。", "imageAlt": "SWEET 五个日常节律组成的循环插画" },
+    "hero": { "title": "SWEET 节律记录", "description": "完整 SWEET 建议每周记录一次，也可以随时额外记录；这只是建议，没有必须完成的频率。五个维度各选一项，想补充时再展开。", "imageAlt": "SWEET 五个日常节律组成的循环插画" },
     "progress": { "step": "第 {{current}} 步 / {{total}}", "completed": "已完成 {{completed}} / {{total}} 个维度" },
-    "form": { "label": "SWEET 日常记录", "optional": "可选", "expandDetails": "想补充更多", "collapseDetails": "收起补充问题", "collapse": "收起" },
+    "form": { "label": "完整 SWEET 节律记录", "optional": "可选", "expandDetails": "想补充更多", "collapseDetails": "收起补充问题", "collapse": "收起" },
     "consent": { "text": "我知道本次 SWEET 回答会发送给 AI 生成记录小结，内容可能包含敏感生活与健康信息；我同意仅为生成本次小结而处理这些内容。", "link": "查看说明" },
     "steps": {
       "sleep": {
@@ -384,7 +810,7 @@
       "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "网络连接不稳定，请检查网络后重新保存。", "saveFailed": "这次没有保存成功，请稍后再试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。"
     },
     "actions": { "previous": "上一步", "next": "下一步", "generatingAndSaving": "正在生成并保存...", "generateAndSave": "生成小结并保存", "retrying": "正在重试...", "regenerate": "重新生成", "saving": "正在保存...", "saveFirst": "先保存记录", "savedToAccount": "已保存到账号", "saveToAccount": "保存到账号", "openMoodJournal": "打开心情拼图", "openWorryTime": "今晚先放下", "viewReferral": "查看支持路径", "reset": "重新填写" },
-    "result": { "title": "今日 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "按固定规则整理的关注维度：{{areas}}", "rhythmClue": "按固定规则整理的节律线索", "smallStep": "可自行选择的小行动", "nextTool": "可自行选择的下一步", "disclaimer": "AI 只整理你本次明确填写的内容；关注维度和可选步骤来自固定规则。两者都不是评估、诊断或专业建议，请以你的原始记录为准。" }
+    "result": { "title": "本次 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "按固定规则整理的关注维度：{{areas}}", "rhythmClue": "按固定规则整理的节律线索", "smallStep": "可自行选择的小行动", "nextTool": "可自行选择的下一步", "disclaimer": "AI 只整理你本次明确填写的内容；关注维度和可选步骤来自固定规则。两者都不是评估、诊断或专业建议，请以你的原始记录为准。" }
   },
   "moodJournal": {
     "metadata": { "title": "心情拼图 | YouthTempo" },
@@ -496,18 +922,23 @@
     "hero": {
       "firstSignIn": "首次登录", "label": "我的账户", "completeProfile": "先完善你的资料", "greeting": "你好，{{name}}", "accountFallback": "你的账户",
       "completeProfileDescription": "填写姓名并选择身份。之后登录时会直接进入你的记录页。",
-      "linkedChildren": "已关联 {{names}}，可以查看学校确认范围内的节律记录。", "noLinkedChildren": "亲子关系由学校管理员确认。关联完成后，这里会直接显示孩子的节律记录。",
-      "descriptions": { "platformAdmin": "进入平台管理，查看全部学校、成员和负责关系。", "schoolLead": "管理本校成员，同时查看本校学生提交的记录。", "supportTeacher": "查看学校分配给你的学生记录和近期变化。", "guardian": "亲子关系确认后，在这里查看孩子共享的节律记录。", "schoolStudent": "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。", "personal": "完成 SWEET 后保存，即可在这里回看。" }
+      "linkedChildren": "已关联 {{names}}，可以查看学校确认范围内的节律记录。", "noLinkedChildren": "当前学生自主试点不开放家长加入或亲子关系创建；未来未成年人流程获批后会另行说明。",
+      "descriptions": { "platformAdmin": "进入平台管理，查看全部学校、成员和负责关系。", "schoolLead": "管理本校成员，同时查看本校学生提交的记录。", "supportTeacher": "查看学校分配给你的学生记录和近期变化。", "guardian": "当前学生自主试点不开放家长访问；未来未成年人流程获批后会另行说明。", "schoolStudent": "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。", "personal": "完成 SWEET 后保存，即可在这里回看。" }
     },
     "actions": { "platformAdmin": "进入平台管理", "schoolAdmin": "进入学校管理", "studentRecords": "查看学生记录", "assignedStudents": "查看负责学生", "followUpWorkspace": "跟进工作台", "childRecords": "查看孩子记录", "moreSupport": "需要更多支持", "recordToday": "记录今天", "saveContinue": "保存并继续", "saveProfile": "保存资料", "signOut": "退出登录", "submitting": "正在提交…", "processing": "正在处理…" },
     "profile": { "name": "姓名", "namePlaceholder": "怎么称呼你", "accountType": "账号类型" },
     "summary": { "currentRole": "当前身份", "confirming": "正在确认", "confirmingRole": "正在确认身份…", "visibleRecords": "可见记录", "recordCountOne": "{{count}} 条", "recordCount": "{{count}} 条", "savedToAccount": "保存在当前账号", "lastSevenDays": "最近 7 天", "daysRecordedOne": "{{count}} 天有记录", "daysRecorded": "{{count}} 天有记录", "notEveryDay": "不需要每天都完成", "schoolSpace": "学校空间", "joined": "已加入", "notJoined": "未加入", "configuredBySchool": "由学校管理员配置" },
+    "ageGuidance": {
+      "label": "适合你的使用方式",
+      "minor": { "heroDescription": "你正在参加学生自主试用。记录默认用于你自己回看；只有已经建立并获授权的学校关系才能带来额外访问。", "title": "先按自己的节奏记录，需要时再把话说给具体的人", "description": "你可以独立完成记录和整理。当前试点不创建家长关系；如果学校已经为你分配负责老师，可以在悄悄话信箱选择写给老师，也可以只留给自己。主动联系值班负责人是独立选项，不等于进入心理咨询。", "primaryAction": "查看学生入口", "secondaryAction": "写下不容易当面说的话" },
+      "adult": { "heroDescription": "你正在按成年人身份独立使用。无需学校或家长加入，记录默认只用于你自己回看。", "title": "按自己的生活基线理解记录，而不是套用中学生作息", "description": "晚睡、晚起、吃外卖或作息不固定本身不代表心理异常。可以先看这些变化是否偏离你平时的状态，是否持续影响精力、学习、工作、关系或基本生活；需要真人帮助时，再选择校园资源、社区服务或合格专业人员。", "primaryAction": "查看独立使用说明", "secondaryAction": "查看支持路径" }
+    },
     "consent": {
       "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和适用的支持，不用于广告或公开展示；学生可随时撤回。没有有效关系时，家长、老师和学校不能查看。完整说明见", "privacyLink": "隐私与安全", "sentenceEnd": "。",
       "activeTitle": "已完成知情确认", "adultActive": "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。", "minorSelfActive": "你已按学生自主试用方式完成本人单独确认，可以生成 AI 小结、保存记录并使用个人支持工具；这不代表监护人或学校已经确认。", "minorActive": "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。", "policyVersion": "当前版本：{{version}}。", "withdraw": "撤回确认",
       "pendingTitle": "学生确认已完成，等待监护人确认", "askGuardian": "请已关联家长登录自己的账户完成确认。", "noGuardian": "当前还没有学校确认的监护人关联，请联系学校负责人。", "withdrawStudent": "撤回学生确认", "ineligible": "当前自主试用仅接收 14 岁及以上学生。未满 14 岁暂时不能参加。",
       "ageRange": "你的年龄范围（不收集具体生日）", "age14to17": "14–17 岁", "age18Plus": "已满 18 岁", "ageUnder14": "未满 14 岁", "acknowledgement": "我已阅读说明，理解可能处理敏感生活与健康信息、AI 用途、保存方式、谁能查看以及如何撤回，并单独同意按说明处理这些信息。", "completeStudent": "完成学生确认",
-      "bothComplete": "学生与监护人确认均已完成。", "selfPilotChildActive": "该学生已按自主试用方式完成本人确认；这不是监护人确认，不能由监护人在此撤回。", "withdrawGuardian": "撤回监护人确认", "guardianPrompt": "孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。", "agreeChild": "同意孩子参加试点", "waitingChild": "等待孩子先登录自己的账户阅读说明并完成学生确认。", "noLinkedChild": "尚未关联孩子。亲子关系需由学校负责人确认。"
+      "bothComplete": "学生与监护人确认均已完成。", "selfPilotChildActive": "该学生已按自主试用方式完成本人确认；这不是监护人确认，不能由监护人在此撤回。", "withdrawGuardian": "撤回监护人确认", "guardianPrompt": "孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。", "agreeChild": "同意孩子参加试点", "waitingChild": "等待孩子先登录自己的账户阅读说明并完成学生确认。", "noLinkedChild": "当前学生自主试点不开放家长加入或亲子关系创建。"
     },
     "settings": {
       "title": "账户设置", "description": "资料、数据导出、注销与退出", "schoolIdentity": "学校身份", "profile": "账号资料", "wechat": "微信绑定", "data": "数据与注销",
@@ -516,19 +947,19 @@
     "wechat": { "description": "绑定后，可以在小程序中使用同一个 YouthTempo 账号。", "qrAlt": "微信小程序绑定码", "qrValidity": "二维码 10 分钟内有效", "bound": "已绑定微信。", "notBound": "尚未绑定微信。", "generating": "正在生成...", "regenerate": "重新生成绑定码", "generate": "生成微信绑定码" },
     "dataExport": { "title": "下载我的数据", "description": "下载账号资料、你自己的 SWEET 记录、留言、社区内容、同意记录和学校关系。文件为 JSON，服务器不会保存导出副本。", "action": "下载数据副本" },
     "deletion": { "title": "永久注销账号", "description": "注销后，账号、SWEET 记录、留言、学校关系、微信绑定和社区内容都会被永久删除，无法恢复。建议先下载一份自己的数据。", "emailConfirmation": "输入当前登录邮箱确认", "acknowledgement": "我理解注销会永久删除账号关联数据，且无法撤销。", "action": "永久注销账号", "privacyPrefix": "具体保存期限、注销后的安全处理记录和备份说明见" },
-    "relationships": { "childOverview": "孩子的节律概览", "assignedStudents": "我负责的学生", "selectChild": "选择孩子", "studentList": "学生列表", "fourWeekDaysOne": "近 4 周 {{count}} 天有记录", "fourWeekDays": "近 4 周 {{count}} 天有记录", "sevenDayDaysOne": "近 7 天 {{count}} 天有记录", "sevenDayDays": "近 7 天 {{count}} 天有记录", "lastFourWeeks": "近 4 周", "lastSevenDays": "近 7 天", "rhythmOverview": "节律概览", "latestSummary": "最近小结", "noSummary": "最近一条记录还没有生成小结，可以在下方查看原始回答。", "viewRawAnswers": "查看原始回答", "childNoRecords": "孩子暂时还没有保存 SWEET 记录。", "studentNoRecords": "这名学生近 7 天还没有保存 SWEET 记录。", "noChild": "暂时还没有关联孩子。", "noStudent": "学校暂时还没有为你分配学生。", "confirmRelationship": "请联系学校负责人确认亲子关系。", "assignmentHelp": "分配完成后，学生概览会显示在这里。" },
+    "relationships": { "childOverview": "孩子的节律概览", "assignedStudents": "我负责的学生", "selectChild": "选择孩子", "studentList": "学生列表", "fourWeekDaysOne": "近 4 周 {{count}} 天有记录", "fourWeekDays": "近 4 周 {{count}} 天有记录", "sevenDayDaysOne": "近 7 天 {{count}} 天有记录", "sevenDayDays": "近 7 天 {{count}} 天有记录", "lastFourWeeks": "近 4 周", "lastSevenDays": "近 7 天", "rhythmOverview": "节律概览", "latestSummary": "最近小结", "noSummary": "最近一条记录还没有生成小结，可以在下方查看原始回答。", "viewRawAnswers": "查看原始回答", "childNoRecords": "孩子暂时还没有保存 SWEET 记录。", "studentNoRecords": "这名学生近 7 天还没有保存 SWEET 记录。", "noChild": "当前试点没有家长关联。", "noStudent": "学校暂时还没有为你分配学生。", "confirmRelationship": "当前试点不开放亲子关系；未来未成年人流程获批后会另行说明。", "assignmentHelp": "分配完成后，学生概览会显示在这里。" },
     "rhythm": { "sleep": "睡眠", "wake": "醒来状态", "eat": "饮食", "exercise": "活动", "task": "任务投入" },
     "records": {
       "titles": { "school": "本校学生的 SWEET 记录", "teacher": "负责学生的 SWEET 记录", "guardian": "孩子的 SWEET 记录", "own": "我的 SWEET 历史记录" },
       "loading": "正在加载记录…", "recordTitle": "SWEET 节律记录", "childRecord": "{{name}}的 SWEET 记录", "delete": "删除", "viewFull": "查看完整记录", "notProvided": "未填写", "smallStepPrefix": "可以先做的一件小事：", "nextToolPrefix": "推荐下一步：", "emptyTitle": "暂时没有可见记录", "start": "开始记录", "contactSchool": "联系学校确认关系", "admin": "进入管理台",
-      "empty": { "student": "完成一次 SWEET 节律记录并保存后，会显示在这里。", "guardian": "尚未关联孩子，或孩子暂时还没有保存记录。亲子关系需要由学校管理员确认。", "teacher": "学校负责人分配学生后，这里会显示你负责学生的记录。", "schoolLead": "本校学生保存 SWEET 记录后，会显示在这里。", "default": "保存记录后，会显示在这里。" }
+      "empty": { "student": "完成一次 SWEET 节律记录并保存后，会显示在这里。", "guardian": "当前学生自主试点不开放家长访问或亲子关系创建。", "teacher": "学校负责人分配学生后，这里会显示你负责学生的记录。", "schoolLead": "本校学生保存 SWEET 记录后，会显示在这里。", "default": "保存记录后，会显示在这里。" }
     },
     "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前自主试用暂不接收 14 岁以下学生。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生自主试用确认已完成，现在可以生成 AI 小结并保存本人记录。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
     "errors": { "serviceTimeout": "账户服务响应超时。", "loadFailed": "账户信息加载失败。", "redirectFailed": "登录链接处理失败，请重新发送验证码。", "wechatQrExpired": "二维码已过期，请重新生成。", "wechatStatusFailed": "微信绑定状态检查失败。", "otpUnauthorized": "当前邮箱暂时无法收到登录验证码，请联系平台负责人处理。", "otpRateLimited": "验证码请求有些频繁，请稍后再试。", "otpSendNetwork": "网络连接不稳定，请检查网络后重新发送。", "otpSendFailed": "验证码发送失败，请稍后重试。", "otpIncomplete": "请输入完整的 {{count}} 位验证码。", "otpInvalid": "验证码不正确或已过期，请重新输入，或重新发送。", "otpVerifyRateLimited": "验证尝试有些频繁，请稍后再试。", "otpVerifyNetwork": "网络连接不稳定，请检查网络后重新验证。", "otpVerifyFailed": "验证码验证失败，请稍后重试。", "nameRequired": "请填写姓名。", "profileSaveFailed": "资料保存失败。", "recordDeleteFailed": "删除记录失败。", "exportFailed": "账户数据导出失败。", "deletionConfirmationRequired": "请输入当前登录邮箱，并勾选不可恢复确认。", "accountDeleteFailed": "账户注销失败。", "studentAssentFailed": "学生确认提交失败。", "guardianConsentFailed": "监护人确认提交失败。", "consentWithdrawFailed": "撤回确认失败。", "wechatQrFailed": "微信绑定二维码生成失败。" },
     "professional": {
-      "label": "专业支持者", "title": "让大家知道你的专业身份已经过确认", "description": "提交所在机构和可核验的资质信息。只有平台管理员能查看这些资料；通过后，社区会显示“专业身份已确认”。", "loading": "正在加载确认状态…", "noticeSubmitted": "资料已经交给平台确认。审核期间，你仍可以正常使用其他功能。", "submittedAt": "提交于 {{date}}", "reviewNote": "平台说明：{{note}}", "legacyConfirmed": "此前已由平台确认", "institution": "机构：{{value}}", "position": "专业方向：{{value}}", "credential": "资质：{{value}}", "expires": "有效期：{{value}}", "noExpiry": "未注明到期日", "disclaimer": "提交不代表自动通过。平台会核对机构和资质；资料不完整时，会说明需要补充什么。", "resubmit": "更新并重新提交", "submit": "提交确认资料",
+      "label": "专业支持者", "title": "让大家知道你的专业身份已经过确认", "description": "以个人身份提交可核验的资质和专业方向；机构信息可以不填。只有平台管理员能查看这些资料；通过后，社区会显示“专业身份已确认”。", "loading": "正在加载确认状态…", "noticeSubmitted": "资料已经交给平台确认。审核期间，你仍可以正常使用其他功能。", "submittedAt": "提交于 {{date}}", "reviewNote": "平台说明：{{note}}", "legacyConfirmed": "此前已由平台确认", "institution": "机构/单位：{{value}}", "noInstitution": "个人申请，未填写机构", "position": "专业方向：{{value}}", "credential": "资质：{{value}}", "expires": "有效期：{{value}}", "noExpiry": "未注明到期日", "disclaimer": "提交不代表自动通过。平台会核对个人资质、专业方向和证明材料；资料不完整时，会说明需要补充什么。", "resubmit": "更新并重新提交", "submit": "提交确认资料",
       "status": { "pending": "等待平台确认", "needs_more_info": "需要补充资料", "active": "已通过确认", "rejected": "暂未通过", "revoked": "确认已撤销" },
-      "fields": { "institution": "所在机构", "institutionPlaceholder": "例如：某某心理服务中心", "position": "职务或专业方向", "positionPlaceholder": "例如：心理咨询师", "credentialType": "资质类型", "credentialPlaceholder": "例如：职业资格或执业登记", "credentialNumber": "资质编号", "issuer": "发证或登记机构", "expiry": "到期日期（没有可留空）", "evidence": "核验材料说明", "evidencePlaceholder": "填写平台约定的材料编号、机构公开人员页或可联系核验的方式。不要填写与审核无关的个人信息。", "additional": "还有什么想补充的（可不填）" },
+      "fields": { "institution": "所在机构或单位（选填）", "institutionPlaceholder": "没有所属机构可以留空", "position": "职务或专业方向", "positionPlaceholder": "例如：心理咨询师", "credentialType": "资质类型", "credentialPlaceholder": "例如：职业资格或执业登记", "credentialNumber": "资质编号", "issuer": "发证或登记机构", "expiry": "到期日期（没有可留空）", "evidence": "核验材料说明", "evidencePlaceholder": "填写平台约定的材料编号、资质查询页面或其他可核验方式。不要填写与审核无关的个人信息。", "additional": "还有什么想补充的（可不填）" },
       "errors": { "loadFailed": "专业身份资料暂时没有加载出来。", "submitFailed": "资料暂时无法提交。" }
     }
   },
@@ -664,10 +1095,140 @@
   "messages": {
     "metadata": { "title": "悄悄话信箱 | YouthTempo" },
     "visitor": { "hero": { "title": "悄悄话信箱", "description": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" }, "loading": "正在加载…", "title": "登录后使用这个功能", "description": "这样才能确认你可以写给谁，或查看哪些话。", "action": "前往登录" },
-    "member": { "hero": { "title": "悄悄话信箱", "studentDescription": "有些话不容易当面说，可以先写给试点值班负责人、老师、家长或自己。", "supporterDescription": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" } },
+    "member": { "hero": { "title": "悄悄话信箱", "studentDescription": "有些话不容易当面说，可以先写给试点值班负责人、已分配老师或自己。", "minorStudentDescription": "有些话不容易当面说，可以写给已分配老师或留给自己；也可以另行选择联系试点值班负责人。当前试点不创建家长收件关系。", "adultStudentDescription": "你可以把话留给自己、写给已分配老师，或另行选择联系试点值班负责人。成年人独立使用不包含家长收件流程。", "supporterDescription": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" } },
     "compose": { "title": "先写下来，再决定给谁看", "description": "你可以主动联系试点值班负责人；这不是实时急救服务。写给老师时可以匿名。", "recipientType": "写给谁", "recipientOptions": { "self": "写给自己", "pilotDuty": "试点值班负责人", "teacher": "写给老师", "guardian": "写给家长" }, "recipient": "收件人", "selectRecipient": "请选择", "message": "想说的话", "placeholder": "不用组织得很完整，先写下最想让对方知道的事情。", "anonymousDescription": "对老师匿名。只有出现明确安全危险时，获授权的学校负责人才能确认来源。", "dutyDisclosureEmail": "这段话会进入受权限保护的值班队列，并给试点值班负责人发送一封不含正文和身份信息的邮件提醒。值班负责人不会实时在线；紧急时不要等待回复。", "dutyDisclosureQueue": "这段话会进入受权限保护的值班队列。邮件提醒当前未确认可用；紧急时不要等待回复。", "safetyDisclosure": "如果内容涉及明确的安全危险，获授权的值班负责人或学校负责人可以查看来源并跟进。", "sending": "正在送出…", "saveForSelf": "保存给自己", "sendToDuty": "发送给值班负责人", "send": "送出这段话" },
     "lists": { "sentTitle": "我写过的话", "safetyTitle": "需要安全跟进的话", "receivedTitle": "收到的话", "sentEmpty": "你写下并保存或送出的话，会显示在这里。", "receivedEmpty": "目前还没有收到新的内容。", "anonymousToTeacher": "对老师匿名", "reviewSoon": "请尽快了解", "senderAnonymous": "这名学生选择了对老师匿名。" },
     "notices": { "noTeacher": "学校还没有为你安排负责老师。", "noGuardian": "学校还没有确认关联家长。", "safetySent": "这段话已经送出。请立即联系家长、老师或其他身边可信任的成年人，请对方陪着你；如有即时危险，请拨打 110 或 120。", "safetyDutyAlerted": "这段话已进入值班队列，值班负责人也收到了不含正文的邮件提醒。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120，不要等待回复。", "safetyDutyQueued": "这段话已进入值班队列，但邮件提醒尚未确认送达。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120，不要等待回复。", "safetyPrivate": "这段话已保存，但没有确认由真人实时查看。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120。", "dutyAlerted": "已经进入值班队列，值班负责人也收到了不含正文的邮件提醒。这个入口不是实时服务；紧急时不要等待回复。", "dutyQueued": "已经进入值班队列，但邮件提醒尚未确认送达。这个入口不是实时服务；紧急时不要等待回复。", "savedForSelf": "已经替你保存下来。", "sent": "已经送出。" },
     "errors": { "loadFailed": "暂时无法加载想说的话。", "sendFailed": "暂时无法发送，请稍后再试。" }
+  },
+  "garden": {
+    "metadata": { "title": "青序花园 | YouthTempo" },
+    "hero": {
+      "label": "青序花园",
+      "title": "每一次照顾自己，都算数",
+      "description": "只记录你愿意停下来观察自己的时刻。心情、答案和漏记不会让植物失去成长。"
+    },
+    "stage": {
+      "seed": "一颗种子",
+      "sprout": "刚冒出的嫩芽",
+      "leaves": "舒展的叶子",
+      "bloom": "正在开花的小花园"
+    },
+    "stats": {
+      "week": "本周陪伴自己 {{count}} 次",
+      "month": "本月记录 {{count}} 次",
+      "total": "累计记录 {{count}} 次"
+    },
+    "quick": {
+      "title": "轻量记录",
+      "description": "选一个最接近此刻的感受。每种回答得到同样的一滴水。",
+      "steady": "比较平稳",
+      "mixed": "有点复杂",
+      "heavy": "有些沉重",
+      "unsure": "说不清楚",
+      "submit": "记录这一刻",
+      "saved": "这一刻已记下。",
+      "saving": "正在记录…"
+    },
+    "rhythm": {
+      "title": "最近发现的节律",
+      "empty": "完成一次完整 SWEET 后，你自己的节律小结会出现在这里。"
+    },
+    "reminders": {
+      "title": "提醒偏好",
+      "description": "每天或每周只是建议。你可随时记录，也可关闭提醒。当前仅保存应用内偏好，不发送推送或邮件。",
+      "off": "随时记录，不设提醒",
+      "daily": "温和的每日提醒",
+      "weekly": "温和的每周提醒",
+      "saved": "提醒偏好已保存。",
+      "saving": "正在保存…"
+    },
+    "actions": {
+      "fullSweet": "随时做一次完整 SWEET",
+      "account": "返回我的账户"
+    },
+    "status": {
+      "loading": "正在查看你的花园…",
+      "signIn": "请先登录，再查看自己的花园。",
+      "unavailable": "花园暂时无法加载。"
+    },
+    "errors": {
+      "signIn": "请先登录。",
+      "notAvailable": "请先完成适用的学生知情确认。",
+      "invalidFeeling": "请选择一个此刻的感受。",
+      "invalidReminder": "请选择提醒方式。",
+      "tooMany": "今天已经记录很多次了，请稍后再来。",
+      "unavailable": "花园暂时不可用，请稍后再试。"
+    }
+  },
+  "ageWorkspace": {
+    "label": "我的路径",
+    "minor": {
+      "title": "14–17 岁：把支持放在身边",
+      "description": "先记录，再选择可信任的人和资源。家、校、医、社是现实支持网络；平台内审核社区是另一处安全表达空间。",
+      "cards": {
+        "quick": {
+          "title": "记录一下现在的状态",
+          "text": "用轻量记录照顾自己，不需要每天完成。",
+          "action": "去记录"
+        },
+        "people": {
+          "title": "找值得信任的人",
+          "text": "向已分配的老师或试点值班人员表达需要。",
+          "action": "查看表达入口"
+        },
+        "network": {
+          "title": "家校医社支持",
+          "text": "先提出需要，再由人工评估学校、社工或专业转介。",
+          "action": "查看支持路径"
+        },
+        "community": {
+          "title": "安全社区",
+          "text": "在审核与可见范围内参与讨论。",
+          "action": "进入社区"
+        },
+        "garden": {
+          "title": "查看自己的成长记录",
+          "text": "花园只记录参与，不评价情绪好坏。",
+          "action": "打开花园"
+        },
+        "urgent": {
+          "title": "需要尽快获得帮助",
+          "text": "有即时危险时，请联系身边可信任的人和当地紧急服务。",
+          "action": "查看紧急资源"
+        }
+      }
+    },
+    "adult": {
+      "title": "18–25 岁：按自己的节奏选择支持",
+      "description": "成年人独立使用，不建立监护关系。主题聊天室仅向受邀且符合资格的人开放。",
+      "cards": {
+        "room": {
+          "title": "进入主题聊天室",
+          "text": "受邀且有人值守时，可以在跨校主题空间交流。",
+          "action": "了解解忧室"
+        },
+        "peers": {
+          "title": "找适合自己的同伴空间",
+          "text": "选择能安全表达、愿意倾听的公开交流方式。",
+          "action": "查看社区"
+        },
+        "quick": {
+          "title": "做一次轻量记录",
+          "text": "选一个接近此刻的感受，随时可以跳过。",
+          "action": "去记录"
+        },
+        "rhythm": {
+          "title": "查看节律和花园",
+          "text": "SWEET 建议每周一次，也可以随时完成。",
+          "action": "打开花园"
+        },
+        "support": {
+          "title": "寻找真人或专业支持",
+          "text": "目前可查看支持资源；正式心理咨询仍未开放。",
+          "action": "查看支持路径"
+        }
+      }
+    }
   }
 }

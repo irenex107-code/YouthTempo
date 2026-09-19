@@ -192,7 +192,7 @@
         "rhythm": { "title": "I want to check in on how I’m doing today", "text": "Notice today's real-life rhythm through sleep, waking, meals, movement, and task engagement.", "action": "Start a SWEET check-in", "alt": "An everyday rhythm made up of sleep, waking, meals, movement, and task engagement" },
         "mood": { "title": "I am not sure how to describe my feelings", "text": "You do not have to explain everything yet. Choose a few emotion words that feel close, then add what happened when you are ready.", "action": "Open the mood map", "alt": "A mood map made up of different colors" },
         "talk": { "title": "AI conversation is unavailable during the first pilot", "text": "You can still use the Mood Map, the fixed-rule support pathway, or write a private message to a parent or teacher.", "action": "View other support options", "alt": "Moving from self-guided reflection towards parents, teachers, and other support" },
-        "messages": { "title": "I have something to tell a teacher or parent", "text": "Write down what is hard to say face to face, then choose whether to share it with a teacher or parent, or keep it for yourself.", "action": "Open my private messages", "alt": "A green mailbox holding letters" },
+        "messages": { "title": "I have something that is hard to say face to face", "text": "In the current pilot, you can write to an assigned teacher or keep it for yourself. A parent or guardian recipient would only appear in a separately approved future flow.", "action": "Open my private messages", "alt": "A green mailbox holding letters" },
         "worry": { "title": "My mind gets busy at bedtime", "text": "Write down your worries and separate what you can act on from what can wait for now.", "action": "Set worries aside tonight", "alt": "Setting worries aside for now under the moonlight" },
         "referral": { "title": "I want to know what I can do next", "text": "If stress continues for many days or is clearly affecting daily life or learning, explore the kinds of support that may fit.", "action": "Find the right support", "alt": "A gentle path leading step by step to the right support" }
       }
@@ -285,23 +285,449 @@
         "support": { "title": "Know who to reach out to for support", "text": "If the situation continues to affect study, work, or daily life, find support that matches the level of urgency.", "action": "Find the right support", "alt": "A step-by-step path to the right support" }
       }
     },
+    "peerSpace": { "label": "Invited adult pilot", "previewStatus": "UI preview", "title": "Peer Space", "description": "When duty support is active, talk in real time with other adult students. Your school stays hidden, and you can join with a room nickname or anonymously.", "action": "Enter Peer Space" },
     "independence": {
       "confirmation": { "label": "Independent consent", "title": "If you are 18 or older, you can consent for yourself", "text": "After signing in, select “I am 18 or older,” read the data information, and confirm. Guardian consent and school membership are not required." },
       "records": { "label": "Your records", "title": "Only you can see them by default", "text": "If you have not joined a school, the school and its teachers cannot view your records. You can export your data, delete individual records, or close your account." },
+      "baseline": { "label": "Use your own baseline", "title": "University routines do not by themselves indicate a mental health problem", "text": "Late nights, late mornings, takeaway meals, and irregular schedules are common for many university students. One habit alone does not support a conclusion. Notice instead whether a change is unusual for you and continues to affect energy, study, work, relationships, or basic daily life." },
       "boundary": { "label": "What YouthTempo is for", "title": "It is not a diagnostic or emergency service", "text": "If you are in immediate danger of harming yourself or someone else, contact a family member, teacher, or another trusted adult who can come to you now, and contact local emergency services or the police." }
     },
     "teens": { "title": "Are you aged 14 or older and taking part in the student-only trial?", "description": "Students can use personal records and support tools first. Without an active relationship, parents, teachers, and schools cannot view them.", "action": "Go to the youth space" }
+  },
+  "peerSpace": {
+    "metadata": { "title": "Peer Space | YouthTempo", "name": "Peer Space" },
+    "previewNotice": "This is a UI preview. It does not save rule acceptance, read real chat history, or send messages.",
+    "loading": "Checking whether you can enter…",
+    "rules": {
+      "label": "Your first visit",
+      "title": "Before entering Peer Space, here are a few things to know",
+      "description": "Peer Space gives adult students a place to speak and listen while duty support is active. It is not counselling, diagnosis, treatment, emergency support, or a dating service.",
+      "items": {
+        "realtimeDuty": { "title": "This is a live group chat with duty support", "text": "Messages that pass safety checks are shared with adult students in the same room. Messages do not expire automatically, but you only see content created after you joined and while your membership remains active. Duty staff support safety and respectful participation, but may not reply straight away and do not replace professional or emergency support." },
+        "identityVisibility": { "title": "You decide how others see you", "text": "You can appear anonymously, use a room nickname, or use a verified name. Your school is hidden by default. Anonymity applies to other students, not to the platform's safety process." },
+        "privacySafety": { "title": "Protect privacy; safety review is used when needed", "text": "Do not post names, class details, contact information, locations, or other identifying details. Ordinary content is not automatically shared with parents, teachers, schools, or professionals. Content describing a clear danger may be withheld and sent to a protected human safety process." }
+      },
+      "confirmation": "I understand these boundaries and agree to follow the Peer Space rules.",
+      "enterAction": "Agree and enter",
+      "laterAction": "Not now",
+      "supportAction": "Need more specific support?"
+    },
+    "unavailable": { "title": "This entrance is not available right now", "description": "This entrance is not currently available for your account. You can still use personal reflection and support tools.", "backAction": "Back to my entry page", "supportAction": "View support pathways" },
+    "room": {
+      "spaceLabel": "Cross-school public chat",
+      "title": "Everyone's Peer Space",
+      "description": "Adult students from different schools may be here. You can share something or simply read quietly.",
+      "backAction": "Back to adult access",
+      "supportAction": "Find real-world support",
+      "status": { "open": "Duty support active", "readOnly": "Read only for now", "paused": "Room paused" },
+      "identity": "Current identity: room nickname",
+      "schoolHidden": "School hidden",
+      "settings": {
+        "openAction": "Adjust identity and response preference",
+        "closeAction": "Close identity settings",
+        "title": "How I appear in this room",
+        "description": "Your identity and response preference are room settings. They do not change your YouthTempo account profile. In the full service, your current identity will be used consistently across your messages in this room.",
+        "previewStatus": "This page only",
+        "identity": {
+          "legend": "How other students see me",
+          "description": "Anonymous means hidden from other students. A protected account link remains available to the platform's safety process.",
+          "nickname": { "title": "Room nickname", "text": "Use the system-generated nickname “Cloudside Paper Boat” without showing your account name.", "summary": "Current identity: Cloudside Paper Boat" },
+          "anonymous": { "title": "Anonymous", "text": "Other students see the stable room identifier “Anonymous student · 7K3”.", "summary": "Current identity: Anonymous student · 7K3" }
+        },
+        "expectations": {
+          "legend": "How I would like people to respond",
+          "description": "This optional cue does not guarantee a reply and does not automatically send chat content to a professional.",
+          "summary": "Response preference: {{value}}",
+          "options": { "none": "No preference for now", "vent": "I just want to say it", "heard": "I would like someone to listen", "similar": "I would like to hear similar experiences", "advice": "Suggestions are welcome", "resources": "I would like support resources" }
+        },
+        "future": { "summary": "More identity options (not available yet)", "text": "A verified name only appears after a trusted school-list name confirmation and independent audit process exist. We do not collect identity documents or substitute an editable account name. Your school is always hidden by default, and only you could choose to show it in the future. This preview does not read your name or school." },
+        "previewHelp": "These choices return to their defaults when you refresh or leave. Nothing is written to browser storage or a database, or sent to anyone.",
+        "doneAction": "Finish page settings"
+      },
+      "empty": { "title": "It is quiet here right now", "text": "You can begin with the one sentence you most want someone to hear, or notice how people communicate and speak later. We do not fabricate online counts or generate automatic peer replies." },
+      "readOnly": { "title": "You can read quietly for now", "text": "Full duty support is not currently available, so the room is read only.", "notice": "New messages cannot be sent right now. The composer stays closed until the room reopens." },
+      "paused": { "title": "The room is taking a pause", "text": "Chat history is not displayed while the room is paused. You can still leave or find real-world support. Internal safety matters and other people's case details are not shown here." },
+      "composer": { "label": "What you would like to say", "placeholder": "Write what you want to say… Do not include names, class details, or contact information.", "action": "Send", "previewHelp": "The first UI batch is not connected to a messaging service, so nothing is uploaded, saved, or sent." }
+    }
+  },
+  "adminSupport": {
+    "metadata": { "title": "Support review | YouthTempo" },
+    "back": "Back to admin",
+    "title": "Support staff and case review",
+    "description": "Platform admins only. People review credentials, trial status, pauses, assignments, referrals, and structured handoffs. There is no automatic ranking or removal.",
+    "applications": "Staff applications",
+    "emptyApplications": "No applications yet.",
+    "evidence": "Private evidence",
+    "viewEvidence": "View evidence briefly",
+    "reviewStatus": "Human review status",
+    "reviewNote": "Minimum necessary review note",
+    "review": "Save review",
+    "trainingCount": "Verified training records",
+    "recordTraining": "Record training (human verified)",
+    "trainingTitle": "Training title",
+    "trainingDate": "Completion date",
+    "saveTraining": "Save training record",
+    "inviteSchool": "Invite a school duty teacher",
+    "userId": "Registered teacher account ID",
+    "schoolId": "School ID",
+    "invite": "Record internal invitation",
+    "queue": "Support cases",
+    "emptyCases": "No cases yet.",
+    "case": "Case actions",
+    "private": "Only authorized admins see the request summary here. Do not copy sensitive text into notes.",
+    "action": "Human action",
+    "actions": {
+      "triage": "Start human assessment", "ready_for_assignment": "Await assignment",
+      "offer_primary": "Offer primary role", "offer_backup": "Offer backup role",
+      "transfer": "Revoke old access and hand off", "propose_appointment": "Propose appointment",
+      "pause": "Pause case", "resume": "Resume case", "refer": "Refer",
+      "close": "Close case"
+    },
+    "supporter": "Approved supporter",
+    "choose": "Choose a person",
+    "appointment": "Proposed appointment time",
+    "referral": "Referral pathway",
+    "referralTypes": { "school": "School", "social_work": "Social work", "medical": "Medical", "professional": "Professional support", "community": "Community resources" },
+    "caseNote": "Minimum necessary note (required for handoff)",
+    "saveCase": "Save case action",
+    "feedbackTitle": "Private feedback after service",
+    "feedbackCount": "Responses",
+    "pendingComplaints": "Complaints or safety feedback pending review",
+    "feedbackRatios": { "feltHeard": "Felt heard", "foundHelp": "Found help", "boundariesRespected": "Boundaries respected", "wouldChooseAgain": "Would choose again" },
+    "privateFeedback": "Restricted comments and complaints",
+    "complaint": "Complaint or discomfort",
+    "comment": "Open comment",
+    "safety": "Safety review",
+    "feedbackReviewNote": "Minimum necessary review note",
+    "markReviewed": "Mark human review complete",
+    "reviewed": "Reviewed by a person",
+    "saved": "Action saved with an audit event."
+  },
+  "supportWorkbench": {
+    "metadata": { "title": "My support cases | YouthTempo" },
+    "label": "Approved supporter workspace",
+    "title": "My support cases",
+    "description": "Only a person approved by human review and assigned as the primary supporter can see the minimum request summary while the case and permission remain active. Backups receive no automatic content access.",
+    "application": "View application",
+    "empty": "No cases are assigned to you right now.",
+    "adultCase": "Adult formal consultation",
+    "youthCase": "Youth support request",
+    "accept": "Accept offer",
+    "reject": "Decline offer",
+    "limitedScope": "Minimum authorized summary for this case",
+    "noContent": "There is no access to the request text yet. Await case confirmation or a human handoff.",
+    "saved": "Your assignment decision was recorded."
+  },
+  "supportStaff": {
+    "metadata": { "title": "Apply to support people | YouthTempo" },
+    "label": "Free application · human review",
+    "title": "Apply to support people",
+    "description": "Counsellors, social workers, and trained listening volunteers apply separately. School duty teachers join by invitation only. Applications and trial status do not grant access to student records.",
+    "workbench": "My support workbench",
+    "statusTitle": "Application status",
+    "status": { "pending": "Awaiting human review", "trial": "Trial", "approved": "Approved", "paused": "Paused", "removed": "Removed", "rejected": "Not approved" },
+    "formTitle": "Application details",
+    "schoolInvite": "Confirm school invitation and service boundaries",
+    "category": "Application category",
+    "categories": { "counselor": "Counsellor", "social_worker": "Social worker", "listening_volunteer": "Trained listening volunteer", "school_duty_teacher": "School duty teacher" },
+    "fields": { "legalName": "Legal name", "credentialType": "Credential or training type", "credentialNumber": "Credential number", "serviceScope": "Support scope", "availability": "Availability", "institutionName": "Institution (optional)" },
+    "languages": "Service languages",
+    "ageScopes": "Age groups you can support",
+    "confirm": {
+      "boundaries": "I will not diagnose or treat, or view records beyond my authorization.",
+      "crisis": "I will escalate crisis cases through the agreed path and will not handle them alone.",
+      "privacy": "I understand privacy, minimum access, and data rules."
+    },
+    "submit": "Submit or update application",
+    "saved": "Application saved for human review.",
+    "evidenceTitle": "Private credential or training evidence",
+    "evidenceHelp": "Files are kept in private storage. Only authorized reviewers can view them briefly. Avoid unrelated personal information.",
+    "evidenceUploaded": "Evidence uploaded to private storage.",
+    "evidenceMissing": "No evidence uploaded yet.",
+    "file": "Choose a PDF, JPG, or PNG file (up to 5 MB)",
+    "upload": "Upload evidence",
+    "uploaded": "Evidence uploaded."
+  },
+  "supportFlow": {
+    "metadata": { "consultationTitle": "Formal counselling | YouthTempo", "requestTitle": "Request support | YouthTempo" },
+    "errors": {
+      "signIn": "Please sign in.",
+      "noAccess": "This support pathway is not available to your account.",
+      "unavailable": "Support service is temporarily unavailable. Please try again later.",
+      "invalid": "Please check the information entered.",
+      "tooMany": "Too many requests. Please try again later.",
+      "notReady": "This action is not available for the case right now. Refresh and try again.",
+      "locked": "This state cannot be changed. Contact the platform.",
+      "staffScope": "This person is not approved to handle this type of case.",
+      "evidence": "Upload private credential or training evidence (PDF, JPG, or PNG; up to 5 MB)."
+    },
+    "closed": {
+      "label": "Formal counselling",
+      "title": "The service is being prepared and is not yet open",
+      "description": "Formal one-to-one counselling remains in internal testing while human duty arrangements are prepared. You can use self-reflection, invited Peer Space, or current support and referral pathways.",
+      "record": "Self-reflection",
+      "peer": "Invited Peer Space",
+      "referral": "Support and referral"
+    },
+    "portal": {
+      "youthLabel": "Support for ages 14–17",
+      "youthTitle": "Tell us what support you need",
+      "youthDescription": "A person will assess your request and connect you with school, social work, medical, or professional resources. This is not direct counsellor booking.",
+      "adultLabel": "Internal test · formal counselling",
+      "adultTitle": "One-to-one support cases",
+      "adultDescription": "This workflow is only for approved test accounts. The formal service is not open to the public.",
+      "categoriesTitle": "Different supporters have different boundaries",
+      "categories": {
+        "counselor": "Counsellor: credentials are reviewed by people before formal counselling work.",
+        "socialWorker": "Social worker: helps connect family, school, and community resources, without offering psychotherapy.",
+        "listener": "Trained listening volunteer: listens and helps people express themselves, without diagnosis or handling crises alone.",
+        "schoolDuty": "School duty teacher: invited by a school or the platform for specific school support cases."
+      },
+      "newTitle": "Request support",
+      "need": "What would you like support with?",
+      "availability": "Times that work for you (optional)",
+      "submit": "Send for human assessment",
+      "saving": "Submitting…",
+      "submitted": "Your request was received for human assessment. This is not an immediate response service.",
+      "urgent": "If you or someone else is in immediate danger, contact a trusted person nearby and local emergency services now. A case request cannot replace emergency help.",
+      "cases": "My support cases",
+      "empty": "No support cases yet.",
+      "status": {
+        "requested": "Requested", "triage": "Human assessment", "awaiting_assignment": "Awaiting assignment",
+        "assigned": "Confirm supporter", "active": "Active", "paused": "Paused",
+        "transfer_requested": "Change being arranged", "transferred": "Transfer in progress",
+        "referred": "Referred", "closed": "Closed", "cancelled": "Cancelled"
+      },
+      "primary": "Primary supporter",
+      "backup": "Backup supporter",
+      "pendingOffer": "Awaiting supporter acceptance",
+      "appointment": "Appointment",
+      "appointmentStatus": { "none": "No appointment", "proposed": "Awaiting confirmation", "accepted": "Confirmed", "reschedule_requested": "Reschedule requested", "cancelled": "Cancelled" },
+      "timeline": "Case timeline",
+      "actions": {
+        "cancel": "Cancel request", "accept_assignment": "Accept assignment", "reject_assignment": "Decline assignment",
+        "request_change": "Request another supporter", "withdraw_authorization": "Withdraw sharing permission",
+        "close": "Close case", "accept_appointment": "Confirm appointment",
+        "request_reschedule": "Request reschedule", "cancel_appointment": "Cancel appointment"
+      },
+      "actionSaved": "Case status updated.",
+      "feedbackTitle": "Feedback after service",
+      "feedbackQuestions": {
+        "feltHeard": "I felt heard", "foundHelp": "I found help",
+        "boundariesRespected": "My boundaries were respected", "wouldChooseAgain": "I would choose this kind of support again"
+      },
+      "complaint": "I have discomfort or a complaint for human review",
+      "comment": "Additional feedback (optional)",
+      "feedbackSubmit": "Send private feedback",
+      "feedbackSaved": "Feedback saved for authorized staff only.",
+      "feedbackDone": "Feedback submitted"
+    }
+  },
+  "microFeedbackAdmin": {
+    "title": "Quick experience feedback",
+    "description": "Only platform admins can view summaries and open comments. Answers are not used for diagnosis or public ratings.",
+    "stats": { "people": "People", "submissions": "Submissions", "helpful": "Found it helpful", "wouldReturn": "Would use again", "wantsHumanSupport": "Wants human support", "pendingSafety": "Safety feedback pending" },
+    "byFeature": "By feature",
+    "byAge": "By age band",
+    "comments": "Restricted open comments",
+    "safety": "Safety review",
+    "noAnswers": "No answers yet",
+    "sampleLimited": "Only the most recent 1,000 responses are shown. Add a full aggregate before expanding the pilot."
+  },
+  "microFeedback": {
+    "title": "How was this experience?",
+    "description": "A few optional taps. You can skip everything, and we ask at most once every seven days.",
+    "questions": {
+      "helpful": "Was this helpful?",
+      "wouldReturn": "Would you use it again?",
+      "wantsHumanSupport": "Would you like support from a person now?"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "clear": "Skip this",
+    "comment": "Did anything feel uncomfortable, or what could we improve? (optional)",
+    "skip": "Skip and close",
+    "submit": "Send feedback",
+    "thanks": "Thank you for telling us.",
+    "urgent": "If you are in immediate danger, contact a trusted person nearby and local emergency services now.",
+    "support": "Find support",
+    "errors": {
+      "signIn": "Please sign in.",
+      "unavailable": "Feedback is temporarily unavailable. Please try again later.",
+      "invalid": "Please check your feedback.",
+      "cooldown": "We received your recent feedback. Thank you."
+    }
+  },
+  "peerSpaceLive": {
+    "label": "Invited adult pilot",
+    "title": "Themed Peer Space",
+    "description": "Open to invited adults only. Join a cross-school group conversation when duty support is active. This is not diagnosis, therapy, or emergency support.",
+    "support": "Find real-world support",
+    "account": "Sign in or view account",
+    "rooms": "Theme rooms",
+    "noRooms": "No rooms are available right now.",
+    "status": { "staffed_open": "Staffed · open", "read_only": "Read only", "paused": "Paused", "closed": "Not yet open" },
+    "join": "Join room",
+    "leave": "Leave room",
+    "joined": "You joined the room.",
+    "left": "You left the room and cannot read new messages.",
+    "reviewPending": "This message is awaiting human safety review and is hidden from others.",
+    "urgent": "If you or someone else is in immediate danger, contact a trusted person nearby and local emergency services now. Room review is not emergency help.",
+    "report": "Report",
+    "reportPrompt": "Enter a reason: privacy, harassment, safety, or other.",
+    "reported": "Your report was sent for human review.",
+    "block": "Block",
+    "mute": "Mute",
+    "delete": "Delete my message",
+    "controls": "My blocks and mutes",
+    "undo": "Undo",
+    "updated": "Updated."
+  },
+  "peerSpaceReview": {
+    "back": "Back to admin",
+    "title": "Peer Space human review",
+    "description": "Only authorized duty reviewers may act. AI helps screen and prioritize; a person decides publication, hiding, referral, and closure.",
+    "empty": "There are no review cases waiting.",
+    "queue": "Review queue",
+    "case": "Review case",
+    "priority": "Priority",
+    "messageStatus": "Message status",
+    "noMessage": "Message unavailable.",
+    "private": "Sensitive text is shown only in this authorized view. Keep notes to the minimum needed.",
+    "nextStatus": "Case status",
+    "status": { "assigned": "Assigned", "reviewing": "Reviewing", "action_required": "Action required", "referred": "Referred", "resolved": "Resolved", "closed": "Closed" },
+    "messageAction": "Message action",
+    "actions": { "none": "Keep visibility unchanged", "hide": "Hide", "publish": "Approve publication" },
+    "note": "Minimum necessary note",
+    "followUp": "Follow-up needed",
+    "escalated": "Escalated",
+    "save": "Save review",
+    "saved": "Human decision and audit event saved."
+  },
+  "peerSpaceChat": {
+    "errors": {
+      "signIn": "Please sign in to enter Peer Space.",
+      "unavailable": "Peer Space is temporarily unavailable. Please try again later.",
+      "noInvitation": "This account does not currently have an adult Peer Space invitation.",
+      "rulesFirst": "Please read and accept the room rules first.",
+      "invalidRoom": "This room could not be found.",
+      "noRoomAccess": "You cannot enter this room right now.",
+      "invalidMessage": "This message could not be found.",
+      "bodyLength": "Write a message between 1 and 600 characters.",
+      "roomReadOnly": "Full duty support is not available, so sending is paused.",
+      "tooMany": "You are sending too quickly. Please try again later.",
+      "invalidControl": "This setting could not be changed.",
+      "invalidReport": "Choose a message and a reason to report it.",
+      "alreadyReported": "You have already reported this message.",
+      "noReviewAccess": "You are not authorized to review this case.",
+      "invalidReview": "Check the review status and action."
+    }
+  },
+  "peerSpaceStaff": {
+    "metadata": { "title": "Peer Space review | YouthTempo" },
+    "navigation": { "back": "Back to the existing admin workspace", "studentPreview": "View the student preview" },
+    "header": {
+      "label": "Peer Space staff",
+      "title": "Peer Space workspace",
+      "description": "Prepare for the current shift, manage the public room, and hand over unresolved work. This preview only demonstrates the sequence and does not read student content.",
+      "previewStatus": "Non-production UI preview"
+    },
+    "context": {
+      "capabilityValue": "Room duty",
+      "scopeValue": "Everyone's Peer Space",
+      "shiftPending": "Not signed in",
+      "shiftActive": "Preview shift active"
+    },
+    "stage": {
+      "label": "Current task",
+      "prepare": "Complete pre-opening checks and sign in",
+      "manage": "Manage the public room state",
+      "handoff": "Prepare and hand over unresolved shift work"
+    },
+    "previewNotice": {
+      "title": "View preview data notice",
+      "text": "The shift, contacts, counts, and service states on this page are clearly labelled placeholders. Checks and buttons only change this page; they do not grant access, open a room, notify anyone, or save data."
+    },
+    "shift": {
+      "label": "Today's shift",
+      "title": "Complete duty preparation before opening",
+      "description": "In the full service, every open room must have both an active duty worker and an independent backup or safety contact.",
+      "status": { "pending": "Checks pending" },
+      "timeLabel": "Example hours",
+      "timeValue": "19:00–21:00 · Asia/Shanghai",
+      "coverageLabel": "People and safety coverage",
+      "coverageValue": "Backup and safety contacts are preview placeholders",
+      "signInAction": "Simulate shift sign-in"
+    },
+    "checklist": {
+      "title": "Pre-shift checks",
+      "description": "Confirm all three groups before signing in. The full service must still revalidate them from trusted configuration.",
+      "items": {
+        "workspace": { "title": "Work environment", "text": "The device, network, and workspace are suitable for continuous duty." },
+        "coverage": { "title": "People and safety route", "text": "Backup coverage is reachable, and real-world safety and offline routes are available." },
+        "handoff": { "title": "Rules and previous handoff", "text": "The room rules, support resources, and previous unresolved items have been reviewed." }
+      },
+      "pendingHelp": "Complete all three checks before signing in.",
+      "readyHelp": "Preparation complete. You can preview sign-in.",
+      "completedSummary": "Pre-opening checks complete · view 3 records"
+    },
+    "room": {
+      "label": "Only public room",
+      "title": "Everyone's Peer Space",
+      "description": "A cross-school public chat for adult students. The first phase has no school-only rooms and no member list.",
+      "status": {
+        "preparing": "Preparing",
+        "open": "Preview open",
+        "readOnly": "Preview read only",
+        "paused": "Preview paused",
+        "handoff": "Awaiting preview handoff"
+      },
+      "controlsTitle": "Available actions",
+      "controlsDescription": "Use open or read only for routine control. Handoff supports shift changes. Pause is a risk action and requires confirmation.",
+      "actions": { "open": "Preview open", "readOnly": "Preview read only", "pause": "Preview pause", "handoff": "Preview handoff" },
+      "pauseLabel": "Risk action",
+      "pauseConfirm": {
+        "title": "Pause the public room?",
+        "text": "In the full service, pausing stops ordinary history display and new messages and records an internal reason. This page only previews the confirmation step.",
+        "confirm": "Confirm preview pause",
+        "cancel": "Cancel"
+      }
+    },
+    "tasks": {
+      "label": "Current tasks",
+      "emptyTitle": "Nothing needs attention right now",
+      "emptyText": "Ordinary reports, safety matters, and handoff items are all preview empty states and do not represent real student activity.",
+      "emptyStatus": "No current tasks"
+    },
+    "services": {
+      "summary": "Critical service details · 4 not connected (preview)",
+      "description": "The full service must verify these capabilities on the server before opening. This preview is not connected to any service.",
+      "items": { "realtime": "Realtime connection", "history": "History API", "review": "Review queue", "alert": "Alert channel" },
+      "notConnected": "Not connected"
+    },
+    "feedback": {
+      "states": {
+        "idle": "No preview action yet. Complete the pre-shift checks first.",
+        "signedIn": "Preview sign-in is complete. You can now manage room state; actions only affect this page.",
+        "open": "The room is now “Preview open”. No real student received a change.",
+        "readOnly": "The room is now “Preview read only”. No real sending capability changed.",
+        "paused": "The room is now “Preview paused”. No real content was hidden or processed.",
+        "handoff": "The room is now “Awaiting preview handoff”. No real person was notified.",
+        "reset": "The preview has returned to its initial unsigned state."
+      },
+      "resetAction": "Reset page preview"
+    }
   },
   "sweetModel": {
     "metadata": { "title": "The SWEET Model | YouthTempo" },
     "hero": {
       "title": "The SWEET model",
-      "description": "YouthTempo begins with everyday rhythms to make earlier support more accessible for young people.",
+      "description": "SWEET is a non-diagnostic self-observation tool. It helps you notice your own rhythms and changes over time. One result cannot define your mental health or replace a professional assessment.",
       "imageAlt": "A cycle of everyday rhythms made up of sleep, waking, meals, movement, and task engagement"
     },
     "modules": {
       "title": "Five areas of everyday rhythm",
-      "description": "Together, these areas help young people, families, and schools understand changes more clearly and offer support before challenges become more serious.",
+      "description": "These five areas help you notice changes from your own usual pattern. Late nights, late mornings, or an irregular schedule alone do not indicate illness; consider duration and everyday impact.",
       "observationPrefix": "What to notice:",
       "sleep": { "title": "Sleep", "question": "How long did you sleep last night, and how restful was it?", "summary": "Sleep supports emotional steadiness, attention, and physical recovery.", "example": "Sleep check-ins, making sense of emotions before bed, and helpful sleep habit reminders." },
       "wake": { "title": "Wake", "question": "When you woke today, did you feel tired, calm, or tense?", "summary": "How the day begins can affect a young person's emotions, focus, and ability to get going.", "example": "Morning check-ins, gentle waking suggestions, and ways to make sense of the morning." },
@@ -330,9 +756,9 @@
   },
   "checkIn": {
     "metadata": { "title": "SWEET Rhythm Check-in | YouthTempo" },
-    "hero": { "title": "SWEET rhythm check-in", "description": "It takes about 30–60 seconds. Choose one answer in each of the five areas, and open the optional questions if you want to add more.", "imageAlt": "A cycle showing the five everyday rhythm areas of SWEET" },
+    "hero": { "title": "SWEET rhythm check-in", "description": "A full SWEET check-in is suggested about once a week, and you can do another anytime. This is a suggestion, never a requirement. Choose one answer in each area and add details only if you wish.", "imageAlt": "A cycle showing the five everyday rhythm areas of SWEET" },
     "progress": { "step": "Step {{current}} of {{total}}", "completed": "{{completed}} of {{total}} areas completed" },
-    "form": { "label": "SWEET daily check-in", "optional": "Optional", "expandDetails": "Add more detail", "collapseDetails": "Hide additional questions", "collapse": "Collapse" },
+    "form": { "label": "Full SWEET rhythm check-in", "optional": "Optional", "expandDetails": "Add more detail", "collapseDetails": "Hide additional questions", "collapse": "Collapse" },
     "consent": { "text": "I understand that my SWEET responses will be sent to AI to generate a summary and may include sensitive information about my daily life and health. I consent to this information being processed only to generate this response.", "link": "Read more" },
     "steps": {
       "sleep": {
@@ -384,7 +810,7 @@
       "selectRequired": "Choose the option that best matches how you are today.", "sessionExpired": "Your sign-in session has expired. Sign in again before saving.", "permissionDenied": "This account does not currently have permission to save. Contact your school lead or platform administrator.", "networkError": "The network connection is unstable. Check your connection and try saving again.", "saveFailed": "Your check-in could not be saved this time. Try again later.", "completeBeforeSave": "Complete the required questions in all five SWEET areas before saving.", "alreadySaved": "This SWEET check-in has already been saved.", "signInToSave": "Sign in before saving this check-in.", "saved": "Saved. You can view it under Account.", "summaryFailed": "A summary could not be created this time. Try again later.", "completeBeforeGenerate": "Complete the required questions in all five SWEET areas before generating a response.", "responseUnavailable": "A response is not available right now. Try again later.", "completeRequired": "Complete the required questions in all five SWEET areas.", "summaryUnavailableSaveAllowed": "A summary is not available right now. You can still save this check-in and try again later."
     },
     "actions": { "previous": "Previous", "next": "Next", "generatingAndSaving": "Generating and saving...", "generateAndSave": "Generate summary and save", "retrying": "Trying again...", "regenerate": "Generate again", "saving": "Saving...", "saveFirst": "Save check-in first", "savedToAccount": "Saved to account", "saveToAccount": "Save to account", "openMoodJournal": "Open the mood map", "openWorryTime": "Set worries aside tonight", "viewReferral": "View support pathways", "reset": "Start again" },
-    "result": { "title": "Today's SWEET rhythm summary", "imageAlt": "An illustration of a check-in organized into a clear summary", "affectedAreas": "Areas organized by fixed rules: {{areas}}", "rhythmClue": "Rhythm clue organized by fixed rules", "smallStep": "An optional action for you to choose", "nextTool": "An optional next step", "disclaimer": "AI only summarizes what you explicitly entered in this record. Areas to notice and optional steps come from fixed rules. Neither is an assessment, diagnosis, or professional recommendation; rely on your original record." }
+    "result": { "title": "This SWEET rhythm summary", "imageAlt": "An illustration of a check-in organized into a clear summary", "affectedAreas": "Areas organized by fixed rules: {{areas}}", "rhythmClue": "Rhythm clue organized by fixed rules", "smallStep": "An optional action for you to choose", "nextTool": "An optional next step", "disclaimer": "AI only summarizes what you explicitly entered in this record. Areas to notice and optional steps come from fixed rules. Neither is an assessment, diagnosis, or professional recommendation; rely on your original record." }
   },
   "moodJournal": {
     "metadata": { "title": "Mood Map | YouthTempo" },
@@ -496,18 +922,23 @@
     "hero": {
       "firstSignIn": "First sign-in", "label": "My account", "completeProfile": "Complete your profile", "greeting": "Hello, {{name}}", "accountFallback": "your account",
       "completeProfileDescription": "Add your name and select your role. The next time you sign in, you will go straight to your records.",
-      "linkedChildren": "You are linked to {{names}} and can view rhythm records within the access confirmed by the school.", "noLinkedChildren": "Parent–child connections are confirmed by the school. Once linked, your child's rhythm records will appear here.",
-      "descriptions": { "platformAdmin": "Open platform administration to view schools, members, and support assignments.", "schoolLead": "Manage members at your school and view records submitted by students at the school.", "supportTeacher": "View recent records and changes for students assigned to you by the school.", "guardian": "Once your relationship is confirmed, you can view the rhythm records your child shares here.", "schoolStudent": "Records you save appear here and are shared with the appropriate teacher according to your school's support arrangements.", "personal": "Save a SWEET check-in to return to it here later." }
+      "linkedChildren": "You are linked to {{names}} and can view rhythm records within the access confirmed by the school.", "noLinkedChildren": "The current student-only pilot does not create parent or guardian accounts or child connections. A future approved flow for minors will provide separate information.",
+      "descriptions": { "platformAdmin": "Open platform administration to view schools, members, and support assignments.", "schoolLead": "Manage members at your school and view records submitted by students at the school.", "supportTeacher": "View recent records and changes for students assigned to you by the school.", "guardian": "Parent or guardian access is closed in the current student-only pilot. A future approved flow for minors will provide separate information.", "schoolStudent": "Records you save appear here and are shared with the appropriate teacher according to your school's support arrangements.", "personal": "Save a SWEET check-in to return to it here later." }
     },
     "actions": { "platformAdmin": "Platform administration", "schoolAdmin": "School administration", "studentRecords": "View student records", "assignedStudents": "View assigned students", "followUpWorkspace": "Follow-up workspace", "childRecords": "View child records", "moreSupport": "Find more support", "recordToday": "Record today", "saveContinue": "Save and continue", "saveProfile": "Save profile", "signOut": "Sign out", "submitting": "Submitting...", "processing": "Processing..." },
     "profile": { "name": "Name", "namePlaceholder": "What should we call you?", "accountType": "Account type" },
     "summary": { "currentRole": "Current role", "confirming": "Confirming", "confirmingRole": "Confirming your role...", "visibleRecords": "Visible records", "recordCountOne": "{{count}} record", "recordCount": "{{count}} records", "savedToAccount": "Saved to this account", "lastSevenDays": "Last 7 days", "daysRecordedOne": "Records on {{count}} day", "daysRecorded": "Records on {{count}} days", "notEveryDay": "You do not need to complete one every day", "schoolSpace": "School space", "joined": "Joined", "notJoined": "Not joined", "configuredBySchool": "Managed by the school" },
+    "ageGuidance": {
+      "label": "A way of using YouthTempo that fits you",
+      "minor": { "heroDescription": "You are taking part in the student-only trial. Records are for your own review by default; additional access requires an existing, authorized school relationship.", "title": "Check in at your own pace, then choose a specific person when you want to share", "description": "You can complete check-ins and reflection tools independently. The current pilot does not create parent or guardian connections. If your school has assigned a support teacher, you can write to that teacher through Private Messages, or keep the message for yourself. Contacting the pilot duty lead is a separate choice and does not mean that counselling has begun.", "primaryAction": "View the student space", "secondaryAction": "Write down what is hard to say" },
+      "adult": { "heroDescription": "You are using YouthTempo independently as an adult. A school or parent does not need to join, and records are for your own review by default.", "title": "Read your records against your own baseline, not a secondary-school timetable", "description": "Late nights, late mornings, takeaway meals, or an irregular schedule do not by themselves indicate a mental health problem. Notice whether changes are unusual for you and continue to affect energy, study, work, relationships, or basic daily life. When you want human help, choose an appropriate university resource, community service, or qualified professional.", "primaryAction": "View independent-use guidance", "secondaryAction": "Explore support pathways" }
+    },
     "consent": {
       "label": "Before you continue", "title": "Understand what is saved and who can see it", "description": "SWEET responses, AI summaries, and messages may include sensitive information about daily life and health. We use this information only to organize rhythms and provide applicable support, not for advertising or public display. Students may withdraw consent at any time. Without an active relationship, parents, teachers, and schools cannot view records. Read the full details under", "privacyLink": "Privacy & Safety", "sentenceEnd": ".",
       "activeTitle": "Informed consent completed", "adultActive": "You have provided consent independently as an adult. You do not need to join through a school or guardian and can save SWEET records and use personal support tools.", "minorSelfActive": "You completed separate personal consent for the student-only trial. You can generate AI summaries, save records, and use personal support tools. This does not mean that a guardian or school has confirmed participation.", "minorActive": "The student and guardian confirmations are complete. SWEET records can now be saved, messages sent, and community posts created.", "policyVersion": " Current version: {{version}}.", "withdraw": "Withdraw consent",
       "pendingTitle": "Student confirmation complete; guardian confirmation pending", "askGuardian": "Ask the linked parent or guardian to sign in to their own account and complete confirmation.", "noGuardian": "There is no school-confirmed guardian connection yet. Please contact the school lead.", "withdrawStudent": "Withdraw student confirmation", "ineligible": "The current student-only trial accepts students aged 14 or older. Anyone under 14 cannot currently take part.",
       "ageRange": "Your age range—we do not collect your exact date of birth", "age14to17": "14–17", "age18Plus": "18 or older", "ageUnder14": "Under 14", "acknowledgement": "I have read the information and understand that sensitive daily-life and health information may be processed, how AI and saving are used, who can see it, and how to withdraw. I separately consent to this processing as described.", "completeStudent": "Complete student confirmation",
-      "bothComplete": "Student and guardian confirmations are complete.", "selfPilotChildActive": "This student confirmed independently for the student-only trial. This is not guardian confirmation and cannot be withdrawn here by a guardian.", "withdrawGuardian": "Withdraw guardian confirmation", "guardianPrompt": "Your child has completed the student confirmation. Please confirm that you understand the data involved, how it is used, what the school can see, and how to withdraw.", "agreeChild": "Confirm participation for my child", "waitingChild": "Waiting for your child to sign in, read the information, and complete the student confirmation.", "noLinkedChild": "No child is linked yet. The school lead needs to confirm the parent–child relationship."
+      "bothComplete": "Student and guardian confirmations are complete.", "selfPilotChildActive": "This student confirmed independently for the student-only trial. This is not guardian confirmation and cannot be withdrawn here by a guardian.", "withdrawGuardian": "Withdraw guardian confirmation", "guardianPrompt": "Your child has completed the student confirmation. Please confirm that you understand the data involved, how it is used, what the school can see, and how to withdraw.", "agreeChild": "Confirm participation for my child", "waitingChild": "Waiting for your child to sign in, read the information, and complete the student confirmation.", "noLinkedChild": "The current student-only pilot does not create parent or guardian accounts or child connections."
     },
     "settings": {
       "title": "Account settings", "description": "Profile, data export, account closure, and sign-out", "schoolIdentity": "School identity", "profile": "Account profile", "wechat": "WeChat connection", "data": "Data and account closure",
@@ -516,19 +947,19 @@
     "wechat": { "description": "Connect WeChat to use the same YouthTempo account in the Mini Program.", "qrAlt": "QR code for connecting the YouthTempo WeChat Mini Program", "qrValidity": "This QR code is valid for 10 minutes", "bound": "WeChat is connected.", "notBound": "WeChat is not connected yet.", "generating": "Generating...", "regenerate": "Generate a new connection code", "generate": "Generate WeChat connection code" },
     "dataExport": { "title": "Download my data", "description": "Download your account profile, your own SWEET records, messages, community content, consent records, and school relationships. The file is provided as JSON, and the server does not retain a copy of the export.", "action": "Download a copy of my data" },
     "deletion": { "title": "Permanently close account", "description": "Closing your account permanently deletes the account, SWEET records, messages, school relationships, WeChat connection, and community content. This cannot be undone. We recommend downloading a copy of your data first.", "emailConfirmation": "Enter your current sign-in email to confirm", "acknowledgement": "I understand that closing my account permanently deletes its associated data and cannot be undone.", "action": "Permanently close account", "privacyPrefix": "For retention periods, safety audit records after account closure, and backup information, see" },
-    "relationships": { "childOverview": "My child's rhythm overview", "assignedStudents": "Students assigned to me", "selectChild": "Select a child", "studentList": "Student list", "fourWeekDaysOne": "Records on {{count}} day in the last 4 weeks", "fourWeekDays": "Records on {{count}} days in the last 4 weeks", "sevenDayDaysOne": "Records on {{count}} day in the last 7 days", "sevenDayDays": "Records on {{count}} days in the last 7 days", "lastFourWeeks": "Last 4 weeks", "lastSevenDays": "Last 7 days", "rhythmOverview": "Rhythm overview", "latestSummary": "Latest summary", "noSummary": "The latest record does not have a summary yet. You can view the original responses below.", "viewRawAnswers": "View original responses", "childNoRecords": "Your child has not saved any SWEET records yet.", "studentNoRecords": "This student has not saved a SWEET record in the last 7 days.", "noChild": "No child is linked yet.", "noStudent": "The school has not assigned any students to you yet.", "confirmRelationship": "Contact the school lead to confirm the parent–child relationship.", "assignmentHelp": "Once students are assigned, their overviews will appear here." },
+    "relationships": { "childOverview": "My child's rhythm overview", "assignedStudents": "Students assigned to me", "selectChild": "Select a child", "studentList": "Student list", "fourWeekDaysOne": "Records on {{count}} day in the last 4 weeks", "fourWeekDays": "Records on {{count}} days in the last 4 weeks", "sevenDayDaysOne": "Records on {{count}} day in the last 7 days", "sevenDayDays": "Records on {{count}} days in the last 7 days", "lastFourWeeks": "Last 4 weeks", "lastSevenDays": "Last 7 days", "rhythmOverview": "Rhythm overview", "latestSummary": "Latest summary", "noSummary": "The latest record does not have a summary yet. You can view the original responses below.", "viewRawAnswers": "View original responses", "childNoRecords": "Your child has not saved any SWEET records yet.", "studentNoRecords": "This student has not saved a SWEET record in the last 7 days.", "noChild": "The current pilot has no parent or guardian connections.", "noStudent": "The school has not assigned any students to you yet.", "confirmRelationship": "Parent or guardian connections are closed in the current pilot. A future approved flow for minors will provide separate information.", "assignmentHelp": "Once students are assigned, their overviews will appear here." },
     "rhythm": { "sleep": "Sleep", "wake": "Waking", "eat": "Eating", "exercise": "Activity", "task": "Task engagement" },
     "records": {
       "titles": { "school": "SWEET records for students at this school", "teacher": "SWEET records for assigned students", "guardian": "My child's SWEET records", "own": "My SWEET history" },
       "loading": "Loading records...", "recordTitle": "SWEET rhythm record", "childRecord": "{{name}}'s SWEET record", "delete": "Delete", "viewFull": "View full record", "notProvided": "Not provided", "smallStepPrefix": "One small step to try: ", "nextToolPrefix": "Suggested next step: ", "emptyTitle": "No records to show yet", "start": "Start a check-in", "contactSchool": "Contact the school about this connection", "admin": "Open administration",
-      "empty": { "student": "Complete and save a SWEET rhythm check-in, and it will appear here.", "guardian": "No child is linked yet, or your child has not saved a record. Parent–child relationships must be confirmed by the school.", "teacher": "Once the school lead assigns students to you, their records will appear here.", "schoolLead": "Records will appear here after students at your school save a SWEET check-in.", "default": "Saved records will appear here." }
+      "empty": { "student": "Complete and save a SWEET rhythm check-in, and it will appear here.", "guardian": "Parent or guardian access and child connections are closed in the current student-only pilot.", "teacher": "Once the school lead assigns students to you, their records will appear here.", "schoolLead": "Records will appear here after students at your school save a SWEET check-in.", "default": "Saved records will appear here." }
     },
     "notices": { "sessionSlow": "Your sign-in status is taking longer than expected to load. You can sign in again or refresh the page and try once more.", "identitySyncing": "Your account role is being resynchronized. If you are a school lead, refresh the page in a moment.", "profileIncomplete": "Your account profile did not load completely. You can try again later.", "recordsUnavailable": "Your records could not be loaded. Refresh the page and try again.", "inviteSyncDelayed": "Your account role has loaded, but school invitations need another moment to synchronize.", "signedInAccount": "You are signed in and have entered your account.", "wechatBound": "WeChat has been connected.", "otpSent": "Verification code sent. Check your email.", "signedIn": "You are signed in.", "otpResent": "A new verification code has been sent.", "profileSaved": "Your account profile has been saved.", "recordDeleted": "The record has been deleted.", "signedOut": "You have signed out.", "exportStarted": "Your data download has started. The file is saved only on your device.", "accountDeletedCleanupPending": "Your account has been closed. A small amount of internal cleanup has entered the secure processing queue; this does not affect your ability to stop using the service.", "accountDeleted": "Your account and associated data have been deleted, and this device has been signed out.", "under14Ineligible": "The current student-only trial does not accept students under 14.", "adultConsentComplete": "Informed consent is complete.", "studentAssentRecorded": "Student-only trial consent is complete. You can now generate AI summaries and save your own records.", "guardianConsentComplete": "Guardian confirmation is complete. Your child can now save records, send messages, and take part in the community.", "consentWithdrawn": "Confirmation has been withdrawn. New records cannot be saved, messages sent, or community posts created. Existing content can still be viewed, downloaded, or deleted.", "scanWechatQr": "Scan the Mini Program code in WeChat. This page will update automatically when the connection is complete." },
     "errors": { "serviceTimeout": "The account service took too long to respond.", "loadFailed": "Your account information could not be loaded.", "redirectFailed": "We could not complete sign-in from this link. Send a new verification code and try again.", "wechatQrExpired": "This QR code has expired. Generate a new one.", "wechatStatusFailed": "We could not check the WeChat connection status.", "otpUnauthorized": "This email cannot currently receive a sign-in code. Please contact the platform lead.", "otpRateLimited": "Too many verification codes have been requested. Please wait and try again.", "otpSendNetwork": "The network connection is unstable. Check your connection and send the code again.", "otpSendFailed": "We could not send a verification code. Please try again.", "otpIncomplete": "Enter the complete {{count}}-digit verification code.", "otpInvalid": "This verification code is incorrect or has expired. Enter it again or request a new code.", "otpVerifyRateLimited": "There have been too many verification attempts. Please wait and try again.", "otpVerifyNetwork": "The network connection is unstable. Check your connection and try verification again.", "otpVerifyFailed": "We could not verify the code. Please try again.", "nameRequired": "Enter your name.", "profileSaveFailed": "Your profile could not be saved.", "recordDeleteFailed": "The record could not be deleted.", "exportFailed": "Your account data could not be downloaded.", "deletionConfirmationRequired": "Enter your current sign-in email and confirm that account closure cannot be undone.", "accountDeleteFailed": "Your account could not be closed.", "studentAssentFailed": "The student confirmation could not be submitted.", "guardianConsentFailed": "The guardian confirmation could not be submitted.", "consentWithdrawFailed": "Confirmation could not be withdrawn.", "wechatQrFailed": "We could not generate a WeChat connection code." },
     "professional": {
-      "label": "Professional supporter", "title": "Show that your professional role has been verified", "description": "Submit your organization and verifiable credential details. Only platform administrators can view this information. Once approved, the community shows that your professional role is verified.", "loading": "Loading verification status...", "noticeSubmitted": "Your details have been submitted for platform review. You can continue using other features while the review is in progress.", "submittedAt": "Submitted {{date}}", "reviewNote": "Platform note: {{note}}", "legacyConfirmed": "Previously verified by the platform", "institution": "Organization: {{value}}", "position": "Professional role: {{value}}", "credential": "Credential: {{value}}", "expires": "Valid until: {{value}}", "noExpiry": "No expiry date provided", "disclaimer": "Submission does not mean automatic approval. The platform reviews the organization and credentials and will explain what needs to be added if information is incomplete.", "resubmit": "Update and resubmit", "submit": "Submit verification details",
+      "label": "Professional supporter", "title": "Show that your professional role has been verified", "description": "Apply as an individual and submit verifiable credentials and your area of practice. Organization details are optional. Only platform administrators can view this information. Once approved, the community shows that your professional role is verified.", "loading": "Loading verification status...", "noticeSubmitted": "Your details have been submitted for platform review. You can continue using other features while the review is in progress.", "submittedAt": "Submitted {{date}}", "reviewNote": "Platform note: {{note}}", "legacyConfirmed": "Previously verified by the platform", "institution": "Organization: {{value}}", "noInstitution": "Individual application; no organization provided", "position": "Professional role: {{value}}", "credential": "Credential: {{value}}", "expires": "Valid until: {{value}}", "noExpiry": "No expiry date provided", "disclaimer": "Submission does not mean automatic approval. The platform reviews your credentials, area of practice, and supporting evidence and will explain what needs to be added if information is incomplete.", "resubmit": "Update and resubmit", "submit": "Submit verification details",
       "status": { "pending": "Awaiting platform review", "needs_more_info": "More information needed", "active": "Verified", "rejected": "Not approved", "revoked": "Verification withdrawn" },
-      "fields": { "institution": "Organization", "institutionPlaceholder": "For example, a youth wellbeing center", "position": "Role or area of practice", "positionPlaceholder": "For example, counsellor", "credentialType": "Credential type", "credentialPlaceholder": "For example, professional qualification or registration", "credentialNumber": "Credential number", "issuer": "Issuing or registering body", "expiry": "Expiry date (leave blank if none)", "evidence": "Verification evidence", "evidencePlaceholder": "Provide the agreed reference number, a public staff profile, or a contact method for verification. Do not include personal information unrelated to the review.", "additional": "Anything else to add (optional)" },
+      "fields": { "institution": "Organization (optional)", "institutionPlaceholder": "Leave blank if you are applying independently", "position": "Role or area of practice", "positionPlaceholder": "For example, counsellor", "credentialType": "Credential type", "credentialPlaceholder": "For example, professional qualification or registration", "credentialNumber": "Credential number", "issuer": "Issuing or registering body", "expiry": "Expiry date (leave blank if none)", "evidence": "Verification evidence", "evidencePlaceholder": "Provide the agreed reference number, a credential lookup page, or another verifiable source. Do not include personal information unrelated to the review.", "additional": "Anything else to add (optional)" },
       "errors": { "loadFailed": "Your professional verification details could not be loaded.", "submitFailed": "Your details could not be submitted right now." }
     }
   },
@@ -664,10 +1095,140 @@
   "messages": {
     "metadata": { "title": "Private Messages | YouthTempo" },
     "visitor": { "hero": { "title": "Private messages", "description": "Read messages that students have taken time to write and chosen to share with you.", "action": "Back to workspace", "imageAlt": "A green private mailbox holding a letter" }, "loading": "Loading...", "title": "Sign in to use this feature", "description": "Signing in lets us confirm who you can write to and which messages you can view.", "action": "Go to sign in" },
-    "member": { "hero": { "title": "Private messages", "studentDescription": "Some things are hard to say face to face. You can start by writing to the pilot duty lead, a teacher, a parent or guardian, or yourself.", "supporterDescription": "Read messages that students have taken time to write and chosen to share with you.", "action": "Back to workspace", "imageAlt": "A green private mailbox holding a letter" } },
+    "member": { "hero": { "title": "Private messages", "studentDescription": "Some things are hard to say face to face. You can write to the pilot duty lead, an assigned teacher, or yourself.", "minorStudentDescription": "Write to an assigned teacher or keep the message for yourself. You may separately choose to contact the pilot duty lead. The current pilot does not create parent or guardian recipients.", "adultStudentDescription": "Keep a message for yourself, write to an assigned teacher, or separately choose to contact the pilot duty lead. Independent adult use does not include a parent or guardian recipient.", "supporterDescription": "Read messages that students have taken time to write and chosen to share with you.", "action": "Back to workspace", "imageAlt": "A green private mailbox holding a letter" } },
     "compose": { "title": "Write it down, then choose who can see it", "description": "You can contact the pilot duty lead directly. This is not a live emergency service. Messages to teachers can be anonymous.", "recipientType": "Who is this for?", "recipientOptions": { "self": "Myself", "pilotDuty": "Pilot duty lead", "teacher": "A teacher", "guardian": "A parent or guardian" }, "recipient": "Recipient", "selectRecipient": "Select a recipient", "message": "Your message", "placeholder": "You do not need to explain everything perfectly. Start with what you most want the other person to understand.", "anonymousDescription": "Keep this anonymous to the teacher. Only an authorized school lead can identify the sender if the message describes a clear safety concern.", "dutyDisclosureEmail": "This message will enter a protected duty queue. The pilot duty lead will receive an email alert that contains no message text or identity details. The duty lead is not continuously online; do not wait for a reply in an emergency.", "dutyDisclosureQueue": "This message will enter a protected duty queue. Email delivery is not currently confirmed; do not wait for a reply in an emergency.", "safetyDisclosure": "If content describes a clear safety concern, an authorized duty lead or school lead may view the sender and follow up.", "sending": "Sending...", "saveForSelf": "Save for myself", "sendToDuty": "Send to the duty lead", "send": "Send this message" },
     "lists": { "sentTitle": "Messages I have written", "safetyTitle": "Messages needing safety follow-up", "receivedTitle": "Messages received", "sentEmpty": "Messages you save or send will appear here.", "receivedEmpty": "There are no new messages at the moment.", "anonymousToTeacher": "Anonymous to the teacher", "reviewSoon": "Please review soon", "senderAnonymous": "This student chose to remain anonymous to the teacher." },
     "notices": { "noTeacher": "The school has not assigned a support teacher to you yet.", "noGuardian": "The school has not confirmed a linked parent or guardian yet.", "safetySent": "Your message has been sent. Contact a parent or guardian, teacher, or another trusted adult nearby now and ask them to stay with you. If you are in immediate danger, contact local emergency services.", "safetyDutyAlerted": "Your message is in the duty queue, and the duty lead received an email alert without the message text. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services and do not wait for a reply.", "safetyDutyQueued": "Your message is in the duty queue, but email delivery has not been confirmed. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services and do not wait for a reply.", "safetyPrivate": "Your message has been saved, but no live human review is confirmed. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services.", "dutyAlerted": "Your message is in the duty queue, and the duty lead received an email alert without the message text. This is not a live service; do not wait for a reply in an emergency.", "dutyQueued": "Your message is in the duty queue, but email delivery has not been confirmed. This is not a live service; do not wait for a reply in an emergency.", "savedForSelf": "Your message has been saved for you.", "sent": "Your message has been sent." },
     "errors": { "loadFailed": "Your messages could not be loaded right now.", "sendFailed": "Your message could not be sent. Please try again later." }
+  },
+  "garden": {
+    "metadata": { "title": "Tempo Garden | YouthTempo" },
+    "hero": {
+      "label": "Tempo Garden",
+      "title": "Every moment of care counts",
+      "description": "A quiet place to notice your own rhythms. Your mood, answers, and missed days never make your plant lose growth."
+    },
+    "stage": {
+      "seed": "A seed",
+      "sprout": "A new sprout",
+      "leaves": "Growing leaves",
+      "bloom": "A blooming garden"
+    },
+    "stats": {
+      "week": "Moments of self-care this week: {{count}}",
+      "month": "Records this month: {{count}}",
+      "total": "Total records: {{count}}"
+    },
+    "quick": {
+      "title": "A quick check-in",
+      "description": "Choose what feels closest right now. Every answer earns the same drop of water.",
+      "steady": "Fairly steady",
+      "mixed": "A mix of feelings",
+      "heavy": "A little heavy",
+      "unsure": "Not sure yet",
+      "submit": "Record this moment",
+      "saved": "This moment is saved.",
+      "saving": "Saving…"
+    },
+    "rhythm": {
+      "title": "A recent rhythm you noticed",
+      "empty": "After a full SWEET check-in, your own rhythm summary will appear here."
+    },
+    "reminders": {
+      "title": "Reminder preference",
+      "description": "Daily or weekly is only a suggestion. Record anytime or turn reminders off. This saves an in-app preference; no push or email is sent.",
+      "off": "Record anytime, no reminders",
+      "daily": "Gentle daily reminder",
+      "weekly": "Gentle weekly reminder",
+      "saved": "Reminder preference saved.",
+      "saving": "Saving…"
+    },
+    "actions": {
+      "fullSweet": "Do a full SWEET check-in anytime",
+      "account": "Back to my account"
+    },
+    "status": {
+      "loading": "Loading your garden…",
+      "signIn": "Sign in to see your own garden.",
+      "unavailable": "Your garden could not be loaded right now."
+    },
+    "errors": {
+      "signIn": "Please sign in.",
+      "notAvailable": "Complete the applicable student consent first.",
+      "invalidFeeling": "Choose how you feel right now.",
+      "invalidReminder": "Choose a reminder preference.",
+      "tooMany": "You have recorded several moments today. Please come back later.",
+      "unavailable": "The garden is temporarily unavailable. Please try again later."
+    }
+  },
+  "ageWorkspace": {
+    "label": "My pathway",
+    "minor": {
+      "title": "Ages 14–17: support around you",
+      "description": "Start with a record, then choose trusted people and resources. Family, school, health, and community services are a real-world network; the moderated platform community is separate.",
+      "cards": {
+        "quick": {
+          "title": "Notice how you feel now",
+          "text": "A quick record is available whenever you want.",
+          "action": "Record a moment"
+        },
+        "people": {
+          "title": "Find someone you trust",
+          "text": "Express a need to an assigned teacher or pilot duty lead.",
+          "action": "See ways to reach out"
+        },
+        "network": {
+          "title": "Family, school, health, community",
+          "text": "Ask for support first; people assess school, social work, or professional referrals.",
+          "action": "View support paths"
+        },
+        "community": {
+          "title": "A safer community",
+          "text": "Join discussions within moderated visibility boundaries.",
+          "action": "Open community"
+        },
+        "garden": {
+          "title": "See your own growth",
+          "text": "The garden records participation, never the quality of a mood.",
+          "action": "Open garden"
+        },
+        "urgent": {
+          "title": "Need help soon",
+          "text": "If danger is immediate, reach a trusted person nearby and local emergency services.",
+          "action": "View urgent resources"
+        }
+      }
+    },
+    "adult": {
+      "title": "Ages 18–25: support at your own pace",
+      "description": "Adults use the platform independently, with no guardian links. Theme rooms open only to invited, eligible members when staff are on duty.",
+      "cards": {
+        "room": {
+          "title": "Enter a theme room",
+          "text": "Invited members can join a staffed cross-school space.",
+          "action": "Learn about Peer Space"
+        },
+        "peers": {
+          "title": "Find a peer space",
+          "text": "Choose a public way to express yourself and listen to others.",
+          "action": "View community"
+        },
+        "quick": {
+          "title": "Make a quick record",
+          "text": "Choose what feels closest now, or skip it.",
+          "action": "Record a moment"
+        },
+        "rhythm": {
+          "title": "See rhythms and garden",
+          "text": "A full SWEET check-in is suggested weekly and available anytime.",
+          "action": "Open garden"
+        },
+        "support": {
+          "title": "Find human or professional support",
+          "text": "Explore current resources. Formal counselling has not opened.",
+          "action": "View support paths"
+        }
+      }
+    }
   }
 }
