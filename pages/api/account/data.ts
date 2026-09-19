@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ACCOUNT_DATA_POLICY_VERSION, accountDataRetention } from "@/lib/accountDataPolicy";
+import { reportOperationalError } from "@/lib/operationalMonitoring";
+import { transitionSupportCase } from "@/lib/supportWorkflow";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
 function sha256(value: string) {
@@ -44,6 +46,15 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     professionalVerifications,
     schoolInvites,
     pilotFeedback,
+    tempoCheckIns,
+    tempoReminderPreferences,
+    peerSpaceMessages,
+    peerSpaceReports,
+    peerSpaceControls,
+    pilotExperienceFeedback,
+    supportStaffApplications,
+    supportStaffTraining,
+    supportCases,
   ] = await Promise.all([
     rows(supabase.from("profiles").select("id,email,display_name,role,school_id,created_at,updated_at").eq("id", user.id)),
     rows(supabase.from("sweet_records").select("id,user_id,school_id,records,summary,small_step,recommended_next_tool,created_at").eq("user_id", user.id).order("created_at")),
@@ -66,6 +77,24 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     rows(supabase.from("professional_verifications").select("user_id,status,created_at,updated_at,revoked_at").eq("user_id", user.id)),
     email ? rows(supabase.from("school_invites").select("id,school_id,display_name,assignment_role,status,created_at,updated_at,applied_at,revoked_at").eq("email", email)) : Promise.resolve([]),
     rows(supabase.from("pilot_feedback").select("id,role,form_version,overall_experience,clarity,safety,most_helpful,hard_to_use,suggestion,may_contact,created_at,updated_at").eq("user_id", user.id).order("created_at")),
+    rows(supabase.from("tempo_check_ins").select("id,feeling,created_at").eq("user_id", user.id).order("created_at")),
+    rows(supabase.from("tempo_reminder_preferences").select("mode,updated_at").eq("user_id", user.id)),
+    rows(supabase.from("peer_space_messages").select("id,room_id,body,moderation_status,created_at,deleted_at").eq("author_user_id", user.id).order("created_at")),
+    rows(supabase.from("peer_space_message_reports").select("id,message_id,room_id,reason_code,status,created_at").eq("reporter_user_id", user.id).order("created_at")),
+    rows(supabase.from("peer_space_user_controls").select("id,room_id,control_type,created_at").eq("actor_user_id", user.id).order("created_at")),
+    rows(supabase.from("pilot_experience_feedback").select("id,age_band,feature,outcome,helpful,would_return,wants_human_support,comment,created_at").eq("user_id", user.id).order("created_at")),
+    rows(supabase.from("support_staff_applications").select("category,status,legal_name,credential_type,credential_number,evidence_path,service_languages,age_scopes,service_scope,availability,institution_name,submitted_at,reviewed_at").eq("user_id", user.id)),
+    rows(supabase.from("support_staff_training_records").select("training_title,completed_at,created_at").eq("staff_user_id", user.id)),
+    rows(supabase.from("support_cases").select("id,case_type,status,need_summary,availability,appointment_at,appointment_status,referral_type,created_at,updated_at,closed_at").eq("student_user_id", user.id).order("created_at")),
+  ]);
+  const supportCaseIds = supportCases.map((item) => item.id);
+  const [supportCaseEvents, supportCaseFeedback] = await Promise.all([
+    supportCaseIds.length
+      ? rows(supabase.from("support_case_events").select("case_id,action,previous_status,next_status,note,created_at").in("case_id", supportCaseIds).order("created_at"))
+      : Promise.resolve([]),
+    supportCaseIds.length
+      ? rows(supabase.from("support_case_feedback").select("case_id,felt_heard,found_help,boundaries_respected,would_choose_again,complaint,comment,created_at").in("case_id", supportCaseIds))
+      : Promise.resolve([]),
   ]);
 
   return {
@@ -87,13 +116,13 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
       schoolMemberships,
       teacherAssignments,
       studentAssignments,
-      guardianLinks,
+      guardianLinks: profile[0]?.role === "家长" ? [] : guardianLinks,
       studentGuardianLinks,
       studentConsents,
       consentEvents,
       permissionsGranted,
       wechatIdentities,
-      messages: [
+      messages: profile[0]?.role === "家长" ? [] : [
         ...sentMessages,
         ...receivedMessages.map((message) => message.anonymous_to_recipient
           ? { ...message, sender_user_id: null }
@@ -107,6 +136,17 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
       professionalVerifications,
       schoolInvites,
       pilotFeedback,
+      tempoCheckIns,
+      tempoReminderPreferences,
+      peerSpaceMessages,
+      peerSpaceReports,
+      peerSpaceControls,
+      pilotExperienceFeedback,
+      supportStaffApplications,
+      supportStaffTraining,
+      supportCases,
+      supportCaseEvents,
+      supportCaseFeedback,
     },
   };
 }
@@ -174,6 +214,67 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .single();
     if (auditError) throw auditError;
 
+    // Legacy guardian-backed consent cannot keep its active constraint when
+    // the guardian account is removed. Withdraw it with an audit event before
+    // Auth deletion, without silently converting it to student self-consent.
+    if (role === "家长") {
+      const { data: legacyConsents, error: legacyError } = await supabase
+        .from("student_consents")
+        .select("student_user_id,school_id,age_band,consent_basis,policy_version")
+        .eq("guardian_user_id", user.id)
+        .eq("consent_basis", "student_guardian")
+        .eq("status", "active");
+      if (legacyError) throw legacyError;
+      const withdrawnAt = new Date().toISOString();
+      for (const consent of legacyConsents || []) {
+        const { error: withdrawalError } = await supabase
+          .from("student_consents")
+          .update({ status: "withdrawn", withdrawn_at: withdrawnAt, withdrawn_by: user.id, updated_at: withdrawnAt })
+          .eq("student_user_id", consent.student_user_id)
+          .eq("guardian_user_id", user.id)
+          .eq("status", "active");
+        if (withdrawalError) throw withdrawalError;
+        const { error: eventError } = await supabase.from("student_consent_events").insert({
+          student_user_id: consent.student_user_id,
+          school_id: consent.school_id,
+          guardian_user_id: user.id,
+          actor_user_id: user.id,
+          event_type: "consent_withdrawn",
+          age_band: consent.age_band,
+          consent_basis: consent.consent_basis,
+          policy_version: consent.policy_version,
+        });
+        if (eventError) throw eventError;
+      }
+      const { error: linkError } = await supabase
+        .from("guardian_student_links")
+        .update({ status: "revoked", revoked_at: withdrawnAt, updated_at: withdrawnAt })
+        .eq("guardian_user_id", user.id)
+        .eq("status", "active");
+      if (linkError) throw linkError;
+    }
+
+    // A supporter closing their account immediately loses case access; pause
+    // active assignments before the auth cascade so a human can reassign them.
+    const { data: staffAssignments, error: staffAssignmentError } = await supabase
+      .from("support_case_assignments")
+      .select("case_id").eq("staff_user_id", user.id).in("status", ["offered", "accepted"]);
+    if (staffAssignmentError) throw staffAssignmentError;
+    const assignedCaseIds = [...new Set((staffAssignments || []).map((item) => item.case_id))];
+    if (assignedCaseIds.length) {
+      const { data: assignedCases, error: assignedCaseError } = await supabase
+        .from("support_cases")
+        .select("id,status,appointment_at,appointment_status,referral_type,student_authorization_active")
+        .in("id", assignedCaseIds).in("status", ["assigned", "active"]);
+      if (assignedCaseError) throw assignedCaseError;
+      for (const item of assignedCases || []) {
+        await transitionSupportCase(supabase, item, {
+          actorId: user.id, actorRole: "staff", action: "supporter_account_closing",
+          nextStatus: "paused",
+        });
+      }
+    }
+
     const token = bearerToken(req);
     const { error: signOutError } = await supabase.auth.admin.signOut(token, "global");
     if (signOutError) {
@@ -187,14 +288,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw deleteError;
     }
 
+    const privateEvidencePaths = accountExport.data.supportStaffApplications
+      .map((item) => item.evidence_path).filter((value): value is string => Boolean(value));
+    const { error: evidenceCleanupError } = privateEvidencePaths.length
+      ? await supabase.storage.from("support-staff-evidence").remove(privateEvidencePaths)
+      : { error: null };
+
     const cleanupResults = await Promise.all([
       supabase.from("school_invites").delete().eq("email", email),
       supabase.from("user_permissions").delete().eq("grantee_email", email),
       supabase.from("admin_roles").delete().eq("email", email),
     ]);
     const cleanupError = cleanupResults.find((result) => result.error)?.error;
-    if (cleanupError) {
-      console.error("Account deleted but email-reference cleanup needs attention", cleanupError.message);
+    if (cleanupError || evidenceCleanupError) {
+      console.error("Account deleted but reference or private-file cleanup needs attention");
       return res.status(200).json({ deleted: true, cleanupPending: true });
     }
 
@@ -206,7 +313,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ deleted: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "账户数据操作失败。";
+    await reportOperationalError({ req, area: "save", operation: "account_data", error, statusCode: 500 });
     return res.status(500).json({ error: "账户数据暂时无法处理，请稍后再试。" });
   }
 }
