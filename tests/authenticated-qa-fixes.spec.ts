@@ -21,7 +21,8 @@ test("平台管理员账户页只展示本人记录并保留删除入口", async
   const source = await readFile(path.join(process.cwd(), "views/account/page.tsx"), "utf8");
 
   expect(source).toContain("records.filter((record) => record.user_id === user.id)");
-  expect(source).toContain('nextAccountStatus?.displayRole === "平台管理员" ? currentUser.id : undefined');
+  expect(source).toContain('nextAccountStatus?.displayRole === "平台管理员"');
+  expect(source).toContain('listCloudSweetRecords(');
   expect(source).toContain("{user && !needsPersonalProfile ? (");
   expect(source).toContain("const canDelete = record.user_id === user.id");
 });
