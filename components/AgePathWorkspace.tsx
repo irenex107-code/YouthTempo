@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { peerSpaceRequest } from "@/lib/peerSpaceClient";
 import { useTranslation } from "@/lib/i18n/client";
 
 const minorCards = [
@@ -19,9 +21,22 @@ const adultCards = [
 ] as const;
 
 export function AgePathWorkspace({ ageBand }: { ageBand: "14_17" | "18_plus" }) {
-  const { t } = useTranslation();
+  const { locale, t } = useTranslation();
   const isAdult = ageBand === "18_plus";
-  const cards = isAdult ? adultCards : minorCards;
+  const [peerSpaceAvailable, setPeerSpaceAvailable] = useState(false);
+  const cards = isAdult
+    ? adultCards.filter(([key]) => key !== "ageWorkspace.adult.cards.room" || peerSpaceAvailable)
+    : minorCards;
+
+  useEffect(() => {
+    setPeerSpaceAvailable(false);
+    if (!isAdult) return;
+    let active = true;
+    peerSpaceRequest<{ available: boolean }>("/api/peer-space/access", locale)
+      .then((access) => { if (active) setPeerSpaceAvailable(access.available === true); })
+      .catch(() => { if (active) setPeerSpaceAvailable(false); });
+    return () => { active = false; };
+  }, [isAdult, locale]);
 
   return (
     <section className="px-4 pb-7 pt-6 sm:px-8 lg:px-12" aria-labelledby="age-path-title">
