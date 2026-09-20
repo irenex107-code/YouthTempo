@@ -175,6 +175,17 @@
       }
     }
   },
+  "forYoungPeople": {
+    "metadata": { "title": "Choose Your Path | YouthTempo" },
+    "label": "For young people",
+    "title": "Choose the path that fits you",
+    "description": "Secondary school and university life can have different rhythms and support needs. Choose the page that fits your current stage.",
+    "paths": {
+      "secondary": { "age": "Ages 14–17", "title": "Secondary school students", "description": "Start with everyday rhythms, feelings, and people you trust. Record and seek support at your own pace.", "action": "Go to the school student page" },
+      "youngAdults": { "age": "Ages 18–25", "title": "University students and young adults", "description": "Start from your own baseline, reflect independently, and explore support that fits your life.", "action": "Go to the young adult page" }
+    },
+    "accountNote": "This choice helps you find a page. Available account features still depend on your confirmed age and consent status."
+  },
   "forTeens": {
     "metadata": { "title": "For Young People | YouthTempo" },
     "hero": {
