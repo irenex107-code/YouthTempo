@@ -773,6 +773,7 @@ export default function AdminPage() {
       <PageHero label="角色工作台" title={adminTitle(overview)} subtitle={adminSubtitle(overview)} />
       {isPlatformAdmin ? (
         <nav className="container flex flex-wrap gap-3 py-4" aria-label={t("adminSupport.title")}>
+          <Link href="/admin/role-preview" className="button-secondary">{t("adminRolePreview.action")}</Link>
           <Link href="/admin/support" className="button-secondary">{t("adminSupport.title")}</Link>
           <Link href="/admin/peer-space" className="button-secondary">{t("peerSpaceReview.title")}</Link>
         </nav>

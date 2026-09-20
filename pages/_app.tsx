@@ -17,6 +17,7 @@ const translatedPageTitleKeys: Partial<Record<string, TranslationKey>> = {
   "/peer-space": "peerSpace.metadata.title",
   "/admin/peer-space": "peerSpaceStaff.metadata.title",
   "/admin/support": "adminSupport.metadata.title",
+  "/admin/role-preview": "adminRolePreview.metadata.title",
   "/consultation": "supportFlow.metadata.consultationTitle",
   "/support-request": "supportFlow.metadata.requestTitle",
   "/support/apply": "supportStaff.metadata.title",
@@ -42,7 +43,7 @@ const remainingPageTitles: Record<string, string> = {
 };
 
 const privateOrUserContentRoutes = new Set([
-  "/account", "/admin", "/admin/peer-space", "/admin/support", "/check-in", "/community",
+  "/account", "/admin", "/admin/peer-space", "/admin/role-preview", "/admin/support", "/check-in", "/community",
   "/consultation", "/feedback", "/garden", "/messages", "/mood-journal", "/peer-space",
   "/support-request", "/support/apply", "/support/workbench", "/talk", "/worry-time",
 ]);

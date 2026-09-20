@@ -738,6 +738,7 @@ export default function AccountPage() {
                 {!needsPersonalProfile ? (
                   <div className="grid shrink-0 gap-3 sm:flex">
                     {isPlatformAdmin ? <Link href="/admin" className="button-primary w-full sm:w-auto">{t("account.actions.platformAdmin")}</Link> : null}
+                    {isPlatformAdmin ? <Link href="/admin/role-preview" className="button-secondary w-full sm:w-auto">{t("adminRolePreview.action")}</Link> : null}
                     {isSchoolLead ? <Link href="/admin" className="button-primary w-full sm:w-auto">{t("account.actions.schoolAdmin")}</Link> : null}
                     {isSchoolLead ? <Link href="#records" className="button-secondary w-full sm:w-auto">{t("account.actions.studentRecords")}</Link> : null}
                     {isSupportTeacher ? <Link href="#students" className="button-primary w-full sm:w-auto">{t("account.actions.assignedStudents")}</Link> : null}

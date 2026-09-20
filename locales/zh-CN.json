@@ -1172,6 +1172,33 @@
       "unavailable": "花园暂时不可用，请稍后再试。"
     }
   },
+  "adminRolePreview": {
+    "metadata": { "title": "角色页面体验 | YouthTempo" },
+    "action": "预览各角色页面",
+    "label": "平台管理员预览",
+    "title": "看看不同角色会看到什么",
+    "description": "切换示例工作台，查看学生、家长、老师及支持人员的页面路径。这里使用虚构说明，不改变你的真实账户身份。",
+    "back": "返回管理台",
+    "loading": "正在确认平台管理员身份…",
+    "deniedTitle": "仅平台管理员可查看",
+    "deniedDescription": "请使用平台管理员账户登录。角色预览不会授予任何真实学生资料的访问权。",
+    "signIn": "去账户登录",
+    "notice": "预览只展示示例界面与页面入口；不会读取或修改学生、家长、老师的私密资料，也不会以他们的身份提交内容。",
+    "chooseRole": "选择要体验的角色",
+    "exampleLabel": "示例工作台 · 无真实数据",
+    "publicPages": "查看相关页面",
+    "publicPagesNote": "页面会在新标签打开，供你查看布局与说明。",
+    "realAccessNote": "私密操作仍按你真实的管理员身份由 API 和 RLS 判断；完整读写流程请在隔离测试环境使用对应角色账号。",
+    "pages": { "teen": "中学生入口", "adult": "大学生与青年入口", "parent": "家长入口", "teacher": "老师入口", "checkIn": "SWEET 记录", "garden": "青序花园", "mood": "心情拼图", "worry": "担忧整理", "community": "家校医社区", "supportRequest": "我需要支持", "peerSpace": "解忧室", "consultation": "正式心理咨询", "talk": "SWEET Talk", "resources": "支持资源", "referral": "支持路径", "apply": "支持人员申请" },
+    "roles": {
+      "minor": { "title": "14–17 岁学生", "workspace": "学生工作台", "description": "先观察自己的状态，再联系可信任的人、学校或社区资源。", "first": "轻量记录和 SWEET 都由本人决定何时完成。", "second": "需要支持时先提交需要，再由人员评估与转介。", "third": "可以进入审核社区；不能进入成年人聊天室或直接预约正式咨询。" },
+      "adult": { "title": "18–25 岁用户", "workspace": "成年人工作台", "description": "独立记录节律、查看花园和支持资源，不建立监护关系。", "first": "完成成年本人确认后，可以保存自己的记录。", "second": "解忧室还需有效邀请、规则确认和有人值守；当前正式开放状态以页面提示为准。", "third": "正式一对一心理咨询仍在准备中，不能直接创建服务事项。" },
+      "guardian": { "title": "家长", "workspace": "家长工作台", "description": "当前试点保留家长教育内容，但不开放孩子私密资料访问。", "first": "可阅读倾听、减少指责和何时寻求专业帮助的内容。", "second": "可使用 SWEET Talk 学习沟通方式。", "third": "当前没有亲子绑定、孩子 SWEET、日记、消息或支持事项读取入口。" },
+      "teacher": { "title": "支持老师", "workspace": "老师工作台", "description": "老师只在学校范围内处理明确分配给自己的学生事项。", "first": "分配关系由学校确认，不能自行选择任意学生。", "second": "仅在授权范围内查看记录或收到的消息。", "third": "需要进一步支持时，按学校的责任与危机升级路径处理。" },
+      "schoolLead": { "title": "学校负责人", "workspace": "学校管理工作台", "description": "负责人维护本校成员和分配关系，不能跨校查看。", "first": "登记本校成员与负责关系。", "second": "在本校范围查看授权的总体信息与待处理事项。", "third": "学校值班、紧急联系人和线下路径仍需人工确认。" },
+      "professional": { "title": "专业与支持人员", "workspace": "支持人员工作台", "description": "资质申请、人工审核和具体事项授权是不同步骤。", "first": "申请资料进入私有存储，由授权人员人工审核。", "second": "咨询人员、社工、倾听志愿者和学校值班老师的职责不同。", "third": "只有获批并被分配到具体事项时，才能按最小范围查看必要资料。" }
+    }
+  },
   "ageWorkspace": {
     "label": "我的路径",
     "minor": {
