@@ -3,7 +3,7 @@
 本清单仅供审批和执行窗口使用，不授权连接正式系统、执行迁移、改数据或部署。整体试点状态仍为 **READY WITH CONDITIONS**。第一批候选为年龄分流、非诊断性 SWEET 与个人趋势、家长公开教育、无家长数据读取、青序花园、轻量记录和提醒、轻量反馈、Account 导出与注销及其双语页面。成年人聊天室、正式心理咨询、完整专业支持入口、未成年人直接预约和公开评分继续关闭。
 
 1. **备份与窗口：需用户单独授权正式操作。** 确认正式项目标识、维护窗口、责任人、前一应用镜像及可用加密备份；不得使用恢复演练项目。备份后按 `docs/DATABASE_RECOVERY.md` 记录校验，不在清单或日志中保存连接串或学生数据。
-2. **只读核对正式状态。** 查询 `supabase_migrations.schema_migrations` 的已应用版本与 `public.guardian_student_links` 中 active 数量，仅记录汇总。核对下面的待执行文件与实际正式迁移历史；如有差异，暂停并重新评审，不能照表盲目执行。执行前确认 `FORMAL_CONSULTATION_PUBLIC_ENABLED=false`、`FORMAL_CONSULTATION_INTERNAL_ENABLED=false`、`PEER_SPACE_ACCESS_API_ENABLED=false`、`PEER_SPACE_STAFF_API_ENABLED=false`；未设置也必须视为关闭。
+2. **只读核对正式状态。** 查询 `supabase_migrations.schema_migrations` 的已应用版本与 `public.guardian_student_links` 中 active 数量，仅记录汇总。核对下面的待执行文件与实际正式迁移历史；如有差异，暂停并重新评审，不能照表盲目执行。执行前确认 `FORMAL_CONSULTATION_PUBLIC_ENABLED=false`、`FORMAL_CONSULTATION_INTERNAL_ENABLED=false`、`PEER_SPACE_ACCESS_API_ENABLED=false`、`PEER_SPACE_INVITATIONS_API_ENABLED=false`、`PEER_SPACE_STAFF_API_ENABLED=false`；未设置也必须视为关闭。
 3. **按顺序迁移：需用户单独授权正式数据库变更。** 已知正式基线是 `20260827200713_index_pilot_duty_foreign_keys.sql`。`20260804045915` 是补入的较早版本，须在只读历史核对后显式包含，且在 `20260919190531` 之前执行；迁移不能依赖普通“只执行较新时间戳”的行为。准确顺序和补偿边界如下：
 
    | 顺序 | Migration 文件 | 对既有数据的影响与补偿 |

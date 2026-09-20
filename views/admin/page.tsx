@@ -776,6 +776,7 @@ export default function AdminPage() {
           <Link href="/admin/role-preview" className="button-secondary">{t("adminRolePreview.action")}</Link>
           <Link href="/admin/support" className="button-secondary">{t("adminSupport.title")}</Link>
           <Link href="/admin/peer-space" className="button-secondary">{t("peerSpaceReview.title")}</Link>
+          <Link href="/admin/peer-space-invites" className="button-secondary">成年人解忧室邀请</Link>
         </nav>
       ) : null}
 
