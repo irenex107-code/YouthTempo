@@ -20,6 +20,17 @@ async function rows<T>(query: PromiseLike<{ data: T[] | null; error: { message: 
   return data || [];
 }
 
+function isMissingOptionalTable(error: { code?: string } | null) {
+  return error?.code === "42P01" || error?.code === "PGRST205";
+}
+
+async function optionalRows<T>(query: PromiseLike<{ data: T[] | null; error: { message: string; code?: string } | null }>) {
+  const { data, error } = await query;
+  if (isMissingOptionalTable(error)) return [] as T[];
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
 async function buildAccountExport(user: { id: string; email?: string | null; created_at: string; updated_at?: string; last_sign_in_at?: string }) {
   const supabase = getSupabaseAdmin();
   const email = user.email?.trim().toLowerCase() || "";
@@ -45,6 +56,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     communityRestrictions,
     professionalVerifications,
     schoolInvites,
+    peerSpaceEmailInvitations,
     pilotFeedback,
     tempoCheckIns,
     tempoReminderPreferences,
@@ -76,6 +88,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     rows(supabase.from("community_restrictions").select("id,user_id,restriction_type,reason,starts_at,ends_at,status,revoked_at,revoked_reason,created_at").eq("user_id", user.id)),
     rows(supabase.from("professional_verifications").select("user_id,status,created_at,updated_at,revoked_at").eq("user_id", user.id)),
     email ? rows(supabase.from("school_invites").select("id,school_id,display_name,assignment_role,status,created_at,updated_at,applied_at,revoked_at").eq("email", email)) : Promise.resolve([]),
+    email ? optionalRows(supabase.from("peer_space_email_invitations").select("id,school_id,eligibility_kind,status,invited_at,claimed_at,revoked_at").eq("email", email)) : Promise.resolve([]),
     rows(supabase.from("pilot_feedback").select("id,role,form_version,overall_experience,clarity,safety,most_helpful,hard_to_use,suggestion,may_contact,created_at,updated_at").eq("user_id", user.id).order("created_at")),
     rows(supabase.from("tempo_check_ins").select("id,feeling,created_at").eq("user_id", user.id).order("created_at")),
     rows(supabase.from("tempo_reminder_preferences").select("mode,updated_at").eq("user_id", user.id)),
@@ -135,6 +148,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
       communityRestrictions,
       professionalVerifications,
       schoolInvites,
+      peerSpaceEmailInvitations,
       pilotFeedback,
       tempoCheckIns,
       tempoReminderPreferences,
@@ -296,6 +310,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const cleanupResults = await Promise.all([
       supabase.from("school_invites").delete().eq("email", email),
+      supabase.from("peer_space_email_invitations").delete().eq("email", email)
+        .then((result) => isMissingOptionalTable(result.error) ? { error: null } : result),
       supabase.from("user_permissions").delete().eq("grantee_email", email),
       supabase.from("admin_roles").delete().eq("email", email),
     ]);
