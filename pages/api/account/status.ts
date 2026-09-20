@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { applySchoolInvitesForUser } from "@/lib/schoolInvites";
+import {
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+  isAdultWithoutGuardianFlow,
+} from "@/lib/guardianAccessPolicy";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
 function profileRoleLabel(value?: string | null) {
@@ -43,7 +47,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isSupportTeacher = activeMemberships.some((membership) => membership.member_role === "school_support");
     const baseRole = profileRoleLabel(profile?.role as string | null | undefined);
     const displayRole = platformAdmin ? "平台管理员" : isSchoolLead ? "学校负责人" : isSupportTeacher ? "支持老师" : baseRole;
-    const { data: guardianLinks, error: guardianLinkError } = baseRole === "家长"
+    const { data: studentConsent, error: studentConsentError } = baseRole === "学生"
+      ? await supabase
+          .from("student_consents")
+          .select("age_band")
+          .eq("student_user_id", user.id)
+          .maybeSingle()
+      : { data: null, error: null };
+    if (studentConsentError) throw studentConsentError;
+    const studentAgeBand = studentConsent?.age_band || null;
+    const { data: guardianLinks, error: guardianLinkError } = baseRole === "家长" && CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED
       ? await supabase
           .from("guardian_student_links")
           .select("school_id,student_user_id")
@@ -65,6 +78,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : { data: [], error: null };
     if (teacherAssignmentError) throw teacherAssignmentError;
 
+    const canLoadStudentGuardians =
+      CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED
+      && !isAdultWithoutGuardianFlow(studentAgeBand);
     const [{ data: studentTeacherLinks, error: studentTeacherError }, { data: studentGuardianLinks, error: studentGuardianError }] =
       baseRole === "学生"
         ? await Promise.all([
@@ -73,11 +89,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               .select("school_id,teacher_user_id")
               .eq("student_user_id", user.id)
               .eq("status", "active"),
-            supabase
-              .from("guardian_student_links")
-              .select("school_id,guardian_user_id")
-              .eq("student_user_id", user.id)
-              .eq("status", "active"),
+            canLoadStudentGuardians
+              ? supabase
+                  .from("guardian_student_links")
+                  .select("school_id,guardian_user_id")
+                  .eq("student_user_id", user.id)
+                  .eq("status", "active")
+              : Promise.resolve({ data: [], error: null }),
           ])
         : [
             { data: [], error: null },
@@ -147,6 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : null,
       schoolMemberships: activeMemberships,
       hasSchool: Boolean(profile?.school_id || activeMemberships.length),
+      studentAgeBand,
       linkedChildren,
       assignedStudents,
       assignedTeachers,

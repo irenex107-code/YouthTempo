@@ -4,12 +4,15 @@ import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
 import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
+import { MicroFeedbackOverview } from "@/components/MicroFeedbackOverview";
 import { SchoolOperationsOverview } from "@/components/SchoolOperationsOverview";
 import { ProfessionalVerificationQueue } from "@/components/ProfessionalVerificationQueue";
 import { PilotDutyMessageQueue } from "@/components/PilotDutyMessageQueue";
 import { AiGeneratedLabel } from "@/components/AiTransparencyNotice";
 import { getSupabase } from "@/lib/supabaseClient";
+import { useTranslation } from "@/lib/i18n/client";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
+import { CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED } from "@/lib/guardianAccessPolicy";
 import { findStudentRelationshipGaps } from "@/lib/schoolRelationshipGaps";
 import {
   parseSchoolRosterCsv,
@@ -182,7 +185,7 @@ function workspaceActions(overview: AdminOverview) {
     return [
       { href: "#community-moderation", label: "社区审核", description: "优先处理举报与安全待确认内容" },
       { href: "#pilot-feedback", label: "试点反馈", description: "查看学生、家长和老师的反馈" },
-      { href: "#professional-verifications", label: "专业身份", description: "核对专业支持者机构与资质" },
+      { href: "#professional-verifications", label: "专业身份", description: "核对个人资质与专业方向" },
       { href: "#operations-analytics", label: "试点运营", description: "查看学校参与和关系完整度" },
       { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
       { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
@@ -200,18 +203,22 @@ function workspaceActions(overview: AdminOverview) {
     ];
   }
 
-  return [
+  const actions = [
     { href: "#monthly-trends", label: "月度趋势", description: "查看本校近 4 周总体参与变化" },
     { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
     { href: "#schools-overview", label: "学校概览", description: "按老师查看近 4 周总体情况" },
     { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
-    { href: "#member-management", label: "成员管理", description: "登记老师、学生和家长" },
+    { href: "#member-management", label: "成员管理", description: "登记老师和学生" },
     { href: "#teacher-assignment", label: "负责关系", description: "分配老师负责的学生" },
-    { href: "#guardian-assignment", label: "家庭关系", description: "确认家长与孩子" },
   ];
+  if (CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
+    actions.push({ href: "#guardian-assignment", label: "家庭关系", description: "确认家长与孩子" });
+  }
+  return actions;
 }
 
 export default function AdminPage() {
+  const { t } = useTranslation();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [accessToken, setAccessToken] = useState("");
   const [schoolName, setSchoolName] = useState("");
@@ -255,8 +262,8 @@ export default function AdminPage() {
     (directory) => directory.school_id === selectedSchool?.id,
   );
   const roleOptions: AssignmentRole[] = isPlatformAdmin
-    ? ["学校负责人", "支持老师", "学生", "家长", "专业支持者"]
-    : ["学生", "家长", "支持老师"];
+    ? ["学校负责人", "支持老师", "学生", "专业支持者"]
+    : ["学生", "支持老师"];
   const assignedStudentIdSet = new Set(
     schoolRoster?.assignments.map((assignment) => assignment.student_user_id) || [],
   );
@@ -508,7 +515,7 @@ export default function AdminPage() {
           email: assignmentEmail,
           role: assignmentRole,
           teacherUserId: assignmentRole === "学生" ? newStudentTeacherId : "",
-          guardianUserId: assignmentRole === "学生" ? newStudentGuardianId : "",
+          guardianUserId: assignmentRole === "学生" && CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? newStudentGuardianId : "",
         }),
       });
       const payload = await response.json();
@@ -519,7 +526,7 @@ export default function AdminPage() {
       setNewStudentTeacherId("");
       setNewStudentGuardianId("");
       setActionNotice(
-        assignmentRole === "学生" && (newStudentTeacherId || newStudentGuardianId)
+        assignmentRole === "学生" && newStudentTeacherId
           ? `已为 ${addedName} 建档并保存负责关系。`
           : `已添加 ${addedName}。`,
       );
@@ -764,6 +771,12 @@ export default function AdminPage() {
   return (
     <>
       <PageHero label="角色工作台" title={adminTitle(overview)} subtitle={adminSubtitle(overview)} />
+      {isPlatformAdmin ? (
+        <nav className="container flex flex-wrap gap-3 py-4" aria-label={t("adminSupport.title")}>
+          <Link href="/admin/support" className="button-secondary">{t("adminSupport.title")}</Link>
+          <Link href="/admin/peer-space" className="button-secondary">{t("peerSpaceReview.title")}</Link>
+        </nav>
+      ) : null}
 
       {overview ? (
         <section className="border-b border-ink/10 bg-white/70">
@@ -834,7 +847,7 @@ export default function AdminPage() {
                 <div className="card">
                   <p className="text-xs font-bold text-sage">学校成员</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolUsers}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">学生、家长、学校负责人和支持老师。</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">学生、学校负责人和支持老师；当前试点不新建家长账号。</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">SWEET 记录</p>
@@ -857,6 +870,7 @@ export default function AdminPage() {
       {isPlatformAdmin && accessToken ? <CommunityModerationQueue accessToken={accessToken} /> : null}
 
       {isPlatformAdmin && accessToken ? <PilotFeedbackOverview accessToken={accessToken} /> : null}
+      {isPlatformAdmin && accessToken ? <MicroFeedbackOverview accessToken={accessToken} /> : null}
 
       {isPlatformAdmin && accessToken ? <ProfessionalVerificationQueue accessToken={accessToken} /> : null}
 
@@ -942,7 +956,7 @@ export default function AdminPage() {
                     {roleOptions.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </label>
-                {assignmentRole === "学生" ? (
+                  {assignmentRole === "学生" ? (
                   <div className="grid gap-4 rounded-2xl border border-sage/25 bg-mint/45 p-4">
                     <p className="text-sm font-bold text-sage-dark">同时建立负责关系（可稍后补充）</p>
                     <label className="grid gap-2 text-sm font-bold text-ink">
@@ -958,26 +972,30 @@ export default function AdminPage() {
                         ))}
                       </select>
                     </label>
-                    <label className="grid gap-2 text-sm font-bold text-ink">
-                      关联家长
-                      <select
-                        className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
-                        value={newStudentGuardianId}
-                        onChange={(event) => setNewStudentGuardianId(event.target.value)}
-                      >
-                        <option value="">暂不选择</option>
-                        {selectedDirectory?.guardians.map((guardian) => (
-                          <option key={guardian.id} value={guardian.id}>{guardian.display_name || guardian.email}</option>
-                        ))}
-                      </select>
-                    </label>
+                    {CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? (
+                      <label className="grid gap-2 text-sm font-bold text-ink">
+                        关联家长
+                        <select
+                          className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
+                          value={newStudentGuardianId}
+                          onChange={(event) => setNewStudentGuardianId(event.target.value)}
+                        >
+                          <option value="">暂不选择</option>
+                          {selectedDirectory?.guardians.map((guardian) => (
+                            <option key={guardian.id} value={guardian.id}>{guardian.display_name || guardian.email}</option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : (
+                      <p className="text-sm leading-6 text-muted">当前学生自主试点不创建家长账号或亲子关系；未成年人家长功能留待后续批准。</p>
+                    )}
                   </div>
                 ) : null}
                 <p className="text-sm leading-6 text-muted">
                   {assignmentRole === "学生"
-                    ? "老师或家长尚未加入时，可以先完成学生建档，之后在关系管理中补充。"
+                    ? "可以先完成学生建档，并按需要分配负责老师；当前试点不创建家长关系。"
                     : assignmentRole === "专业支持者"
-                      ? "账号创建后，对方需要登录账户补交机构与资质资料；审核通过前不会显示专业身份标记。"
+                      ? "账号创建后，对方需要登录账户提交个人资质资料；机构信息可以不填，审核通过前不会显示专业身份标记。"
                     : isPlatformAdmin
                       ? "日常成员维护由学校负责人完成；平台管理员可在学校需要时协助登记。"
                       : "添加后，对方可以直接使用这个邮箱登录。"}
@@ -1004,7 +1022,7 @@ export default function AdminPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-sm font-bold text-ink">准备名单</p>
-                      <p className="mt-1 text-xs leading-5 text-muted">必填：姓名、邮箱、身份。学生还可填写老师邮箱和家长邮箱。</p>
+                      <p className="mt-1 text-xs leading-5 text-muted">必填：姓名、邮箱、身份。学生还可填写老师邮箱；当前模板不包含家长。</p>
                     </div>
                     <button type="button" className="button-secondary" onClick={downloadRosterTemplate}>
                       下载 CSV 模板
@@ -1034,7 +1052,7 @@ export default function AdminPage() {
                     <div className="overflow-hidden rounded-2xl border border-sage/25 bg-mint/35">
                       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                         <p className="text-sm font-bold text-sage-dark">检查通过，共 {batchRows.length} 人</p>
-                        <p className="text-xs text-muted">老师和家长会先登记，再建立学生关系</p>
+                        <p className="text-xs text-muted">老师会先登记，再建立负责学生关系</p>
                       </div>
                       <div className="max-h-56 overflow-auto border-t border-sage/20 bg-white">
                         {batchRows.map((row) => (
@@ -1101,7 +1119,8 @@ export default function AdminPage() {
                       </div>
                       {directory ? (
                         <p className="mt-3 text-xs font-bold text-muted">
-                          负责人 {directory.leaders.length} · 老师 {directory.teachers.length} · 学生 {directory.students.length} · 家长 {directory.guardians.length}
+                          负责人 {directory.leaders.length} · 老师 {directory.teachers.length} · 学生 {directory.students.length}
+                          {CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? ` · 家长 ${directory.guardians.length}` : ""}
                         </p>
                       ) : null}
                     </button>
@@ -1403,17 +1422,17 @@ export default function AdminPage() {
                         <span className="rounded-full bg-mint px-3 py-2">负责人 {directory.leaders.length}</span>
                         <span className="rounded-full bg-mint px-3 py-2">老师 {directory.teachers.length}</span>
                         <span className="rounded-full bg-mint px-3 py-2">学生 {directory.students.length}</span>
-                        <span className="rounded-full bg-mint px-3 py-2">家长 {directory.guardians.length}</span>
+                        {CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? <span className="rounded-full bg-mint px-3 py-2">家长 {directory.guardians.length}</span> : null}
                       </div>
                     </div>
 
-                    {relationshipGaps.withoutTeacher.length || relationshipGaps.withoutGuardian.length ? (
+                    {relationshipGaps.withoutTeacher.length ? (
                       <div className="mt-5 rounded-2xl border border-[#d7a76f]/35 bg-[#fff8ed] px-4 py-4 sm:px-5">
                         <p className="font-bold text-ink">关系待补充</p>
                         <p className="mt-1 text-sm leading-6 text-muted">
-                          及时补充分工和家庭关系，避免学生记录暂时没有对应的支持老师或家长查看。
+                          及时补充负责老师，避免需要校内支持时没有明确承接人。当前试点不把家长关系计为完整度要求。
                         </p>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <div className="mt-3 grid gap-3">
                           <div className="rounded-xl bg-white/80 px-4 py-3">
                             <p className="text-xs font-bold text-[#8a5b2f]">
                               未分配老师 {relationshipGaps.withoutTeacher.length} 人
@@ -1426,23 +1445,11 @@ export default function AdminPage() {
                                 : "全部学生均已分配"}
                             </p>
                           </div>
-                          <div className="rounded-xl bg-white/80 px-4 py-3">
-                            <p className="text-xs font-bold text-[#8a5b2f]">
-                              未关联家长 {relationshipGaps.withoutGuardian.length} 人
-                            </p>
-                            <p className="mt-2 text-sm text-ink">
-                              {relationshipGaps.withoutGuardian.length
-                                ? relationshipGaps.withoutGuardian
-                                    .map((student) => student.display_name || student.email)
-                                    .join("、")
-                                : "全部学生均已关联"}
-                            </p>
-                          </div>
                         </div>
                       </div>
                     ) : (
                       <p className="mt-5 rounded-2xl bg-mint px-4 py-3 text-sm font-bold text-sage-dark">
-                        所有学生都已有负责老师和关联家长。
+                        所有学生都已有负责老师；当前试点不要求家长加入。
                       </p>
                     )}
 
@@ -1528,7 +1535,7 @@ export default function AdminPage() {
                         )}
                       </div>
                     </div>
-                    <div className="mt-6 border-t border-ink/10 pt-6">
+                    {CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? <div className="mt-6 border-t border-ink/10 pt-6">
                       <p className="text-sm font-bold text-ink">家长与孩子</p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {directory.guardians.length ? directory.guardians.map((guardian) => {
@@ -1554,7 +1561,7 @@ export default function AdminPage() {
                           <p className="text-sm text-muted">尚未登记家长。</p>
                         )}
                       </div>
-                    </div>
+                    </div> : null}
                   </article>
                 );
               })}
@@ -1756,7 +1763,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview?.admin.canManageMembers ? (
+      {overview?.admin.canManageMembers && CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? (
         <section id="guardian-assignment" className={`section scroll-mt-24 ${isPlatformAdmin ? "section-muted" : ""}`}>
           <div className="container">
             <details className="group" open={!isPlatformAdmin}>

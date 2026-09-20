@@ -8,6 +8,10 @@ import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { useTranslation } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/config";
 import {
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+  isAdultWithoutGuardianFlow,
+} from "@/lib/guardianAccessPolicy";
+import {
   AccountStatus,
   StudentMessage,
   getAccountStatus,
@@ -49,6 +53,14 @@ export default function MessagesPage() {
   const isSchoolLead = displayRole === "学校负责人";
   const assignedTeachers = accountStatus?.assignedTeachers || [];
   const linkedGuardians = accountStatus?.linkedGuardians || [];
+  const showGuardianRecipient =
+    CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED
+    && !isAdultWithoutGuardianFlow(accountStatus?.studentAgeBand);
+  const studentHeroDescription = accountStatus?.studentAgeBand === "18_plus"
+    ? t("messages.member.hero.adultStudentDescription")
+    : accountStatus?.studentAgeBand === "14_17"
+      ? t("messages.member.hero.minorStudentDescription")
+      : t("messages.member.hero.studentDescription");
   const showVisitorCopy = !loading && !user;
 
   async function refreshMessages() {
@@ -135,7 +147,7 @@ export default function MessagesPage() {
     <>
       <PageHero
         title={showVisitorCopy ? t("messages.visitor.hero.title") : t("messages.member.hero.title")}
-        subtitle={showVisitorCopy ? t("messages.visitor.hero.description") : isStudent ? t("messages.member.hero.studentDescription") : t("messages.member.hero.supporterDescription")}
+        subtitle={showVisitorCopy ? t("messages.visitor.hero.description") : isStudent ? studentHeroDescription : t("messages.member.hero.supporterDescription")}
         action={<Link href="/account" className="button-secondary">{showVisitorCopy ? t("messages.visitor.hero.action") : t("messages.member.hero.action")}</Link>}
         aside={
           <IllustrationPanel
@@ -187,7 +199,7 @@ export default function MessagesPage() {
                       <option value="self">{t("messages.compose.recipientOptions.self")}</option>
                       {pilotDutyAvailable ? <option value="pilot_duty">{t("messages.compose.recipientOptions.pilotDuty")}</option> : null}
                       <option value="teacher">{t("messages.compose.recipientOptions.teacher")}</option>
-                      <option value="guardian">{t("messages.compose.recipientOptions.guardian")}</option>
+                      {showGuardianRecipient ? <option value="guardian">{t("messages.compose.recipientOptions.guardian")}</option> : null}
                     </select>
                   </label>
                   {["teacher", "guardian"].includes(recipientType) ? (

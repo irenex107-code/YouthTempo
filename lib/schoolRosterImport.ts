@@ -1,3 +1,8 @@
+import {
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE,
+} from "@/lib/guardianAccessPolicy";
+
 export const rosterImportRoles = ["学生", "支持老师", "家长"] as const;
 
 export type RosterImportRole = (typeof rosterImportRoles)[number];
@@ -65,7 +70,11 @@ function validEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export function parseSchoolRosterCsv(source: string, limit = 100): RosterImportResult {
+export function parseSchoolRosterCsv(
+  source: string,
+  limit = 100,
+  guardianRelationshipsEnabled = CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+): RosterImportResult {
   const normalized = source.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n").trim();
   if (!normalized) return { rows: [], errors: ["文件是空的。"] };
 
@@ -116,6 +125,9 @@ export function parseSchoolRosterCsv(source: string, limit = 100): RosterImportR
     if (name.length > 50) errors.push(`第 ${rowNumber} 行姓名超过 50 个字符。`);
     if (!validEmail(email)) errors.push(`第 ${rowNumber} 行邮箱格式不正确。`);
     if (!role) errors.push(`第 ${rowNumber} 行身份只能填写学生、支持老师或家长。`);
+    if (!guardianRelationshipsEnabled && (role === "家长" || guardianEmail)) {
+      errors.push(`第 ${rowNumber} 行：${CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE}`);
+    }
     if (seenEmails.has(email)) errors.push(`第 ${rowNumber} 行邮箱与文件中前面的成员重复。`);
     if (teacherEmail && !validEmail(teacherEmail)) errors.push(`第 ${rowNumber} 行老师邮箱格式不正确。`);
     if (guardianEmail && !validEmail(guardianEmail)) errors.push(`第 ${rowNumber} 行家长邮箱格式不正确。`);
@@ -131,11 +143,19 @@ export function parseSchoolRosterCsv(source: string, limit = 100): RosterImportR
   return { rows, errors: Array.from(new Set(errors)) };
 }
 
-export function rosterImportTemplate() {
-  return [
-    "姓名,邮箱,身份,老师邮箱,家长邮箱",
-    "王老师,teacher@example.com,支持老师,,",
-    "李女士,parent@example.com,家长,,",
-    "小林,student@example.com,学生,teacher@example.com,parent@example.com",
-  ].join("\n");
+export function rosterImportTemplate(
+  guardianRelationshipsEnabled = CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+) {
+  return guardianRelationshipsEnabled
+    ? [
+        "姓名,邮箱,身份,老师邮箱,家长邮箱",
+        "王老师,teacher@example.com,支持老师,,",
+        "李女士,parent@example.com,家长,,",
+        "小林,student@example.com,学生,teacher@example.com,parent@example.com",
+      ].join("\n")
+    : [
+        "姓名,邮箱,身份,老师邮箱",
+        "王老师,teacher@example.com,支持老师,",
+        "小林,student@example.com,学生,teacher@example.com",
+      ].join("\n");
 }

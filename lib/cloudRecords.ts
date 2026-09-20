@@ -130,6 +130,7 @@ export type AccountStatus = {
   adminAccess: { role: string; scope: "platform" | "school" } | null;
   schoolMemberships: Array<{ school_id: string; member_role: string; status: string }>;
   hasSchool: boolean;
+  studentAgeBand: "under_14" | "14_17" | "18_plus" | null;
   linkedChildren: Array<{ id: string; display_name: string; school_id: string }>;
   assignedStudents: Array<{ id: string; display_name: string; school_id: string }>;
   assignedTeachers: Array<{ id: string; display_name: string; school_id: string }>;
@@ -582,6 +583,44 @@ export async function listCloudSweetRecords(ownerUserId?: string) {
   const { data, error } = await query;
   if (error) throw error;
   return latestSweetRecordsPerUserDay((data || []) as CloudSweetRecord[]);
+}
+
+export type TempoGardenData = {
+  stage: "seed" | "sprout" | "leaves" | "bloom";
+  total: number;
+  thisWeek: number;
+  thisMonth: number;
+  quickCheckIns: number;
+  fullSweetRecords: number;
+  recentRhythm: string | null;
+  reminderMode: "off" | "daily" | "weekly";
+};
+
+async function gardenRequest<T>(method: "GET" | "POST" | "PATCH", locale: Locale, body?: Record<string, unknown>) {
+  const token = await getAccessToken();
+  const response = await fetch(`/api/garden?locale=${encodeURIComponent(locale)}`, {
+    method,
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: body ? JSON.stringify({ ...body, locale }) : undefined,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Garden unavailable.");
+  return data as T;
+}
+
+export function getTempoGarden(locale: Locale) {
+  return gardenRequest<TempoGardenData>("GET", locale);
+}
+
+export function saveTempoQuickCheckIn(feeling: "steady" | "mixed" | "heavy" | "unsure", locale: Locale) {
+  return gardenRequest<{ checkIn: { id: string; created_at: string } }>("POST", locale, { feeling });
+}
+
+export function saveTempoReminderPreference(
+  reminderMode: TempoGardenData["reminderMode"],
+  locale: Locale,
+) {
+  return gardenRequest<{ reminderMode: TempoGardenData["reminderMode"] }>("PATCH", locale, { reminderMode });
 }
 
 export async function saveCloudSweetRecord(record: {

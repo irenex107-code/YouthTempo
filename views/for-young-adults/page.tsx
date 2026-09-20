@@ -23,6 +23,30 @@ export default function ForYoungAdultsPage() {
         aside={<IllustrationPanel src="/illustrations/system/feature-progress-path.webp" alt={t("forYoungAdults.hero.imageAlt")} priority />}
       />
 
+        <section className="section pb-8 pt-8 sm:pb-12 sm:pt-12">
+          <div className="container">
+            <article className="overflow-hidden rounded-[2rem] border border-sage/20 bg-gradient-to-br from-paper via-paper to-mist/55 shadow-soft">
+              <div className="max-w-3xl p-5 sm:p-7 lg:p-9">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="eyebrow">{t("forYoungAdults.peerSpace.label")}</p>
+                  <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-bold text-sage-dark">
+                    {t("peerSpaceLive.label")}
+                  </span>
+                </div>
+                <h2 className="mt-5 text-2xl font-black tracking-[-0.025em] text-ink sm:text-3xl">
+                  {t("forYoungAdults.peerSpace.title")}
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-muted sm:text-base">
+                  {t("forYoungAdults.peerSpace.description")}
+                </p>
+                <Link href="/peer-space" className="button-primary mt-6">
+                  {t("forYoungAdults.peerSpace.action")}
+                </Link>
+              </div>
+            </article>
+          </div>
+        </section>
+
       <section className="section section-muted">
         <div className="container">
           <SectionHeader title={t("forYoungAdults.tools.title")} description={t("forYoungAdults.tools.description")} />
@@ -40,9 +64,10 @@ export default function ForYoungAdultsPage() {
       </section>
 
       <section className="section">
-        <div className="container grid gap-5 lg:grid-cols-3">
+        <div className="container grid gap-5 md:grid-cols-2">
           <article className="card"><p className="eyebrow">{t("forYoungAdults.independence.confirmation.label")}</p><h2 className="mt-3 text-lg font-bold text-ink">{t("forYoungAdults.independence.confirmation.title")}</h2><p className="mt-3 text-sm leading-7 text-muted">{t("forYoungAdults.independence.confirmation.text")}</p></article>
           <article className="card"><p className="eyebrow">{t("forYoungAdults.independence.records.label")}</p><h2 className="mt-3 text-lg font-bold text-ink">{t("forYoungAdults.independence.records.title")}</h2><p className="mt-3 text-sm leading-7 text-muted">{t("forYoungAdults.independence.records.text")}</p></article>
+          <article className="card"><p className="eyebrow">{t("forYoungAdults.independence.baseline.label")}</p><h2 className="mt-3 text-lg font-bold text-ink">{t("forYoungAdults.independence.baseline.title")}</h2><p className="mt-3 text-sm leading-7 text-muted">{t("forYoungAdults.independence.baseline.text")}</p></article>
           <article className="card"><p className="eyebrow">{t("forYoungAdults.independence.boundary.label")}</p><h2 className="mt-3 text-lg font-bold text-ink">{t("forYoungAdults.independence.boundary.title")}</h2><p className="mt-3 text-sm leading-7 text-muted">{t("forYoungAdults.independence.boundary.text")}</p></article>
         </div>
       </section>

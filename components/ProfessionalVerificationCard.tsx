@@ -166,7 +166,7 @@ export function ProfessionalVerificationCard() {
               {verification.reviewNote ? <p className="mt-3 text-sm leading-7 text-muted">{t("account.professional.reviewNote", { note: verification.reviewNote })}</p> : null}
               {active ? (
                 <div className="mt-4 grid gap-2 text-sm text-muted sm:grid-cols-2">
-                  <p>{t("account.professional.institution", { value: verification.institutionName || (isLegacy ? t("account.professional.legacyConfirmed") : "—") })}</p>
+                  <p>{t("account.professional.institution", { value: verification.institutionName || (isLegacy ? t("account.professional.legacyConfirmed") : t("account.professional.noInstitution")) })}</p>
                   <p>{t("account.professional.position", { value: verification.positionTitle || (isLegacy ? t("account.professional.legacyConfirmed") : "—") })}</p>
                   <p>{t("account.professional.credential", { value: verification.credentialType || (isLegacy ? t("account.professional.legacyConfirmed") : "—") })}</p>
                   <p>{t("account.professional.expires", { value: verification.credentialExpiresOn ? formatDate(verification.credentialExpiresOn, locale) : t("account.professional.noExpiry") })}</p>
@@ -180,7 +180,7 @@ export function ProfessionalVerificationCard() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   {t("account.professional.fields.institution")}
-                  <input className="field-control" value={form.institutionName} onChange={(event) => update("institutionName", event.target.value)} maxLength={120} placeholder={t("account.professional.fields.institutionPlaceholder")} required />
+                  <input className="field-control" value={form.institutionName} onChange={(event) => update("institutionName", event.target.value)} maxLength={120} placeholder={t("account.professional.fields.institutionPlaceholder")} />
                 </label>
                 <label className="grid gap-2 text-sm font-bold text-ink">
                   {t("account.professional.fields.position")}

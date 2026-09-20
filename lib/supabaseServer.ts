@@ -43,13 +43,30 @@ export function getSupabaseAdmin() {
   });
 }
 
+function isMalformedOrExpiredToken(token: string) {
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts.some((part) => !/^[A-Za-z0-9_-]+$/.test(part))) return true;
+
+  try {
+    const payload: unknown = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+    if (!payload || typeof payload !== "object") return true;
+    const expiresAt = "exp" in payload ? payload.exp : undefined;
+    return typeof expiresAt === "number" && expiresAt <= Math.floor(Date.now() / 1000);
+  } catch {
+    return true;
+  }
+}
+
 export async function getAuthenticatedUser(req: NextApiRequest) {
   const authHeader = req.headers.authorization || "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
-  if (!token) return null;
+  if (!token || isMalformedOrExpiredToken(token)) return null;
 
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase.auth.getUser(token);
-  if (error) throw error;
+  if (error) {
+    if (typeof error.status === "number" && error.status >= 400 && error.status < 500) return null;
+    throw error;
+  }
   return data.user;
 }

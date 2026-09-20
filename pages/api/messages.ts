@@ -2,6 +2,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { moderateStudentMessage } from "@/lib/messageSafety";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
+import {
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE,
+  isAdultWithoutGuardianFlow,
+} from "@/lib/guardianAccessPolicy";
 import { normalizeLocale } from "@/lib/i18n/config";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import {
@@ -21,9 +26,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: "请先登录。" });
     const supabase = getSupabaseAdmin();
+    const { data: accountProfile, error: accountProfileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (accountProfileError) throw accountProfileError;
+    if (accountProfile?.role === "家长") {
+      return res.status(403).json({ error: "当前试点不开放家长查看或处理学生留言。" });
+    }
 
     if (req.method === "POST") {
-      await requireActiveStudentConsent(supabase, user.id);
+      const activeConsent = await requireActiveStudentConsent(supabase, user.id);
       if (!(await enforceUserRateLimit({
         supabase,
         req,
@@ -51,6 +65,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (recipientType === "pilot_duty" && !pilotDutyEnabled) {
         return res.status(503).json({ error: "试点值班联系入口暂时没有开放。" });
+      }
+      if (recipientType === "guardian" && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
+        return res.status(409).json({ error: CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE });
+      }
+      if (recipientType === "guardian" && isAdultWithoutGuardianFlow(activeConsent?.age_band)) {
+        return res.status(403).json({ error: "18 岁及以上用户不使用家长关联或家长收件流程。" });
       }
 
       const { data: profile, error: profileError } = await supabase

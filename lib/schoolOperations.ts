@@ -1,3 +1,5 @@
+import { CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED } from "@/lib/guardianAccessPolicy";
+
 type Person = { id: string };
 
 export type OperationsDirectory = {
@@ -61,7 +63,7 @@ export function buildSchoolOperations(input: {
     const guardianCoverage = percentage(studentsWithGuardian, students.length);
     const readiness: SchoolOperationsRow["readiness"] = !students.length
       ? "待建档"
-      : teacherCoverage < 100 || guardianCoverage < 100
+      : teacherCoverage < 100 || (CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED && guardianCoverage < 100)
         ? "补关系"
         : participationRate < 50
           ? "开始使用"
@@ -110,8 +112,9 @@ function csvCell(value: string | number) {
 }
 
 export function schoolOperationsCsv(rows: SchoolOperationsRow[]) {
+  const guardianHeader = CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? "家长关系覆盖" : "家长关系（本轮不适用）";
   return [
-    ["学校", "阶段", "学生", "老师", "家长", "近4周参与学生", "参与率", "SWEET记录", "老师关系覆盖", "家长关系覆盖", "待了解人数"],
+    ["学校", "阶段", "学生", "老师", "家长", "近4周参与学生", "参与率", "SWEET记录", "老师关系覆盖", guardianHeader, "待了解人数"],
     ...rows.map((row) => [
       row.schoolName,
       row.readiness,
@@ -122,7 +125,7 @@ export function schoolOperationsCsv(rows: SchoolOperationsRow[]) {
       `${row.participationRate}%`,
       row.records,
       `${row.teacherCoverage}%`,
-      `${row.guardianCoverage}%`,
+      CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? `${row.guardianCoverage}%` : "不适用",
       row.attentionCount,
     ]),
   ].map((row) => row.map(csvCell).join(",")).join("\n");

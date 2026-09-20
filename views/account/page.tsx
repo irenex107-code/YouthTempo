@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { SectionHeader } from "@/components/SectionHeader";
 import { ProfessionalVerificationCard } from "@/components/ProfessionalVerificationCard";
+import { AgePathWorkspace } from "@/components/AgePathWorkspace";
 import { AiGeneratedLabel } from "@/components/AiTransparencyNotice";
 import {
   AccountStatus,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/cloudRecords";
 import { isSupabaseConfigured } from "@/lib/supabaseClient";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
+import { CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED } from "@/lib/guardianAccessPolicy";
 import { useTranslation } from "@/lib/i18n/client";
 import type { Locale } from "@/lib/i18n/config";
 import type { TranslationKey, TranslationValues } from "@/lib/i18n/dictionaries";
@@ -202,9 +204,14 @@ export default function AccountPage() {
   const accountName = profile?.display_name?.trim() || user?.email || t("account.hero.accountFallback");
   const isInitialAccountLoad = loading && !user;
   const isPlatformAdmin = displayRole === "平台管理员";
-  const visibleAccountRecords = isPlatformAdmin && user
-    ? records.filter((record) => record.user_id === user.id)
-    : records;
+  const studentAgeBand = accountStatus?.studentAgeBand || consentStatus?.consent?.ageBand || null;
+  const showStudentAgeGuidance = displayRole === "学生" && ["14_17", "18_plus"].includes(studentAgeBand || "");
+  const isAdultStudent = studentAgeBand === "18_plus";
+  const visibleAccountRecords = displayRole === "家长" && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED
+    ? []
+    : isPlatformAdmin && user
+      ? records.filter((record) => record.user_id === user.id)
+      : records;
   const recentRecordDays = countRecentRecordDays(visibleAccountRecords, user?.id);
   const isSchoolLead = displayRole === "学校负责人";
   const isSupportTeacher = displayRole === "支持老师";
@@ -282,7 +289,10 @@ export default function AccountPage() {
 
       const [nextRecords, nextWechatIdentities, nextConsentStatus] = await Promise.all([
         listCloudSweetRecords(
-          nextAccountStatus?.displayRole === "平台管理员" ? currentUser.id : undefined,
+          nextAccountStatus?.displayRole === "平台管理员"
+            || (nextAccountStatus?.displayRole === "家长" && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED)
+            ? currentUser.id
+            : undefined,
         ).catch((recordsError) => {
           reportClientOperationFailure("save", "account_records", recordsError);
           nonFatalNotice = nonFatalNotice || t("account.notices.recordsUnavailable");
@@ -475,7 +485,11 @@ export default function AccountPage() {
     setError("");
     try {
       await deleteCloudSweetRecord(recordId);
-      setRecords(await listCloudSweetRecords(isPlatformAdmin ? user?.id : undefined));
+      setRecords(await listCloudSweetRecords(
+        isPlatformAdmin || (isParent && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED)
+          ? user?.id
+          : undefined,
+      ));
       setNotice(t("account.notices.recordDeleted"));
     } catch (deleteError) {
       setError(accountError(deleteError, "account.errors.recordDeleteFailed"));
@@ -714,7 +728,11 @@ export default function AccountPage() {
                         ? linkedChildren.length
                           ? t("account.hero.linkedChildren", { names: linkedChildren.map((child) => child.display_name).join(locale === "en" ? ", " : "、") })
                           : t("account.hero.noLinkedChildren")
-                        : recordsDescription(displayRole, hasSchool, t)}
+                        : displayRole === "学生" && studentAgeBand === "18_plus"
+                          ? t("account.ageGuidance.adult.heroDescription")
+                          : displayRole === "学生" && studentAgeBand === "14_17"
+                            ? t("account.ageGuidance.minor.heroDescription")
+                            : recordsDescription(displayRole, hasSchool, t)}
                   </p>
                 </div>
                 {!needsPersonalProfile ? (
@@ -867,6 +885,36 @@ export default function AccountPage() {
                 </div>
               </div>
             </section>
+          ) : null}
+
+          {!needsPersonalProfile && showStudentAgeGuidance ? (
+            <section className="px-4 pb-2 pt-6 sm:px-8 lg:px-12">
+              <div className="container">
+                <div className="rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-7">
+                  <div className="max-w-3xl">
+                    <p className="eyebrow">{t("account.ageGuidance.label")}</p>
+                    <h2 className="mt-2 text-2xl font-bold text-ink">
+                      {isAdultStudent ? t("account.ageGuidance.adult.title") : t("account.ageGuidance.minor.title")}
+                    </h2>
+                    <p className="mt-3 text-sm leading-7 text-muted">
+                      {isAdultStudent ? t("account.ageGuidance.adult.description") : t("account.ageGuidance.minor.description")}
+                    </p>
+                  </div>
+                  <div className="mt-5 grid shrink-0 gap-3 sm:mt-0">
+                    <Link href={isAdultStudent ? "/for-young-adults" : "/for-teens"} className="button-primary w-full sm:w-auto">
+                      {isAdultStudent ? t("account.ageGuidance.adult.primaryAction") : t("account.ageGuidance.minor.primaryAction")}
+                    </Link>
+                    <Link href={isAdultStudent ? "/referral" : "/messages"} className="button-secondary w-full sm:w-auto">
+                      {isAdultStudent ? t("account.ageGuidance.adult.secondaryAction") : t("account.ageGuidance.minor.secondaryAction")}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {!needsPersonalProfile && showStudentAgeGuidance && studentAgeBand ? (
+            <AgePathWorkspace ageBand={studentAgeBand as "14_17" | "18_plus"} />
           ) : null}
 
           {!needsPersonalProfile ? <section className="px-4 py-6 sm:px-8 sm:py-8 lg:px-12">
@@ -1115,6 +1163,19 @@ export default function AccountPage() {
       {user && !needsPersonalProfile && !isPlatformAdmin && isProfessional ? (
         <ProfessionalVerificationCard />
       ) : null}
+      {user && !needsPersonalProfile && studentAgeBand !== "14_17" ? (
+        <section className="section section-muted py-6">
+          <div className="container">
+            <div className="card flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-ink">{t("supportStaff.title")}</h2>
+                <p className="mt-1 text-sm text-muted">{t("supportStaff.description")}</p>
+              </div>
+              <Link href="/support/apply" className="button-secondary">{t("supportStaff.title")}</Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {user && !needsPersonalProfile ? (
         <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">
@@ -1193,7 +1254,7 @@ export default function AccountPage() {
                 </div>
                 <div className="mt-5 shrink-0 sm:mt-0">
                   {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">{t("account.records.start")}</Link> : null}
-                  {displayRole === "家长" && linkedChildren.length === 0 ? <Link href="/contact" className="button-secondary w-full sm:w-auto">{t("account.records.contactSchool")}</Link> : null}
+                  {displayRole === "家长" && linkedChildren.length === 0 && CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? <Link href="/contact" className="button-secondary w-full sm:w-auto">{t("account.records.contactSchool")}</Link> : null}
                   {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">{t("account.records.admin")}</Link> : null}
                 </div>
               </div>

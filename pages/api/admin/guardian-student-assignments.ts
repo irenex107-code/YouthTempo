@@ -4,6 +4,11 @@ import {
   canManageSchoolMembers,
   getAdminContext,
 } from "@/lib/adminAccess";
+import {
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED,
+  CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE,
+  canCreateGuardianRelationship,
+} from "@/lib/guardianAccessPolicy";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -15,8 +20,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const context = await getAdminContext(req);
     const schoolId = String(req.body?.schoolId || "").trim();
     const guardianUserId = String(req.body?.guardianUserId || "").trim();
-    const studentUserIds = Array.from(
-      new Set(
+    const studentUserIds: string[] = Array.from(
+      new Set<string>(
         (Array.isArray(req.body?.studentUserIds) ? req.body.studentUserIds : [])
           .map((value: unknown) => String(value).trim())
           .filter(Boolean),
@@ -31,6 +36,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     if (!guardianUserId) return res.status(400).json({ error: "请选择家长。" });
 
+    // Keep revocation available for cleanup, but do not create links in the
+    // current student-only pilot.
+    if (studentUserIds.length > 0 && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
+      return res.status(409).json({ error: CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_MESSAGE });
+    }
+
     const { data: guardian, error: guardianError } = await context.supabase
       .from("profiles")
       .select("id")
@@ -42,15 +53,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!guardian) return res.status(400).json({ error: "所选账号不是本校登记的家长。" });
 
     if (studentUserIds.length > 0) {
-      const { data: validStudents, error: studentError } = await context.supabase
-        .from("profiles")
-        .select("id")
-        .eq("school_id", schoolId)
-        .eq("role", "学生")
-        .in("id", studentUserIds);
+      const [
+        { data: validStudents, error: studentError },
+        { data: studentConsents, error: consentError },
+      ] = await Promise.all([
+        context.supabase
+          .from("profiles")
+          .select("id")
+          .eq("school_id", schoolId)
+          .eq("role", "学生")
+          .in("id", studentUserIds),
+        context.supabase
+          .from("student_consents")
+          .select("student_user_id,age_band")
+          .in("student_user_id", studentUserIds),
+      ]);
       if (studentError) throw studentError;
+      if (consentError) throw consentError;
       if ((validStudents || []).length !== studentUserIds.length) {
         return res.status(400).json({ error: "学生名单中包含不属于本校的账号。" });
+      }
+      const ageBandByStudentId = new Map<string, "under_14" | "14_17" | "18_plus" | null>(
+        (studentConsents || []).map((consent) => [
+          consent.student_user_id as string,
+          consent.age_band as "under_14" | "14_17" | "18_plus" | null,
+        ]),
+      );
+      if (studentUserIds.some((studentUserId) => !canCreateGuardianRelationship(ageBandByStudentId.get(studentUserId)))) {
+        return res.status(400).json({ error: "亲子关系只适用于未来另行批准的 14–17 岁学生流程；18 岁及以上用户不建立监护关系。" });
       }
     }
 

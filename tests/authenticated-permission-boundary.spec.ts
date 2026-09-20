@@ -33,7 +33,7 @@ function sortedRecordIds(rows: Array<{ id: string }> | null) {
 test.describe("真实账号与 RLS 权限隔离", () => {
   test.skip(!password, "需要先初始化虚拟账号并配置 E2E_PERMISSION_TEST_PASSWORD");
 
-  test("家长只能读取已关联孩子的原始 SWEET 记录", async () => {
+  test("家长即使仍有关联也不能读取孩子的 SWEET 记录", async () => {
     const { supabase } = await sessionFor("guardianOne");
     const { data, error } = await supabase
       .from("sweet_records")
@@ -41,8 +41,7 @@ test.describe("真实账号与 RLS 权限隔离", () => {
       .in("id", Object.values(fixture.records).map((record) => record.id));
 
     expect(error).toBeNull();
-    expect(sortedRecordIds(data)).toEqual([fixture.records.studentOne.id]);
-    expect(data?.[0]?.records).toBeTruthy();
+    expect(sortedRecordIds(data)).toEqual([]);
   });
 
   test("老师只能读取分配给自己的学生记录", async () => {

@@ -14,6 +14,10 @@ const defaultMigrationPath = path.resolve(
   process.cwd(),
   "supabase/migrations/20260805065912_set_professional_verification_pending_default.sql",
 );
+const individualApplicantMigrationPath = path.resolve(
+  process.cwd(),
+  "supabase/migrations/20260912161714_allow_individual_professional_applicants.sql",
+);
 
 const validSubmission = {
   institutionName: "青少年心理支持中心",
@@ -33,6 +37,16 @@ test("专业身份申请会清理文本并接受没有到期日的长期资质",
   })).toMatchObject({
     institutionName: "青少年心理支持中心",
     credentialExpiresOn: null,
+  });
+});
+
+test("个人专业申请可以不填写所属机构", () => {
+  expect(parseProfessionalVerificationSubmission({
+    ...validSubmission,
+    institutionName: "   ",
+  })).toMatchObject({
+    institutionName: null,
+    positionTitle: "心理咨询师",
   });
 });
 
@@ -86,6 +100,31 @@ test("新专业身份记录在迁移与完整结构中都默认等待审核", ()
   const schema = fs.readFileSync(path.resolve(process.cwd(), "supabase/schema.sql"), "utf8");
   expect(migration).toContain("alter column status set default 'pending'");
   expect(schema).toContain("status text not null default 'pending'");
+});
+
+test("个人申请审核不再以机构信息作为通过前提", () => {
+  const migration = fs.readFileSync(individualApplicantMigrationPath, "utf8");
+  const schema = fs.readFileSync(path.resolve(process.cwd(), "supabase/schema.sql"), "utf8");
+  for (const sql of [migration, schema]) {
+    expect(sql).not.toContain("or verification.institution_name is null");
+    expect(sql).toContain("institution_verified = p_action = 'approve' and institution_name is not null");
+    expect(sql).toContain("and credential_verified");
+    expect(sql).toContain("and credential_type is not null");
+    expect(sql).toContain("and credential_number is not null");
+    expect(sql).toContain("and credential_issuer is not null");
+  }
+  expect(migration).toContain("security invoker");
+  expect(migration).toContain("revoke all on function public.review_professional_verification");
+  expect(migration).toContain("to service_role");
+});
+
+test("个人申请表和审核台都把机构信息视为选填", () => {
+  const card = fs.readFileSync(path.resolve(process.cwd(), "components/ProfessionalVerificationCard.tsx"), "utf8");
+  const queue = fs.readFileSync(path.resolve(process.cwd(), "components/ProfessionalVerificationQueue.tsx"), "utf8");
+  const institutionInput = card.match(/<input[^>]+value=\{form\.institutionName\}[^>]+\/>/)?.[0] || "";
+  expect(institutionInput).not.toContain("required");
+  expect(queue).toContain("机构信息可以不填");
+  expect(queue).not.toContain("item.institution_name && item.position_title");
 });
 
 test("社区专业标记会排除已过期资质", () => {
