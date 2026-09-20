@@ -7,6 +7,7 @@ import {
   getTempoGarden,
   saveTempoQuickCheckIn,
   saveTempoReminderPreference,
+  TempoGardenRequestError,
   type TempoGardenData,
 } from "@/lib/cloudRecords";
 import { useTranslation } from "@/lib/i18n/client";
@@ -90,7 +91,15 @@ export default function GardenPage() {
         }
         return null;
       })
-      .catch(() => { if (active) setError(t("garden.status.unavailable")); })
+      .catch((caught) => {
+        if (!active) return;
+        if (caught instanceof TempoGardenRequestError && caught.status === 401) {
+          setSignedOut(true);
+          return;
+        }
+        setError(t(caught instanceof TempoGardenRequestError && caught.status === 403
+          ? "garden.status.restricted" : "garden.status.unavailable"));
+      })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [locale, t]);

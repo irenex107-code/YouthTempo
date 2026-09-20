@@ -7,7 +7,7 @@ const projectRef = new URL(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co",
 ).hostname.split(".")[0];
 
-async function useIllustrativeGarden(page: Page, initialTotal = 0) {
+async function useIllustrativeGarden(page: Page, initialTotal = 0, loadStatus = 200) {
   const user = {
     id: "00000000-0000-4000-8000-000000000017",
     aud: "authenticated",
@@ -37,6 +37,14 @@ async function useIllustrativeGarden(page: Page, initialTotal = 0) {
     if (route.request().method() === "POST") {
       total += 1;
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ checkIn: { id: "example-check-in", created_at: new Date().toISOString() } }) });
+      return;
+    }
+    if (loadStatus !== 200) {
+      await route.fulfill({
+        status: loadStatus,
+        contentType: "application/json",
+        body: JSON.stringify({ error: loadStatus === 403 ? "请先完成适用的学生知情确认。" : "花园暂时不可用，请稍后再试。" }),
+      });
       return;
     }
     await route.fulfill({
@@ -147,4 +155,17 @@ test("英文首次介绍、跳过和减少动态效果可用", async ({ page }) 
   await page.reload();
   await expect(page.getByRole("heading", { name: "A quick check-in" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Welcome to your SWEET Garden" })).toHaveCount(0);
+});
+
+test("账号没有花园资格时显示明确原因，不误报为加载故障", async ({ page }) => {
+  await useIllustrativeGarden(page, 0, 403);
+  await page.goto("/garden");
+  await expect(page.locator("main [role='alert']")).toContainText("花园只向已完成适用知情确认的学生账号开放");
+  await expect(page.getByText("花园暂时无法加载。")).toHaveCount(0);
+});
+
+test("真正的服务端故障仍显示暂时无法加载", async ({ page }) => {
+  await useIllustrativeGarden(page, 0, 503);
+  await page.goto("/garden");
+  await expect(page.locator("main [role='alert']")).toContainText("花园暂时无法加载。");
 });

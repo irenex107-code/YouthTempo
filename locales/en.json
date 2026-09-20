@@ -1186,6 +1186,7 @@
     "status": {
       "loading": "Loading your garden…",
       "signIn": "Sign in to see your own garden.",
+      "restricted": "The garden is available to student accounts with active consent. Administrator accounts cannot read a student's private garden.",
       "unavailable": "Your garden could not be loaded right now."
     },
     "errors": {

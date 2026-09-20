@@ -596,6 +596,13 @@ export type TempoGardenData = {
   reminderMode: "off" | "daily" | "weekly";
 };
 
+export class TempoGardenRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = "TempoGardenRequestError";
+  }
+}
+
 async function gardenRequest<T>(method: "GET" | "POST" | "PATCH", locale: Locale, body?: Record<string, unknown>) {
   const token = await getAccessToken();
   const response = await fetch(`/api/garden?locale=${encodeURIComponent(locale)}`, {
@@ -604,7 +611,7 @@ async function gardenRequest<T>(method: "GET" | "POST" | "PATCH", locale: Locale
     body: body ? JSON.stringify({ ...body, locale }) : undefined,
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "Garden unavailable.");
+  if (!response.ok) throw new TempoGardenRequestError(data.error || "Garden unavailable.", response.status);
   return data as T;
 }
 
