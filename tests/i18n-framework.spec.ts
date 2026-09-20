@@ -4,6 +4,7 @@ import zhCN from "../locales/zh-CN.json";
 
 const publicPaths = [
   "/",
+  "/for-young-people",
   "/for-teens",
   "/for-parents",
   "/for-teachers",

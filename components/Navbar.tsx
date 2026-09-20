@@ -7,7 +7,7 @@ import { navItems } from "@/data/site";
 import { useTranslation } from "@/lib/i18n/client";
 import { getSupabase } from "@/lib/supabaseClient";
 
-const roleEntryHrefs = new Set(["/for-teens", "/for-parents", "/for-teachers"]);
+const roleEntryHrefs = new Set(["/for-young-people", "/for-parents", "/for-teachers"]);
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
   let timeoutId: number | undefined;
@@ -130,7 +130,7 @@ export function Navbar() {
             : { href: "/check-in", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
   const roleEntryHref =
     accountRole === "学生"
-      ? "/for-teens"
+      ? "/for-young-people"
       : accountRole === "家长"
         ? "/for-parents"
         : accountRole === "支持老师" || accountRole === "学校负责人"

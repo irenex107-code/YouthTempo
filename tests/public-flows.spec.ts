@@ -15,9 +15,26 @@ test("未登录用户可以看到三个角色入口", async ({ page }) => {
   const menuButton = page.getByRole("button", { name: "打开导航菜单" });
   if (await menuButton.isVisible()) await menuButton.click();
 
-  await expect(page.getByRole("link", { name: "青少年入口", exact: true })).toHaveAttribute("href", "/for-teens");
+  await expect(page.getByRole("link", { name: "青少年入口", exact: true })).toHaveAttribute("href", "/for-young-people");
   await expect(page.getByRole("link", { name: "家长入口", exact: true })).toHaveAttribute("href", "/for-parents");
   await expect(page.getByRole("link", { name: "老师入口", exact: true })).toHaveAttribute("href", "/for-teachers");
+});
+
+test("青少年入口先展示中学生和大学生路径", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: /进入青少年入口/ }).click();
+  await expect(page).toHaveURL(/\/for-young-people$/);
+  await expect(page.getByRole("heading", { level: 1, name: "先选适合你的入口" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "进入中学生页面" })).toHaveAttribute("href", "/for-teens");
+  await expect(page.getByRole("link", { name: "进入大学生与青年页面" })).toHaveAttribute("href", "/for-young-adults");
+
+  await page.getByRole("link", { name: "进入大学生与青年页面" }).click();
+  await expect(page).toHaveURL(/\/for-young-adults$/);
+
+  await page.goto("/en/for-young-people");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("link", { name: "Go to the school student page" })).toHaveAttribute("href", "/en/for-teens");
+  await expect(page.getByRole("link", { name: "Go to the young adult page" })).toHaveAttribute("href", "/en/for-young-adults");
 });
 
 for (const rolePage of [
@@ -83,7 +100,7 @@ test("公开页面不展示生产端处理方式", async ({ page }) => {
     "第三层：",
   ];
 
-  for (const path of ["/", "/for-teens", "/for-young-adults", "/for-parents", "/for-teachers", "/community", "/account", "/feedback", "/privacy-safety"]) {
+  for (const path of ["/", "/for-young-people", "/for-teens", "/for-young-adults", "/for-parents", "/for-teachers", "/community", "/account", "/feedback", "/privacy-safety"]) {
     await page.goto(path);
     const body = await page.locator("body").innerText();
     for (const phrase of productionPhrases) {
@@ -93,7 +110,7 @@ test("公开页面不展示生产端处理方式", async ({ page }) => {
 });
 
 test("关键公开页面没有横向溢出", async ({ page }) => {
-  for (const path of ["/", "/for-teens", "/for-young-adults", "/for-parents", "/for-teachers", "/community", "/account", "/feedback"]) {
+  for (const path of ["/", "/for-young-people", "/for-teens", "/for-young-adults", "/for-parents", "/for-teachers", "/community", "/account", "/feedback"]) {
     await page.goto(path);
     const sizes = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,

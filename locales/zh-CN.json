@@ -175,6 +175,17 @@
       }
     }
   },
+  "forYoungPeople": {
+    "metadata": { "title": "选择适合你的入口 | YouthTempo" },
+    "label": "给年轻人",
+    "title": "先选适合你的入口",
+    "description": "中学生与大学生的生活节奏和支持方式不同。选择与你现在阶段相近的页面，从适合自己的方式开始。",
+    "paths": {
+      "secondary": { "age": "14–17 岁", "title": "中学生", "description": "从日常节律、感受和可信任的人开始，按自己的节奏记录与寻求支持。", "action": "进入中学生页面" },
+      "youngAdults": { "age": "18–25 岁", "title": "大学生与青年", "description": "从自己的生活基线出发，独立记录变化，选择适合自己的支持路径。", "action": "进入大学生与青年页面" }
+    },
+    "accountNote": "这里帮助你找到合适的页面；登录后可用功能仍以账号已确认的年龄和同意状态为准。"
+  },
   "forTeens": {
     "metadata": { "title": "青少年入口 | YouthTempo" },
     "hero": {

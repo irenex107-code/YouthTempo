@@ -9,6 +9,7 @@ import "@/views/globals.css";
 
 const translatedPageTitleKeys: Partial<Record<string, TranslationKey>> = {
   "/": "home.metadata.title",
+  "/for-young-people": "forYoungPeople.metadata.title",
   "/for-teens": "forTeens.metadata.title",
   "/for-parents": "forParents.metadata.title",
   "/for-teachers": "forTeachers.metadata.title",

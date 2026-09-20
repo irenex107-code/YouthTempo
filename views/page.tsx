@@ -9,7 +9,7 @@ import { useTranslation } from "@/lib/i18n/client";
 export default function Home() {
   const { t } = useTranslation();
   const audienceCards = [
-    { title: t("home.audiences.teens.title"), label: t("home.audiences.teens.label"), text: t("home.audiences.teens.text"), href: "/for-teens", action: t("home.audiences.teens.action") },
+    { title: t("home.audiences.teens.title"), label: t("home.audiences.teens.label"), text: t("home.audiences.teens.text"), href: "/for-young-people", action: t("home.audiences.teens.action") },
     { title: t("home.audiences.parents.title"), label: t("home.audiences.parents.label"), text: t("home.audiences.parents.text"), href: "/for-parents", action: t("home.audiences.parents.action") },
     { title: t("home.audiences.teachers.title"), label: t("home.audiences.teachers.label"), text: t("home.audiences.teachers.text"), href: "/for-teachers", action: t("home.audiences.teachers.action") },
   ];
