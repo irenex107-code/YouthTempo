@@ -1,8 +1,10 @@
 # 会前版本部署准备手册（未执行）
 
+> 2026-09-20 MVP 第一批范围和最短正式准备顺序以 `docs/MVP_DEPLOYMENT_PREPARATION_CHECKLIST.md` 为准。本文件仍记录后续聊天室、正式咨询及完整专业支持的较广门槛；正式操作均未获本轮授权。
+
 功能分支 `codex/teacher-review-product-realignment`；目标是下一轮独立审批后的 PR 与候选部署。本轮不能 merge、部署、改正式变量、执行正式 Migration 或修复真实关系。具体提交 hash 在分主题提交完成后从 `git log` 填入 PR，禁止把本手册当成生产执行授权。
 
-2026-09-19 远端状态：本地分主题提交已形成，`git push` 因 GitHub 443 连接失败而未成功；不能创建 PR 或开始部署。先恢复网络，再运行 `git push -u origin codex/teacher-review-product-realignment` 并核对远端 HEAD 与本地一致。
+2026-09-20 远端状态：用户已确认前 5 个隔离修复提交推送至 `bea7009`。新产生的 MVP 准备提交仍须单独推送并创建 Draft PR；推送本身不授权合并或部署。
 
 ## 环境与开关
 
@@ -20,7 +22,7 @@
 ## PR 与部署顺序
 
 1. 从本分支向 `main` 建 draft PR，附上本手册、测试结果与明确未完成项；由代码、产品、学校和隐私负责人分别审核。
-2. 在**独立 E2E 项目**先按下面顺序执行迁移与 fixture，运行浏览器、直接 Data API、RLS、旧 session、Storage 和删除测试。本机隔离库已有合成角色、Storage 与生命周期证据，但历史 active 监护关系的迁移前旧 session 及最新授权迁移双路径重跑仍开放。
+2. 在**独立 E2E 项目**先按下面顺序执行迁移与 fixture，运行浏览器、直接 Data API、RLS、旧 session、Storage 和删除测试。本机已完成 MVP 范围的历史 active guardian 旧 session、最新授权迁移升级和注销专项；后续功能开放仍按其各自范围验收。
 3. 明确正式数据库变更批准和维护窗口后，先只读查询 `scripts/guardian-relationship-dry-run.sql`，记录预计影响行数和经授权的处理对象；不得将真实 ID、邮箱或心理内容写入 PR。
 4. 获得正式数据库单独授权后备份并按序应用迁移。安全迁移先于新版 API 上线，否则旧 RLS 仍可能允许历史家长关系读取，新 API 也会引用不存在的表。
 5. 对历史关系如需实际解除，取得**另一项明确数据修复授权**，逐行核对并使用 `scripts/guardian-relationship-repair.template.sql` 的事务流程。撤回监护依据同意会使该学生需要重新完成适用的本人同意；学校须事先通知并安排后续支持。
@@ -45,7 +47,7 @@
 
 ## 隔离 dry-run 与回滚
 
-在独立项目核对所有迁移版本和前后 schema，执行 `supabase db lint`、RLS advisor、角色矩阵与真实 SQL。2026-09-20 本地空库 54/54 与从 `20260827200713` 升级的 11 份待执行迁移通过，最终 schema 一致；随后因合成登录验证发现基础表缺少 `service_role` 和客户端必要 grant，新增 `20260919200001_grant_core_table_access.sql` 并在现有隔离库应用。当前 55 份迁移记录、55 张 `public` 表 RLS、显式授权、私有 bucket、关闭的种子房、安全 advisor 和 DB lint 均通过；**第 55 份加入后的空库与基线升级双路径尚待重跑**。16 个本机合成 Auth 账号已完成直接 RLS 4 允许/32 拒绝、四类人员范围、聊天室、Storage、支持事项、反馈并发和成年人注销测试；历史 active guardian 旧 session 与注销仍未通过，不能据此准备正式变更。生产 dry-run 仅做只读计数和 `BEGIN ... ROLLBACK` 事务预演，真实 `COMMIT` 要另行批准。迁移前保留数据库备份与应用镜像；DDL 的回滚必须由 DBA 评估依赖和数据保留，不能简单删表。历史关系修复在事务未提交前用 `ROLLBACK`；提交后不得自动恢复监护读取，应通过新批准的政策、同意和补偿迁移处理。应用异常按现有 `scripts/deploy-lighthouse.sh` 回退旧镜像，同时保持新开关关闭；若 RLS 安全迁移已生效，不能为了应用回退恢复家长访问。
+2026-09-20 本地空库 54/54 和先前升级重放通过；随后第 55 份基础授权迁移已在含合成历史 active 关系的已知基线上升级通过。RLS、授权、私有 bucket 与默认关闭的种子房已复核；迁移前 guardian 旧 session 升级后直接读取失权，历史关系未被静默删除，带历史关系的 guardian 与学生注销均通过。55 份空库重放和全部角色矩阵留给后续较广范围，不阻断本批 MVP 准备。正式生产必须先只读核对实际迁移历史与目标关系数量，另获数据库变更和关系修复授权。生产 dry-run 只做只读计数和 `BEGIN ... ROLLBACK` 事务预演，真实 `COMMIT` 要另行批准。迁移前保留数据库备份与应用镜像；DDL 的回滚须由 DBA 评估依赖和数据保留，不简单删表。历史关系修复提交后不得自动恢复监护读取。应用异常按现有 `scripts/deploy-lighthouse.sh` 回退旧镜像，同时保持新开关关闭；RLS 安全迁移已生效时，不能为了应用回退恢复家长访问。
 
 ## 上线后最小核验与人工条件
 
