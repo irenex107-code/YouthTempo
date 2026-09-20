@@ -6,6 +6,10 @@ import {
   loadPeerSpaceAccess,
   publicPeerSpaceAccess,
 } from "@/lib/peerSpaceAccess";
+import {
+  claimAdultPeerSpaceInvitation,
+  PEER_SPACE_INVITATIONS_API_ENABLED,
+} from "@/lib/peerSpaceInvitations";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
 function requestLocale(req: NextApiRequest) {
@@ -35,7 +39,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const decision = await loadPeerSpaceAccess(getSupabaseAdmin(), user.id);
+    const supabase = getSupabaseAdmin();
+    if (PEER_SPACE_INVITATIONS_API_ENABLED) {
+      await claimAdultPeerSpaceInvitation(supabase, user);
+    }
+    const decision = await loadPeerSpaceAccess(supabase, user.id);
     return res.status(200).json(publicPeerSpaceAccess(decision));
   } catch (error) {
     await reportOperationalError({
