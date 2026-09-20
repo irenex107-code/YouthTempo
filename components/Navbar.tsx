@@ -140,6 +140,8 @@ export function Navbar() {
     ? navItems.filter((item) => !roleEntryHrefs.has(item.href))
     : !signedIn
       ? navItems
+      : accountRole === "平台管理员"
+        ? navItems
       : navItems.filter(
           (item) => !roleEntryHrefs.has(item.href) || item.href === roleEntryHref,
         );

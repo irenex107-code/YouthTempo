@@ -1172,6 +1172,33 @@
       "unavailable": "The garden is temporarily unavailable. Please try again later."
     }
   },
+  "adminRolePreview": {
+    "metadata": { "title": "Explore role pages | YouthTempo" },
+    "action": "Preview role pages",
+    "label": "Platform administrator preview",
+    "title": "See what each role can access",
+    "description": "Switch between sample workspaces and explore page paths for students, guardians, teachers, and supporters. This uses illustrative content and does not change your account role.",
+    "back": "Back to admin",
+    "loading": "Checking platform administrator access…",
+    "deniedTitle": "Platform administrators only",
+    "deniedDescription": "Sign in with a platform administrator account. This preview does not grant access to any student's private information.",
+    "signIn": "Go to account sign-in",
+    "notice": "This preview shows sample workspaces and page links. It does not read or change private student, guardian, or teacher information, or submit content as another role.",
+    "chooseRole": "Choose a role to explore",
+    "exampleLabel": "Sample workspace · no real data",
+    "publicPages": "Explore related pages",
+    "publicPagesNote": "Pages open in a new tab so you can review their layout and guidance.",
+    "realAccessNote": "Private actions still use your actual administrator identity and API and RLS checks. Use separate role accounts in an isolated test environment to verify complete read and write flows.",
+    "pages": { "teen": "School student page", "adult": "Young adult page", "parent": "Parent page", "teacher": "Teacher page", "checkIn": "SWEET check-in", "garden": "Tempo Garden", "mood": "Mood Journal", "worry": "Worry Time", "community": "Community", "supportRequest": "Request support", "peerSpace": "Peer Space", "consultation": "Formal counselling", "talk": "SWEET Talk", "resources": "Support resources", "referral": "Find support", "apply": "Support staff application" },
+    "roles": {
+      "minor": { "title": "Student, ages 14–17", "workspace": "Student workspace", "description": "Notice how things are going, then reach a trusted person, school, or community resource.", "first": "Quick records and SWEET check-ins are always the student's choice.", "second": "A support request is assessed by people before a referral is made.", "third": "The moderated community is available; adult rooms and direct formal counselling booking are not." },
+      "adult": { "title": "Young adult, ages 18–25", "workspace": "Young adult workspace", "description": "Track rhythms, see the garden, and find support independently, without a guardian link.", "first": "After adult self-consent, users can save their own records.", "second": "Peer Space also requires an invitation, rule acceptance, and staff on duty. Its current availability is shown on the page.", "third": "Formal one-to-one counselling is still in preparation and cannot be requested directly." },
+      "guardian": { "title": "Parent or guardian", "workspace": "Parent workspace", "description": "The current pilot keeps parent education but does not open access to a child's private records.", "first": "Read about listening, reducing blame, and when to seek professional help.", "second": "Use SWEET Talk to explore supportive communication.", "third": "There is no current child linking or access to a child's SWEET, journal, messages, or support cases." },
+      "teacher": { "title": "Support teacher", "workspace": "Teacher workspace", "description": "Teachers work only with students assigned to them within their school.", "first": "The school confirms assignments; teachers cannot select any student themselves.", "second": "Records and received messages are visible only within their authorization.", "third": "Further support follows the school's responsibility and crisis escalation path." },
+      "schoolLead": { "title": "School lead", "workspace": "School administration workspace", "description": "School leads manage members and assignments within their own school, without cross-school access.", "first": "Maintain members and responsibility assignments for the school.", "second": "See authorized summaries and pending work within the school.", "third": "Duty hours, emergency contacts, and offline pathways still require human confirmation." },
+      "professional": { "title": "Professional and support staff", "workspace": "Support staff workspace", "description": "Applying, human approval, and assignment to a case are separate steps.", "first": "Application materials stay private and are reviewed by authorized people.", "second": "Counsellors, social workers, listening volunteers, and school duty teachers have different responsibilities.", "third": "Only approved staff assigned to a specific case can see the minimum necessary information." }
+    }
+  },
   "ageWorkspace": {
     "label": "My pathway",
     "minor": {

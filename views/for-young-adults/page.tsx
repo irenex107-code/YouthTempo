@@ -29,9 +29,6 @@ export default function ForYoungAdultsPage() {
               <div className="max-w-3xl p-5 sm:p-7 lg:p-9">
                 <div className="flex flex-wrap items-center gap-3">
                   <p className="eyebrow">{t("forYoungAdults.peerSpace.label")}</p>
-                  <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-bold text-sage-dark">
-                    {t("peerSpaceLive.label")}
-                  </span>
                 </div>
                 <h2 className="mt-5 text-2xl font-black tracking-[-0.025em] text-ink sm:text-3xl">
                   {t("forYoungAdults.peerSpace.title")}
