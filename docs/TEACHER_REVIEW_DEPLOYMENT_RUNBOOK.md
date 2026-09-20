@@ -1,5 +1,7 @@
 # 会前版本部署准备手册（未执行）
 
+> **2026-09-20 历史阶段说明：** 第一批网页此后已通过正式工作流部署；本文标题和下方“不能 merge/部署”的描述仅记录该功能分支当时的审批边界。当前代码、正式迁移和下一轮开放条件以 `ROADMAP.md`、`docs/MVP_DEPLOYMENT_PREPARATION_CHECKLIST.md` 及 `docs/TEACHER_MEETING_BRIEF_2026-09-20.md` 为准。本文件不是可直接执行的最新正式发布清单。
+
 > 2026-09-20 MVP 第一批范围和最短正式准备顺序以 `docs/MVP_DEPLOYMENT_PREPARATION_CHECKLIST.md` 为准。本文件仍记录后续聊天室、正式咨询及完整专业支持的较广门槛；正式操作均未获本轮授权。
 
 功能分支 `codex/teacher-review-product-realignment`；目标是下一轮独立审批后的 PR 与候选部署。本轮不能 merge、部署、改正式变量、执行正式 Migration 或修复真实关系。具体提交 hash 在分主题提交完成后从 `git log` 填入 PR，禁止把本手册当成生产执行授权。
@@ -14,6 +16,7 @@
 | `FORMAL_CONSULTATION_INTERNAL_ENABLED` | 未设置或 `false` | 内部许可测试，总开关 |
 | `FORMAL_CONSULTATION_TEST_USER_IDS` | 空 | 经批准的隔离测试账号 UUID，避免邮箱名单 |
 | `PEER_SPACE_ACCESS_API_ENABLED` | 未设置或 `false` | 成年人邀请/规则与聊天室资格 API |
+| `PEER_SPACE_INVITATIONS_API_ENABLED` | 未设置或 `false` | 管理员邮箱预邀与登录认领；需先应用对应迁移 |
 | `PEER_SPACE_STAFF_API_ENABLED` | 未设置或 `false` | 独立工作人员排班/房间状态 API |
 | `PEER_SPACE_AI_REVIEW_ENABLED` | 未设置或 `false` | 可选 AI 辅助分类；关闭时确定性风险识别仍运行 |
 
