@@ -52,6 +52,19 @@ a {
   color: #1f302c;
 }
 
+@keyframes garden-slide-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.garden-slide-enter {
+  animation: garden-slide-enter 320ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-slide-enter { animation: none; }
+}
+
 @layer components {
   .page-shell {
     @apply min-h-screen text-ink;

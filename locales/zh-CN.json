@@ -1113,11 +1113,36 @@
     "errors": { "loadFailed": "暂时无法加载想说的话。", "sendFailed": "暂时无法发送，请稍后再试。" }
   },
   "garden": {
-    "metadata": { "title": "青序花园 | YouthTempo" },
+    "metadata": { "title": "SWEET 花园 | YouthTempo" },
     "hero": {
-      "label": "青序花园",
+      "label": "SWEET 花园",
       "title": "每一次照顾自己，都算数",
       "description": "只记录你愿意停下来观察自己的时刻。心情、答案和漏记不会让植物失去成长。"
+    },
+    "intro": {
+      "eyebrow": "第一次来到 SWEET 花园",
+      "progress": "第 {{current}} / {{total}} 页",
+      "slides": {
+        "first": {
+          "title": "欢迎来到你的 SWEET 花园",
+          "description": "这里是一块只属于你的安静角落。每次愿意停下来看看自己的状态，都可以留下一点成长的痕迹。",
+          "note": "你的记录是私人的；花园不会给心情打分。"
+        },
+        "second": {
+          "title": "一滴水，来自一次参与",
+          "description": "可以用轻量记录选出此刻的感受，也可以做一次完整 SWEET。每次参与都会让植物向前生长。",
+          "note": "平稳、复杂、沉重或说不清楚，都同样算数。"
+        },
+        "third": {
+          "title": "按自己的节奏开始",
+          "description": "漏记不会让植物倒退。提醒可以关闭；想记录时再回来就好。现在可以用一个简单的选择，记下此刻。",
+          "note": "花园帮助你观察自己，不提供诊断或实时人工支持。"
+        }
+      },
+      "skip": "跳过介绍",
+      "previous": "上一页",
+      "next": "下一页",
+      "start": "开始第一次记录"
     },
     "stage": {
       "seed": "一颗种子",
@@ -1189,7 +1214,7 @@
     "publicPages": "查看相关页面",
     "publicPagesNote": "页面会在新标签打开，供你查看布局与说明。",
     "realAccessNote": "私密操作仍按你真实的管理员身份由 API 和 RLS 判断；完整读写流程请在隔离测试环境使用对应角色账号。",
-    "pages": { "teen": "中学生入口", "adult": "大学生与青年入口", "parent": "家长入口", "teacher": "老师入口", "checkIn": "SWEET 记录", "garden": "青序花园", "mood": "心情拼图", "worry": "担忧整理", "community": "家校医社区", "supportRequest": "我需要支持", "peerSpace": "解忧室", "consultation": "正式心理咨询", "talk": "SWEET Talk", "resources": "支持资源", "referral": "支持路径", "apply": "支持人员申请" },
+    "pages": { "teen": "中学生入口", "adult": "大学生与青年入口", "parent": "家长入口", "teacher": "老师入口", "checkIn": "SWEET 记录", "garden": "SWEET 花园", "mood": "心情拼图", "worry": "担忧整理", "community": "家校医社区", "supportRequest": "我需要支持", "peerSpace": "解忧室", "consultation": "正式心理咨询", "talk": "SWEET Talk", "resources": "支持资源", "referral": "支持路径", "apply": "支持人员申请" },
     "roles": {
       "minor": { "title": "14–17 岁学生", "workspace": "学生工作台", "description": "先观察自己的状态，再联系可信任的人、学校或社区资源。", "first": "轻量记录和 SWEET 都由本人决定何时完成。", "second": "需要支持时先提交需要，再由人员评估与转介。", "third": "可以进入审核社区；不能进入成年人聊天室或直接预约正式咨询。" },
       "adult": { "title": "18–25 岁用户", "workspace": "成年人工作台", "description": "独立记录节律、查看花园和支持资源，不建立监护关系。", "first": "完成成年本人确认后，可以保存自己的记录。", "second": "解忧室还需有效邀请、规则确认和有人值守；当前正式开放状态以页面提示为准。", "third": "正式一对一心理咨询仍在准备中，不能直接创建服务事项。" },

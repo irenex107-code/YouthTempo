@@ -1113,11 +1113,36 @@
     "errors": { "loadFailed": "Your messages could not be loaded right now.", "sendFailed": "Your message could not be sent. Please try again later." }
   },
   "garden": {
-    "metadata": { "title": "Tempo Garden | YouthTempo" },
+    "metadata": { "title": "SWEET Garden | YouthTempo" },
     "hero": {
-      "label": "Tempo Garden",
+      "label": "SWEET Garden",
       "title": "Every moment of care counts",
       "description": "A quiet place to notice your own rhythms. Your mood, answers, and missed days never make your plant lose growth."
+    },
+    "intro": {
+      "eyebrow": "Your first visit to the SWEET Garden",
+      "progress": "Page {{current}} of {{total}}",
+      "slides": {
+        "first": {
+          "title": "Welcome to your SWEET Garden",
+          "description": "This is a quiet space of your own. Each time you pause to notice how you are doing, you can leave a small sign of growth.",
+          "note": "Your records are private. The garden never scores your mood."
+        },
+        "second": {
+          "title": "One moment of participation, one drop of water",
+          "description": "Choose how you feel in a quick check-in, or complete a full SWEET check-in. Either way, taking part helps your plant grow.",
+          "note": "Steady, mixed, heavy, or unsure all count equally."
+        },
+        "third": {
+          "title": "Begin at your own pace",
+          "description": "Missing a day never sets your plant back. You can turn reminders off and return whenever you wish. Start by choosing how you feel right now.",
+          "note": "The garden supports reflection. It does not provide a diagnosis or live support."
+        }
+      },
+      "skip": "Skip introduction",
+      "previous": "Previous",
+      "next": "Next",
+      "start": "Start my first check-in"
     },
     "stage": {
       "seed": "A seed",
@@ -1189,7 +1214,7 @@
     "publicPages": "Explore related pages",
     "publicPagesNote": "Pages open in a new tab so you can review their layout and guidance.",
     "realAccessNote": "Private actions still use your actual administrator identity and API and RLS checks. Use separate role accounts in an isolated test environment to verify complete read and write flows.",
-    "pages": { "teen": "School student page", "adult": "Young adult page", "parent": "Parent page", "teacher": "Teacher page", "checkIn": "SWEET check-in", "garden": "Tempo Garden", "mood": "Mood Journal", "worry": "Worry Time", "community": "Community", "supportRequest": "Request support", "peerSpace": "Peer Space", "consultation": "Formal counselling", "talk": "SWEET Talk", "resources": "Support resources", "referral": "Find support", "apply": "Support staff application" },
+    "pages": { "teen": "School student page", "adult": "Young adult page", "parent": "Parent page", "teacher": "Teacher page", "checkIn": "SWEET check-in", "garden": "SWEET Garden", "mood": "Mood Journal", "worry": "Worry Time", "community": "Community", "supportRequest": "Request support", "peerSpace": "Peer Space", "consultation": "Formal counselling", "talk": "SWEET Talk", "resources": "Support resources", "referral": "Find support", "apply": "Support staff application" },
     "roles": {
       "minor": { "title": "Student, ages 14–17", "workspace": "Student workspace", "description": "Notice how things are going, then reach a trusted person, school, or community resource.", "first": "Quick records and SWEET check-ins are always the student's choice.", "second": "A support request is assessed by people before a referral is made.", "third": "The moderated community is available; adult rooms and direct formal counselling booking are not." },
       "adult": { "title": "Young adult, ages 18–25", "workspace": "Young adult workspace", "description": "Track rhythms, see the garden, and find support independently, without a guardian link.", "first": "After adult self-consent, users can save their own records.", "second": "Peer Space also requires an invitation, rule acceptance, and staff on duty. Its current availability is shown on the page.", "third": "Formal one-to-one counselling is still in preparation and cannot be requested directly." },

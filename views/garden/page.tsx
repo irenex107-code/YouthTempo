@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import {
@@ -14,6 +14,12 @@ import { useTranslation } from "@/lib/i18n/client";
 type Feeling = "steady" | "mixed" | "heavy" | "unsure";
 const feelings: Feeling[] = ["steady", "mixed", "heavy", "unsure"];
 const reminderModes: TempoGardenData["reminderMode"][] = ["off", "daily", "weekly"];
+const introStages: TempoGardenData["stage"][] = ["seed", "sprout", "bloom"];
+const introKeys = ["first", "second", "third"] as const;
+
+function introStorageKey(userId: string) {
+  return `youthtempo:garden:intro:v1:${userId}`;
+}
 
 function GardenPlant({ stage }: { stage: TempoGardenData["stage"] }) {
   const hasSprout = stage !== "seed";
@@ -54,23 +60,50 @@ export default function GardenPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [feedbackTrigger, setFeedbackTrigger] = useState(0);
+  const [introUserId, setIntroUserId] = useState("");
+  const [showIntro, setShowIntro] = useState(false);
+  const [introStep, setIntroStep] = useState(0);
+  const quickTitleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setData(null);
+    setSignedOut(false);
     getCurrentUser()
       .then(async (user) => {
         if (!user) {
           if (active) setSignedOut(true);
           return null;
         }
-        return getTempoGarden(locale);
+        const garden = await getTempoGarden(locale);
+        if (active) {
+          setIntroUserId(user.id);
+          let introSeen = false;
+          try {
+            introSeen = window.localStorage.getItem(introStorageKey(user.id)) === "seen";
+          } catch {
+            // A blocked browser store should not prevent a first visit.
+          }
+          setShowIntro(garden.total === 0 && !introSeen);
+          setData(garden);
+        }
+        return null;
       })
-      .then((garden) => { if (active && garden) setData(garden); })
       .catch(() => { if (active) setError(t("garden.status.unavailable")); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [locale, t]);
+
+  function finishIntro() {
+    try {
+      window.localStorage.setItem(introStorageKey(introUserId), "seen");
+    } catch {
+      // The form is still usable if browser storage is unavailable.
+    }
+    setShowIntro(false);
+    window.requestAnimationFrame(() => quickTitleRef.current?.focus());
+  }
 
   async function submitCheckIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -120,8 +153,37 @@ export default function GardenPage() {
           {signedOut ? <p><Link href="/account" className="button-primary">{t("garden.status.signIn")}</Link></p> : null}
           {error ? <p role="alert" className="rounded-xl bg-white p-4 text-sm text-sage-dark">{error}</p> : null}
           {notice ? <p role="status" className="rounded-xl bg-mint p-4 text-sm text-sage-dark">{notice}</p> : null}
-          <MicroPilotFeedback feature="quick_check_in" trigger={feedbackTrigger} />
-          {data ? (
+          {data && showIntro ? (
+            <section className="card min-w-0 overflow-hidden lg:col-span-2" aria-labelledby="garden-intro-title">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="eyebrow">{t("garden.intro.eyebrow")}</p>
+                <p className="text-sm font-semibold text-muted">{t("garden.intro.progress", { current: introStep + 1, total: introStages.length })}</p>
+              </div>
+              <div className="mt-5 flex gap-2" aria-hidden="true">
+                {introStages.map((stage, index) => <span key={stage} className={`h-1.5 flex-1 rounded-full ${index <= introStep ? "bg-sage-dark" : "bg-sage/20"}`} />)}
+              </div>
+              <div className="mt-6" aria-live="polite" aria-atomic="true">
+                <div key={introStep} className="garden-slide-enter grid min-h-[20rem] items-center gap-6 rounded-[1.5rem] bg-mist/60 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+                  <div>
+                    <h2 id="garden-intro-title" className="text-3xl font-bold leading-tight text-ink sm:text-4xl">{t(`garden.intro.slides.${introKeys[introStep]}.title`)}</h2>
+                    <p className="mt-5 max-w-xl text-base leading-8 text-muted">{t(`garden.intro.slides.${introKeys[introStep]}.description`)}</p>
+                    <p className="mt-5 max-w-xl rounded-2xl bg-paper/80 px-4 py-3 text-sm leading-7 text-sage-dark">{t(`garden.intro.slides.${introKeys[introStep]}.note`)}</p>
+                  </div>
+                  <div className="rounded-[1.5rem] bg-paper/80 p-4" aria-hidden="true"><GardenPlant stage={introStages[introStep]} /></div>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <button type="button" className="text-sm font-semibold text-sage-dark underline underline-offset-4" onClick={finishIntro}>{t("garden.intro.skip")}</button>
+                <div className="flex flex-wrap gap-3">
+                  {introStep > 0 ? <button type="button" className="button-secondary" onClick={() => setIntroStep((step) => step - 1)}>{t("garden.intro.previous")}</button> : null}
+                  {introStep < introStages.length - 1
+                    ? <button type="button" className="button-primary" onClick={() => setIntroStep((step) => step + 1)}>{t("garden.intro.next")}</button>
+                    : <button type="button" className="button-primary" onClick={finishIntro}>{t("garden.intro.start")}</button>}
+                </div>
+              </div>
+            </section>
+          ) : null}
+          {data && !showIntro ? (
             <>
               <section className="card min-w-0 text-center" aria-labelledby="garden-stage-title">
                 <GardenPlant stage={data.stage} />
@@ -136,7 +198,7 @@ export default function GardenPage() {
               </section>
               <div className="grid min-w-0 gap-6">
                 <section className="card" aria-labelledby="garden-quick-title">
-                  <h2 id="garden-quick-title" className="text-xl font-bold text-ink">{t("garden.quick.title")}</h2>
+                  <h2 id="garden-quick-title" ref={quickTitleRef} tabIndex={-1} className="text-xl font-bold text-ink">{t("garden.quick.title")}</h2>
                   <p className="mt-2 text-sm leading-7 text-muted">{t("garden.quick.description")}</p>
                   <form onSubmit={submitCheckIn} className="mt-5 grid gap-3">
                     <fieldset className="grid gap-3">
@@ -166,6 +228,7 @@ export default function GardenPage() {
               </div>
             </>
           ) : null}
+          {feedbackTrigger > 0 ? <div className="lg:col-span-2"><MicroPilotFeedback feature="quick_check_in" trigger={feedbackTrigger} /></div> : null}
         </div>
       </main>
     </>

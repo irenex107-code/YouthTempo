@@ -96,6 +96,12 @@ A short SWEET-based reflection that helps users review the day, receive a struct
 
 基于 SWEET 的简短日常梳理，帮助用户回顾当天状态、获得结构化小结，并在符合条件时保存历史记录。
 
+### SWEET Garden / SWEET 花园
+
+A private garden that grows with participation in quick check-ins and full SWEET reflections. On a first visit with no existing records, three short, manually advanced introduction pages explain the garden before the first check-in. The introduction can be skipped; it is remembered per account in that browser. Mood choices and missed days never reduce growth. Reminder preferences do not send push notifications or email.
+
+这是一个按轻量记录与完整 SWEET 参与次数成长的私人花园。没有既有记录的用户首次进入时，会先看到三页可手动切换的介绍，再开始第一次记录；介绍也可跳过，并按账号在当前浏览器记住。情绪选项和漏记不会让植物倒退；提醒偏好目前不发送推送或邮件。
+
 ### Mood Journal
 
 Helps users name emotions, organize an experience, and find words for asking for support.
