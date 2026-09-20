@@ -1,14 +1,14 @@
 # YouthTempo
 
-> Project Documentation v2.1 · 项目文档 v2.1
+> Project documentation · 项目说明（当前范围以 `ROADMAP.md` 为准，2026-09-20 核对）
 
 YouthTempo is a bilingual youth mental health support platform preparing for a small-scale school pilot. It helps young people understand emotions, build healthier everyday rhythms, and reach appropriate support before challenges become crises.
 
 YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健康支持平台。它帮助年轻人理解情绪、建立更健康的日常节律，并在困扰恶化为危机之前连接到合适的支持。
 
-**Pilot focus:** young people aged 14–18, together with guardians, teachers, school leads, platform administrators, and verified professional supporters.
+**Pilot focus:** a staged small-scale pilot. Young people aged 14–17 have a self-directed path and adults have an independent 18+ path; the planned staffed Peer Space additionally requires an invitation. School, guardian, and professional participation follows separate authorization and operational decisions.
 
-**试点重点：**14–18 岁青少年，以及与他们相关的家长、老师、学校负责人、平台管理员和经过验证的专业支持者。
+**试点重点：**分阶段开展小规模试点。14–17 岁有自主使用路径，成年人有独立的 18 岁以上路径；拟开放的有人值守解忧室还须邀请资格。学校、家长和专业人员参与须分别完成授权与运营决定。
 
 [Visit the YouthTempo pilot site](https://youthtempo.com)
 
@@ -16,9 +16,9 @@ YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健
 
 ## 1. Project Overview
 
-YouthTempo brings self-reflection, everyday rhythm awareness, and human support pathways into one calm, accessible experience. Young people can complete a SWEET check-in, use guided tools to organize emotions and worries, review their history, and decide when to reach out. Authorized family and school participants receive role-appropriate views without replacing the young person's own voice.
+YouthTempo brings self-reflection, everyday rhythm awareness, and human support pathways into one calm, accessible experience. Young people can complete a SWEET check-in, use guided tools to organize emotions and worries, review their history, and decide when to reach out. School and professional support is limited to approved relationships and service scope. The current pilot policy is to withhold guardian access to a young person's private records; production database and historical-relationship closure remain acceptance items.
 
-YouthTempo 将自我梳理、日常节律觉察和现实求助路径放进一个平静、易用的体验中。年轻人可以完成 SWEET 日常记录，借助引导工具整理情绪与担忧，查看自己的历史变化，并判断何时需要向他人求助。获得授权的家庭和学校成员会看到与自身职责相符的信息，同时保留年轻人作为主体的表达空间。
+YouthTempo 将自我梳理、日常节律觉察和现实求助路径放进一个平静、易用的体验中。年轻人可以完成 SWEET 日常记录，借助引导工具整理情绪与担忧，查看自己的历史变化，并判断何时需要向他人求助。学校与专业人员只在获批关系和服务范围内参与；当前试点政策是不向家长开放学生私有记录，正式数据库及历史关系的收口仍待验收。
 
 The project is built for pilot learning rather than large-scale commercial claims. Its current purpose is to test usability, safety, data boundaries, and collaboration across young people, families, schools, and professional support.
 
@@ -50,21 +50,21 @@ YouthTempo 不诊断、治疗或治愈心理疾病。它的作用是支持觉察
 
 ## 4. Target Users
 
-- **Young people aged 14–18:** the primary school-pilot users, completing check-ins and using support tools.
-- **Guardians:** viewing information for linked young people within confirmed relationships and consent boundaries.
+- **Young people aged 14–17:** using self-directed check-ins, reflection, and controlled support pathways during the current pilot preparation.
+- **Guardians:** using public education and SWEET Talk; private student-record access is closed in the current pilot.
 - **Teachers and school support staff:** following assigned students, changes over time, and messages requiring attention.
 - **School leads:** reviewing school-level participation and trends without making individual records the default view.
 - **Platform administrators:** managing schools, safety operations, permissions, and audit workflows.
 - **Verified professional supporters:** participating through a controlled verification and review process.
-- **Young adults aged 18–25:** an additional independent-use pathway outside the core school pilot.
+- **Adults, with an initial 18–25 pilot focus:** using an independent path; eligibility for the future staffed Peer Space requires a verified invitation and separate operational readiness.
 
-- **14–18 岁青少年：**学校试点的核心用户，完成日常记录并使用支持工具。
-- **家长：**在已确认的关联关系和同意边界内，查看关联孩子的信息。
+- **14–17 岁青少年：**在当前试点准备中自主记录、梳理，并通过受控路径寻求支持。
+- **家长：**使用公开教育内容和 SWEET Talk；当前试点不开放孩子私有记录读取。
 - **老师与学校支持人员：**关注本人负责的学生、阶段变化和需要了解的来信。
 - **学校负责人：**查看学校层面的参与情况和趋势，而不是默认浏览每个学生的原始记录。
 - **平台管理员：**管理学校、安全运营、权限和审计流程。
 - **经过验证的专业支持者：**通过受控的资质提交和审核流程参与平台。
-- **18–25 岁青年：**在学校试点之外，使用独立的成年人入口。
+- **成年人（首批试点以 18–25 岁为重点）：**使用独立入口；未来有人值守的解忧室还要求经核验的邀请及单独的运营准备。
 
 ## 5. SWEET Model
 
@@ -104,9 +104,9 @@ Helps users name emotions, organize an experience, and find words for asking for
 
 ### Talk
 
-A brief, supportive AI conversation for making one difficult situation feel clearer, with defined boundaries and urgent-support guidance.
+A legacy conversation route kept closed for young people in the first school pilot. It is not a currently offered AI chat service.
 
-通过简短、支持性的 AI 对话，帮助用户把眼前最困扰的一件事说清楚一点，同时保留明确的能力边界和紧急求助提示。
+旧版 AI 对话入口在首轮学校试点关闭，当前不作为面向青少年的可用聊天服务。
 
 ### Worry Time
 
@@ -126,11 +126,17 @@ Email OTP authentication, personal SWEET history, profile management, consent st
 
 提供 Email OTP 登录、个人 SWEET 历史、资料管理、同意状态、数据导出和账户注销入口。
 
+### Tempo Garden / 青序花园
+
+A private, low-pressure record of participation in light check-ins and SWEET, with optional reminders and no penalty for missed days.
+
+私有、低压力地记录轻量打卡与 SWEET 参与，可自行关闭提醒，不因漏记受到惩罚。
+
 ### Messages
 
-A permission-aware channel connecting young people with authorized adults, including anonymous-to-recipient options and safety review where needed.
+A permission-aware channel for writing to oneself or an assigned teacher, including anonymous-to-recipient options and safety review where needed. Sending to guardians is closed in the current pilot.
 
-为青少年与获得授权的成年人提供有权限边界的沟通渠道，并支持对收件人匿名及必要的安全复核。
+供青少年写给自己或已分配老师的受控渠道，并支持对收件人匿名及必要的安全复核；当前试点关闭家长收件。
 
 ### Community
 
@@ -140,9 +146,15 @@ A role-scoped space for supportive posts and comments, with configurable visibil
 
 ### School & Support Workspaces
 
-Role-specific views for guardians, assigned teachers, school leads, platform administrators, and verified professional supporters.
+Role-specific views for assigned teachers, school leads, and platform administrators. Guardian and professional interfaces do not imply that private student-data access is currently approved.
 
-为家长、负责老师、学校负责人、平台管理员和经过验证的专业支持者提供与职责相匹配的工作界面。
+为负责老师、学校负责人和平台管理员提供按职责划分的工作界面；保留的家长或专业人员界面不代表当前已批准读取学生私有数据。
+
+### Adult Peer Space / 成年人解忧室
+
+The planned first room is an invitation-only, staffed group chat for eligible adults. The pilot organizer privately verifies adult and, when claimed, university-student eligibility; an administrator records the confirmed login email and an optional school. The email-invitation workbench is implemented locally but is not published or migrated to production. A reachable page does not mean the chat service is open.
+
+首期拟向符合资格的成年人提供邀请制、有人值守的群聊。试点发起人私下核验成年及声称的大学生资格，管理员记录已确认的登录邮箱，学校可选填。邮箱预邀工作台目前只在本地实现，尚未发布或应用正式数据库迁移；网页可打开不代表聊天服务已开放。
 
 ### Bilingual Experience
 
@@ -152,9 +164,9 @@ Chinese and English support across the public website, core authenticated experi
 
 ## 7. AI Support Philosophy
 
-YouthTempo uses AI only to create a faithful summary of the current SWEET Check-in or Mood Journal record. Optional actions, next tools, and support routes come from fixed rules or the user's own words; Worry Time and Referral are rule-based, and youth AI Talk is closed during the first school pilot.
+For public reflection tools, YouthTempo uses AI only to create a faithful summary of the current SWEET Check-in or Mood Journal record. Optional actions, next tools, and support routes come from fixed rules or the user's own words; Worry Time and Referral are rule-based, and youth AI Talk is closed during the first school pilot. Proposed content screening can assist human reviewers but cannot make final safety or professional decisions.
 
-YouthTempo 只使用 AI 忠实生成本次 SWEET 节律记录或心情拼图的小结。可选行动、下一工具和支持路径来自固定规则或用户原文；Worry Time 与 Referral 使用固定规则，青少年 AI Talk 在首轮学校试点关闭。
+在公开自我梳理工具中，YouthTempo 只使用 AI 忠实生成本次 SWEET 节律记录或心情拼图的小结。可选行动、下一工具和支持路径来自固定规则或用户原文；Worry Time 与 Referral 使用固定规则，青少年 AI Talk 在首轮学校试点关闭。拟用的内容预筛只能辅助人工复核，不能作最终安全或专业决定。
 
 AI is not treated as a therapist, clinician, decision-maker, or substitute for human relationships. Responses avoid diagnosis and exaggerated reassurance, remain grounded in what the user has shared, and direct users toward real-world support when digital assistance is no longer appropriate.
 
@@ -302,7 +314,7 @@ Landing page
     → SWEET Check-in
     → Non-diagnostic reflection and next step
     → Personal history
-    → Mood Journal / Talk / Worry Time
+    → Mood Journal / Worry Time / Tempo Garden
     → Messages or Referral when more support is needed
 ```
 
@@ -313,23 +325,27 @@ Landing page
     → SWEET 日常记录
     → 查看非诊断性小结和下一步
     → 查看个人历史
-    → 使用 Mood Journal / Talk / Worry Time
+    → 使用心情拼图 / Worry Time / 青序花园
     → 需要更多支持时使用 Messages 或 Referral
 ```
 
 ### Connected support
 
-Guardians, teachers, and school leads sign in through the same authentication entry, then receive views based on verified relationships and responsibilities. They do not receive unrestricted access to all young people's data.
+Assigned teachers and school leads sign in through the same authentication entry and receive only approved views. Guardians can use public education and SWEET Talk; private student records are outside the current pilot policy. A separate adult Peer Space invitation does not create school membership or guardian access.
 
-家长、老师和学校负责人通过同一身份认证入口登录，之后根据已确认的关系和职责看到相应界面，而不会获得对所有青少年数据的无限制访问。
+已分配老师和学校负责人通过同一身份认证入口登录，只能看到获批范围内的信息。家长可使用公开教育与 SWEET Talk；当前试点政策不向家长开放学生私有记录。成年解忧室邀请也不会自动创建学校成员或监护访问关系。
 
 ## 14. Development Status
 
-### Implemented and verified for the current pilot scope / 当前试点范围内已实现并完成验证
+### Deployed first batch and existing technical foundation / 已部署的第一批与现有技术基础
+
+The deployed first batch includes age-specific entry and workspace guidance, non-diagnostic SWEET and personal trends, Tempo Garden, public guardian education, light check-ins and optional pilot feedback. A deployed page or retained database structure is not, by itself, approval to enroll real students or open a staffed service.
+
+已部署的第一批包括年龄分流入口与工作台说明、非诊断性 SWEET 和个人趋势、青序花园、家长公开教育、轻量记录和可跳过的试点反馈。页面已部署或数据库结构仍保留，不等于真实学生入组或有人值守服务已获准开放。
 
 - SWEET generation, cloud records, history, and deletion.
-- Role-specific experiences for students, guardians, teachers, school leads, and platform administrators.
-- School, teacher–student, and guardian–student relationship boundaries.
+- Role-specific interfaces for students, teachers, school leads, and platform administrators; retained guardian interfaces have no current pilot approval for private student records.
+- School and teacher–student boundaries; historical guardian relationship structures require the production RLS and data review described in `ROADMAP.md`.
 - Community visibility, reporting, moderation, blocking, and restrictions.
 - Server-controlled profile roles and client role-mutation protection.
 - Chinese and English public pages and core authenticated experiences.
@@ -342,8 +358,8 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - Daily encrypted backup on the Hong Kong server and restricted off-site synchronization, with two consecutive successful runs and checksum verification.
 
 - SWEET 生成、云端记录、历史查看和删除。
-- 学生、家长、老师、学校负责人和平台管理员的角色体验。
-- 学校、老师—学生和家长—孩子关系边界。
+- 学生、老师、学校负责人和平台管理员的角色界面；保留的家长界面当前不获准读取学生私有记录。
+- 学校与老师—学生关系边界；历史家长关系结构还需按 `ROADMAP.md` 完成正式 RLS 和数据核对。
 - 社区可见范围、举报、审核、屏蔽和限制。
 - 服务端角色控制和客户端角色篡改保护。
 - 中英文公开页面和核心登录后体验。
@@ -357,6 +373,9 @@ Guardians, teachers, and school leads sign in through the same authentication en
 
 ### In progress before or during pilot operations / 试点前或试点运营期间仍在推进
 
+- Adult Peer Space: local email-invitation administration, confirmed-email claim, rule acceptance, and staffing foundations exist; full isolated Auth/permission testing, production migration, release, named duty staff, and opening remain separate steps. The first room stays closed.
+- Human support: four staff categories, case continuity, and dark-launched formal consultation require qualified people, approved scopes, school responsibilities, and isolated end-to-end verification before use.
+- Current guardian policy: deny new links and private-record access; check and resolve historical active relationships and production RLS before treating that boundary as complete.
 - Recovery closure: real Email OTP/session validation on the isolated recovery application, cross-day backup observation, external failure alerts, and complete business RPO/RTO validation.
 - Final external alert receiver and controlled failure validation for login, save, AI, and community paths.
 - Manual acceptance on physical iPhone, Android, and WeChat in-app browsers.
@@ -364,6 +383,9 @@ Guardians, teachers, and school leads sign in through the same authentication en
 - Signed guardian-access policy and confirmed school crisis-escalation contacts, duty hours, and offline response path.
 - Production enablement and real delivery validation for the student-only pilot duty queue, including a backup duty contact and an offline path.
 
+- 成年人解忧室：本地已有邮箱预邀管理、确认邮箱认领、规则确认和值班基础；完整隔离环境 Auth/权限验收、正式迁移、发布、具名值班和开放仍是独立步骤。首个房间保持关闭。
+- 真人支持：四类人员、支持事项连续性和暗上线正式咨询，仍需真实合格人员、获批服务范围、学校职责及隔离端到端验收。
+- 当前家长政策：不新增关联、不开放学生私有记录；历史 active 关系和正式 RLS 核对处理完成前，不能把该边界标为闭环。
 - 恢复闭环收口：隔离恢复应用真实 Email OTP/session、跨日备份观察、外部失败告警和完整业务 RPO/RTO 验收。
 - 正式外部告警接收端，以及登录、保存、AI、社区四类受控失败验收。
 - iPhone、安卓和微信内置浏览器真机验收。
@@ -373,21 +395,21 @@ Guardians, teachers, and school leads sign in through the same authentication en
 
 ## 15. Roadmap
 
-YouthTempo's roadmap prioritizes pilot readiness over feature expansion:
+YouthTempo's roadmap prioritizes a safe, staged pilot over feature expansion:
 
-1. Close Email OTP delivery, recovery-operation, and external-alert conditions.
-2. Complete signed policy, school-response, and physical-device acceptance.
-3. Run a small, consent-based school pilot and collect role-specific feedback.
-4. Review usability, safety operations, participation patterns, and data governance before expanding scope.
-5. Improve infrastructure, documentation, and partner workflows based on pilot evidence.
+1. Close Email OTP delivery, recovery, external alerts, policy, school-response, and physical-device conditions for real participation.
+2. Verify the invitation flow with synthetic accounts in an isolated Supabase project; separately approve production migration and release.
+3. Staff and rehearse the adult Peer Space before considering an invitation-only opening; do not treat a confirmed email or visible page as operational readiness.
+4. Run small, consent-based youth and adult pilots and study usability, perceived safety, sustained participation, and real-world support handoffs.
+5. Decide guardian sharing, professional evaluation, formal consultation, and any minor Peer Space only after the required school, privacy, professional, and safety review.
 
-YouthTempo 的路线图优先保障试点可用，而不是继续堆叠功能：
+YouthTempo 的路线图优先保障分阶段试点安全，而不是继续堆叠功能：
 
-1. 收口 Email OTP 投递、恢复运行和外部告警条件。
-2. 完成政策签署、学校应急路径和真机验收。
-3. 在知情同意基础上开展小规模学校试点，并收集不同角色的反馈。
-4. 在扩大范围前，复盘易用性、安全运营、参与情况和数据治理。
-5. 根据试点证据继续完善基础设施、文档和合作流程。
+1. 收口真实参与所需的 Email OTP 投递、恢复、外部告警、政策、学校应急和真机条件。
+2. 在隔离 Supabase 用虚构账号验收邮箱邀请，再分别审批正式迁移和发布。
+3. 为成年人解忧室安排真实人员并演练后，才考虑邀请制开放；邮箱已确认或页面可见都不等于运营就绪。
+4. 在知情同意基础上开展小规模青少年与成年人试点，观察易用性、感到安全与否、持续参与及现实支持交接。
+5. 家长未来分享、专业人员评价、正式咨询和未成年人解忧室，均在学校、隐私、专业和安全审议后分别决定。
 
 Current priorities and acceptance criteria are maintained in [`ROADMAP.md`](./ROADMAP.md).
 
