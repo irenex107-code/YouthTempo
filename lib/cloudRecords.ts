@@ -587,12 +587,14 @@ export async function listCloudSweetRecords(ownerUserId?: string) {
 
 export type TempoGardenData = {
   stage: "seed" | "sprout" | "leaves" | "bloom";
+  sceneLevel: "base" | "settled" | "mature";
   total: number;
   thisWeek: number;
   thisMonth: number;
   quickCheckIns: number;
   fullSweetRecords: number;
-  recentRhythm: string | null;
+  todayParticipated: boolean;
+  unlockedPositions: Array<"flower_border" | "hill_path" | "pond_edge" | "bench_corner">;
   reminderMode: "off" | "daily" | "weekly";
 };
 

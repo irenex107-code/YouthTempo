@@ -200,10 +200,6 @@ export default function GardenPage() {
                 <p className="mt-3 text-sm text-muted">{t("garden.stats.week", { count: data.thisWeek })}</p>
                 <p className="mt-1 text-sm text-muted">{t("garden.stats.month", { count: data.thisMonth })}</p>
                 <p className="mt-1 text-xs text-muted">{t("garden.stats.total", { count: data.total })}</p>
-                <div className="mt-6 rounded-2xl bg-mist/60 p-4 text-left">
-                  <h3 className="font-bold text-ink">{t("garden.rhythm.title")}</h3>
-                  <p className="mt-2 break-words text-sm leading-7 text-muted">{data.recentRhythm || t("garden.rhythm.empty")}</p>
-                </div>
               </section>
               <div className="grid min-w-0 gap-6">
                 <section className="card" aria-labelledby="garden-quick-title">

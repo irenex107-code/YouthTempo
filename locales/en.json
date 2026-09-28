@@ -1166,10 +1166,6 @@
       "saved": "This moment is saved.",
       "saving": "Saving…"
     },
-    "rhythm": {
-      "title": "A recent rhythm you noticed",
-      "empty": "After a full SWEET check-in, your own rhythm summary will appear here."
-    },
     "reminders": {
       "title": "Reminder preference",
       "description": "Daily or weekly is only a suggestion. Record anytime or turn reminders off. This saves an in-app preference; no push or email is sent.",

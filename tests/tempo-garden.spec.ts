@@ -1,7 +1,13 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
-import { gardenSummary, gardenStage, shanghaiDateKey } from "@/lib/tempoGarden";
+import {
+  gardenSceneLevel,
+  gardenSummary,
+  gardenStage,
+  participationDateKeys,
+  shanghaiDateKey,
+} from "@/lib/tempoGarden";
 
 const projectRef = new URL(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co",
@@ -52,7 +58,8 @@ async function useIllustrativeGarden(page: Page, initialTotal = 0, loadStatus = 
       contentType: "application/json",
       body: JSON.stringify({
         stage: total > 0 ? "sprout" : "seed", total, thisWeek: total, thisMonth: total,
-        quickCheckIns: total, fullSweetRecords: 0, recentRhythm: null, reminderMode: "off",
+        sceneLevel: "base", quickCheckIns: total, fullSweetRecords: 0,
+        todayParticipated: total > 0, unlockedPositions: [], reminderMode: "off",
       }),
     });
   });
@@ -69,6 +76,55 @@ test("花园只按参与成长，答案好坏不改变奖励", () => {
     [{ ...sweet[0], score: 100 }],
     new Date("2026-09-19T12:00:00Z"),
   )).toEqual(gardenSummary(quick, sweet, new Date("2026-09-19T12:00:00Z")));
+});
+
+test("同一上海日历日的记录只算一个参与日", () => {
+  const now = new Date("2026-09-19T12:00:00Z");
+  const quick = [
+    { created_at: "2026-09-18T16:01:00Z" },
+    { created_at: "2026-09-19T09:00:00Z" },
+  ];
+  const sweet = [
+    { created_at: "2026-09-19T10:00:00Z" },
+    { created_at: "2026-09-17T16:00:00Z" },
+  ];
+
+  expect(participationDateKeys(quick, sweet, now)).toEqual(["2026-09-18", "2026-09-19"]);
+  expect(gardenSummary(quick, sweet, now)).toMatchObject({
+    total: 2,
+    thisWeek: 2,
+    thisMonth: 2,
+    todayParticipated: true,
+  });
+});
+
+test("参与日跨周跨月边界正确，未来记录不计入当前统计", () => {
+  const summary = gardenSummary([
+    { created_at: "2026-08-30T16:30:00Z" },
+    { created_at: "2026-08-31T16:30:00Z" },
+    { created_at: "2026-09-01T15:59:00Z" },
+    { created_at: "2026-09-01T16:01:00Z" },
+  ], [], new Date("2026-09-01T12:00:00Z"));
+
+  expect(summary).toMatchObject({ total: 2, thisWeek: 2, thisMonth: 1 });
+});
+
+test("成长节点保留四阶段主植物并独立扩展庭院场景", () => {
+  expect([
+    { days: 0, stage: gardenStage(0), scene: gardenSceneLevel(0) },
+    { days: 1, stage: gardenStage(1), scene: gardenSceneLevel(1) },
+    { days: 3, stage: gardenStage(3), scene: gardenSceneLevel(3) },
+    { days: 7, stage: gardenStage(7), scene: gardenSceneLevel(7) },
+    { days: 14, stage: gardenStage(14), scene: gardenSceneLevel(14) },
+    { days: 28, stage: gardenStage(28), scene: gardenSceneLevel(28) },
+  ]).toEqual([
+    { days: 0, stage: "seed", scene: "base" },
+    { days: 1, stage: "sprout", scene: "base" },
+    { days: 3, stage: "leaves", scene: "base" },
+    { days: 7, stage: "bloom", scene: "base" },
+    { days: 14, stage: "bloom", scene: "settled" },
+    { days: 28, stage: "bloom", scene: "mature" },
+  ]);
 });
 
 test("漏记不倒退，建议频率不阻止随时完成完整 SWEET", async () => {
@@ -94,6 +150,22 @@ test("花园数据只保留私有记录和提醒偏好，删除账户时级联�
   expect(sql).toContain("revoke all on table public.tempo_check_ins, public.tempo_reminder_preferences from public, anon, authenticated");
   expect(sql).toContain("using ((select auth.uid()) = user_id)");
   expect(sql).not.toContain("create table public.garden_scores");
+});
+
+test("花园不读取、返回或展示 AI 小结", async () => {
+  const [api, cloud, page, zh, en] = await Promise.all([
+    readFile(path.join(process.cwd(), "pages/api/garden.ts"), "utf8"),
+    readFile(path.join(process.cwd(), "lib/cloudRecords.ts"), "utf8"),
+    readFile(path.join(process.cwd(), "views/garden/page.tsx"), "utf8"),
+    readFile(path.join(process.cwd(), "locales/zh-CN.json"), "utf8"),
+    readFile(path.join(process.cwd(), "locales/en.json"), "utf8"),
+  ]);
+  expect(api).toContain('.from("sweet_records").select("created_at")');
+  expect(api).not.toContain('select("created_at,summary")');
+  expect(`${api}\n${cloud}\n${page}`).not.toContain("recentRhythm");
+  expect(page).not.toContain("/api/ai/");
+  expect(JSON.parse(zh).garden.rhythm).toBeUndefined();
+  expect(JSON.parse(en).garden.rhythm).toBeUndefined();
 });
 
 test("未登录无法读取或提交私有花园数据", async ({ request }) => {
