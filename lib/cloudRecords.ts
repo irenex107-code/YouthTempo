@@ -595,6 +595,7 @@ export type TempoGardenData = {
   fullSweetRecords: number;
   todayParticipated: boolean;
   unlockedPositions: Array<"flower_border" | "hill_path" | "pond_edge" | "bench_corner">;
+  unlockedItems: Array<"wildflower_patch" | "low_fern" | "flat_stones" | "wooden_sign" | "water_grass" | "small_birdbath" | "linen_cushion" | "warm_lantern">;
   reminderMode: "off" | "daily" | "weekly";
 };
 

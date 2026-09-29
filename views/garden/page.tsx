@@ -1,6 +1,12 @@
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { PageHero } from "@/components/PageHero";
+import { type FormEvent, useEffect, useState } from "react";
+import { GardenActionDock } from "@/components/garden/GardenActionDock";
+import { GardenCareSheet } from "@/components/garden/GardenCareSheet";
+import { GardenFactsPanel } from "@/components/garden/GardenFactsPanel";
+import { GardenKeepsakeDrawer } from "@/components/garden/GardenKeepsakeDrawer";
+import { GardenLayoutSheet } from "@/components/garden/GardenLayoutSheet";
+import { GardenRecordSheet, type GardenFeeling } from "@/components/garden/GardenRecordSheet";
+import { GardenScene } from "@/components/garden/GardenScene";
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import {
   getCurrentUser,
@@ -10,50 +16,20 @@ import {
   TempoGardenRequestError,
   type TempoGardenData,
 } from "@/lib/cloudRecords";
+import type { GardenCareAction, GardenItemKey, GardenLayoutSlot } from "@/lib/gardenCatalog";
 import { useTranslation } from "@/lib/i18n/client";
 
-type Feeling = "steady" | "mixed" | "heavy" | "unsure";
-const feelings: Feeling[] = ["steady", "mixed", "heavy", "unsure"];
-const reminderModes: TempoGardenData["reminderMode"][] = ["off", "daily", "weekly"];
-const introStages: TempoGardenData["stage"][] = ["seed", "sprout", "bloom"];
-const introKeys = ["first", "second", "third"] as const;
+type GardenSheetName = "record" | "care" | "layout" | "keepsakes" | null;
+type ExplorePlace = "pond" | "bench" | "bird";
 
 function introStorageKey(userId: string) {
-  return `youthtempo:garden:intro:v1:${userId}`;
-}
-
-function GardenPlant({ stage }: { stage: TempoGardenData["stage"] }) {
-  const hasSprout = stage !== "seed";
-  const hasLeaves = stage === "leaves" || stage === "bloom";
-  const hasFlower = stage === "bloom";
-  return (
-    <svg viewBox="0 0 220 220" className="mx-auto h-52 w-52 max-w-full" aria-hidden="true">
-      <ellipse cx="110" cy="192" rx="76" ry="16" fill="#dce8d9" />
-      <path d="M48 173h124l-14 30H62z" fill="#bb8667" />
-      <path d="M53 169h114v13H53z" fill="#d39a76" />
-      <path d="M60 169c8-15 91-15 100 0" fill="#6c8b69" />
-      {hasSprout ? <path d="M110 164c-2-24 1-52 1-75" fill="none" stroke="#517c59" strokeWidth="6" strokeLinecap="round" /> : null}
-      {hasSprout ? <path d="M109 139C86 119 77 121 67 125c13 23 29 29 42 21" fill="#78a576" /> : null}
-      {hasLeaves ? <path d="M111 119c19-22 32-25 47-21-7 24-27 34-47 28" fill="#7eae7c" /> : null}
-      {hasLeaves ? <path d="M109 100C91 77 76 73 63 77c8 22 25 32 46 31" fill="#90b988" /> : null}
-      {hasFlower ? (
-        <g transform="translate(111 76)">
-          <circle cx="-15" cy="0" r="14" fill="#eed0cb" />
-          <circle cx="15" cy="0" r="14" fill="#eed0cb" />
-          <circle cx="0" cy="-15" r="14" fill="#f1d9d2" />
-          <circle cx="0" cy="15" r="14" fill="#f1d9d2" />
-          <circle r="10" fill="#ddad65" />
-        </g>
-      ) : null}
-      {!hasSprout ? <ellipse cx="110" cy="158" rx="9" ry="13" fill="#8e6b50" /> : null}
-    </svg>
-  );
+  return `youthtempo:garden:intro:v2:${userId}`;
 }
 
 export default function GardenPage() {
   const { locale, t } = useTranslation();
   const [data, setData] = useState<TempoGardenData | null>(null);
-  const [feeling, setFeeling] = useState<Feeling | "">("");
+  const [feeling, setFeeling] = useState<GardenFeeling | "">("");
   const [loading, setLoading] = useState(true);
   const [signedOut, setSignedOut] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -64,32 +40,32 @@ export default function GardenPage() {
   const [introUserId, setIntroUserId] = useState("");
   const [showIntro, setShowIntro] = useState(false);
   const [introStep, setIntroStep] = useState(0);
-  const quickTitleRef = useRef<HTMLHeadingElement>(null);
+  const [activeSheet, setActiveSheet] = useState<GardenSheetName>(null);
+  const [selectedItems, setSelectedItems] = useState<Partial<Record<GardenLayoutSlot, GardenItemKey>>>({});
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setData(null);
     setSignedOut(false);
+    setError("");
     getCurrentUser()
       .then(async (user) => {
         if (!user) {
           if (active) setSignedOut(true);
-          return null;
+          return;
         }
         const garden = await getTempoGarden(locale);
-        if (active) {
-          setIntroUserId(user.id);
-          let introSeen = false;
-          try {
-            introSeen = window.localStorage.getItem(introStorageKey(user.id)) === "seen";
-          } catch {
-            // A blocked browser store should not prevent a first visit.
-          }
-          setShowIntro(garden.total === 0 && !introSeen);
-          setData(garden);
+        if (!active) return;
+        setIntroUserId(user.id);
+        let introSeen = false;
+        try {
+          introSeen = window.localStorage.getItem(introStorageKey(user.id)) === "seen";
+        } catch {
+          // A blocked browser store should not hide the garden.
         }
-        return null;
+        setShowIntro(!introSeen);
+        setData(garden);
       })
       .catch((caught) => {
         if (!active) return;
@@ -104,14 +80,14 @@ export default function GardenPage() {
     return () => { active = false; };
   }, [locale, t]);
 
-  function finishIntro() {
+  function finishIntro(openRecord = false) {
     try {
       window.localStorage.setItem(introStorageKey(introUserId), "seen");
     } catch {
-      // The form is still usable if browser storage is unavailable.
+      // The garden remains usable if browser storage is unavailable.
     }
     setShowIntro(false);
-    window.requestAnimationFrame(() => quickTitleRef.current?.focus());
+    if (openRecord) setActiveSheet("record");
   }
 
   async function submitCheckIn(event: FormEvent<HTMLFormElement>) {
@@ -122,10 +98,12 @@ export default function GardenPage() {
     setNotice("");
     try {
       await saveTempoQuickCheckIn(feeling, locale);
-      setData(await getTempoGarden(locale));
+      const garden = await getTempoGarden(locale);
+      setData(garden);
       setFeeling("");
       setNotice(t("garden.quick.saved"));
       setFeedbackTrigger((current) => current + 1);
+      setActiveSheet("care");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t("garden.errors.unavailable"));
     } finally {
@@ -148,94 +126,75 @@ export default function GardenPage() {
     }
   }
 
+  function explore(place: ExplorePlace) {
+    setNotice(t(`garden.explore.${place}.response`));
+  }
+
+  function previewCare(action: GardenCareAction) {
+    setNotice(t(`garden.care.options.${action}.response`));
+    setActiveSheet(null);
+  }
+
+  function previewLayout(slot: GardenLayoutSlot, item: GardenItemKey) {
+    setSelectedItems((current) => ({ ...current, [slot]: item }));
+    setNotice(t("garden.layout.previewSaved"));
+  }
+
   return (
-    <>
-      <PageHero
-        label={t("garden.hero.label")}
-        title={t("garden.hero.title")}
-        subtitle={t("garden.hero.description")}
-        action={<Link href="/account" className="button-secondary">{t("garden.actions.account")}</Link>}
-      />
-      <main className="section section-muted">
-        <div className="container grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          {loading ? <p role="status">{t("garden.status.loading")}</p> : null}
-          {signedOut ? <p><Link href="/account" className="button-primary">{t("garden.status.signIn")}</Link></p> : null}
-          {error ? <p role="alert" className="rounded-xl bg-white p-4 text-sm text-sage-dark">{error}</p> : null}
-          {notice ? <p role="status" className="rounded-xl bg-mint p-4 text-sm text-sage-dark">{notice}</p> : null}
-          {data && showIntro ? (
-            <section className="card min-w-0 overflow-hidden lg:col-span-2" aria-labelledby="garden-intro-title">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="eyebrow">{t("garden.intro.eyebrow")}</p>
-                <p className="text-sm font-semibold text-muted">{t("garden.intro.progress", { current: introStep + 1, total: introStages.length })}</p>
-              </div>
-              <div className="mt-5 flex gap-2" aria-hidden="true">
-                {introStages.map((stage, index) => <span key={stage} className={`h-1.5 flex-1 rounded-full ${index <= introStep ? "bg-sage-dark" : "bg-sage/20"}`} />)}
-              </div>
-              <div className="mt-6" aria-live="polite" aria-atomic="true">
-                <div key={introStep} className="garden-slide-enter grid min-h-[20rem] items-center gap-6 rounded-[1.5rem] bg-mist/60 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-                  <div>
-                    <h2 id="garden-intro-title" className="text-3xl font-bold leading-tight text-ink sm:text-4xl">{t(`garden.intro.slides.${introKeys[introStep]}.title`)}</h2>
-                    <p className="mt-5 max-w-xl text-base leading-8 text-muted">{t(`garden.intro.slides.${introKeys[introStep]}.description`)}</p>
-                    <p className="mt-5 max-w-xl rounded-2xl bg-paper/80 px-4 py-3 text-sm leading-7 text-sage-dark">{t(`garden.intro.slides.${introKeys[introStep]}.note`)}</p>
-                  </div>
-                  <div className="rounded-[1.5rem] bg-paper/80 p-4" aria-hidden="true"><GardenPlant stage={introStages[introStep]} /></div>
-                </div>
-              </div>
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-                <button type="button" className="text-sm font-semibold text-sage-dark underline underline-offset-4" onClick={finishIntro}>{t("garden.intro.skip")}</button>
-                <div className="flex flex-wrap gap-3">
-                  {introStep > 0 ? <button type="button" className="button-secondary" onClick={() => setIntroStep((step) => step - 1)}>{t("garden.intro.previous")}</button> : null}
-                  {introStep < introStages.length - 1
-                    ? <button type="button" className="button-primary" onClick={() => setIntroStep((step) => step + 1)}>{t("garden.intro.next")}</button>
-                    : <button type="button" className="button-primary" onClick={finishIntro}>{t("garden.intro.start")}</button>}
-                </div>
-              </div>
-            </section>
-          ) : null}
-          {data && !showIntro ? (
-            <>
-              <section className="card min-w-0 text-center" aria-labelledby="garden-stage-title">
-                <GardenPlant stage={data.stage} />
-                <h2 id="garden-stage-title" className="mt-3 text-2xl font-bold text-ink">{t(`garden.stage.${data.stage}`)}</h2>
-                <p className="mt-3 text-sm text-muted">{t("garden.stats.week", { count: data.thisWeek })}</p>
-                <p className="mt-1 text-sm text-muted">{t("garden.stats.month", { count: data.thisMonth })}</p>
-                <p className="mt-1 text-xs text-muted">{t("garden.stats.total", { count: data.total })}</p>
-              </section>
-              <div className="grid min-w-0 gap-6">
-                <section className="card" aria-labelledby="garden-quick-title">
-                  <h2 id="garden-quick-title" ref={quickTitleRef} tabIndex={-1} className="text-xl font-bold text-ink">{t("garden.quick.title")}</h2>
-                  <p className="mt-2 text-sm leading-7 text-muted">{t("garden.quick.description")}</p>
-                  <form onSubmit={submitCheckIn} className="mt-5 grid gap-3">
-                    <fieldset className="grid gap-3">
-                      <legend className="sr-only">{t("garden.quick.title")}</legend>
-                      {feelings.map((option) => (
-                        <label key={option} className="flex cursor-pointer items-center gap-3 rounded-xl border border-sage/25 bg-white p-3 text-sm text-ink focus-within:ring-2 focus-within:ring-sage">
-                          <input type="radio" name="feeling" value={option} checked={feeling === option} onChange={() => setFeeling(option)} required />
-                          {t(`garden.quick.${option}`)}
-                        </label>
-                      ))}
-                    </fieldset>
-                    <button type="submit" className="button-primary mt-2 w-fit" disabled={saving || !feeling}>
-                      {saving ? t("garden.quick.saving") : t("garden.quick.submit")}
-                    </button>
-                  </form>
-                  <Link href="/check-in" className="button-secondary mt-5 w-fit">{t("garden.actions.fullSweet")}</Link>
-                </section>
-                <section className="card" aria-labelledby="garden-reminders-title">
-                  <h2 id="garden-reminders-title" className="text-xl font-bold text-ink">{t("garden.reminders.title")}</h2>
-                  <p className="mt-2 text-sm leading-7 text-muted">{t("garden.reminders.description")}</p>
-                  <label htmlFor="garden-reminder-mode" className="mt-4 block text-sm font-bold text-ink">{t("garden.reminders.title")}</label>
-                  <select id="garden-reminder-mode" className="mt-2 w-full rounded-xl border border-sage/30 bg-white px-4 py-3 text-sm text-ink" value={data.reminderMode} disabled={savingPreference} onChange={(event) => updateReminder(event.target.value as TempoGardenData["reminderMode"])}>
-                    {reminderModes.map((mode) => <option key={mode} value={mode}>{t(`garden.reminders.${mode}`)}</option>)}
-                  </select>
-                  {savingPreference ? <p role="status" className="mt-2 text-sm text-muted">{t("garden.reminders.saving")}</p> : null}
-                </section>
-              </div>
-            </>
-          ) : null}
-          {feedbackTrigger > 0 ? <div className="lg:col-span-2"><MicroPilotFeedback feature="quick_check_in" trigger={feedbackTrigger} /></div> : null}
+    <main className="garden-page">
+      <div className="container min-w-0 py-5 sm:py-8">
+        <div className="mb-4 flex justify-end">
+          <Link href="/account" className="button-secondary">{t("garden.actions.account")}</Link>
         </div>
-      </main>
-    </>
+
+        {loading ? <div className="garden-loading" role="status">{t("garden.status.loading")}</div> : null}
+        {signedOut ? <div className="garden-message"><Link href="/account" className="button-primary">{t("garden.status.signIn")}</Link></div> : null}
+        {error ? <p role="alert" className="garden-message">{error}</p> : null}
+
+        {data ? (
+          <>
+            <GardenScene
+              stage={data.stage}
+              statusText={t(data.todayParticipated ? "garden.status.todayRecorded" : "garden.status.todayOpen")}
+              onExplore={explore}
+              overlay={showIntro ? (
+                <div className="garden-intro-overlay" aria-live="polite">
+                  <p className="eyebrow">{t("garden.intro.eyebrow")}</p>
+                  <div className="mt-3 flex gap-2" aria-hidden="true">
+                    {[0, 1].map((step) => <span key={step} className={`h-1 flex-1 rounded-full ${step <= introStep ? "bg-sage-dark" : "bg-sage/20"}`} />)}
+                  </div>
+                  <h2 className="mt-5 text-2xl font-bold leading-tight text-ink sm:text-3xl">{t(`garden.intro.slides.${introStep === 0 ? "first" : "second"}.title`)}</h2>
+                  <p className="mt-3 text-sm leading-7 text-muted">{t(`garden.intro.slides.${introStep === 0 ? "first" : "second"}.description`)}</p>
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                    <button type="button" className="text-sm font-semibold text-sage-dark underline underline-offset-4" onClick={() => finishIntro(false)}>{t("garden.intro.skip")}</button>
+                    {introStep === 0
+                      ? <button type="button" className="button-primary" onClick={() => setIntroStep(1)}>{t("garden.intro.next")}</button>
+                      : <button type="button" className="button-primary" onClick={() => finishIntro(true)}>{t("garden.intro.start")}</button>}
+                  </div>
+                </div>
+              ) : undefined}
+            />
+            <GardenActionDock onRecord={() => setActiveSheet("record")} onCare={() => setActiveSheet("care")} onLayout={() => setActiveSheet("layout")} />
+
+            {notice ? <p role="status" className="garden-notice">{notice}</p> : null}
+            <GardenFactsPanel data={data} savingPreference={savingPreference} onReminderChange={updateReminder} onOpenKeepsakes={() => setActiveSheet("keepsakes")} />
+
+            <GardenRecordSheet open={activeSheet === "record"} feeling={feeling} saving={saving} onFeelingChange={setFeeling} onSubmit={submitCheckIn} onClose={() => setActiveSheet(null)} />
+            <GardenCareSheet open={activeSheet === "care"} available={data.todayParticipated} onChoose={previewCare} onClose={() => setActiveSheet(null)} />
+            <GardenLayoutSheet
+              open={activeSheet === "layout"}
+              unlockedPositions={data.unlockedPositions}
+              unlockedItems={data.unlockedItems}
+              selectedItems={selectedItems}
+              onChoose={previewLayout}
+              onClose={() => setActiveSheet(null)}
+            />
+            <GardenKeepsakeDrawer open={activeSheet === "keepsakes"} onClose={() => setActiveSheet(null)} />
+          </>
+        ) : null}
+
+        {feedbackTrigger > 0 ? <div className="mt-6"><MicroPilotFeedback feature="quick_check_in" trigger={feedbackTrigger} /></div> : null}
+      </div>
+    </main>
   );
 }

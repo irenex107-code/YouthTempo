@@ -1,4 +1,4 @@
-import { unlockedGardenPositions } from "@/lib/gardenCatalog";
+import { unlockedGardenItems, unlockedGardenPositions } from "@/lib/gardenCatalog";
 
 export type GardenParticipation = {
   created_at: string;
@@ -70,5 +70,6 @@ export function gardenSummary(
     fullSweetRecords: sweetRecords.length,
     todayParticipated: participationDays.includes(today),
     unlockedPositions: unlockedGardenPositions(total),
+    unlockedItems: unlockedGardenItems(total),
   };
 }
