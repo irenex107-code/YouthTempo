@@ -1114,50 +1114,39 @@
   },
   "garden": {
     "metadata": { "title": "SWEET Garden | YouthTempo" },
-    "hero": {
-      "label": "SWEET Garden",
-      "title": "Every moment of care counts",
-      "description": "A quiet place to notice your own rhythms. Your mood, answers, and missed days never make your plant lose growth."
+    "hero": { "label": "SWEET Garden", "title": "Every moment of care counts", "description": "A quiet place to notice your own rhythms. Your mood, answers, and missed days never make your plant lose growth." },
+    "scene": {
+      "eyebrow": "SWEET Garden",
+      "title": "My quiet garden",
+      "alt": {
+        "seed": "A quiet garden under a pale sky, with a seed waiting beside the pond and bench.",
+        "sprout": "A quiet garden under a pale sky, with a new sprout beside the pond and bench.",
+        "leaves": "A quiet garden under a pale sky, with the main plant opening its leaves beside the pond and bench.",
+        "bloom": "A quiet garden under a pale sky, with the main plant flowering beside the pond and bench."
+      }
     },
     "intro": {
       "eyebrow": "Your first visit to the SWEET Garden",
-      "progress": "Page {{current}} of {{total}}",
       "slides": {
-        "first": {
-          "title": "Welcome to your SWEET Garden",
-          "description": "This is a quiet space of your own. Each time you pause to notice how you are doing, you can leave a small sign of growth.",
-          "note": "Your records are private. The garden never scores your mood."
-        },
-        "second": {
-          "title": "One moment of participation, one drop of water",
-          "description": "Choose how you feel in a quick check-in, or complete a full SWEET check-in. Either way, taking part helps your plant grow.",
-          "note": "Steady, mixed, heavy, or unsure all count equally."
-        },
-        "third": {
-          "title": "Begin at your own pace",
-          "description": "Missing a day never sets your plant back. You can turn reminders off and return whenever you wish. Start by choosing how you feel right now.",
-          "note": "The garden supports reflection. It does not provide a diagnosis or live support."
-        }
+        "first": { "title": "Welcome to your SWEET Garden", "description": "The garden stays here for you. You can gently explore the pond, bench, and bird, even when you do not feel like recording anything." },
+        "second": { "title": "After recording, choose one way to care", "description": "A quick check-in and a full SWEET check-in both count. Steady, mixed, heavy, or unsure all bring the same growth, and missed days never set it back." }
       },
       "skip": "Skip introduction",
-      "previous": "Previous",
-      "next": "Next",
-      "start": "Start my first check-in"
+      "next": "Keep exploring",
+      "start": "Record a moment"
     },
-    "stage": {
-      "seed": "A seed",
-      "sprout": "A new sprout",
-      "leaves": "Growing leaves",
-      "bloom": "A blooming garden"
-    },
+    "stage": { "seed": "A seed", "sprout": "A new sprout", "leaves": "Growing leaves", "bloom": "A blooming garden" },
     "stats": {
       "week": "Moments of self-care this week: {{count}}",
       "month": "Records this month: {{count}}",
-      "total": "Total records: {{count}}"
+      "total": "Total records: {{count}}",
+      "weekLabel": "Participation days this week",
+      "monthLabel": "Participation days this month",
+      "totalLabel": "Total participation days"
     },
     "quick": {
       "title": "A quick check-in",
-      "description": "Choose what feels closest right now. Every answer earns the same drop of water.",
+      "description": "Choose what feels closest right now. Every answer brings the same growth.",
       "steady": "Fairly steady",
       "mixed": "A mix of feelings",
       "heavy": "A little heavy",
@@ -1166,10 +1155,40 @@
       "saved": "This moment is saved.",
       "saving": "Saving…"
     },
-    "rhythm": {
-      "title": "A recent rhythm you noticed",
-      "empty": "After a full SWEET check-in, your own rhythm summary will appear here."
+    "explore": {
+      "pond": { "label": "Look at the pond", "response": "The water shifts gently." },
+      "bench": { "label": "Look at the bench", "response": "The bench stays here whenever you want to return." },
+      "bird": { "label": "Look at the bird", "response": "The bird pauses in the distance for a moment." }
     },
+    "care": {
+      "title": "How would you like to care today?",
+      "description": "All three choices bring the same growth. Only the garden's response changes.",
+      "available": "You have recorded a moment today, so you can choose one way to care.",
+      "unavailable": "Record a moment today to choose one way to care.",
+      "options": {
+        "water": { "title": "Add a little water", "description": "Watch a brief change as the water falls.", "response": "The water has fallen. Today's growth still comes only from your record." },
+        "sunlight": { "title": "Sit in the sunlight", "description": "Let the leaves hold the light for a moment.", "response": "Light settles on the leaves. All three choices bring the same growth." },
+        "invite_visitor": { "title": "Invite a visitor", "description": "Let the bird stay nearby for a moment.", "response": "The bird stays for a moment. It does not judge your record." }
+      }
+    },
+    "layout": {
+      "title": "Arrange my garden",
+      "description": "Choose prepared objects for fixed places so the garden stays visually calm.",
+      "unlocked": "Available",
+      "locked": "Available after {{count}} participation days",
+      "previewNotice": "Selections are previewed for this visit and will not remain after you leave.",
+      "previewSaved": "This place now shows the new preview object.",
+      "slots": { "flower_border": "Flower border", "hill_path": "Hillside path", "pond_edge": "Pond edge", "bench_corner": "Bench corner" },
+      "items": { "wildflower_patch": "Wildflower patch", "low_fern": "Low ferns", "flat_stones": "Flat stones", "wooden_sign": "Plain wooden sign", "water_grass": "Waterside grass", "small_birdbath": "Small birdbath", "linen_cushion": "Linen cushion", "warm_lantern": "Warm lantern" }
+    },
+    "keepsakes": {
+      "title": "My keepsakes",
+      "description": "You will be able to save a participation day as a simple keepsake, without writing text or assigning it an emotional meaning.",
+      "open": "View keepsakes",
+      "previewNotice": "Keepsakes are a preview for now and are not saved yet.",
+      "types": { "flower": "A flower", "stone": "A stone", "lantern": "A small lantern" }
+    },
+    "facts": { "eyebrow": "Garden growth" },
     "reminders": {
       "title": "Reminder preference",
       "description": "Daily or weekly is only a suggestion. Record anytime or turn reminders off. This saves an in-app preference; no push or email is sent.",
@@ -1179,24 +1198,16 @@
       "saved": "Reminder preference saved.",
       "saving": "Saving…"
     },
-    "actions": {
-      "fullSweet": "Do a full SWEET check-in anytime",
-      "account": "Back to my account"
-    },
+    "actions": { "fullSweet": "Do a full SWEET check-in anytime", "account": "Back to my account", "ariaLabel": "Garden actions", "record": "Record", "care": "Care", "layout": "Arrange", "close": "Close" },
     "status": {
       "loading": "Loading your garden…",
       "signIn": "Sign in to see your own garden.",
       "restricted": "The garden is available to student accounts with active consent. Administrator accounts cannot read a student's private garden.",
-      "unavailable": "Your garden could not be loaded right now."
+      "unavailable": "Your garden could not be loaded right now.",
+      "todayRecorded": "You have already left one participation record today",
+      "todayOpen": "You have not recorded today, and you can still spend time in the garden"
     },
-    "errors": {
-      "signIn": "Please sign in.",
-      "notAvailable": "Complete the applicable student consent first.",
-      "invalidFeeling": "Choose how you feel right now.",
-      "invalidReminder": "Choose a reminder preference.",
-      "tooMany": "You have recorded several moments today. Please come back later.",
-      "unavailable": "The garden is temporarily unavailable. Please try again later."
-    }
+    "errors": { "signIn": "Please sign in.", "notAvailable": "Complete the applicable student consent first.", "invalidFeeling": "Choose how you feel right now.", "invalidReminder": "Choose a reminder preference.", "tooMany": "You have recorded several moments today. Please come back later.", "unavailable": "The garden is temporarily unavailable. Please try again later." }
   },
   "adminRolePreview": {
     "metadata": { "title": "Explore role pages | YouthTempo" },

@@ -122,3 +122,189 @@ a {
     font-size: 16px !important;
   }
 }
+
+@keyframes garden-plant-arrive {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@layer components {
+  .garden-page {
+    @apply min-h-screen overflow-x-hidden bg-[#f7f3e8] text-ink;
+    background-image: radial-gradient(circle at 50% 0%, rgba(226, 239, 230, 0.72), transparent 40rem);
+  }
+
+  .garden-scene {
+    @apply relative isolate min-h-[34rem] overflow-hidden rounded-[2.25rem] border border-white/70 bg-[#eaf2e8] shadow-soft;
+    aspect-ratio: 16 / 9;
+  }
+
+  .garden-scene-background {
+    @apply absolute inset-0 h-full w-full object-cover;
+  }
+
+  .garden-main-plant {
+    @apply pointer-events-none absolute z-[2] h-auto select-none;
+    animation: garden-plant-arrive 420ms ease-out both;
+    filter: drop-shadow(0 12px 14px rgba(64, 86, 67, 0.12));
+  }
+
+  .garden-main-plant-seed,
+  .garden-main-plant-sprout,
+  .garden-main-plant-leaves {
+    bottom: -5%;
+    right: -1%;
+    width: 43%;
+  }
+
+  .garden-main-plant-bloom {
+    bottom: -8%;
+    right: 1%;
+    width: 36%;
+  }
+
+  .garden-scene-heading {
+    @apply absolute left-4 top-4 z-10 max-w-[24rem] rounded-[1.5rem] border border-white/70 bg-paper/85 p-4 shadow-sm backdrop-blur-sm sm:left-6 sm:top-6 sm:p-5;
+  }
+
+  .garden-hotspot {
+    @apply absolute z-[4] min-h-11 min-w-11 rounded-full border-2 border-transparent bg-transparent transition hover:border-white/80 hover:bg-white/15 focus-visible:border-white;
+  }
+
+  .garden-hotspot span {
+    @apply pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-sage-dark/30 bg-paper/55 shadow-sm;
+  }
+
+  .garden-hotspot-pond { bottom: 24%; left: 31%; height: 3.25rem; width: 3.25rem; }
+  .garden-hotspot-bench { bottom: 45%; left: 20%; height: 3.25rem; width: 3.25rem; }
+  .garden-hotspot-bird { right: 7%; top: 43%; height: 3.25rem; width: 3.25rem; }
+
+  .garden-intro-overlay {
+    @apply absolute bottom-5 right-5 z-20 w-[min(29rem,calc(100%-2.5rem))] rounded-[1.75rem] border border-white/80 bg-paper/95 p-5 shadow-soft backdrop-blur sm:bottom-7 sm:right-7 sm:p-6;
+  }
+
+  .garden-action-dock {
+    @apply relative z-20 mx-auto -mt-7 flex w-fit max-w-[calc(100%-2rem)] items-center justify-center gap-1 rounded-full border border-sage/15 bg-paper/95 p-2 shadow-soft backdrop-blur sm:gap-2;
+  }
+
+  .garden-action-button {
+    @apply flex min-h-12 min-w-[5.25rem] items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-extrabold text-sage-dark transition hover:bg-mist/70 active:bg-mint/70;
+  }
+
+  .garden-action-button svg,
+  .garden-icon-button svg {
+    @apply h-5 w-5 fill-none stroke-current;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .garden-notice,
+  .garden-message,
+  .garden-loading {
+    @apply mx-auto mt-5 max-w-3xl rounded-2xl border border-sage/15 bg-paper px-5 py-4 text-center text-sm leading-7 text-sage-dark shadow-sm;
+  }
+
+  .garden-facts {
+    @apply mx-auto mt-6 grid max-w-5xl gap-5 rounded-[1.75rem] border border-ink/[0.07] bg-paper p-5 shadow-soft sm:p-6;
+  }
+
+  .garden-fact-grid {
+    @apply grid grid-cols-3 gap-3;
+  }
+
+  .garden-fact-grid div {
+    @apply rounded-2xl bg-mist/55 p-4 text-center;
+  }
+
+  .garden-fact-grid dt {
+    @apply text-xs font-semibold leading-5 text-muted;
+  }
+
+  .garden-fact-grid dd {
+    @apply mt-1 text-2xl font-bold text-sage-dark;
+  }
+
+  .garden-sheet-layer {
+    @apply fixed inset-0 z-[100] flex items-end justify-center bg-ink/25 p-0 backdrop-blur-[2px] sm:p-5;
+  }
+
+  .garden-sheet {
+    @apply max-h-[86vh] w-full max-w-3xl overflow-y-auto rounded-t-[2rem] border border-white/70 bg-[#fbfaf4] p-5 shadow-soft sm:rounded-[2rem] sm:p-7;
+  }
+
+  .garden-sheet-handle {
+    @apply mx-auto mb-4 h-1.5 w-12 rounded-full bg-sage/25 sm:hidden;
+  }
+
+  .garden-icon-button {
+    @apply flex min-h-11 min-w-11 items-center justify-center rounded-full border border-sage/20 bg-paper text-sage-dark transition hover:bg-mist;
+  }
+
+  .garden-choice {
+    @apply flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border border-sage/20 bg-white p-4 text-sm font-semibold text-ink transition hover:border-sage/50 has-[:checked]:border-sage-dark has-[:checked]:bg-mint/45;
+  }
+
+  .garden-care-choice {
+    @apply flex min-h-32 flex-col items-start rounded-2xl border border-sage/20 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-sage/50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .garden-item-chip {
+    @apply min-h-11 rounded-full border border-sage/20 bg-paper px-4 py-2 text-sm font-semibold text-sage-dark transition hover:border-sage;
+  }
+
+  .garden-item-chip-selected {
+    @apply border-sage-dark bg-mint/60;
+  }
+}
+
+@media (max-width: 640px) {
+  .garden-scene {
+    min-height: 42rem;
+    aspect-ratio: 9 / 14;
+  }
+
+  .garden-scene-heading {
+    max-width: calc(100% - 2rem);
+  }
+
+  .garden-main-plant-seed,
+  .garden-main-plant-sprout,
+  .garden-main-plant-leaves {
+    bottom: 0;
+    right: -18%;
+    width: 82%;
+  }
+
+  .garden-main-plant-bloom {
+    bottom: -3%;
+    right: -14%;
+    width: 72%;
+  }
+
+  .garden-hotspot-pond { bottom: 35%; left: 31%; height: 3.25rem; width: 3.25rem; }
+  .garden-hotspot-bench { bottom: 50%; left: 20%; height: 3.25rem; width: 3.25rem; }
+  .garden-hotspot-bird { right: 11%; top: 52%; height: 3.25rem; width: 3.25rem; }
+
+  .garden-action-dock {
+    width: calc(100% - 1rem);
+  }
+
+  .garden-action-button {
+    min-width: 0;
+    flex: 1;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .garden-fact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-main-plant { animation: none; }
+  .garden-care-choice,
+  .garden-action-button,
+  .garden-item-chip { transition: none; }
+}

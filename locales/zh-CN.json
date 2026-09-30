@@ -1114,50 +1114,39 @@
   },
   "garden": {
     "metadata": { "title": "SWEET 花园 | YouthTempo" },
-    "hero": {
-      "label": "SWEET 花园",
-      "title": "每一次照顾自己，都算数",
-      "description": "只记录你愿意停下来观察自己的时刻。心情、答案和漏记不会让植物失去成长。"
+    "hero": { "label": "SWEET 花园", "title": "每一次照顾自己，都算数", "description": "只记录你愿意停下来观察自己的时刻。心情、答案和漏记不会让植物失去成长。" },
+    "scene": {
+      "eyebrow": "SWEET 花园",
+      "title": "我的疗愈庭院",
+      "alt": {
+        "seed": "浅色天空下的安静庭院，池塘和长椅旁有一颗等待发芽的种子。",
+        "sprout": "浅色天空下的安静庭院，池塘和长椅旁长出一株嫩芽。",
+        "leaves": "浅色天空下的安静庭院，池塘和长椅旁的植物舒展开叶子。",
+        "bloom": "浅色天空下的安静庭院，池塘和长椅旁的主植物正在开花。"
+      }
     },
     "intro": {
       "eyebrow": "第一次来到 SWEET 花园",
-      "progress": "第 {{current}} / {{total}} 页",
       "slides": {
-        "first": {
-          "title": "欢迎来到你的 SWEET 花园",
-          "description": "这里是一块只属于你的安静角落。每次愿意停下来看看自己的状态，都可以留下一点成长的痕迹。",
-          "note": "你的记录是私人的；花园不会给心情打分。"
-        },
-        "second": {
-          "title": "一滴水，来自一次参与",
-          "description": "可以用轻量记录选出此刻的感受，也可以做一次完整 SWEET。每次参与都会让植物向前生长。",
-          "note": "平稳、复杂、沉重或说不清楚，都同样算数。"
-        },
-        "third": {
-          "title": "按自己的节奏开始",
-          "description": "漏记不会让植物倒退。提醒可以关闭；想记录时再回来就好。现在可以用一个简单的选择，记下此刻。",
-          "note": "花园帮助你观察自己，不提供诊断或实时人工支持。"
-        }
+        "first": { "title": "欢迎来到你的 SWEET 花园", "description": "庭院会一直在这里。池塘、长椅和小鸟都可以轻轻点一点；不记录也能进来看看。" },
+        "second": { "title": "记录之后，可以照料一次", "description": "轻量记录和完整 SWEET 都算一次参与。平稳、复杂、沉重或说不清楚，都得到相同的成长；漏记也不会倒退。" }
       },
       "skip": "跳过介绍",
-      "previous": "上一页",
-      "next": "下一页",
-      "start": "开始第一次记录"
+      "next": "继续看看",
+      "start": "记录一下"
     },
-    "stage": {
-      "seed": "一颗种子",
-      "sprout": "刚冒出的嫩芽",
-      "leaves": "舒展的叶子",
-      "bloom": "正在开花的小花园"
-    },
+    "stage": { "seed": "一颗种子", "sprout": "刚冒出的嫩芽", "leaves": "舒展的叶子", "bloom": "正在开花的小花园" },
     "stats": {
       "week": "本周陪伴自己 {{count}} 次",
       "month": "本月记录 {{count}} 次",
-      "total": "累计记录 {{count}} 次"
+      "total": "累计记录 {{count}} 次",
+      "weekLabel": "本周参与天数",
+      "monthLabel": "本月参与天数",
+      "totalLabel": "累计参与天数"
     },
     "quick": {
       "title": "轻量记录",
-      "description": "选一个最接近此刻的感受。每种回答得到同样的一滴水。",
+      "description": "选一个最接近此刻的感受。每种回答得到同样的成长。",
       "steady": "比较平稳",
       "mixed": "有点复杂",
       "heavy": "有些沉重",
@@ -1166,10 +1155,40 @@
       "saved": "这一刻已记下。",
       "saving": "正在记录…"
     },
-    "rhythm": {
-      "title": "最近发现的节律",
-      "empty": "完成一次完整 SWEET 后，你自己的节律小结会出现在这里。"
+    "explore": {
+      "pond": { "label": "看看池塘", "response": "水面轻轻动了一下。" },
+      "bench": { "label": "看看长椅", "response": "长椅一直留着，随时可以回来坐一会儿。" },
+      "bird": { "label": "看看小鸟", "response": "小鸟在远处停了一会儿。" }
     },
+    "care": {
+      "title": "今天想怎样照料？",
+      "description": "三种选择带来相同成长，只是庭院的回应不同。",
+      "available": "今天已经有一条记录，可以选择一次照料。",
+      "unavailable": "今天记录后，就可以选择一次照料。",
+      "options": {
+        "water": { "title": "浇一点水", "description": "看一小段水落下的变化。", "response": "水落下来了。今天的成长仍只来自你的记录。" },
+        "sunlight": { "title": "晒会儿太阳", "description": "让叶片接住一会儿光。", "response": "光落在叶片上。三种照料得到相同成长。" },
+        "invite_visitor": { "title": "邀请访客", "description": "请小鸟在附近停一会儿。", "response": "小鸟停了一会儿。它不会评价你的记录。" }
+      }
+    },
+    "layout": {
+      "title": "布置我的庭院",
+      "description": "在固定位置选择预制物件，庭院仍会保持协调。",
+      "unlocked": "已开放",
+      "locked": "参与 {{count}} 天后开放",
+      "previewNotice": "当前选择只在这次浏览中预览，离开后不会保留。",
+      "previewSaved": "这个位置已换成新的预览物件。",
+      "slots": { "flower_border": "花圃边", "hill_path": "山坡小径", "pond_edge": "池塘边", "bench_corner": "长椅一角" },
+      "items": { "wildflower_patch": "小片野花", "low_fern": "低矮蕨叶", "flat_stones": "几块平石", "wooden_sign": "无字木牌", "water_grass": "水边草", "small_birdbath": "小鸟水盆", "linen_cushion": "亚麻坐垫", "warm_lantern": "暖色小灯" }
+    },
+    "keepsakes": {
+      "title": "我的纪念物",
+      "description": "以后可以主动把某个参与日留成一个简单纪念物，不写文字，也不解释情绪。",
+      "open": "看看纪念物",
+      "previewNotice": "纪念物目前仅作预览，暂时不会保存。",
+      "types": { "flower": "一朵花", "stone": "一块石头", "lantern": "一盏小灯" }
+    },
+    "facts": { "eyebrow": "庭院成长" },
     "reminders": {
       "title": "提醒偏好",
       "description": "每天或每周只是建议。你可随时记录，也可关闭提醒。当前仅保存应用内偏好，不发送推送或邮件。",
@@ -1179,24 +1198,16 @@
       "saved": "提醒偏好已保存。",
       "saving": "正在保存…"
     },
-    "actions": {
-      "fullSweet": "随时做一次完整 SWEET",
-      "account": "返回我的账户"
-    },
+    "actions": { "fullSweet": "随时做一次完整 SWEET", "account": "返回我的账户", "ariaLabel": "庭院操作", "record": "记录", "care": "照料", "layout": "布置", "close": "关闭" },
     "status": {
       "loading": "正在查看你的花园…",
       "signIn": "请先登录，再查看自己的花园。",
       "restricted": "花园只向已完成适用知情确认的学生账号开放。管理员账号不能读取学生的私人花园。",
-      "unavailable": "花园暂时无法加载。"
+      "unavailable": "花园暂时无法加载。",
+      "todayRecorded": "今天已经留下了一次参与",
+      "todayOpen": "今天还没有记录，也可以先在庭院里看看"
     },
-    "errors": {
-      "signIn": "请先登录。",
-      "notAvailable": "请先完成适用的学生知情确认。",
-      "invalidFeeling": "请选择一个此刻的感受。",
-      "invalidReminder": "请选择提醒方式。",
-      "tooMany": "今天已经记录很多次了，请稍后再来。",
-      "unavailable": "花园暂时不可用，请稍后再试。"
-    }
+    "errors": { "signIn": "请先登录。", "notAvailable": "请先完成适用的学生知情确认。", "invalidFeeling": "请选择一个此刻的感受。", "invalidReminder": "请选择提醒方式。", "tooMany": "今天已经记录很多次了，请稍后再来。", "unavailable": "花园暂时不可用，请稍后再试。" }
   },
   "adminRolePreview": {
     "metadata": { "title": "角色页面体验 | YouthTempo" },

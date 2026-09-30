@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [quick, sweet, preference] = await Promise.all([
       supabase.from("tempo_check_ins").select("created_at").eq("user_id", user.id)
         .order("created_at", { ascending: false }).limit(1000),
-      supabase.from("sweet_records").select("created_at,summary").eq("user_id", user.id)
+      supabase.from("sweet_records").select("created_at").eq("user_id", user.id)
         .order("created_at", { ascending: false }).limit(1000),
       supabase.from("tempo_reminder_preferences").select("mode")
         .eq("user_id", user.id).maybeSingle(),
@@ -76,7 +76,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (preference.error) throw preference.error;
     return res.status(200).json({
       ...gardenSummary(quick.data || [], sweet.data || []),
-      recentRhythm: sweet.data?.find((record) => typeof record.summary === "string" && record.summary.trim())?.summary || null,
       reminderMode: preference.data?.mode || "off",
     });
   } catch (error) {

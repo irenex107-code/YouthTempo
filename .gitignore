@@ -28,3 +28,6 @@ supabase/.temp/
 # 本地备份包
 outputs/*.tar.gz
 backups/
+
+# 本地视觉头脑风暴会话
+.superpowers/

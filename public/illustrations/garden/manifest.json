@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "key": "garden_background_desktop",
+      "file": "garden-background-desktop.png",
+      "kind": "scene",
+      "width": 1672,
+      "height": 941,
+      "decorative": true,
+      "crop": "desktop"
+    },
+    {
+      "key": "garden_background_mobile",
+      "file": "garden-background-mobile.png",
+      "kind": "scene",
+      "width": 940,
+      "height": 1672,
+      "decorative": true,
+      "crop": "mobile"
+    },
+    {
+      "key": "plant_seed",
+      "file": "plant-seed.png",
+      "kind": "plant",
+      "width": 1536,
+      "height": 1024,
+      "decorative": true,
+      "stage": "seed"
+    },
+    {
+      "key": "plant_sprout",
+      "file": "plant-sprout.png",
+      "kind": "plant",
+      "width": 1536,
+      "height": 1024,
+      "decorative": true,
+      "stage": "sprout"
+    },
+    {
+      "key": "plant_leaves",
+      "file": "plant-leaves.png",
+      "kind": "plant",
+      "width": 1536,
+      "height": 1024,
+      "decorative": true,
+      "stage": "leaves"
+    },
+    {
+      "key": "plant_bloom",
+      "file": "plant-bloom.png",
+      "kind": "plant",
+      "width": 1312,
+      "height": 1199,
+      "decorative": true,
+      "stage": "bloom"
+    }
+  ]
+}
