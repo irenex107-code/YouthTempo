@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import {
@@ -152,6 +152,33 @@ test("花园数据只保留私有记录和提醒偏好，删除账户时级联�
   expect(sql).toContain("revoke all on table public.tempo_check_ins, public.tempo_reminder_preferences from public, anon, authenticated");
   expect(sql).toContain("using ((select auth.uid()) = user_id)");
   expect(sql).not.toContain("create table public.garden_scores");
+});
+
+test("花园互动状态具有本人所有权、级联删除与严格 RLS", async () => {
+  const migrationNames = await readdir(path.join(process.cwd(), "supabase/migrations"));
+  const migrationName = migrationNames.find((name) => name.endsWith("_add_tempo_garden_interactions.sql"));
+  expect(migrationName).toBeDefined();
+  const sql = await readFile(path.join(process.cwd(), "supabase/migrations", migrationName || "missing"), "utf8");
+  const consolidatedSchema = await readFile(path.join(process.cwd(), "supabase/schema.sql"), "utf8");
+
+  for (const table of ["tempo_garden_care_events", "tempo_garden_layout_items", "tempo_garden_keepsakes"]) {
+    expect(sql).toContain(`create table public.${table}`);
+    expect(consolidatedSchema).toContain(`create table public.${table}`);
+    expect(sql).toContain(`alter table public.${table} enable row level security`);
+    expect(sql).toContain(`revoke all on table public.${table} from public, anon, authenticated`);
+    expect(sql).toContain(`grant select, insert, update, delete on table public.${table} to service_role`);
+  }
+
+  expect(sql.match(/references auth\.users\(id\) on delete cascade/g)).toHaveLength(3);
+  expect(sql).toContain("unique (user_id, care_date)");
+  expect(sql).toContain("primary key (user_id, slot)");
+  expect(sql).toContain("unique (user_id, keepsake_date)");
+  expect(sql).toContain("check (action in ('water', 'sunlight', 'invite_visitor'))");
+  expect(sql).toContain("check (slot in ('flower_border', 'hill_path', 'pond_edge', 'bench_corner'))");
+  expect(sql).toContain("check (keepsake_type in ('flower', 'stone', 'lantern'))");
+  expect(sql.match(/using \(\(select auth\.uid\(\)\) = user_id\)/g)?.length).toBeGreaterThanOrEqual(6);
+  expect(sql.match(/with check \(\(select auth\.uid\(\)\) = user_id\)/g)?.length).toBeGreaterThanOrEqual(6);
+  expect(sql).not.toContain("security definer");
 });
 
 test("花园不读取、返回或展示 AI 小结", async () => {
