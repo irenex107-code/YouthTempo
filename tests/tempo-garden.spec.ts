@@ -55,13 +55,25 @@ async function useIllustrativeGarden(page: Page, initialTotal = 0, loadStatus = 
       });
       return;
     }
+    const unlockedPositions = [
+      ...(total >= 3 ? ["flower_border"] : []),
+      ...(total >= 7 ? ["hill_path"] : []),
+      ...(total >= 14 ? ["pond_edge"] : []),
+      ...(total >= 28 ? ["bench_corner"] : []),
+    ];
+    const unlockedItems = [
+      ...(total >= 3 ? ["wildflower_patch"] : []),
+      ...(total >= 7 ? ["low_fern", "flat_stones"] : []),
+      ...(total >= 14 ? ["wooden_sign", "water_grass"] : []),
+      ...(total >= 28 ? ["small_birdbath", "linen_cushion", "warm_lantern"] : []),
+    ];
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         stage: total > 0 ? "sprout" : "seed", total, thisWeek: total, thisMonth: total,
         sceneLevel: "base", quickCheckIns: total, fullSweetRecords: 0,
-        todayParticipated: total > 0, unlockedPositions: [], unlockedItems: [], reminderMode: "off",
+        todayParticipated: total > 0, unlockedPositions, unlockedItems, reminderMode: "off",
       }),
     });
   });
@@ -252,6 +264,9 @@ test("英文首次介绍、跳过和减少动态效果可用", async ({ page }) 
   await expect(page.locator(".garden-main-plant")).toHaveCSS("animation-name", "none");
   await page.getByRole("button", { name: "Skip introduction" }).click();
   await expect(page.getByRole("heading", { name: "My quiet garden" })).toBeVisible();
+  await page.getByRole("button", { name: "Look at the pond" }).click();
+  await expect(page.locator(".garden-scene-effect-pond")).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".garden-scene-feedback")).toHaveCSS("animation-name", "none");
   await page.reload();
   await expect(page.getByRole("heading", { name: "My quiet garden" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Welcome to your SWEET Garden" })).toHaveCount(0);
@@ -268,7 +283,41 @@ test("庭院是主视觉，操作区只有记录、照料和布置", async ({ pa
   await expect(dock.getByRole("button", { name: "布置" })).toBeVisible();
   await expect(page.getByText("最近发现的节律")).toHaveCount(0);
   await page.getByRole("button", { name: "看看池塘" }).click();
-  await expect(page.getByText("水面轻轻动了一下。")).toBeVisible();
+  const scene = page.locator(".garden-scene");
+  const feedback = scene.getByRole("status");
+  await expect(feedback).toContainText("水面轻轻动了一下。");
+  await expect(scene.locator(".garden-scene-effect-pond")).toBeVisible();
+  await expect(page.locator(".garden-notice")).toHaveCount(0);
+  const sceneBox = await scene.boundingBox();
+  const feedbackBox = await feedback.boundingBox();
+  expect(sceneBox).not.toBeNull();
+  expect(feedbackBox).not.toBeNull();
+  expect((feedbackBox?.y || 0) + (feedbackBox?.height || 0) / 2).toBeGreaterThan((sceneBox?.y || 0) + (sceneBox?.height || 0) * 0.45);
+  expect((feedbackBox?.y || 0) + (feedbackBox?.height || 0) / 2).toBeLessThan((sceneBox?.y || 0) + (sceneBox?.height || 0) * 0.72);
+});
+
+test("探索、照料和布置都直接回应在庭院场景中", async ({ page, isMobile }) => {
+  await useIllustrativeGarden(page, 28, 200, true);
+  await page.goto("/garden");
+  const scene = page.locator(".garden-scene");
+
+  await page.getByRole("button", { name: "看看小鸟" }).click();
+  await expect(scene.getByRole("status")).toContainText("小鸟在远处停了一会儿。");
+  await expect(scene.locator(".garden-scene-effect-bird")).toBeVisible();
+
+  await page.getByRole("button", { name: "照料" }).click();
+  await page.getByRole("button", { name: "浇一点水" }).click();
+  await expect(scene.getByRole("status")).toContainText("水落下来了。");
+  await expect(scene.locator(".garden-scene-effect-water")).toBeVisible();
+
+  await page.getByRole("button", { name: "布置" }).click();
+  await page.getByRole("button", { name: "小片野花" }).click();
+  await expect(page.getByRole("heading", { name: "布置庭院" })).toHaveCount(0);
+  await expect(scene.locator('[data-garden-item="wildflower_patch"]')).toBeVisible();
+  await expect(scene.getByRole("status")).toContainText("这个位置已换成新的预览物件。");
+  await expect(scene.locator(".garden-scene-effect-layout")).toBeVisible();
+
+  if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });
 
 test("账号没有花园资格时显示明确原因，不误报为加载故障", async ({ page }) => {

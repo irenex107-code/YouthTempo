@@ -6,7 +6,7 @@ import { GardenFactsPanel } from "@/components/garden/GardenFactsPanel";
 import { GardenKeepsakeDrawer } from "@/components/garden/GardenKeepsakeDrawer";
 import { GardenLayoutSheet } from "@/components/garden/GardenLayoutSheet";
 import { GardenRecordSheet, type GardenFeeling } from "@/components/garden/GardenRecordSheet";
-import { GardenScene } from "@/components/garden/GardenScene";
+import { GardenScene, type GardenSceneInteraction } from "@/components/garden/GardenScene";
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import {
   getCurrentUser,
@@ -42,6 +42,13 @@ export default function GardenPage() {
   const [introStep, setIntroStep] = useState(0);
   const [activeSheet, setActiveSheet] = useState<GardenSheetName>(null);
   const [selectedItems, setSelectedItems] = useState<Partial<Record<GardenLayoutSlot, GardenItemKey>>>({});
+  const [sceneInteraction, setSceneInteraction] = useState<GardenSceneInteraction | null>(null);
+
+  useEffect(() => {
+    if (!sceneInteraction) return;
+    const timeout = window.setTimeout(() => setSceneInteraction(null), 4200);
+    return () => window.clearTimeout(timeout);
+  }, [sceneInteraction]);
 
   useEffect(() => {
     let active = true;
@@ -101,7 +108,6 @@ export default function GardenPage() {
       const garden = await getTempoGarden(locale);
       setData(garden);
       setFeeling("");
-      setNotice(t("garden.quick.saved"));
       setFeedbackTrigger((current) => current + 1);
       setActiveSheet("care");
     } catch (caught) {
@@ -127,17 +133,31 @@ export default function GardenPage() {
   }
 
   function explore(place: ExplorePlace) {
-    setNotice(t(`garden.explore.${place}.response`));
+    setSceneInteraction((current) => ({
+      id: (current?.id || 0) + 1,
+      kind: place,
+      message: t(`garden.explore.${place}.response`),
+    }));
   }
 
   function previewCare(action: GardenCareAction) {
-    setNotice(t(`garden.care.options.${action}.response`));
+    setSceneInteraction((current) => ({
+      id: (current?.id || 0) + 1,
+      kind: action,
+      message: t(`garden.care.options.${action}.response`),
+    }));
     setActiveSheet(null);
   }
 
   function previewLayout(slot: GardenLayoutSlot, item: GardenItemKey) {
     setSelectedItems((current) => ({ ...current, [slot]: item }));
-    setNotice(t("garden.layout.previewSaved"));
+    setSceneInteraction((current) => ({
+      id: (current?.id || 0) + 1,
+      kind: "layout",
+      slot,
+      message: t("garden.layout.previewSaved"),
+    }));
+    setActiveSheet(null);
   }
 
   return (
@@ -157,6 +177,8 @@ export default function GardenPage() {
               stage={data.stage}
               statusText={t(data.todayParticipated ? "garden.status.todayRecorded" : "garden.status.todayOpen")}
               onExplore={explore}
+              selectedItems={selectedItems}
+              interaction={sceneInteraction}
               overlay={showIntro ? (
                 <div className="garden-intro-overlay" aria-live="polite">
                   <p className="eyebrow">{t("garden.intro.eyebrow")}</p>
