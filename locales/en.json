@@ -1165,6 +1165,8 @@
       "description": "All three choices bring the same growth. Only the garden's response changes.",
       "available": "You have recorded a moment today, so you can choose one way to care.",
       "unavailable": "Record a moment today to choose one way to care.",
+      "completed": "You cared for the garden today with “{{action}}”. You can return tomorrow without losing today's growth.",
+      "saving": "Saving this moment of care…",
       "options": {
         "water": { "title": "Add a little water", "description": "Watch a brief change as the water falls.", "response": "The water has fallen. Today's growth still comes only from your record." },
         "sunlight": { "title": "Sit in the sunlight", "description": "Let the leaves hold the light for a moment.", "response": "Light settles on the leaves. All three choices bring the same growth." },
@@ -1176,16 +1178,24 @@
       "description": "Choose prepared objects for fixed places so the garden stays visually calm.",
       "unlocked": "Available",
       "locked": "Available after {{count}} participation days",
-      "previewNotice": "Selections are previewed for this visit and will not remain after you leave.",
-      "previewSaved": "This place now shows the new preview object.",
+      "saving": "Saving your arrangement…",
+      "savedNotice": "Your choice stays in your private garden, and you can change it anytime.",
+      "saved": "This place has been changed and saved.",
       "slots": { "flower_border": "Flower border", "hill_path": "Hillside path", "pond_edge": "Pond edge", "bench_corner": "Bench corner" },
       "items": { "wildflower_patch": "Wildflower patch", "low_fern": "Low ferns", "flat_stones": "Flat stones", "wooden_sign": "Plain wooden sign", "water_grass": "Waterside grass", "small_birdbath": "Small birdbath", "linen_cushion": "Linen cushion", "warm_lantern": "Warm lantern" }
     },
     "keepsakes": {
       "title": "My keepsakes",
-      "description": "You will be able to save a participation day as a simple keepsake, without writing text or assigning it an emotional meaning.",
+      "description": "Save today's participation as a simple keepsake, without writing text or assigning it an emotional meaning.",
       "open": "View keepsakes",
-      "previewNotice": "Keepsakes are a preview for now and are not saved yet.",
+      "available": "You have a participation record today, so you can choose one keepsake. You can save one per day.",
+      "unavailable": "Record a moment today to choose a keepsake. Your existing keepsakes will stay here.",
+      "saving": "Saving your keepsake…",
+      "saved": "Today's keepsake is saved.",
+      "alreadySaved": "A keepsake already exists for today, so the original choice remains.",
+      "removed": "The keepsake has been removed.",
+      "remove": "Remove",
+      "empty": "No keepsakes yet. You can leave one whenever it feels right.",
       "types": { "flower": "A flower", "stone": "A stone", "lantern": "A small lantern" }
     },
     "facts": { "eyebrow": "Garden growth" },
@@ -1207,7 +1217,7 @@
       "todayRecorded": "You have already left one participation record today",
       "todayOpen": "You have not recorded today, and you can still spend time in the garden"
     },
-    "errors": { "signIn": "Please sign in.", "notAvailable": "Complete the applicable student consent first.", "invalidFeeling": "Choose how you feel right now.", "invalidReminder": "Choose a reminder preference.", "tooMany": "You have recorded several moments today. Please come back later.", "unavailable": "The garden is temporarily unavailable. Please try again later." }
+    "errors": { "signIn": "Please sign in.", "notAvailable": "Complete the applicable student consent first.", "invalidFeeling": "Choose how you feel right now.", "invalidReminder": "Choose a reminder preference.", "invalidCare": "Choose an available way to care.", "invalidLayout": "Choose an object available for this garden place.", "layoutLocked": "This place or object is not available yet.", "invalidKeepsake": "Choose an available keepsake.", "invalidDate": "Choose a valid participation date.", "careNeedsRecord": "Leave a participation record today before choosing one way to care.", "keepsakeNeedsRecord": "Keepsakes can only be saved for dates with a participation record.", "keepsakeNotFound": "This keepsake does not exist or has already been removed.", "tooMany": "You have recorded several moments today. Please come back later.", "tooManyInteractions": "That was a little quick. Please try again shortly.", "unavailable": "The garden is temporarily unavailable. Please try again later." }
   },
   "adminRolePreview": {
     "metadata": { "title": "Explore role pages | YouthTempo" },

@@ -9,14 +9,18 @@ import { GardenRecordSheet, type GardenFeeling } from "@/components/garden/Garde
 import { GardenScene, type GardenSceneInteraction } from "@/components/garden/GardenScene";
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import {
+  deleteGardenKeepsake,
   getCurrentUser,
   getTempoGarden,
+  saveGardenCare,
+  saveGardenKeepsake,
+  saveGardenLayout,
   saveTempoQuickCheckIn,
   saveTempoReminderPreference,
   TempoGardenRequestError,
   type TempoGardenData,
 } from "@/lib/cloudRecords";
-import type { GardenCareAction, GardenItemKey, GardenLayoutSlot } from "@/lib/gardenCatalog";
+import type { GardenCareAction, GardenItemKey, GardenKeepsakeType, GardenLayoutSlot } from "@/lib/gardenCatalog";
 import { useTranslation } from "@/lib/i18n/client";
 
 type GardenSheetName = "record" | "care" | "layout" | "keepsakes" | null;
@@ -34,6 +38,7 @@ export default function GardenPage() {
   const [signedOut, setSignedOut] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingPreference, setSavingPreference] = useState(false);
+  const [savingInteraction, setSavingInteraction] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [feedbackTrigger, setFeedbackTrigger] = useState(0);
@@ -41,7 +46,6 @@ export default function GardenPage() {
   const [showIntro, setShowIntro] = useState(false);
   const [introStep, setIntroStep] = useState(0);
   const [activeSheet, setActiveSheet] = useState<GardenSheetName>(null);
-  const [selectedItems, setSelectedItems] = useState<Partial<Record<GardenLayoutSlot, GardenItemKey>>>({});
   const [sceneInteraction, setSceneInteraction] = useState<GardenSceneInteraction | null>(null);
 
   useEffect(() => {
@@ -140,24 +144,87 @@ export default function GardenPage() {
     }));
   }
 
-  function previewCare(action: GardenCareAction) {
-    setSceneInteraction((current) => ({
-      id: (current?.id || 0) + 1,
-      kind: action,
-      message: t(`garden.care.options.${action}.response`),
-    }));
-    setActiveSheet(null);
+  async function chooseCare(action: GardenCareAction) {
+    setSavingInteraction(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await saveGardenCare(action, locale);
+      setData((current) => current ? {
+        ...current,
+        canCareToday: false,
+        todayCare: result.care,
+      } : current);
+      setSceneInteraction((current) => ({
+        id: (current?.id || 0) + 1,
+        kind: result.care.action,
+        message: t(`garden.care.options.${result.care.action}.response`),
+      }));
+      setActiveSheet(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t("garden.errors.unavailable"));
+    } finally {
+      setSavingInteraction(false);
+    }
   }
 
-  function previewLayout(slot: GardenLayoutSlot, item: GardenItemKey) {
-    setSelectedItems((current) => ({ ...current, [slot]: item }));
-    setSceneInteraction((current) => ({
-      id: (current?.id || 0) + 1,
-      kind: "layout",
-      slot,
-      message: t("garden.layout.previewSaved"),
-    }));
-    setActiveSheet(null);
+  async function chooseLayout(slot: GardenLayoutSlot, item: GardenItemKey) {
+    setSavingInteraction(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await saveGardenLayout(slot, item, locale);
+      setData((current) => current ? {
+        ...current,
+        layout: { ...current.layout, [result.layoutItem.slot]: result.layoutItem.itemKey },
+      } : current);
+      setSceneInteraction((current) => ({
+        id: (current?.id || 0) + 1,
+        kind: "layout",
+        slot: result.layoutItem.slot,
+        message: t("garden.layout.saved"),
+      }));
+      setActiveSheet(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t("garden.errors.unavailable"));
+    } finally {
+      setSavingInteraction(false);
+    }
+  }
+
+  async function createKeepsake(type: GardenKeepsakeType) {
+    setSavingInteraction(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await saveGardenKeepsake(type, locale);
+      setData((current) => current ? {
+        ...current,
+        canAddKeepsakeToday: false,
+        keepsakes: [result.keepsake, ...current.keepsakes.filter((item) => item.id !== result.keepsake.id)],
+      } : current);
+      setNotice(t(result.created ? "garden.keepsakes.saved" : "garden.keepsakes.alreadySaved"));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t("garden.errors.unavailable"));
+    } finally {
+      setSavingInteraction(false);
+    }
+  }
+
+  async function removeKeepsake(id: string) {
+    setSavingInteraction(true);
+    setError("");
+    setNotice("");
+    try {
+      await deleteGardenKeepsake(id, locale);
+      const garden = await getTempoGarden(locale);
+      setData(garden);
+      setNotice(t("garden.keepsakes.removed"));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t("garden.errors.unavailable"));
+    } finally {
+      setSavingInteraction(false);
+    }
   }
 
   return (
@@ -177,7 +244,7 @@ export default function GardenPage() {
               stage={data.stage}
               statusText={t(data.todayParticipated ? "garden.status.todayRecorded" : "garden.status.todayOpen")}
               onExplore={explore}
-              selectedItems={selectedItems}
+              selectedItems={data.layout}
               interaction={sceneInteraction}
               overlay={showIntro ? (
                 <div className="garden-intro-overlay" aria-live="polite">
@@ -202,16 +269,32 @@ export default function GardenPage() {
             <GardenFactsPanel data={data} savingPreference={savingPreference} onReminderChange={updateReminder} onOpenKeepsakes={() => setActiveSheet("keepsakes")} />
 
             <GardenRecordSheet open={activeSheet === "record"} feeling={feeling} saving={saving} onFeelingChange={setFeeling} onSubmit={submitCheckIn} onClose={() => setActiveSheet(null)} />
-            <GardenCareSheet open={activeSheet === "care"} available={data.todayParticipated} onChoose={previewCare} onClose={() => setActiveSheet(null)} />
+            <GardenCareSheet
+              open={activeSheet === "care"}
+              todayParticipated={data.todayParticipated}
+              todayCare={data.todayCare?.action || null}
+              saving={savingInteraction}
+              onChoose={chooseCare}
+              onClose={() => setActiveSheet(null)}
+            />
             <GardenLayoutSheet
               open={activeSheet === "layout"}
               unlockedPositions={data.unlockedPositions}
               unlockedItems={data.unlockedItems}
-              selectedItems={selectedItems}
-              onChoose={previewLayout}
+              selectedItems={data.layout}
+              saving={savingInteraction}
+              onChoose={chooseLayout}
               onClose={() => setActiveSheet(null)}
             />
-            <GardenKeepsakeDrawer open={activeSheet === "keepsakes"} onClose={() => setActiveSheet(null)} />
+            <GardenKeepsakeDrawer
+              open={activeSheet === "keepsakes"}
+              keepsakes={data.keepsakes}
+              canCreateToday={data.canAddKeepsakeToday}
+              saving={savingInteraction}
+              onCreate={createKeepsake}
+              onDelete={removeKeepsake}
+              onClose={() => setActiveSheet(null)}
+            />
           </>
         ) : null}
 

@@ -1165,6 +1165,8 @@
       "description": "三种选择带来相同成长，只是庭院的回应不同。",
       "available": "今天已经有一条记录，可以选择一次照料。",
       "unavailable": "今天记录后，就可以选择一次照料。",
+      "completed": "今天已经用“{{action}}”照料过庭院了。明天再来，也不会失去今天的成长。",
+      "saving": "正在保存这次照料…",
       "options": {
         "water": { "title": "浇一点水", "description": "看一小段水落下的变化。", "response": "水落下来了。今天的成长仍只来自你的记录。" },
         "sunlight": { "title": "晒会儿太阳", "description": "让叶片接住一会儿光。", "response": "光落在叶片上。三种照料得到相同成长。" },
@@ -1176,16 +1178,24 @@
       "description": "在固定位置选择预制物件，庭院仍会保持协调。",
       "unlocked": "已开放",
       "locked": "参与 {{count}} 天后开放",
-      "previewNotice": "当前选择只在这次浏览中预览，离开后不会保留。",
-      "previewSaved": "这个位置已换成新的预览物件。",
+      "saving": "正在保存布置…",
+      "savedNotice": "选择会保存在你的私人庭院中，也可以随时更换。",
+      "saved": "这个位置已经换好并保存了。",
       "slots": { "flower_border": "花圃边", "hill_path": "山坡小径", "pond_edge": "池塘边", "bench_corner": "长椅一角" },
       "items": { "wildflower_patch": "小片野花", "low_fern": "低矮蕨叶", "flat_stones": "几块平石", "wooden_sign": "无字木牌", "water_grass": "水边草", "small_birdbath": "小鸟水盆", "linen_cushion": "亚麻坐垫", "warm_lantern": "暖色小灯" }
     },
     "keepsakes": {
       "title": "我的纪念物",
-      "description": "以后可以主动把某个参与日留成一个简单纪念物，不写文字，也不解释情绪。",
+      "description": "把今天的参与留成一个简单纪念物，不写文字，也不解释情绪。",
       "open": "看看纪念物",
-      "previewNotice": "纪念物目前仅作预览，暂时不会保存。",
+      "available": "今天有一条参与记录，可以选择一个纪念物。每天最多保存一个。",
+      "unavailable": "今天记录后，可以选择一个纪念物。已有纪念物仍会保留。",
+      "saving": "正在保存纪念物…",
+      "saved": "今天的纪念物已经保存。",
+      "alreadySaved": "今天已经有一个纪念物，原来的选择已保留。",
+      "removed": "纪念物已移除。",
+      "remove": "移除",
+      "empty": "还没有纪念物。什么时候想留下一个都可以。",
       "types": { "flower": "一朵花", "stone": "一块石头", "lantern": "一盏小灯" }
     },
     "facts": { "eyebrow": "庭院成长" },
@@ -1207,7 +1217,7 @@
       "todayRecorded": "今天已经留下了一次参与",
       "todayOpen": "今天还没有记录，也可以先在庭院里看看"
     },
-    "errors": { "signIn": "请先登录。", "notAvailable": "请先完成适用的学生知情确认。", "invalidFeeling": "请选择一个此刻的感受。", "invalidReminder": "请选择提醒方式。", "tooMany": "今天已经记录很多次了，请稍后再来。", "unavailable": "花园暂时不可用，请稍后再试。" }
+    "errors": { "signIn": "请先登录。", "notAvailable": "请先完成适用的学生知情确认。", "invalidFeeling": "请选择一个此刻的感受。", "invalidReminder": "请选择提醒方式。", "invalidCare": "请选择一种可用的照料方式。", "invalidLayout": "请选择这个位置可用的庭院物件。", "layoutLocked": "这个位置或物件还没有开放。", "invalidKeepsake": "请选择一种可用的纪念物。", "invalidDate": "请选择有效的参与日期。", "careNeedsRecord": "今天留下一条记录后，才可以照料一次。", "keepsakeNeedsRecord": "只有已有参与记录的日期可以保存纪念物。", "keepsakeNotFound": "这个纪念物不存在，或者已经移除。", "tooMany": "今天已经记录很多次了，请稍后再来。", "tooManyInteractions": "操作有些频繁，请稍后再试。", "unavailable": "花园暂时不可用，请稍后再试。" }
   },
   "adminRolePreview": {
     "metadata": { "title": "角色页面体验 | YouthTempo" },

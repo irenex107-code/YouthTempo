@@ -1,5 +1,11 @@
 import type { EmailOtpType, User } from "@supabase/supabase-js";
 import type { Locale } from "@/lib/i18n/config";
+import type {
+  GardenCareAction,
+  GardenItemKey,
+  GardenKeepsakeType,
+  GardenLayoutSlot,
+} from "@/lib/gardenCatalog";
 import { getSupabase } from "@/lib/supabaseClient";
 import type { SavedSweetRecordStep } from "@/lib/sweetRecordTypes";
 import type { CommunityReportCategory, CommunityReportPriority } from "@/lib/communityReports";
@@ -594,9 +600,14 @@ export type TempoGardenData = {
   quickCheckIns: number;
   fullSweetRecords: number;
   todayParticipated: boolean;
-  unlockedPositions: Array<"flower_border" | "hill_path" | "pond_edge" | "bench_corner">;
-  unlockedItems: Array<"wildflower_patch" | "low_fern" | "flat_stones" | "wooden_sign" | "water_grass" | "small_birdbath" | "linen_cushion" | "warm_lantern">;
+  unlockedPositions: GardenLayoutSlot[];
+  unlockedItems: GardenItemKey[];
   reminderMode: "off" | "daily" | "weekly";
+  canCareToday: boolean;
+  canAddKeepsakeToday: boolean;
+  todayCare: { date: string; action: GardenCareAction } | null;
+  layout: Partial<Record<GardenLayoutSlot, GardenItemKey>>;
+  keepsakes: Array<{ id: string; date: string; type: GardenKeepsakeType }>;
 };
 
 export class TempoGardenRequestError extends Error {
@@ -606,9 +617,15 @@ export class TempoGardenRequestError extends Error {
   }
 }
 
-async function gardenRequest<T>(method: "GET" | "POST" | "PATCH", locale: Locale, body?: Record<string, unknown>) {
+async function gardenRequest<T>(
+  method: "GET" | "POST" | "PATCH" | "PUT" | "DELETE",
+  locale: Locale,
+  body?: Record<string, unknown>,
+  path = "/api/garden",
+) {
   const token = await getAccessToken();
-  const response = await fetch(`/api/garden?locale=${encodeURIComponent(locale)}`, {
+  const separator = path.includes("?") ? "&" : "?";
+  const response = await fetch(`${path}${separator}locale=${encodeURIComponent(locale)}`, {
     method,
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
     body: body ? JSON.stringify({ ...body, locale }) : undefined,
@@ -631,6 +648,42 @@ export function saveTempoReminderPreference(
   locale: Locale,
 ) {
   return gardenRequest<{ reminderMode: TempoGardenData["reminderMode"] }>("PATCH", locale, { reminderMode });
+}
+
+export function saveGardenCare(action: GardenCareAction, locale: Locale) {
+  return gardenRequest<{ care: { date: string; action: GardenCareAction }; created: boolean }>(
+    "POST",
+    locale,
+    { action },
+    "/api/garden/care",
+  );
+}
+
+export function saveGardenLayout(slot: GardenLayoutSlot, itemKey: GardenItemKey, locale: Locale) {
+  return gardenRequest<{ layoutItem: { slot: GardenLayoutSlot; itemKey: GardenItemKey } }>(
+    "PUT",
+    locale,
+    { slot, itemKey },
+    "/api/garden/layout",
+  );
+}
+
+export function saveGardenKeepsake(type: GardenKeepsakeType, locale: Locale, date?: string) {
+  return gardenRequest<{ keepsake: TempoGardenData["keepsakes"][number]; created: boolean }>(
+    "POST",
+    locale,
+    date ? { type, date } : { type },
+    "/api/garden/keepsakes",
+  );
+}
+
+export function deleteGardenKeepsake(id: string, locale: Locale) {
+  return gardenRequest<{ deleted: true; id: string }>(
+    "DELETE",
+    locale,
+    undefined,
+    `/api/garden/keepsakes/${encodeURIComponent(id)}`,
+  );
 }
 
 export async function saveCloudSweetRecord(record: {
