@@ -24,6 +24,9 @@ async function useIllustrativeGarden(page: Page, initialTotal = 0, loadStatus = 
     created_at: "2026-01-01T00:00:00.000Z",
   };
   let total = initialTotal;
+  let todayCare: { date: string; action: string } | null = null;
+  let selectedItems: Record<string, string> = {};
+  let keepsakes: Array<{ id: string; date: string; type: string }> = [];
 
   await page.addInitScript(({ key, value }) => {
     window.localStorage.setItem(key, JSON.stringify(value));
@@ -74,8 +77,51 @@ async function useIllustrativeGarden(page: Page, initialTotal = 0, loadStatus = 
         stage: total > 0 ? "sprout" : "seed", total, thisWeek: total, thisMonth: total,
         sceneLevel: "base", quickCheckIns: total, fullSweetRecords: 0,
         todayParticipated: total > 0, unlockedPositions, unlockedItems, reminderMode: "off",
+        canCareToday: total > 0 && !todayCare,
+        canAddKeepsakeToday: total > 0 && keepsakes.length === 0,
+        todayCare,
+        layout: selectedItems,
+        keepsakes,
       }),
     });
+  });
+  await page.route("**/api/garden/care?**", async (route) => {
+    const payload = route.request().postDataJSON() as { action: string };
+    todayCare ||= { date: "2026-10-03", action: payload.action };
+    await route.fulfill({
+      status: todayCare.action === payload.action ? 201 : 200,
+      contentType: "application/json",
+      body: JSON.stringify({ care: todayCare, created: todayCare.action === payload.action }),
+    });
+  });
+  await page.route("**/api/garden/layout?**", async (route) => {
+    const payload = route.request().postDataJSON() as { slot: string; itemKey: string };
+    selectedItems = { ...selectedItems, [payload.slot]: payload.itemKey };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ layoutItem: payload }),
+    });
+  });
+  await page.route("**/api/garden/keepsakes?**", async (route) => {
+    const payload = route.request().postDataJSON() as { type: string };
+    const existing = keepsakes[0];
+    const keepsake = existing || {
+      id: "00000000-0000-4000-8000-000000000099",
+      date: "2026-10-03",
+      type: payload.type,
+    };
+    keepsakes = [keepsake];
+    await route.fulfill({
+      status: existing ? 200 : 201,
+      contentType: "application/json",
+      body: JSON.stringify({ keepsake, created: !existing }),
+    });
+  });
+  await page.route("**/api/garden/keepsakes/*?**", async (route) => {
+    const id = route.request().url().split("/keepsakes/")[1]?.split("?")[0] || "";
+    keepsakes = keepsakes.filter((item) => item.id !== id);
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ deleted: true, id }) });
   });
 }
 
@@ -194,16 +240,17 @@ test("花园互动状态具有本人所有权、级联删除与严格 RLS", asyn
 });
 
 test("花园不读取、返回或展示 AI 小结", async () => {
-  const [api, cloud, page, zh, en] = await Promise.all([
+  const [api, sharedApi, cloud, page, zh, en] = await Promise.all([
     readFile(path.join(process.cwd(), "pages/api/garden.ts"), "utf8"),
+    readFile(path.join(process.cwd(), "pages/api/garden/_shared.ts"), "utf8"),
     readFile(path.join(process.cwd(), "lib/cloudRecords.ts"), "utf8"),
     readFile(path.join(process.cwd(), "views/garden/page.tsx"), "utf8"),
     readFile(path.join(process.cwd(), "locales/zh-CN.json"), "utf8"),
     readFile(path.join(process.cwd(), "locales/en.json"), "utf8"),
   ]);
-  expect(api).toContain('.from("sweet_records").select("created_at")');
-  expect(api).not.toContain('select("created_at,summary")');
-  expect(`${api}\n${cloud}\n${page}`).not.toContain("recentRhythm");
+  expect(sharedApi).toContain('.from("sweet_records").select("created_at")');
+  expect(`${api}\n${sharedApi}`).not.toContain('select("created_at,summary")');
+  expect(`${api}\n${sharedApi}\n${cloud}\n${page}`).not.toContain("recentRhythm");
   expect(page).not.toContain("/api/ai/");
   expect(JSON.parse(zh).garden.rhythm).toBeUndefined();
   expect(JSON.parse(en).garden.rhythm).toBeUndefined();
@@ -314,10 +361,39 @@ test("探索、照料和布置都直接回应在庭院场景中", async ({ page,
   await page.getByRole("button", { name: "小片野花" }).click();
   await expect(page.getByRole("heading", { name: "布置庭院" })).toHaveCount(0);
   await expect(scene.locator('[data-garden-item="wildflower_patch"]')).toBeVisible();
-  await expect(scene.getByRole("status")).toContainText("这个位置已换成新的预览物件。");
+  await expect(scene.getByRole("status")).toContainText("这个位置已经换好并保存了。");
   await expect(scene.locator(".garden-scene-effect-layout")).toBeVisible();
 
+  await page.reload();
+  await expect(page.locator('[data-garden-item="wildflower_patch"]')).toBeVisible();
+  await page.getByRole("button", { name: "照料" }).click();
+  await expect(page.getByText(/今天已经用“浇一点水”照料过庭院了/)).toBeVisible();
+
+  await page.getByRole("button", { name: "关闭" }).click();
+  await page.getByRole("button", { name: "看看纪念物" }).click();
+  await page.getByRole("button", { name: "一朵花" }).click();
+  await expect(page.getByText("今天的纪念物已经保存。")).toBeVisible();
+  await expect(page.getByRole("listitem").getByText("一朵花")).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "看看纪念物" }).click();
+  await expect(page.getByRole("listitem").getByText("一朵花")).toBeVisible();
+
   if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+});
+
+test("互动保存失败时保留当前选择并允许重试", async ({ page }) => {
+  await useIllustrativeGarden(page, 28, 200, true);
+  await page.route("**/api/garden/care?**", (route) => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ error: "花园暂时不可用，请稍后再试。" }),
+  }));
+  await page.goto("/garden");
+  await page.getByRole("button", { name: "照料" }).click();
+  await page.getByRole("button", { name: "浇一点水" }).click();
+  await expect(page.getByRole("heading", { name: "今天想怎样照料？" })).toBeVisible();
+  await expect(page.locator("main [role='alert']")).toContainText("花园暂时不可用，请稍后再试。");
+  await expect(page.getByRole("button", { name: "浇一点水" })).toBeEnabled();
 });
 
 test("账号没有花园资格时显示明确原因，不误报为加载故障", async ({ page }) => {

@@ -1,11 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerTranslator } from "@/lib/i18n/server";
-import { normalizeLocale } from "@/lib/i18n/config";
-import { reportOperationalError } from "@/lib/operationalMonitoring";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
-import { requireActiveStudentConsent } from "@/lib/studentConsent";
-import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
-import { gardenSummary } from "@/lib/tempoGarden";
+import { shanghaiDateKey } from "@/lib/tempoGarden";
+import {
+  gardenLocale,
+  loadGardenParticipation,
+  methodNotAllowed,
+  requireGardenContext,
+  sendGardenError,
+} from "@/pages/api/garden/_shared";
 
 const feelings = new Set(["steady", "mixed", "heavy", "unsure"]);
 const reminderModes = new Set(["off", "daily", "weekly"]);
@@ -13,23 +16,14 @@ const reminderModes = new Set(["off", "daily", "weekly"]);
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
   if (!["GET", "POST", "PATCH"].includes(req.method || "")) {
-    res.setHeader("Allow", "GET, POST, PATCH");
-    return res.status(405).json({ error: "Method not allowed" });
+    return methodNotAllowed(res, ["GET", "POST", "PATCH"]);
   }
 
-  const locale = normalizeLocale(
-    typeof req.body?.locale === "string" ? req.body.locale
-      : typeof req.query.locale === "string" ? req.query.locale : req.cookies.NEXT_LOCALE,
-  );
-  const t = getServerTranslator(locale);
+  const t = getServerTranslator(gardenLocale(req));
   try {
-    const user = await getAuthenticatedUser(req);
-    if (!user) return res.status(401).json({ error: t("garden.errors.signIn") });
-    const supabase = getSupabaseAdmin();
-    const consent = await requireActiveStudentConsent(supabase, user.id);
-    if (!consent || !["14_17", "18_plus"].includes(consent.age_band)) {
-      return res.status(403).json({ error: t("garden.errors.notAvailable") });
-    }
+    const context = await requireGardenContext(req, res);
+    if (!context) return;
+    const { supabase, user } = context;
 
     if (req.method === "POST") {
       const feeling = typeof req.body?.feeling === "string" ? req.body.feeling : "";
@@ -63,30 +57,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ reminderMode: mode });
     }
 
-    const [quick, sweet, preference] = await Promise.all([
-      supabase.from("tempo_check_ins").select("created_at").eq("user_id", user.id)
-        .order("created_at", { ascending: false }).limit(1000),
-      supabase.from("sweet_records").select("created_at").eq("user_id", user.id)
-        .order("created_at", { ascending: false }).limit(1000),
+    const [participation, preference, care, layout, keepsakes] = await Promise.all([
+      loadGardenParticipation(supabase, user.id),
       supabase.from("tempo_reminder_preferences").select("mode")
         .eq("user_id", user.id).maybeSingle(),
+      supabase.from("tempo_garden_care_events").select("care_date,action")
+        .eq("user_id", user.id).order("care_date", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("tempo_garden_layout_items").select("slot,item_key")
+        .eq("user_id", user.id),
+      supabase.from("tempo_garden_keepsakes").select("id,keepsake_date,keepsake_type")
+        .eq("user_id", user.id).order("keepsake_date", { ascending: false }),
     ]);
-    if (quick.error) throw quick.error;
-    if (sweet.error) throw sweet.error;
     if (preference.error) throw preference.error;
+    if (care.error) throw care.error;
+    if (layout.error) throw layout.error;
+    if (keepsakes.error) throw keepsakes.error;
+    const today = shanghaiDateKey(new Date());
+    const todayCare = care.data && care.data.care_date === today
+      ? { date: care.data.care_date, action: care.data.action }
+      : null;
     return res.status(200).json({
-      ...gardenSummary(quick.data || [], sweet.data || []),
+      ...participation.summary,
       reminderMode: preference.data?.mode || "off",
+      canCareToday: participation.summary.todayParticipated && !todayCare,
+      canAddKeepsakeToday: participation.summary.todayParticipated
+        && !(keepsakes.data || []).some((item) => item.keepsake_date === today),
+      todayCare,
+      layout: Object.fromEntries((layout.data || []).map((item) => [item.slot, item.item_key])),
+      keepsakes: (keepsakes.data || []).map((item) => ({
+        id: item.id,
+        date: item.keepsake_date,
+        type: item.keepsake_type,
+      })),
     });
   } catch (error) {
-    const statusCode = error && typeof error === "object" && "statusCode" in error
-      ? Number(error.statusCode) : 503;
-    if (statusCode >= 500) {
-      await reportOperationalError({ req, area: "save", operation: "tempo_garden", error, statusCode });
-    }
-    return res.status(statusCode).json({
-      error: statusCode === 403 ? t("garden.errors.notAvailable") : t("garden.errors.unavailable"),
-    });
+    return sendGardenError({ req, res, error, t, operation: "tempo_garden" });
   }
 }
 

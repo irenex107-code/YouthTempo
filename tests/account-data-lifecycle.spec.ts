@@ -5,10 +5,13 @@ import { expect, test } from "@playwright/test";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const projectRef = new URL(supabaseUrl).hostname.split(".")[0];
+const forbiddenFixtureProjects = new Set(["saqkzfsmabsgbwdvuras", "sebtakwjwubvdqdswtdi"]);
 
 test("账号可导出自己的数据并在双重确认后永久注销", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "API 数据生命周期无需按视口重复执行");
   test.skip(!serviceRoleKey, "需要服务端密钥创建和清理临时 E2E 账号");
+  test.skip(forbiddenFixtureProjects.has(projectRef), "禁止在正式或恢复项目创建 E2E 账号");
 
   const suffix = randomUUID();
   const email = `e2e-account-data-${suffix}@youthtempo.test`;
@@ -66,6 +69,26 @@ test("账号可导出自己的数据并在双重确认后永久注销", async ({
     });
     expect(feedbackError).toBeNull();
 
+    const gardenDate = new Date().toISOString().slice(0, 10);
+    const { error: careError } = await admin.from("tempo_garden_care_events").insert({
+      user_id: userId,
+      care_date: gardenDate,
+      action: "water",
+    });
+    expect(careError).toBeNull();
+    const { error: layoutError } = await admin.from("tempo_garden_layout_items").insert({
+      user_id: userId,
+      slot: "flower_border",
+      item_key: "wildflower_patch",
+    });
+    expect(layoutError).toBeNull();
+    const { error: keepsakeError } = await admin.from("tempo_garden_keepsakes").insert({
+      user_id: userId,
+      keepsake_date: gardenDate,
+      keepsake_type: "flower",
+    });
+    expect(keepsakeError).toBeNull();
+
     const { data: sessionData, error: signInError } = await browserClient.auth.signInWithPassword({ email, password });
     expect(signInError).toBeNull();
     const accessToken = sessionData.session?.access_token || "";
@@ -83,6 +106,14 @@ test("账号可导出自己的数据并在双重确认后永久注销", async ({
     expect(payload.data.sweetRecords[0].summary).toBe(marker);
     expect(payload.data.pilotFeedback).toHaveLength(1);
     expect(payload.data.pilotFeedback[0].most_helpful).toBe(marker);
+    expect(payload.data.tempoGardenCareEvents).toHaveLength(1);
+    expect(payload.data.tempoGardenCareEvents[0]).toMatchObject({ care_date: gardenDate, action: "water" });
+    expect(payload.data.tempoGardenLayoutItems).toEqual([
+      expect.objectContaining({ slot: "flower_border", item_key: "wildflower_patch" }),
+    ]);
+    expect(payload.data.tempoGardenKeepsakes).toEqual([
+      expect.objectContaining({ keepsake_date: gardenDate, keepsake_type: "flower" }),
+    ]);
     expect(JSON.stringify(payload)).not.toContain(serviceRoleKey);
 
     const rejected = await request.delete("/api/account/data", {
@@ -109,6 +140,11 @@ test("账号可导出自己的数据并在双重确认后永久注销", async ({
       .maybeSingle();
     expect(profileLookupError).toBeNull();
     expect(deletedProfile).toBeNull();
+    for (const table of ["tempo_garden_care_events", "tempo_garden_layout_items", "tempo_garden_keepsakes"]) {
+      const { data: rows, error: lookupError } = await admin.from(table).select("user_id").eq("user_id", userId);
+      expect(lookupError).toBeNull();
+      expect(rows).toEqual([]);
+    }
 
     const { data: audit, error: auditLookupError } = await admin
       .from("account_deletion_audits")
