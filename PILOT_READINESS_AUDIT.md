@@ -1,5 +1,8 @@
 # YouthTempo Pilot Readiness Audit
 
+> **2026-10-09 OTP 登录修复：** 发送限流按结构化状态与错误码识别，新增“已收到验证码，直接输入”入口，仍执行八位验证码服务端验证并保留重发冷却。中英文桌面／手机模拟修复专项 16 passed，既有 OTP／i18n 专项 18 passed，类型检查、生产构建和双语键对齐通过。测试使用合成认证响应；正式发布后的实际邮箱与手机微信复验仍待完成，不关闭邮件、真机或运营阻断项，整体仍为 **READY WITH CONDITIONS**。
+
+
 > **2026-09-19 会前版本说明：** 本功能分支的目标是当前试点完全不开放家长数据访问，历史 active 关系不能授权读取；成年人按独立路径运行。旧清单或审计中关于监护人可查看学生完整记录、解忧室只是预览、无普通倾听志愿者的描述仅保留为历史事实，不代表新目标或正式环境已更新。详见 `ROADMAP.md`、`docs/TEACHER_REVIEW_READINESS.md` 与部署手册。正式结论仍为 **READY WITH CONDITIONS**。
 
 > **2026-09-20 MVP 隔离进度：** 一次性本地 Supabase 已完成第 55 份迁移升级、历史 active 关系下 guardian 旧 session 失权、学生本人读取、目标关系修复 dry-run 回滚、guardian/学生注销、花园/反馈和默认关闭入口专项；定向浏览器 63 passed、0 failed。此前较广范围的角色、Storage、支持与聊天室验证不作为本批阻断门槛。不得据此关闭人工或学校 PILOT BLOCKER，整体仍为 **READY WITH CONDITIONS**；详见 `ROADMAP.md`。

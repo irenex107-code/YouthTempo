@@ -165,7 +165,7 @@ export default function AccountPage() {
   const [wechatLoading, setWechatLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
+  const [otpEntryOpen, setOtpEntryOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRequestInFlight = useRef(false);
@@ -385,15 +385,15 @@ export default function AccountPage() {
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (otpRequestInFlight.current) return;
+    if (otpRequestInFlight.current || resendCooldown > 0) return;
     otpRequestInFlight.current = true;
     setNotice("");
     setError("");
     setAuthLoading(true);
+    setResendCooldown(60);
     try {
       await sendEmailOtp(email.trim());
-      setOtpSent(true);
-      setResendCooldown(60);
+      setOtpEntryOpen(true);
       setNotice(t("account.notices.otpSent"));
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_send", loginError);
@@ -421,7 +421,7 @@ export default function AccountPage() {
     try {
       await verifyEmailOtp(email.trim(), otp);
       setOtp("");
-      setOtpSent(false);
+      setOtpEntryOpen(false);
       setNotice(t("account.notices.signedIn"));
       await refreshAccount();
     } catch (loginError) {
@@ -443,10 +443,10 @@ export default function AccountPage() {
     setNotice("");
     setError("");
     setAuthLoading(true);
+    setResendCooldown(60);
     try {
       await sendEmailOtp(email.trim());
       setOtp("");
-      setResendCooldown(60);
       setNotice(t("account.notices.otpResent"));
     } catch (loginError) {
       reportClientOperationFailure("auth", "auth_otp_send", loginError);
@@ -634,9 +634,9 @@ export default function AccountPage() {
             </div>
 
             <div className="w-full rounded-2xl border border-ink/10 bg-white/90 p-5 shadow-soft sm:p-7 lg:max-w-lg lg:justify-self-end">
-              <p className="eyebrow">{otpSent ? t("account.visitor.otpSent") : t("account.visitor.emailLogin")}</p>
+              <p className="eyebrow">{otpEntryOpen ? t("account.visitor.otpEntry") : t("account.visitor.emailLogin")}</p>
               <h2 className="mt-2 text-[1.45rem] font-bold leading-tight text-ink sm:text-[1.7rem]">
-                {otpSent ? t("account.visitor.enterOtp", { count: emailOtpLength }) : t("account.visitor.welcome")}
+                {otpEntryOpen ? t("account.visitor.enterOtp", { count: emailOtpLength }) : t("account.visitor.welcome")}
               </h2>
 
               {!isSupabaseConfigured() ? (
@@ -645,7 +645,7 @@ export default function AccountPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">{t("account.visitor.unavailableText")}</p>
                 </div>
               ) : (
-                <form className="mt-6 grid gap-4" onSubmit={otpSent ? handleOtpSubmit : handleLogin}>
+                <form className="mt-6 grid gap-4" onSubmit={otpEntryOpen ? handleOtpSubmit : handleLogin}>
                   <label className="grid gap-2 text-sm font-bold text-ink">
                     {t("account.visitor.email")}
                     <input
@@ -655,16 +655,17 @@ export default function AccountPage() {
                       placeholder="name@example.com"
                       type="email"
                       autoComplete="email"
-                      disabled={otpSent || authLoading}
+                      disabled={otpEntryOpen || authLoading}
                     />
                   </label>
-                  {otpSent ? (
+                  {otpEntryOpen ? (
                     <label className="grid gap-2 text-sm font-bold text-ink">
                       {t("account.visitor.otp")}
                       <input
                         className="rounded-xl border border-ink/15 bg-white px-4 py-3 text-center text-lg font-bold tracking-[0.22em] outline-none transition focus:border-sage focus:ring-4 focus:ring-sage/10"
                         value={otp}
                         onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, emailOtpLength))}
+                        autoFocus
                         placeholder="12345678"
                         maxLength={emailOtpLength}
                         inputMode="numeric"
@@ -675,11 +676,29 @@ export default function AccountPage() {
                   <button
                     type="submit"
                     className="button-primary mt-1 w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45"
-                    disabled={authLoading || !email.trim() || (otpSent && otp.trim().length === 0)}
+                    disabled={authLoading || !email.trim() || (!otpEntryOpen && resendCooldown > 0) || (otpEntryOpen && otp.trim().length === 0)}
                   >
-                    {authLoading ? t("account.visitor.wait") : otpSent ? t("account.visitor.signIn") : t("account.visitor.sendOtp")}
+                    {authLoading ? t("account.visitor.wait") : otpEntryOpen ? t("account.visitor.signIn") : resendCooldown > 0 ? t("account.visitor.resendCountdown", { seconds: resendCooldown }) : t("account.visitor.sendOtp")}
                   </button>
-                  {otpSent ? (
+                  {!otpEntryOpen ? (
+                    <button
+                      type="button"
+                      className="text-sm font-bold text-sage-dark hover:text-sage disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={authLoading || !email.trim()}
+                      onClick={(event) => {
+                        if (!event.currentTarget.form?.reportValidity()) return;
+                        setEmail(email.trim());
+                        setOtp("");
+                        setOtpEntryOpen(true);
+                        setResendCooldown((current) => Math.max(current, 60));
+                        setNotice("");
+                        setError("");
+                      }}
+                    >
+                      {t("account.visitor.alreadyReceivedOtp")}
+                    </button>
+                  ) : null}
+                  {otpEntryOpen ? (
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
                       <button
                         type="button"
@@ -694,7 +713,7 @@ export default function AccountPage() {
                         className="font-bold text-muted hover:text-ink"
                         onClick={() => {
                           setOtp("");
-                          setOtpSent(false);
+                          setOtpEntryOpen(false);
                           setNotice("");
                           setError("");
                         }}

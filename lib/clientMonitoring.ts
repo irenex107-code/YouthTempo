@@ -1,6 +1,8 @@
 import type { FailureKind, MonitoredArea, MonitoredClientOperation } from "@/lib/monitoringTypes";
+import { isOtpRateLimitError } from "@/lib/emailOtp";
 
 function classifyClientFailure(error: unknown): FailureKind {
+  if (isOtpRateLimitError(error)) return "rate_limited";
   const message = error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
   const name = error instanceof Error ? error.name : "";
   if (["AbortError", "TimeoutError"].includes(name) || message.includes("超时") || message.includes("timeout")) {
