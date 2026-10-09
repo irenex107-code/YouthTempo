@@ -264,9 +264,9 @@ test("未登录无法读取或提交私有花园数据", async ({ request }) => 
 
 test("花园的中英文访客入口可用，移动端没有横向溢出", async ({ page, isMobile }) => {
   await page.goto("/garden");
-  await expect(page.getByRole("link", { name: "请先登录，再查看自己的花园。" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "登录并进入我的花园" })).toBeVisible();
   await page.goto("/en/garden");
-  await expect(page.getByRole("link", { name: "Sign in to see your own garden." })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in to my garden" })).toBeVisible();
   if (isMobile) {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
@@ -282,7 +282,9 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
   await expect(page.getByRole("heading", { name: "轻量记录" })).toHaveCount(0);
   await page.getByRole("button", { name: "继续看看" }).click();
   await expect(page.getByRole("heading", { name: "记录之后，可以照料一次" })).toBeVisible();
-  await page.getByRole("button", { name: "记录一下" }).click();
+  await page.getByRole("button", { name: "先逛逛花园" }).click();
+  await expect(page.getByRole("heading", { name: "轻量记录" })).toHaveCount(0);
+  await page.getByRole("button", { name: "记录", exact: true }).click();
   await expect(page.getByRole("heading", { name: "轻量记录" })).toBeVisible();
 
   await page.getByRole("radio", { name: "有些沉重" }).check();

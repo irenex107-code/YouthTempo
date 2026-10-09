@@ -33,14 +33,14 @@
         "schoolAdmin": "学校管理",
         "myStudents": "我的学生",
         "childRecords": "孩子记录",
-        "startSweet": "开始 SWEET 节律",
-        "recordToday": "记录今天"
+        "startSweet": "SWEET花园",
+        "recordToday": "SWEET花园"
       },
       "nav": {
         "forTeens": "青少年入口",
         "forParents": "家长入口",
         "forTeachers": "老师入口",
-        "sweet": "SWEET 节律",
+        "sweet": "SWEET花园",
         "community": "家校医社区",
         "referral": "下一步找谁"
       }
@@ -72,10 +72,10 @@
     "metadata": { "title": "YouthTempo | 更早开始的青少年支持" },
     "hero": {
       "label": "青少年日常支持平台",
-      "title": "最近过得怎么样？",
-      "description": "从睡眠、吃饭、运动、学习和心情开始，把最近的状态记下来。需要的时候，也更容易和信任的人说清楚。",
-      "primaryAction": "开始 SWEET 节律记录",
-      "secondaryAction": "了解 SWEET",
+      "title": "SWEET花园",
+      "description": "这里是一个观察自己、照顾日常节奏的小庭院。可以先看看池塘、长椅和小鸟，准备好后再留下记录。",
+      "primaryAction": "SWEET花园",
+      "secondaryAction": "花园怎么玩",
       "imageAlt": "青少年按照自己的节奏向前，并获得家长、老师和专业支持者陪伴的插画"
     },
     "demo": {
@@ -200,7 +200,7 @@
       "title": "今天想从哪里开始？",
       "description": "每次只做一件事。",
       "cards": {
-        "rhythm": { "title": "我想看看今天状态", "text": "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。", "action": "做 SWEET 节律记录", "alt": "睡眠、醒来、饮食、运动和任务投入组成的日常节律" },
+        "rhythm": { "title": "我想看看今天状态", "text": "从睡眠、醒来、饮食、运动和任务投入，记录今天真实的生活节奏。", "action": "SWEET花园", "alt": "睡眠、醒来、饮食、运动和任务投入组成的日常节律" },
         "mood": { "title": "我有点说不清自己的感受", "text": "先不用解释清楚，选几个接近的情绪词，再慢慢补充发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
         "talk": { "title": "AI 对话在首轮试点暂不开放", "text": "你仍可以使用心情拼图、固定规则支持路径，或给家长、老师写一条悄悄话。", "action": "查看替代支持", "alt": "从自助整理逐步连接家长、老师和其他支持" },
         "messages": { "title": "我有些话不容易当面说", "text": "当前试点可以写给已分配的老师或留给自己；未来只有在家长关系另行开放并确认后，才会出现家长收件。", "action": "打开悄悄话信箱", "alt": "装着信件的绿色信箱" },
@@ -285,12 +285,12 @@
   },
   "forYoungAdults": {
     "metadata": { "title": "18–25 岁独立使用 | YouthTempo" },
-    "hero": { "label": "给 18–25 岁的你", "title": "不用等一切稳定下来，才开始照顾自己的节奏。", "description": "离开高中、进入大学或刚开始工作，生活常常一下子变得更自由，也更容易乱。你可以独立使用 YouthTempo，不需要学校或监护人加入。", "primaryAction": "登录并开始", "secondaryAction": "先试一次 SWEET", "imageAlt": "沿着自己的节奏逐步向前的成长路径" },
+    "hero": { "label": "给 18–25 岁的你", "title": "不用等一切稳定下来，才开始照顾自己的节奏。", "description": "离开高中、进入大学或刚开始工作，生活常常一下子变得更自由，也更容易乱。你可以独立使用 YouthTempo，不需要学校或监护人加入。", "primaryAction": "登录并开始", "secondaryAction": "SWEET花园", "imageAlt": "沿着自己的节奏逐步向前的成长路径" },
     "tools": {
       "title": "按你现在最需要的来",
       "description": "每次只做一件事，不用把它变成新的任务清单。",
       "items": {
-        "rhythm": { "title": "看看最近的生活节奏", "text": "从睡眠、醒来、饮食、活动和手头任务开始，不需要先想清楚所有问题。", "action": "做一次 SWEET 记录", "alt": "五个日常节律组成的记录路径" },
+        "rhythm": { "title": "看看最近的生活节奏", "text": "从睡眠、醒来、饮食、活动和手头任务开始，不需要先想清楚所有问题。", "action": "SWEET花园", "alt": "五个日常节律组成的记录路径" },
         "mood": { "title": "把心里那团东西说清一点", "text": "情绪很杂时，可以先选接近的感受，再补充刚才发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
         "worry": { "title": "睡前先把担心放下来", "text": "把能做的、暂时不能做的分开，今晚不必把每件事都解决。", "action": "今晚先放下", "alt": "在月光下暂时安放担心" },
         "support": { "title": "需要真人支持时知道找谁", "text": "当状态持续影响学习、工作或生活，可以按紧急程度找到更合适的支持。", "action": "看看下一步找谁", "alt": "逐步连接合适支持的路径" }
@@ -863,7 +863,7 @@
     "action": { "title": "明天可以做的一个小行动", "placeholder": "明天我可以先做的一件小事是……" },
     "ruleBased": { "label": "固定规则整理 · 不使用 AI", "description": "结果只按照你填写的担心、可控性选择和明日行动进行归类，不会发送给 AI，也不会评估或诊断你。", "resultLabel": "规则化整理 · 非 AI 生成" },
     "messages": { "addWorry": "可以先写下至少一个担心，再生成整理。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "暂时无法完成整理，请稍后再试。" },
-    "actions": { "start": "开始", "pause": "暂停", "resetTimer": "重置", "organizing": "正在整理……", "organize": "帮我分一分", "complete": "完成整理", "reset": "重新填写", "backToSweet": "回到 SWEET 节律", "openMoodJournal": "打开心情拼图" },
+    "actions": { "start": "开始", "pause": "暂停", "resetTimer": "重置", "organizing": "正在整理……", "organize": "帮我分一分", "complete": "完成整理", "reset": "重新填写", "backToSweet": "SWEET花园", "openMoodJournal": "打开心情拼图" },
     "result": { "title": "先把担心分一分", "controllable": "可以先做一点点的部分", "tomorrow": "可以暂时放到明天的部分", "smallAction": "明天最小行动", "bedtimeSentence": "睡前可以对自己说的一句话" },
     "done": { "title": "今天先到这里", "description": "你已经把担心放到了纸面上，也给明天留了一个小行动。现在可以允许自己慢慢收尾。" }
   },
@@ -886,7 +886,7 @@
     "generate": { "title": "整理支持路径", "progress": "已选择 {{selected}} / {{total}} 项。选择越接近当前状态，路径会越具体。", "description": "这不是评判或诊断，只按固定规则帮助你整理下一步。", "noteLabel": "还有什么想补充的吗？", "notePlaceholder": "可以写一句，也可以先留空；补充内容只做安全检查，不参与路径评分。" },
     "actions": { "generating": "正在整理支持路径……", "generate": "查看支持路径" },
     "paths": { "moreSupport": "整理当前状态，并连接更多支持", "lowPressure": "从一个低压力入口开始", "moodFirst": "先拼一拼现在的心情", "worryFirst": "今晚先放下一点", "rhythmAndExpression": "从节律和表达开始", "expressionAndTell": "先整理表达，再让家长、老师或其他可信任的人知道", "rhythmAndTell": "记录节律，并让家长、老师或其他可信任的人知道", "checkInFirst": "先做 SWEET 节律记录", "selfOrganize": "先自己整理一下", "lowBarrier": "从低门槛记录开始", "tellAdult": "尝试和家长、老师或其他可信任的大人说" },
-    "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET 节律记录", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
+    "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET花园", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
     "ruleBased": { "label": "规则化支持路径 · 非 AI 生成", "description": "结果只根据结构化选项和固定版本规则生成，不对你评分或诊断，补充文字不会交给 AI 判断。" },
     "result": { "label": "支持建议", "title": "你的下一步支持路径", "answerSummary": "{{question}}：{{answers}}", "noSelection": "你还没有选择当前状态。", "path": "建议路径", "reason": "为什么这样建议", "howToStart": "可以怎么开始", "fallbackStarter": "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”", "links": "推荐入口" },
     "direct": { "title": "你也可以直接让一个人知道", "description": "不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。", "action": "打开悄悄话信箱" }
@@ -936,7 +936,7 @@
       "linkedChildren": "已关联 {{names}}，可以查看学校确认范围内的节律记录。", "noLinkedChildren": "当前学生自主试点不开放家长加入或亲子关系创建；未来未成年人流程获批后会另行说明。",
       "descriptions": { "platformAdmin": "进入平台管理，查看全部学校、成员和负责关系。", "schoolLead": "管理本校成员，同时查看本校学生提交的记录。", "supportTeacher": "查看学校分配给你的学生记录和近期变化。", "guardian": "当前学生自主试点不开放家长访问；未来未成年人流程获批后会另行说明。", "schoolStudent": "你保存的记录会出现在这里，并按照学校的支持安排开放给对应老师。", "personal": "完成 SWEET 后保存，即可在这里回看。" }
     },
-    "actions": { "platformAdmin": "进入平台管理", "schoolAdmin": "进入学校管理", "studentRecords": "查看学生记录", "assignedStudents": "查看负责学生", "followUpWorkspace": "跟进工作台", "childRecords": "查看孩子记录", "moreSupport": "需要更多支持", "recordToday": "记录今天", "saveContinue": "保存并继续", "saveProfile": "保存资料", "signOut": "退出登录", "submitting": "正在提交…", "processing": "正在处理…" },
+    "actions": { "platformAdmin": "进入平台管理", "schoolAdmin": "进入学校管理", "studentRecords": "查看学生记录", "assignedStudents": "查看负责学生", "followUpWorkspace": "跟进工作台", "childRecords": "查看孩子记录", "moreSupport": "需要更多支持", "recordToday": "SWEET花园", "saveContinue": "保存并继续", "saveProfile": "保存资料", "signOut": "退出登录", "submitting": "正在提交…", "processing": "正在处理…" },
     "profile": { "name": "姓名", "namePlaceholder": "怎么称呼你", "accountType": "账号类型" },
     "summary": { "currentRole": "当前身份", "confirming": "正在确认", "confirmingRole": "正在确认身份…", "visibleRecords": "可见记录", "recordCountOne": "{{count}} 条", "recordCount": "{{count}} 条", "savedToAccount": "保存在当前账号", "lastSevenDays": "最近 7 天", "daysRecordedOne": "{{count}} 天有记录", "daysRecorded": "{{count}} 天有记录", "notEveryDay": "不需要每天都完成", "schoolSpace": "学校空间", "joined": "已加入", "notJoined": "未加入", "configuredBySchool": "由学校管理员配置" },
     "ageGuidance": {
@@ -962,7 +962,7 @@
     "rhythm": { "sleep": "睡眠", "wake": "醒来状态", "eat": "饮食", "exercise": "活动", "task": "任务投入" },
     "records": {
       "titles": { "school": "本校学生的 SWEET 记录", "teacher": "负责学生的 SWEET 记录", "guardian": "孩子的 SWEET 记录", "own": "我的 SWEET 历史记录" },
-      "loading": "正在加载记录…", "recordTitle": "SWEET 节律记录", "childRecord": "{{name}}的 SWEET 记录", "delete": "删除", "viewFull": "查看完整记录", "notProvided": "未填写", "smallStepPrefix": "可以先做的一件小事：", "nextToolPrefix": "推荐下一步：", "emptyTitle": "暂时没有可见记录", "start": "开始记录", "contactSchool": "联系学校确认关系", "admin": "进入管理台",
+      "loading": "正在加载记录…", "recordTitle": "SWEET 节律记录", "childRecord": "{{name}}的 SWEET 记录", "delete": "删除", "viewFull": "查看完整记录", "notProvided": "未填写", "smallStepPrefix": "可以先做的一件小事：", "nextToolPrefix": "推荐下一步：", "emptyTitle": "暂时没有可见记录", "start": "SWEET花园", "contactSchool": "联系学校确认关系", "admin": "进入管理台",
       "empty": { "student": "完成一次 SWEET 节律记录并保存后，会显示在这里。", "guardian": "当前学生自主试点不开放家长访问或亲子关系创建。", "teacher": "学校负责人分配学生后，这里会显示你负责学生的记录。", "schoolLead": "本校学生保存 SWEET 记录后，会显示在这里。", "default": "保存记录后，会显示在这里。" }
     },
     "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前自主试用暂不接收 14 岁以下学生。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生自主试用确认已完成，现在可以生成 AI 小结并保存本人记录。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
@@ -1112,6 +1112,41 @@
     "notices": { "noTeacher": "学校还没有为你安排负责老师。", "noGuardian": "学校还没有确认关联家长。", "safetySent": "这段话已经送出。请立即联系家长、老师或其他身边可信任的成年人，请对方陪着你；如有即时危险，请拨打 110 或 120。", "safetyDutyAlerted": "这段话已进入值班队列，值班负责人也收到了不含正文的邮件提醒。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120，不要等待回复。", "safetyDutyQueued": "这段话已进入值班队列，但邮件提醒尚未确认送达。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120，不要等待回复。", "safetyPrivate": "这段话已保存，但没有确认由真人实时查看。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120。", "dutyAlerted": "已经进入值班队列，值班负责人也收到了不含正文的邮件提醒。这个入口不是实时服务；紧急时不要等待回复。", "dutyQueued": "已经进入值班队列，但邮件提醒尚未确认送达。这个入口不是实时服务；紧急时不要等待回复。", "savedForSelf": "已经替你保存下来。", "sent": "已经送出。" },
     "errors": { "loadFailed": "暂时无法加载想说的话。", "sendFailed": "暂时无法发送，请稍后再试。" }
   },
+  "gardenWelcome": {
+    "title": "先看看花园，再决定是否记录",
+    "description": "这里是一个观察自己、照顾日常节奏的小庭院。可以先看看池塘、长椅和小鸟，准备好后再留下记录。",
+    "preview": "庭院预览 · 不保存记录",
+    "enter": "SWEET花园",
+    "guide": "花园怎么玩",
+    "login": "登录并进入我的花园",
+    "record": {
+      "title": "两种记录，按今天的精力选择",
+      "text": "轻量记录只需选择此刻的感受；完整 SWEET 记录帮助你观察睡眠、起床、饮食、运动和任务参与。两种方式都算参与，不必都做。"
+    },
+    "growth": {
+      "title": "成长来自参与，不评价心情",
+      "text": "同一天记录多次只计一个参与日（按北京时间）。累计参与 1、3、7 天，植物依次发芽、长叶、开花。每种感受得到相同成长，漏记不会扣分或让植物倒退。"
+    },
+    "care": {
+      "title": "记录后，照料一次",
+      "text": "当天记录后，可以浇水、晒太阳或邀请小鸟，任选一种照料。三种方式的成长相同，不需要反复操作。"
+    },
+    "layout": {
+      "title": "慢慢布置，留下纪念",
+      "text": "累计参与 3、7、14、28 天，依次开放花圃边、山坡小径、池塘边和长椅一角。当天有记录时，可以保存一个花、石头或灯的纪念物，也可以之后移除。"
+    },
+    "privacy": {
+      "title": "保存在哪里，谁能看见",
+      "text": "登录并完成适用的知情确认后，记录和庭院布置会保存到账号。庭院中的轻量记录、布置和纪念物仅向本人开放；完整 SWEET 记录按现有授权关系开放给负责老师等人员，具体以账户关系和隐私说明为准。"
+    },
+    "choice": {
+      "title": "随时来看看，也可以不记录",
+      "text": "这里不做诊断，也不能替代专业或紧急支持。提醒目前只保存应用内偏好，不发送推送或邮件。你可以在账户中查看授权、导出数据或删除账号。"
+    },
+    "privacyLink": "查看隐私与安全说明",
+    "modelLink": "了解 SWEET 模型",
+    "back": "返回SWEET花园"
+  },
   "garden": {
     "metadata": { "title": "SWEET 花园 | YouthTempo" },
     "hero": { "label": "SWEET 花园", "title": "每一次照顾自己，都算数", "description": "只记录你愿意停下来观察自己的时刻。心情、答案和漏记不会让植物失去成长。" },
@@ -1133,7 +1168,7 @@
       },
       "skip": "跳过介绍",
       "next": "继续看看",
-      "start": "记录一下"
+      "start": "先逛逛花园"
     },
     "stage": { "seed": "一颗种子", "sprout": "刚冒出的嫩芽", "leaves": "舒展的叶子", "bloom": "正在开花的小花园" },
     "stats": {

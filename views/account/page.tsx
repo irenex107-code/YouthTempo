@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -154,6 +155,8 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutMes
 }
 
 export default function AccountPage() {
+  const router = useRouter();
+  const [enterGardenAfterAuth, setEnterGardenAfterAuth] = useState(false);
   const { locale, t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<CloudProfile | null>(null);
@@ -383,6 +386,15 @@ export default function AccountPage() {
     setWechatStatus("");
   }, [locale]);
 
+  useEffect(() => {
+    const requested = enterGardenAfterAuth || router.query.next === "garden";
+    if (requested && !loading && !needsPersonalProfile && accountStatus?.displayRole === "学生"
+        && consentStatus?.role === "student" && consentStatus.consent?.status === "active"
+        && ["14_17", "18_plus"].includes(consentStatus.consent.ageBand || "")) {
+      void router.replace("/garden");
+    }
+  }, [enterGardenAfterAuth, router, loading, needsPersonalProfile, accountStatus, consentStatus]);
+
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (otpRequestInFlight.current || resendCooldown > 0) return;
@@ -420,6 +432,7 @@ export default function AccountPage() {
     setAuthLoading(true);
     try {
       await verifyEmailOtp(email.trim(), otp);
+      setEnterGardenAfterAuth(true);
       setOtp("");
       setOtpEntryOpen(false);
       setNotice(t("account.notices.signedIn"));
@@ -764,7 +777,7 @@ export default function AccountPage() {
                     {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">{t("account.actions.followUpWorkspace")}</Link> : null}
                     {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">{t("account.actions.childRecords")}</Link> : null}
                     {isParent ? <Link href="/referral" className="button-secondary w-full sm:w-auto">{t("account.actions.moreSupport")}</Link> : null}
-                    {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">{t("account.actions.recordToday")}</Link> : null}
+                    {displayRole === "学生" ? <Link href="/garden" className="button-primary w-full sm:w-auto">{t("account.actions.recordToday")}</Link> : null}
                   </div>
                 ) : null}
               </div>
@@ -1273,7 +1286,7 @@ export default function AccountPage() {
                   <p className="mt-2 max-w-2xl text-sm leading-7 text-muted">{emptyRecordsDescription(displayRole, t)}</p>
                 </div>
                 <div className="mt-5 shrink-0 sm:mt-0">
-                  {displayRole === "学生" ? <Link href="/check-in" className="button-primary w-full sm:w-auto">{t("account.records.start")}</Link> : null}
+                  {displayRole === "学生" ? <Link href="/garden" className="button-primary w-full sm:w-auto">{t("account.records.start")}</Link> : null}
                   {displayRole === "家长" && linkedChildren.length === 0 && CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? <Link href="/contact" className="button-secondary w-full sm:w-auto">{t("account.records.contactSchool")}</Link> : null}
                   {adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">{t("account.records.admin")}</Link> : null}
                 </div>

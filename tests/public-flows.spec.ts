@@ -4,9 +4,9 @@ test("首页提供青少年日常支持和 SWEET 主入口", async ({ page }) =>
   await page.goto("/");
 
   await expect(page).toHaveTitle(/YouthTempo/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("最近过得怎么样");
-  await expect(page.getByText("青少年日常支持平台", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "开始 SWEET 节律记录" })).toHaveAttribute("href", "/check-in");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("SWEET花园");
+  await expect(page.getByText("庭院预览 · 不保存记录", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "SWEET花园", exact: true }).first()).toHaveAttribute("href", "/garden");
 });
 
 test("未登录用户可以看到三个角色入口", async ({ page }) => {
@@ -85,7 +85,7 @@ test("18–25 岁可以找到不依赖学校或监护人的独立入口", async 
   await expect(page.getByText("不需要学校或监护人加入")).toBeVisible();
   await expect(page.getByText("受邀成年人试点", { exact: true })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "登录并开始" })).toHaveAttribute("href", "/account");
-  await expect(page.getByRole("link", { name: "做一次 SWEET 记录" })).toHaveAttribute("href", "/check-in");
+  await expect(page.getByRole("link", { name: "SWEET花园", exact: true }).last()).toHaveAttribute("href", "/garden");
 });
 
 test("公开页面不展示生产端处理方式", async ({ page }) => {

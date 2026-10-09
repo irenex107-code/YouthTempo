@@ -33,14 +33,14 @@
         "schoolAdmin": "School admin",
         "myStudents": "My students",
         "childRecords": "My child's records",
-        "startSweet": "Start SWEET",
-        "recordToday": "Check in"
+        "startSweet": "SWEET Garden",
+        "recordToday": "SWEET Garden"
       },
       "nav": {
         "forTeens": "Young people",
         "forParents": "Parents",
         "forTeachers": "Teachers",
-        "sweet": "SWEET",
+        "sweet": "SWEET Garden",
         "community": "Community",
         "referral": "Find support"
       }
@@ -72,10 +72,10 @@
     "metadata": { "title": "YouthTempo | Earlier Support for Young People" },
     "hero": {
       "label": "Everyday mental health support for young people",
-      "title": "How have you been lately?",
-      "description": "Start with sleep, meals, movement, daily tasks, and emotions. Check in with how things have been, so it is easier to explain what you need to someone you trust.",
-      "primaryAction": "Start a SWEET check-in",
-      "secondaryAction": "Explore SWEET",
+      "title": "SWEET Garden",
+      "description": "A small courtyard for noticing how you feel and caring for your daily rhythms. Visit the pond, bench and bird, then leave a record whenever you feel ready.",
+      "primaryAction": "SWEET Garden",
+      "secondaryAction": "How the garden works",
       "imageAlt": "A young person moving forward at their own pace, supported by parents, teachers, and professionals"
     },
     "demo": {
@@ -200,7 +200,7 @@
       "title": "Where would you like to start today?",
       "description": "One thing at a time.",
       "cards": {
-        "rhythm": { "title": "I want to check in on how I’m doing today", "text": "Notice today's real-life rhythm through sleep, waking, meals, movement, and task engagement.", "action": "Start a SWEET check-in", "alt": "An everyday rhythm made up of sleep, waking, meals, movement, and task engagement" },
+        "rhythm": { "title": "I want to check in on how I’m doing today", "text": "Notice today's real-life rhythm through sleep, waking, meals, movement, and task engagement.", "action": "SWEET Garden", "alt": "An everyday rhythm made up of sleep, waking, meals, movement, and task engagement" },
         "mood": { "title": "I am not sure how to describe my feelings", "text": "You do not have to explain everything yet. Choose a few emotion words that feel close, then add what happened when you are ready.", "action": "Open the mood map", "alt": "A mood map made up of different colors" },
         "talk": { "title": "AI conversation is unavailable during the first pilot", "text": "You can still use the Mood Map, the fixed-rule support pathway, or write a private message to a parent or teacher.", "action": "View other support options", "alt": "Moving from self-guided reflection towards parents, teachers, and other support" },
         "messages": { "title": "I have something that is hard to say face to face", "text": "In the current pilot, you can write to an assigned teacher or keep it for yourself. A parent or guardian recipient would only appear in a separately approved future flow.", "action": "Open my private messages", "alt": "A green mailbox holding letters" },
@@ -285,12 +285,12 @@
   },
   "forYoungAdults": {
     "metadata": { "title": "Independent Access for Ages 18–25 | YouthTempo" },
-    "hero": { "label": "For ages 18–25", "title": "You do not have to wait for life to feel settled before caring for your rhythm.", "description": "Leaving school, starting university, or entering work can bring more freedom—and make daily life easier to lose track of. You can use YouthTempo independently, without a school or guardian joining.", "primaryAction": "Sign in and begin", "secondaryAction": "Try a SWEET check-in", "imageAlt": "A path of growth moving forward step by step at your own rhythm" },
+    "hero": { "label": "For ages 18–25", "title": "You do not have to wait for life to feel settled before caring for your rhythm.", "description": "Leaving school, starting university, or entering work can bring more freedom—and make daily life easier to lose track of. You can use YouthTempo independently, without a school or guardian joining.", "primaryAction": "Sign in and begin", "secondaryAction": "SWEET Garden", "imageAlt": "A path of growth moving forward step by step at your own rhythm" },
     "tools": {
       "title": "Start with what you need most right now",
       "description": "Choose one thing at a time. This does not need to become another to-do list.",
       "items": {
-        "rhythm": { "title": "Look at your recent rhythm", "text": "Start with sleep, waking, meals, movement, and the tasks in front of you. You do not need to understand every problem first.", "action": "Start a SWEET check-in", "alt": "A check-in path made up of five everyday rhythm areas" },
+        "rhythm": { "title": "Look at your recent rhythm", "text": "Start with sleep, waking, meals, movement, and the tasks in front of you. You do not need to understand every problem first.", "action": "SWEET Garden", "alt": "A check-in path made up of five everyday rhythm areas" },
         "mood": { "title": "Put complicated feelings into words", "text": "When emotions feel mixed, choose the feelings that come closest, then add what has just happened.", "action": "Open the mood map", "alt": "A mood map made up of different colors" },
         "worry": { "title": "Set worries aside before sleep", "text": "Separate what you can act on from what cannot be addressed yet. You do not have to solve everything tonight.", "action": "Set worries aside tonight", "alt": "Setting worries aside for now under the moonlight" },
         "support": { "title": "Know who to reach out to for support", "text": "If the situation continues to affect study, work, or daily life, find support that matches the level of urgency.", "action": "Find the right support", "alt": "A step-by-step path to the right support" }
@@ -863,7 +863,7 @@
     "action": { "title": "One small action for tomorrow", "placeholder": "One small thing I can do tomorrow is..." },
     "ruleBased": { "label": "Fixed-rule reflection · No AI", "description": "This result only sorts what you wrote using your controllability choices and tomorrow action. It is not sent to AI and does not assess or diagnose you.", "resultLabel": "Rule-based reflection · Not AI-generated" },
     "messages": { "addWorry": "Write down at least one worry before organizing your thoughts.", "connectionFailed": "We could not connect this time. Try again later.", "responseUnavailable": "Your worries could not be organized right now. Try again later." },
-    "actions": { "start": "Start", "pause": "Pause", "resetTimer": "Reset", "organizing": "Organizing...", "organize": "Help me sort them", "complete": "Finish reflection", "reset": "Start again", "backToSweet": "Back to SWEET rhythms", "openMoodJournal": "Open the mood map" },
+    "actions": { "start": "Start", "pause": "Pause", "resetTimer": "Reset", "organizing": "Organizing...", "organize": "Help me sort them", "complete": "Finish reflection", "reset": "Start again", "backToSweet": "SWEET Garden", "openMoodJournal": "Open the mood map" },
     "result": { "title": "Sort your worries", "controllable": "Where you can take a small step", "tomorrow": "What can wait until tomorrow", "smallAction": "Smallest action for tomorrow", "bedtimeSentence": "A sentence to tell yourself before sleep" },
     "done": { "title": "That is enough for today", "description": "You have put your worries into words and chosen one small action for tomorrow. You can let the day come to a gentle close." }
   },
@@ -886,7 +886,7 @@
     "generate": { "title": "Organize a support pathway", "progress": "{{selected}} of {{total}} answered. The closer your choices are to your current situation, the more specific the pathway can be.", "description": "This is not a judgment or diagnosis. Fixed rules simply help organize where to begin.", "noteLabel": "Is there anything else you would like to add?", "notePlaceholder": "Write one sentence or leave this blank. Additional text is checked only for safety and is not scored." },
     "actions": { "generating": "Organizing your support pathway...", "generate": "View my support pathway" },
     "paths": { "moreSupport": "Understand what is happening and connect with more support", "lowPressure": "Start with a low-pressure option", "moodFirst": "Begin by mapping your emotions", "worryFirst": "Set some worries aside tonight", "rhythmAndExpression": "Start with rhythm and expression", "expressionAndTell": "Put it into words, then tell a parent, teacher, or another trusted person", "rhythmAndTell": "Check in with your rhythm and tell a parent, teacher, or another trusted person", "checkInFirst": "Start with a SWEET rhythm check-in", "selfOrganize": "Take some time to reflect on your own", "lowBarrier": "Start with a simple check-in", "tellAdult": "Try telling a parent, teacher, or another trusted adult" },
-    "links": { "moodJournal": "Mood map", "worryTime": "Set worries aside tonight", "checkIn": "SWEET rhythm check-in", "messages": "Private messages", "tellAdult": "Tell a teacher or parent" },
+    "links": { "moodJournal": "Mood map", "worryTime": "Set worries aside tonight", "checkIn": "SWEET Garden", "messages": "Private messages", "tellAdult": "Tell a teacher or parent" },
     "ruleBased": { "label": "Rule-based support pathway · not AI-generated", "description": "This result uses structured choices and fixed versioned rules. It does not score or diagnose you, and additional text is not sent to AI for a decision." },
     "result": { "label": "Support guidance", "title": "Your next support pathway", "answerSummary": "{{question}}: {{answers}}", "noSelection": "You have not selected how you are feeling yet.", "path": "Suggested pathway", "reason": "Why this may fit", "howToStart": "How to begin", "fallbackStarter": "“I have been feeling stuck lately. I do not need you to resolve it right away, but I want you to know.”", "links": "Suggested options" },
     "direct": { "title": "You can also tell someone directly", "description": "You do not need to complete every question first. Write the one thing you most want a teacher or parent to know.", "action": "Open private messages" }
@@ -936,7 +936,7 @@
       "linkedChildren": "You are linked to {{names}} and can view rhythm records within the access confirmed by the school.", "noLinkedChildren": "The current student-only pilot does not create parent or guardian accounts or child connections. A future approved flow for minors will provide separate information.",
       "descriptions": { "platformAdmin": "Open platform administration to view schools, members, and support assignments.", "schoolLead": "Manage members at your school and view records submitted by students at the school.", "supportTeacher": "View recent records and changes for students assigned to you by the school.", "guardian": "Parent or guardian access is closed in the current student-only pilot. A future approved flow for minors will provide separate information.", "schoolStudent": "Records you save appear here and are shared with the appropriate teacher according to your school's support arrangements.", "personal": "Save a SWEET check-in to return to it here later." }
     },
-    "actions": { "platformAdmin": "Platform administration", "schoolAdmin": "School administration", "studentRecords": "View student records", "assignedStudents": "View assigned students", "followUpWorkspace": "Follow-up workspace", "childRecords": "View child records", "moreSupport": "Find more support", "recordToday": "Record today", "saveContinue": "Save and continue", "saveProfile": "Save profile", "signOut": "Sign out", "submitting": "Submitting...", "processing": "Processing..." },
+    "actions": { "platformAdmin": "Platform administration", "schoolAdmin": "School administration", "studentRecords": "View student records", "assignedStudents": "View assigned students", "followUpWorkspace": "Follow-up workspace", "childRecords": "View child records", "moreSupport": "Find more support", "recordToday": "SWEET Garden", "saveContinue": "Save and continue", "saveProfile": "Save profile", "signOut": "Sign out", "submitting": "Submitting...", "processing": "Processing..." },
     "profile": { "name": "Name", "namePlaceholder": "What should we call you?", "accountType": "Account type" },
     "summary": { "currentRole": "Current role", "confirming": "Confirming", "confirmingRole": "Confirming your role...", "visibleRecords": "Visible records", "recordCountOne": "{{count}} record", "recordCount": "{{count}} records", "savedToAccount": "Saved to this account", "lastSevenDays": "Last 7 days", "daysRecordedOne": "Records on {{count}} day", "daysRecorded": "Records on {{count}} days", "notEveryDay": "You do not need to complete one every day", "schoolSpace": "School space", "joined": "Joined", "notJoined": "Not joined", "configuredBySchool": "Managed by the school" },
     "ageGuidance": {
@@ -962,7 +962,7 @@
     "rhythm": { "sleep": "Sleep", "wake": "Waking", "eat": "Eating", "exercise": "Activity", "task": "Task engagement" },
     "records": {
       "titles": { "school": "SWEET records for students at this school", "teacher": "SWEET records for assigned students", "guardian": "My child's SWEET records", "own": "My SWEET history" },
-      "loading": "Loading records...", "recordTitle": "SWEET rhythm record", "childRecord": "{{name}}'s SWEET record", "delete": "Delete", "viewFull": "View full record", "notProvided": "Not provided", "smallStepPrefix": "One small step to try: ", "nextToolPrefix": "Suggested next step: ", "emptyTitle": "No records to show yet", "start": "Start a check-in", "contactSchool": "Contact the school about this connection", "admin": "Open administration",
+      "loading": "Loading records...", "recordTitle": "SWEET rhythm record", "childRecord": "{{name}}'s SWEET record", "delete": "Delete", "viewFull": "View full record", "notProvided": "Not provided", "smallStepPrefix": "One small step to try: ", "nextToolPrefix": "Suggested next step: ", "emptyTitle": "No records to show yet", "start": "SWEET Garden", "contactSchool": "Contact the school about this connection", "admin": "Open administration",
       "empty": { "student": "Complete and save a SWEET rhythm check-in, and it will appear here.", "guardian": "Parent or guardian access and child connections are closed in the current student-only pilot.", "teacher": "Once the school lead assigns students to you, their records will appear here.", "schoolLead": "Records will appear here after students at your school save a SWEET check-in.", "default": "Saved records will appear here." }
     },
     "notices": { "sessionSlow": "Your sign-in status is taking longer than expected to load. You can sign in again or refresh the page and try once more.", "identitySyncing": "Your account role is being resynchronized. If you are a school lead, refresh the page in a moment.", "profileIncomplete": "Your account profile did not load completely. You can try again later.", "recordsUnavailable": "Your records could not be loaded. Refresh the page and try again.", "inviteSyncDelayed": "Your account role has loaded, but school invitations need another moment to synchronize.", "signedInAccount": "You are signed in and have entered your account.", "wechatBound": "WeChat has been connected.", "otpSent": "Verification code sent. Check your email.", "signedIn": "You are signed in.", "otpResent": "A new verification code has been sent.", "profileSaved": "Your account profile has been saved.", "recordDeleted": "The record has been deleted.", "signedOut": "You have signed out.", "exportStarted": "Your data download has started. The file is saved only on your device.", "accountDeletedCleanupPending": "Your account has been closed. A small amount of internal cleanup has entered the secure processing queue; this does not affect your ability to stop using the service.", "accountDeleted": "Your account and associated data have been deleted, and this device has been signed out.", "under14Ineligible": "The current student-only trial does not accept students under 14.", "adultConsentComplete": "Informed consent is complete.", "studentAssentRecorded": "Student-only trial consent is complete. You can now generate AI summaries and save your own records.", "guardianConsentComplete": "Guardian confirmation is complete. Your child can now save records, send messages, and take part in the community.", "consentWithdrawn": "Confirmation has been withdrawn. New records cannot be saved, messages sent, or community posts created. Existing content can still be viewed, downloaded, or deleted.", "scanWechatQr": "Scan the Mini Program code in WeChat. This page will update automatically when the connection is complete." },
@@ -1112,6 +1112,41 @@
     "notices": { "noTeacher": "The school has not assigned a support teacher to you yet.", "noGuardian": "The school has not confirmed a linked parent or guardian yet.", "safetySent": "Your message has been sent. Contact a parent or guardian, teacher, or another trusted adult nearby now and ask them to stay with you. If you are in immediate danger, contact local emergency services.", "safetyDutyAlerted": "Your message is in the duty queue, and the duty lead received an email alert without the message text. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services and do not wait for a reply.", "safetyDutyQueued": "Your message is in the duty queue, but email delivery has not been confirmed. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services and do not wait for a reply.", "safetyPrivate": "Your message has been saved, but no live human review is confirmed. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services.", "dutyAlerted": "Your message is in the duty queue, and the duty lead received an email alert without the message text. This is not a live service; do not wait for a reply in an emergency.", "dutyQueued": "Your message is in the duty queue, but email delivery has not been confirmed. This is not a live service; do not wait for a reply in an emergency.", "savedForSelf": "Your message has been saved for you.", "sent": "Your message has been sent." },
     "errors": { "loadFailed": "Your messages could not be loaded right now.", "sendFailed": "Your message could not be sent. Please try again later." }
   },
+  "gardenWelcome": {
+    "title": "Explore your garden before you record",
+    "description": "A small courtyard for noticing how you feel and caring for your daily rhythms. Visit the pond, bench and bird, then leave a record whenever you feel ready.",
+    "preview": "Garden preview · Nothing is saved",
+    "enter": "SWEET Garden",
+    "guide": "How the garden works",
+    "login": "Sign in to my garden",
+    "record": {
+      "title": "Choose the record that suits today",
+      "text": "A quick record asks only how you feel right now. A full SWEET record explores sleep, waking, eating, exercise and task engagement. Either counts as participation; you do not need to do both."
+    },
+    "growth": {
+      "title": "Growth reflects participation, not mood",
+      "text": "Multiple records on the same day count as one participation day, using Beijing time. After 1, 3 and 7 days in total, your plant sprouts, grows leaves and blooms. Every feeling counts equally. Missing a day does not take growth away."
+    },
+    "care": {
+      "title": "Record, then care once",
+      "text": "After recording today, choose water, sunlight or a bird visit. All three offer the same growth. There is no need to repeat an action."
+    },
+    "layout": {
+      "title": "Decorate gradually and keep a memory",
+      "text": "After 3, 7, 14 and 28 participation days in total, the flower border, hill path, pond edge and bench corner become available. On a day with a record, you can save one flower, stone or lantern keepsake and remove it later."
+    },
+    "privacy": {
+      "title": "Where things are saved and who can see them",
+      "text": "After you sign in and complete the applicable consent, records and garden choices are saved to your account. Quick garden records, decorations and keepsakes are available only to you. Full SWEET records follow existing access permissions for assigned teachers and other authorized people. Check your account relationships and privacy information for details."
+    },
+    "choice": {
+      "title": "You can visit without recording",
+      "text": "This is not a diagnosis or a substitute for professional or emergency support. Reminders currently save an in-app preference only; no push notifications or emails are sent. Your account lets you review permissions, export data or delete your account."
+    },
+    "privacyLink": "Privacy and safety",
+    "modelLink": "Explore the SWEET model",
+    "back": "Back to SWEET Garden"
+  },
   "garden": {
     "metadata": { "title": "SWEET Garden | YouthTempo" },
     "hero": { "label": "SWEET Garden", "title": "Every moment of care counts", "description": "A quiet place to notice your own rhythms. Your mood, answers, and missed days never make your plant lose growth." },
@@ -1133,7 +1168,7 @@
       },
       "skip": "Skip introduction",
       "next": "Keep exploring",
-      "start": "Record a moment"
+      "start": "Explore the garden"
     },
     "stage": { "seed": "A seed", "sprout": "A new sprout", "leaves": "Growing leaves", "bloom": "A blooming garden" },
     "stats": {
