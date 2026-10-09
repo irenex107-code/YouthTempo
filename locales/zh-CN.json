@@ -928,7 +928,7 @@
   },
   "account": {
     "metadata": { "title": "账号 | YouthTempo" },
-    "visitor": { "loading": "正在进入账户…", "label": "YouthTempo 账号", "title": "登录后，记录会一直在", "description": "使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。", "noPassword": "不用记密码", "firstUse": "第一次使用这个邮箱也可以直接登录", "otpSent": "验证码已发送", "emailLogin": "邮箱登录", "enterOtp": "输入 {{count}} 位验证码", "welcome": "欢迎回来", "unavailableTitle": "账号服务暂不可用", "unavailableText": "请稍后再试，或通过联系我们页面反馈问题。", "email": "邮箱", "otp": "验证码", "wait": "请稍等...", "signIn": "登录", "sendOtp": "发送验证码", "resendCountdown": "{{seconds}} 秒后可重新发送", "resend": "重新发送验证码", "changeEmail": "更换邮箱" },
+    "visitor": { "loading": "正在进入账户…", "label": "YouthTempo 账号", "title": "登录后，记录会一直在", "description": "使用邮箱验证码登录。记录会跟随你的账号保存，换设备也能继续查看。", "noPassword": "不用记密码", "firstUse": "第一次使用这个邮箱也可以直接登录", "otpSent": "验证码已发送", "otpEntry": "验证码验证", "alreadyReceivedOtp": "已收到验证码，直接输入", "emailLogin": "邮箱登录", "enterOtp": "输入 {{count}} 位验证码", "welcome": "欢迎回来", "unavailableTitle": "账号服务暂不可用", "unavailableText": "请稍后再试，或通过联系我们页面反馈问题。", "email": "邮箱", "otp": "验证码", "wait": "请稍等...", "signIn": "登录", "sendOtp": "发送验证码", "resendCountdown": "{{seconds}} 秒后可重新发送", "resend": "重新发送验证码", "changeEmail": "更换邮箱" },
     "roles": { "student": "学生", "guardian": "家长", "schoolStudent": "学校学生", "schoolGuardian": "学校家长", "supportTeacher": "支持老师", "schoolLead": "学校负责人", "platformAdmin": "平台管理员", "professionalSupporter": "专业支持者" },
     "hero": {
       "firstSignIn": "首次登录", "label": "我的账户", "completeProfile": "先完善你的资料", "greeting": "你好，{{name}}", "accountFallback": "你的账户",

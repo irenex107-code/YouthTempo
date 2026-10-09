@@ -29,6 +29,9 @@ const defaultVerificationMessages: OtpVerificationMessages = {
 };
 
 function errorText(error: unknown) {
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message.toLowerCase();
+  }
   return error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
 }
 
@@ -36,22 +39,28 @@ function isNetworkError(message: string) {
   return message.includes("fetch") || message.includes("network") || message.includes("网络");
 }
 
-function isRateLimitError(message: string) {
+export function isOtpRateLimitError(error: unknown) {
+  if (error && typeof error === "object") {
+    if ("status" in error && error.status === 429) return true;
+    if ("code" in error && ["over_email_send_rate_limit", "over_request_rate_limit"].includes(String(error.code))) return true;
+  }
+  const message = errorText(error);
   return message.includes("429") || message.includes("rate limit") || message.includes("too many") || message.includes("频繁");
 }
 
 export function otpRequestErrorMessage(error: unknown, messages: OtpRequestMessages = defaultRequestMessages) {
   const message = errorText(error);
+  if (isOtpRateLimitError(error)) return messages.rateLimited;
   if (message.includes("not authorized") || message.includes("unauthorized email")) {
     return messages.unauthorized;
   }
-  if (isRateLimitError(message)) return messages.rateLimited;
   if (isNetworkError(message)) return messages.network;
   return messages.fallback;
 }
 
 export function otpVerificationErrorMessage(error: unknown, messages: OtpVerificationMessages = defaultVerificationMessages) {
   const message = errorText(error);
+  if (isOtpRateLimitError(error)) return messages.rateLimited;
   if (
     message.includes("token")
     || message.includes("otp")
@@ -61,7 +70,6 @@ export function otpVerificationErrorMessage(error: unknown, messages: OtpVerific
   ) {
     return messages.invalid;
   }
-  if (isRateLimitError(message)) return messages.rateLimited;
   if (isNetworkError(message)) return messages.network;
   return messages.fallback;
 }
