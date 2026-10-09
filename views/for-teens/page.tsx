@@ -7,7 +7,7 @@ import { useTranslation } from "@/lib/i18n/client";
 export default function ForTeensPage() {
   const { t } = useTranslation();
   const startCards = [
-    { title: t("forTeens.start.cards.rhythm.title"), text: t("forTeens.start.cards.rhythm.text"), action: t("forTeens.start.cards.rhythm.action"), href: "/check-in", illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp", illustrationAlt: t("forTeens.start.cards.rhythm.alt") },
+    { title: t("forTeens.start.cards.rhythm.title"), text: t("forTeens.start.cards.rhythm.text"), action: t("forTeens.start.cards.rhythm.action"), href: "/garden", illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp", illustrationAlt: t("forTeens.start.cards.rhythm.alt") },
     { title: t("forTeens.start.cards.mood.title"), text: t("forTeens.start.cards.mood.text"), action: t("forTeens.start.cards.mood.action"), href: "/mood-journal", illustration: "/illustrations/system/feature-mood-puzzle.webp", illustrationAlt: t("forTeens.start.cards.mood.alt") },
     { title: t("forTeens.start.cards.messages.title"), text: t("forTeens.start.cards.messages.text"), action: t("forTeens.start.cards.messages.action"), href: "/messages", illustration: "/illustrations/system/feature-mailbox.webp", illustrationAlt: t("forTeens.start.cards.messages.alt") },
     { title: t("forTeens.start.cards.worry.title"), text: t("forTeens.start.cards.worry.text"), action: t("forTeens.start.cards.worry.action"), href: "/worry-time", illustration: "/illustrations/system/feature-worry-time.webp", illustrationAlt: t("forTeens.start.cards.worry.alt") },

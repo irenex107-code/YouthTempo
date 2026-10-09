@@ -1,3 +1,4 @@
+import { GardenGuide, GardenWelcome } from "@/components/garden/GardenWelcome";
 import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 import { GardenActionDock } from "@/components/garden/GardenActionDock";
@@ -227,16 +228,24 @@ export default function GardenPage() {
     }
   }
 
+  if (signedOut) return <main><GardenWelcome /></main>;
+
   return (
     <main className="garden-page">
       <div className="container min-w-0 py-5 sm:py-8">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap justify-between gap-3">
+          <h1 className="text-2xl font-bold text-ink">{t("gardenWelcome.enter")}</h1>
           <Link href="/account" className="button-secondary">{t("garden.actions.account")}</Link>
         </div>
 
         {loading ? <div className="garden-loading" role="status">{t("garden.status.loading")}</div> : null}
         {signedOut ? <div className="garden-message"><Link href="/account" className="button-primary">{t("garden.status.signIn")}</Link></div> : null}
         {error ? <p role="alert" className="garden-message">{error}</p> : null}
+
+        <details className="mb-5 rounded-2xl border border-sage/20 p-4">
+          <summary className="cursor-pointer font-semibold text-sage-dark">{t("gardenWelcome.guide")}</summary>
+          <GardenGuide />
+        </details>
 
         {data ? (
           <>
@@ -258,7 +267,7 @@ export default function GardenPage() {
                     <button type="button" className="text-sm font-semibold text-sage-dark underline underline-offset-4" onClick={() => finishIntro(false)}>{t("garden.intro.skip")}</button>
                     {introStep === 0
                       ? <button type="button" className="button-primary" onClick={() => setIntroStep(1)}>{t("garden.intro.next")}</button>
-                      : <button type="button" className="button-primary" onClick={() => finishIntro(true)}>{t("garden.intro.start")}</button>}
+                      : <button type="button" className="button-primary" onClick={() => finishIntro(false)}>{t("garden.intro.start")}</button>}
                   </div>
                 </div>
               ) : undefined}

@@ -181,7 +181,7 @@ function getRecommendedPath(answers: Answers) {
   if (hasAny(answers, "currentState", ["最近睡眠不太稳定"]) || hasAny(answers, "affectedAreas", ["睡眠"])) {
     titleKey = links.length ? titleKey : "referral.paths.worryFirst";
     addLink(links, { labelKey: "referral.links.worryTime", href: "/worry-time", primary: links.length === 0 });
-    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in" });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/garden" });
   }
 
   if (
@@ -189,7 +189,7 @@ function getRecommendedPath(answers: Answers) {
     hasAny(answers, "affectedAreas", ["学习或任务"])
   ) {
     titleKey = links.length ? titleKey : "referral.paths.rhythmAndExpression";
-    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/garden", primary: links.length === 0 });
     addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal" });
   }
 
@@ -207,19 +207,19 @@ function getRecommendedPath(answers: Answers) {
     hasAny(answers, "affectedAreas", ["吃饭", "身体状态"])
   ) {
     titleKey = needsMoreSupport ? "referral.paths.rhythmAndTell" : "referral.paths.checkInFirst";
-    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/garden", primary: links.length === 0 });
     addLink(links, needsMoreSupport ? { labelKey: "referral.links.messages", href: "/messages" } : { labelKey: "referral.links.moodJournal", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["只是想先整理一下"]) || hasAny(answers, "supportType", ["自己先整理一下"])) {
     titleKey = links.length ? titleKey : "referral.paths.selfOrganize";
-    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/garden", primary: links.length === 0 });
     addLink(links, { labelKey: "referral.links.moodJournal", href: "/mood-journal" });
   }
 
   if (hasAny(answers, "currentState", ["不太确定"])) {
     titleKey = links.length ? titleKey : "referral.paths.lowBarrier";
-    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/garden", primary: links.length === 0 });
   }
 
   if (hasAny(answers, "supportType", ["有人听我说"]) || hasAny(answers, "trustedAdult", ["愿意", "可能愿意，但不知道怎么开口"])) {
@@ -239,7 +239,7 @@ function getRecommendedPath(answers: Answers) {
   }
 
   if (!links.length || hasAny(answers, "affectedAreas", ["基本没有", "不太确定"])) {
-    addLink(links, { labelKey: "referral.links.checkIn", href: "/check-in", primary: links.length === 0 });
+    addLink(links, { labelKey: "referral.links.checkIn", href: "/garden", primary: links.length === 0 });
   }
 
   return { titleKey, links: links.slice(0, 2) };

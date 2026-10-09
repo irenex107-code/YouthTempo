@@ -9,7 +9,7 @@ export const navItems: LocalizedLink[] = [
   { labelKey: "common.navbar.nav.forTeens", href: "/for-young-people" },
   { labelKey: "common.navbar.nav.forParents", href: "/for-parents" },
   { labelKey: "common.navbar.nav.forTeachers", href: "/for-teachers" },
-  { labelKey: "common.navbar.nav.sweet", href: "/check-in" },
+  { labelKey: "common.navbar.nav.sweet", href: "/garden" },
   { labelKey: "common.navbar.nav.community", href: "/community" },
   { labelKey: "common.navbar.nav.referral", href: "/referral" },
 ];

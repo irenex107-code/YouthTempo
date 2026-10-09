@@ -127,7 +127,7 @@ export function Navbar() {
           ? { href: "/account#students", label: t("common.navbar.actions.myStudents"), mobileLabel: t("common.navbar.actions.myStudents") }
           : accountRole === "家长"
             ? { href: "/account#records", label: t("common.navbar.actions.childRecords"), mobileLabel: t("common.navbar.actions.childRecords") }
-            : { href: "/check-in", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
+            : { href: "/garden", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
   const roleEntryHref =
     accountRole === "学生"
       ? "/for-young-people"

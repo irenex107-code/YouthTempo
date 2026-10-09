@@ -297,7 +297,7 @@ export default function WorryTimePage() {
                 {t("worryTime.done.description")}
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href="/check-in" className="button-primary">
+                <Link href="/garden" className="button-primary">
                   {t("worryTime.actions.backToSweet")}
                 </Link>
                 <Link href="/mood-journal" className="button-secondary">

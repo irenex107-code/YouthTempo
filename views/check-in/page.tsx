@@ -1,3 +1,4 @@
+import { GardenGuide } from "@/components/garden/GardenWelcome";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
@@ -448,6 +449,13 @@ export default function CheckInPage() {
       />
 
       <section className="section section-muted">
+        <div className="container mb-6">
+          <Link href="/garden" className="button-secondary">{t("gardenWelcome.back")}</Link>
+          <details className="mt-4 rounded-2xl border border-sage/20 p-4">
+            <summary className="cursor-pointer font-semibold text-sage-dark">{t("gardenWelcome.guide")}</summary>
+            <GardenGuide />
+          </details>
+        </div>
         <div className="container">
           <div className="mx-auto max-w-4xl">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3 text-sm font-bold text-muted">

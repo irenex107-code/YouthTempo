@@ -7,7 +7,7 @@ import { useTranslation } from "@/lib/i18n/client";
 export default function ForYoungAdultsPage() {
   const { t } = useTranslation();
   const tools = [
-    { title: t("forYoungAdults.tools.items.rhythm.title"), text: t("forYoungAdults.tools.items.rhythm.text"), href: "/check-in", action: t("forYoungAdults.tools.items.rhythm.action"), image: "/illustrations/system/feature-sweet-rhythm-v2.webp", alt: t("forYoungAdults.tools.items.rhythm.alt") },
+    { title: t("forYoungAdults.tools.items.rhythm.title"), text: t("forYoungAdults.tools.items.rhythm.text"), href: "/garden", action: t("forYoungAdults.tools.items.rhythm.action"), image: "/illustrations/system/feature-sweet-rhythm-v2.webp", alt: t("forYoungAdults.tools.items.rhythm.alt") },
     { title: t("forYoungAdults.tools.items.mood.title"), text: t("forYoungAdults.tools.items.mood.text"), href: "/mood-journal", action: t("forYoungAdults.tools.items.mood.action"), image: "/illustrations/system/feature-mood-puzzle.webp", alt: t("forYoungAdults.tools.items.mood.alt") },
     { title: t("forYoungAdults.tools.items.worry.title"), text: t("forYoungAdults.tools.items.worry.text"), href: "/worry-time", action: t("forYoungAdults.tools.items.worry.action"), image: "/illustrations/system/feature-worry-time.webp", alt: t("forYoungAdults.tools.items.worry.alt") },
     { title: t("forYoungAdults.tools.items.support.title"), text: t("forYoungAdults.tools.items.support.text"), href: "/referral", action: t("forYoungAdults.tools.items.support.action"), image: "/illustrations/system/feature-progress-path.webp", alt: t("forYoungAdults.tools.items.support.alt") },
@@ -19,7 +19,7 @@ export default function ForYoungAdultsPage() {
         label={t("forYoungAdults.hero.label")}
         title={t("forYoungAdults.hero.title")}
         subtitle={t("forYoungAdults.hero.description")}
-        action={<><Link href="/account" className="button-primary">{t("forYoungAdults.hero.primaryAction")}</Link><Link href="/check-in" className="button-secondary">{t("forYoungAdults.hero.secondaryAction")}</Link></>}
+        action={<><Link href="/account" className="button-primary">{t("forYoungAdults.hero.primaryAction")}</Link><Link href="/garden" className="button-secondary">{t("forYoungAdults.hero.secondaryAction")}</Link></>}
         aside={<IllustrationPanel src="/illustrations/system/feature-progress-path.webp" alt={t("forYoungAdults.hero.imageAlt")} priority />}
       />
 
