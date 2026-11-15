@@ -15,7 +15,9 @@ test("历史 active 监护关系不再授予 SWEET Data API 读取", async () =>
   expect(migration).toContain("check (status <> 'active') not valid");
   expect(migration).toContain("viewer.role <> '家长'");
   expect(schema).not.toContain('create policy "sweet_records_select_guardian"');
-  expect(schema).toContain("viewer.role <> '家长'");
+  expect(schema).not.toContain('create policy "sweet_records_select_school_members"');
+  expect(schema).not.toContain('create policy "sweet_records_select_authorized_grantee"');
+  expect(schema).toContain('create policy "sweet_records_select_own"');
 });
 
 test("服务端不给家长读取留言、代撤回或重新确认学生同意", async () => {
@@ -31,12 +33,18 @@ test("服务端不给家长读取留言、代撤回或重新确认学生同意",
   expect(accountData).toContain('messages: profile[0]?.role === "家长" ? []');
 });
 
-test("历史监护同意在家长注销前撤回并保留事件", async () => {
-  const accountData = await source("pages/api/account/data.ts");
-  expect(accountData).toContain('.eq("guardian_user_id", user.id)');
-  expect(accountData).toContain('event_type: "consent_withdrawn"');
-  expect(accountData).toContain('.update({ status: "revoked", revoked_at: withdrawnAt');
-  expect(accountData.indexOf('event_type: "consent_withdrawn"')).toBeLessThan(accountData.indexOf('supabase.auth.admin.deleteUser'));
+test("历史监护同意由Auth外键事务撤回，API不再提前分请求撤回或退出", async () => {
+  const [accountData, migration] = await Promise.all([
+    source("pages/api/account/data.ts"),
+    source("supabase/migrations/20261028203506_withdraw_guardian_consent_with_auth_delete.sql"),
+  ]);
+  expect(accountData).not.toContain('status: "withdrawn", withdrawn_at:');
+  expect(accountData).not.toContain("supabase.auth.admin.signOut");
+  expect(accountData).toContain("supabase.auth.admin.deleteUser(user.id, false)");
+  expect(migration).toContain("before update of guardian_user_id on public.student_consents");
+  expect(migration).toContain("new.status := 'withdrawn'");
+  expect(migration).toContain("'consent_withdrawn', old.age_band, old.consent_basis");
+  expect(migration).toContain("student_consent_events_actor_context_check");
 });
 
 test("未登录不能访问家长政策相关私有接口", async ({ request }) => {

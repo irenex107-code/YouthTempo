@@ -2,21 +2,28 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { peerSpaceRequest } from "@/lib/peerSpaceClient";
 import { useTranslation } from "@/lib/i18n/client";
+import { YOUNG_ADULT_REFERRAL_HREF } from "@/lib/referralDisplayContext";
+
+const primaryCards = [
+  ["ageWorkspace.primary.garden", "/garden"],
+  ["ageWorkspace.primary.expression", "/mood-journal"],
+  ["ageWorkspace.primary.help", "/referral"],
+] as const;
+
+const reflectionCards = [
+  ["ageWorkspace.moreTools.cards.sweet", "/check-in"],
+  ["ageWorkspace.moreTools.cards.worry", "/worry-time"],
+] as const;
 
 const minorCards = [
-  ["ageWorkspace.minor.cards.quick", "/garden"],
   ["ageWorkspace.minor.cards.people", "/messages"],
   ["ageWorkspace.minor.cards.network", "/support-request"],
   ["ageWorkspace.minor.cards.community", "/community"],
-  ["ageWorkspace.minor.cards.garden", "/garden"],
-  ["ageWorkspace.minor.cards.urgent", "/resources"],
 ] as const;
 
 const adultCards = [
   ["ageWorkspace.adult.cards.room", "/peer-space"],
   ["ageWorkspace.adult.cards.peers", "/community"],
-  ["ageWorkspace.adult.cards.quick", "/garden"],
-  ["ageWorkspace.adult.cards.rhythm", "/garden"],
   ["ageWorkspace.adult.cards.support", "/consultation"],
 ] as const;
 
@@ -49,16 +56,38 @@ export function AgePathWorkspace({ ageBand }: { ageBand: "14_17" | "18_plus" }) 
           {t(isAdult ? "ageWorkspace.adult.description" : "ageWorkspace.minor.description")}
         </p>
         <div className="mt-6 grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map(([key, href]) => (
+          {primaryCards.map(([key, href]) => (
             <article key={key} className="card flex min-w-0 flex-col">
               <h3 className="text-lg font-bold text-ink">{t(`${key}.title`)}</h3>
               <p className="mt-2 flex-1 text-sm leading-7 text-muted">{t(`${key}.text`)}</p>
-              <Link href={href} className="button-secondary mt-5 w-fit text-sm">
+              <Link
+                href={isAdult && href === "/referral" ? YOUNG_ADULT_REFERRAL_HREF : href}
+                className={`${href === "/garden" ? "button-primary" : "button-secondary"} mt-5 w-fit text-sm`}
+              >
                 {t(`${key}.action`)}
               </Link>
             </article>
           ))}
         </div>
+        <p className="mt-5 text-sm leading-7 text-muted">
+          {t("ageWorkspace.minor.cards.urgent.text")}{" "}
+          <Link href="/resources" className="inline-block font-semibold text-sage-dark underline underline-offset-4">
+            {t("ageWorkspace.minor.cards.urgent.action")}
+          </Link>
+        </p>
+        <details className="mt-6 rounded-2xl border border-sage/20 bg-white/70 p-4 sm:p-5" data-workspace-tools>
+          <summary className="cursor-pointer font-semibold text-sage-dark">{t("ageWorkspace.moreTools.title")}</summary>
+          <p className="mt-3 text-sm leading-7 text-muted">{t("ageWorkspace.moreTools.description")}</p>
+          <div className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...reflectionCards, ...cards].map(([key, href]) => (
+              <article key={key} className="card flex min-w-0 flex-col">
+                <h3 className="text-lg font-bold text-ink">{t(`${key}.title`)}</h3>
+                <p className="mt-2 flex-1 text-sm leading-7 text-muted">{t(`${key}.text`)}</p>
+                <Link href={href} className="button-secondary mt-5 w-fit text-sm">{t(`${key}.action`)}</Link>
+              </article>
+            ))}
+          </div>
+        </details>
       </div>
     </section>
   );

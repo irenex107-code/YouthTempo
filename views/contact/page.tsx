@@ -76,7 +76,7 @@ export default function ContactPage() {
 
       <section className="section section-muted">
         <div className="container grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-          <InfoCard title={t("contact.privacy.title")} label="Privacy & account">
+          <InfoCard title={t("contact.privacy.title")} label={t("contact.privacy.label")}>
             {t("contact.privacy.text")}
           </InfoCard>
           <div className="card">

@@ -158,9 +158,13 @@ Chinese and English support across the public website, core authenticated experi
 
 ## 7. AI Support Philosophy
 
-YouthTempo uses AI only to create a faithful summary of the current SWEET Check-in or Mood Journal record. Optional actions, next tools, and support routes come from fixed rules or the user's own words; Worry Time and Referral are rule-based, and youth AI Talk is closed during the first school pilot.
+YouthTempo's broader AI direction is an optional, constrained background layer for faithful summaries, structured records, and reflection on changes across records. Ordinary code should calculate facts and trends; AI may help express supported information without adding psychological explanations. Historical reflection remains a separately designed capability, not an existing feature or permission to share private records with adults.
 
-YouthTempo 只使用 AI 忠实生成本次 SWEET 节律记录或心情拼图的小结。可选行动、下一工具和支持路径来自固定规则或用户原文；Worry Time 与 Referral 使用固定规则，青少年 AI Talk 在首轮学校试点关闭。
+YouthTempo 的整体 AI 方向是可选、受约束的后台记录整理与回顾层，涵盖忠实摘要、结构化和有依据的跨记录变化回顾。普通程序负责事实和趋势计算，AI 可以帮助表达，但不补充心理解释。历史回顾仍需独立设计，不代表已有功能或向成人分享私密记录的权限。
+
+The current implementation is narrower: AI creates a faithful summary of the current SWEET Check-in or Mood Journal record. Optional actions, next tools, and support routes come from fixed rules or the user's own words; Worry Time and Referral are rule-based, and youth AI Talk is closed during the first school pilot.
+
+当前实现范围较窄：AI 忠实生成本次 SWEET 节律记录或心情拼图的小结。可选行动、下一工具和支持路径来自固定规则或用户原文；Worry Time 与 Referral 使用固定规则，青少年 AI Talk 在首轮学校试点关闭。
 
 AI is not treated as a therapist, clinician, decision-maker, or substitute for human relationships. Responses avoid diagnosis and exaggerated reassurance, remain grounded in what the user has shared, and direct users toward real-world support when digital assistance is no longer appropriate.
 
@@ -413,10 +417,10 @@ Recovery procedures and the latest drill evidence are maintained in [`docs/DATAB
 
 ### Prerequisites / 环境要求
 
-- Node.js 22 recommended (`>=20.9.0 <27` supported)
+- Node.js 22.13 or newer in the 22.x line recommended; supported toolchain range: `^20.19.0 || ^22.13.0 || >=24.0.0 <27`
 - pnpm `11.9.0`
 
-- 建议使用 Node.js 22，支持版本为 `>=20.9.0 <27`
+- 建议使用 Node.js 22.13 及以上的22.x版本；工具链支持范围为 `^20.19.0 || ^22.13.0 || >=24.0.0 <27`
 - pnpm `11.9.0`
 
 Install dependencies and start the local application:
@@ -441,10 +445,15 @@ Run the core verification commands:
 运行核心验证命令：
 
 ```bash
+pnpm lint
 pnpm typecheck
 pnpm build
 pnpm test:e2e
 ```
+
+ESLint uses the pinned Next.js Core Web Vitals and TypeScript rules. The reviewed `eslint-suppressions.json` records 147 existing findings in 64 files; it is technical debt, not 147 completed fixes. CI rejects new file/rule pairs, count increases and unused suppressions. A same-rule replacement within one file can remain within the count budget, so code review is still required. After fixing existing findings, run `pnpm exec eslint . --prune-suppressions` and review the reduced baseline. Do not regenerate it with `--suppress-all` to accept a failing change. Evidence and compatibility limits are in `deliverables/local-maintenance-2026-10-29/README.md`.
+
+ESLint采用固定版本的Next.js Core Web Vitals与TypeScript规则。`eslint-suppressions.json`登记64个文件中147项既有问题，属于技术债，不代表已修复147项。CI拒绝新增文件/规则组合、数量增加及失效抑制；同一文件同一规则的新旧问题互换可能仍在计数预算内，仍需代码审查。修复后执行 `pnpm exec eslint . --prune-suppressions` 并审阅缩减结果，不应使用 `--suppress-all` 重建基线来接受失败改动。证据及兼容性边界见 `deliverables/local-maintenance-2026-10-29/README.md`。
 
 Install Playwright browsers before the first browser test:
 

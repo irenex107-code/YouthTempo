@@ -5,9 +5,11 @@ import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
-import { normalizeLocale } from "@/lib/i18n/config";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const locale = getRequestLocale(req);
+  const t = getServerTranslator(locale);
   if (!["POST", "DELETE"].includes(req.method || "")) {
     res.setHeader("Allow", "POST, DELETE");
     return res.status(405).json({ error: "Method not allowed" });
@@ -50,7 +52,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ ok: true });
     }
     await requireActiveStudentConsent(supabase, user.id);
-    const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : undefined);
     const activeMute = await getActiveCommunityMute(supabase, user.id);
     if (activeMute) {
       return res.status(403).json({
@@ -97,7 +98,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       limit: 20,
       windowSeconds: 10 * 60,
       res,
-      message: "回应得有些频繁，请稍等一会儿再试。你写下的内容仍保留在当前页面。",
+      message: t("community.messages.rateLimit.comment"),
+      unavailableMessage: t("community.messages.rateLimit.unavailable"),
     }))) return;
     const { data: comment, error } = await supabase
       .from("community_comments")

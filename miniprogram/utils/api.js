@@ -67,6 +67,9 @@ async function api(path, options = {}) {
   try {
     return await request({ ...options, url: `${config.apiBaseUrl}${path}`, headers: { authorization: `Bearer ${session.access_token}`, ...(options.headers || {}) } });
   } catch (error) {
+    // SWEET carries a frozen actor/head. Let that user explicitly retry;
+    // refreshing identity and replaying here could resend an old operation.
+    if (options.retryAuthentication === false) throw error;
     if (!/jwt|token|登录/i.test(error.message)) throw error;
     session = await refreshSession(session);
     return request({ ...options, url: `${config.apiBaseUrl}${path}`, headers: { authorization: `Bearer ${session.access_token}`, ...(options.headers || {}) } });

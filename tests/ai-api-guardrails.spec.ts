@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
+import zh from "../locales/zh-CN.json";
+import { syntheticInlineTools } from "./fixtures/synthetic-inline-tools";
 
 test("AI 接口在调用模型前拒绝超长输入", async ({ request }) => {
   const response = await request.post("/api/ai/mood-journal", {
@@ -137,10 +139,13 @@ test("一次性 AI 工具用固定安全提示替代普通生成结果", async (
   await expect(page.getByRole("heading", { name: "把现在的感受说清一点" })).toHaveCount(0);
 });
 
-test("普通 AI 生成发送当前告知版本并持续标识生成内容", async ({ page }) => {
+test("普通 AI 生成发送当前告知版本并持续标识生成内容", async ({ page, baseURL }) => {
+  const { state } = await syntheticInlineTools(page, baseURL!, { consentState: "active" });
+  let generations = 0;
   await page.route("**/api/ai/mood-journal", async (route) => {
     const payload = route.request().postDataJSON();
     expect(payload).toMatchObject({ aiNoticeAccepted: true, aiNoticeVersion: AI_NOTICE_VERSION });
+    generations += 1;
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -155,8 +160,14 @@ test("普通 AI 生成发送当前告知版本并持续标识生成内容", asyn
   });
 
   await page.goto("/mood-journal");
+  await expect(page.getByTestId("inline-student-consent").getByText(zh.inlineConsent.ready, { exact: true })).toBeVisible();
   await page.getByLabel("这件事发生在什么情境里？").fill("今天作业有点多");
   await page.getByRole("checkbox", { name: /我已阅读并同意/ }).check();
   await page.getByRole("button", { name: "整理我的感受" }).click();
   await expect(page.getByText("AI 辅助记录小结 · 非评估或诊断", { exact: true })).toBeVisible();
+  expect(generations).toBe(1);
+  expect(state.consentPosts).toEqual([]);
+  expect(state.otpSends).toBe(0);
+  expect(state.blockedExternal).toEqual([]);
+  expect(state.unexpectedApi).toEqual([]);
 });

@@ -308,7 +308,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "社区审核队列加载失败。";
-    const status = message.includes("只有平台管理员")
+    const status = message.includes("只有平台管理员") || message === "当前账号没有学校工作台权限。"
       ? 403
       : message.includes("请先登录")
         ? 401

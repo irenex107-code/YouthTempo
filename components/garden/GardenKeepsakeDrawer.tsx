@@ -5,7 +5,9 @@ import { useTranslation } from "@/lib/i18n/client";
 type GardenKeepsakeDrawerProps = {
   open: boolean;
   keepsakes: Array<{ id: string; date: string; type: GardenKeepsakeType }>;
+  todayParticipated: boolean;
   canCreateToday: boolean;
+  readOnly?: boolean;
   saving: boolean;
   onCreate: (type: GardenKeepsakeType) => void;
   onDelete: (id: string) => void;
@@ -15,16 +17,21 @@ type GardenKeepsakeDrawerProps = {
 export function GardenKeepsakeDrawer({
   open,
   keepsakes,
+  todayParticipated,
   canCreateToday,
+  readOnly = false,
   saving,
   onCreate,
   onDelete,
   onClose,
 }: GardenKeepsakeDrawerProps) {
   const { locale, t } = useTranslation();
+  const statusKey = canCreateToday
+    ? "garden.keepsakes.available"
+    : todayParticipated ? "garden.keepsakes.completed" : "garden.keepsakes.unavailable";
   return (
-    <GardenSheet open={open} title={t("garden.keepsakes.title")} description={t("garden.keepsakes.description")} closeLabel={t("garden.actions.close")} onClose={onClose}>
-      <div className="grid gap-3 sm:grid-cols-3">
+    <GardenSheet open={open} title={t("garden.keepsakes.title")} description={t(readOnly ? "garden.management.keepsakes" : "garden.keepsakes.description")} closeLabel={t("garden.actions.close")} onClose={onClose}>
+      {!readOnly ? <div className="grid gap-3 sm:grid-cols-3">
         {gardenKeepsakeTypes.map((type) => (
           <button
             key={type}
@@ -36,10 +43,10 @@ export function GardenKeepsakeDrawer({
             <span className="font-bold text-ink">{t(`garden.keepsakes.types.${type}`)}</span>
           </button>
         ))}
-      </div>
-      <p className="mt-4 text-sm leading-7 text-muted">
-        {t(canCreateToday ? "garden.keepsakes.available" : "garden.keepsakes.unavailable")}
-      </p>
+      </div> : null}
+      {!readOnly ? <p className="mt-4 text-sm leading-7 text-muted">
+        {t(statusKey)}
+      </p> : null}
       {saving ? <p role="status" className="mt-3 text-sm text-muted">{t("garden.keepsakes.saving")}</p> : null}
       {keepsakes.length ? (
         <ul className="mt-5 grid gap-3">

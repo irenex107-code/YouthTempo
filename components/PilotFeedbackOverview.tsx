@@ -23,7 +23,10 @@ type FeedbackPayload = {
 
 const formatDate = (value: string) => new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 
-export function PilotFeedbackOverview({ accessToken }: { accessToken: string }) {
+export function PilotFeedbackOverview({ accessToken, request = fetch }: {
+  accessToken: string;
+  request?: (url: string, init?: RequestInit) => Promise<Response>;
+}) {
   const [payload, setPayload] = useState<FeedbackPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,7 +35,7 @@ export function PilotFeedbackOverview({ accessToken }: { accessToken: string }) 
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/pilot-feedback", { headers: { authorization: `Bearer ${accessToken}` } });
+      const response = await request("/api/admin/pilot-feedback", { headers: { authorization: `Bearer ${accessToken}` } });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "试点反馈暂时无法读取。");
       setPayload(body as FeedbackPayload);

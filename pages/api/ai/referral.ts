@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { aiText, missing, normalizeAiLocale, requirePost, respondToAiCrisis } from "./_shared";
 import { buildReferralGuidance } from "@/lib/referralRules";
+import { normalizeReferralDisplayContext } from "@/lib/referralDisplayContext";
 
 function normalizeField(value: unknown) {
   if (Array.isArray(value)) return value.map((item) => String(item)).filter(Boolean);
@@ -40,6 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     mainNeed: mainNeedValue,
     note,
   }, locale)) return;
+  const displayContext = normalizeReferralDisplayContext(req.body?.displayContext);
   if (!currentStates.length || !duration || !impact || !adultWillingnessValue || !preferredSupportList.length || !mainNeedValue) {
     return missing(res, aiText(locale, "请先完成必要问题，再生成回应。", "Complete the required questions before generating a response."));
   }
@@ -51,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     adultWillingness: String(adultWillingnessValue),
     preferredSupport: preferredSupportList,
     mainNeed: String(mainNeedValue),
-  }, locale));
+  }, locale, displayContext));
 }
 
 export const config = {

@@ -42,7 +42,7 @@ export default function ForParentsPage() {
         subtitle={t("forParents.hero.description")}
         action={
           <>
-            <Link href="/account" className="button-primary">{t("forParents.hero.primaryAction")}</Link>
+            <Link href="#conversation" className="button-primary">{t("forParents.hero.primaryAction")}</Link>
             <Link href="/sweet-model" className="button-secondary">{t("forParents.hero.secondaryAction")}</Link>
           </>
         }
@@ -90,7 +90,7 @@ export default function ForParentsPage() {
             <h2 className="text-xl font-bold text-ink">{t("forParents.messages.title")}</h2>
             <p className="mt-2 text-sm leading-7 text-muted">{t("forParents.messages.description")}</p>
           </div>
-          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("forParents.messages.action")}</Link>
+          <Link href="/resources" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("forParents.messages.action")}</Link>
         </div>
       </section>
 

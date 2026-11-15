@@ -1,89 +1,95 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
+import zh from "../locales/zh-CN.json";
+import en from "../locales/en.json";
+import fixture from "./fixtures/permission-boundary.json";
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
 
-test("社区发帖达到窗口上限后返回 429", async ({ request }, testInfo) => {
-  test.skip(testInfo.project.name.includes("mobile"), "API 限流无需按视口重复执行");
-  test.skip(!serviceRoleKey, "需要服务端密钥创建和清理临时 E2E 账号");
+test("社区发帖按实际用户窗口限流，第六次返回429且不写入", async ({ request }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium", "API 限流无需按视口重复执行");
+  test.skip(!supabaseUrl || !supabaseAnonKey || !serviceRoleKey || !password,
+    "需要先重置隔离虚拟学校并显式配置地址、密钥和虚拟账号密码");
+  test.setTimeout(60_000);
+  const trace = testInfo.project.use.trace;
+  expect(trace === "off" || (typeof trace === "object" && trace?.mode === "off"),
+    "真实会话限流验收必须关闭trace，避免附加JWT").toBe(true);
 
-  const marker = `[E2E-RATE-LIMIT] ${Date.now()}`;
-  const suffix = randomUUID();
-  const email = `e2e-rate-limit-${suffix}@youthtempo.test`;
-  const password = `${randomUUID()}Aa1!`;
   const admin = createClient(supabaseUrl, serviceRoleKey!, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
-  const browserClient = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  let userId = "";
 
-  try {
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
+  // The parent runner resets fixture consent and this user's exact rate hash
+  // before the suite. Separate fixture users keep the two locale windows apart.
+  for (const [userKey, locale] of [["studentOne", "zh-CN"], ["studentThree", "en"]] as const) {
+    const marker = `[E2E-RATE-LIMIT] ${randomUUID()}`;
+    const createdIds: string[] = [];
+    const client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
     });
-    expect(createError).toBeNull();
-    userId = created.user?.id || "";
-    expect(userId).not.toBe("");
-
-    const { error: profileError } = await admin.from("profiles").upsert({
-      id: userId,
-      email,
-      display_name: "E2E 限流账号",
-      role: "学生",
-      school_id: null,
-      updated_at: new Date().toISOString(),
+    const { data, error } = await client.auth.signInWithPassword({ email: fixture.users[userKey].email, password: password! });
+    if (error || !data.session || !data.user) throw new Error("隔离虚拟学生密码登录失败。");
+    const userId = data.user.id;
+    const headers = { Authorization: `Bearer ${data.session.access_token}` };
+    const payloadFor = (index: number) => ({ title: `${marker} ${index}`,
+      body: "自动化验收内容，将在测试结束后按本次记录编号删除。",
+      viewerRoles: ["student"], commenterRoles: ["student"], locale,
     });
-    expect(profileError).toBeNull();
 
-    const { data: sessionData, error: signInError } = await browserClient.auth.signInWithPassword({
-      email,
-      password,
-    });
-    expect(signInError).toBeNull();
-    expect(sessionData.session?.access_token).toBeTruthy();
-    const headers = { Authorization: `Bearer ${sessionData.session!.access_token}` };
+    try {
+      for (let index = 1; index <= 5; index++) {
+        const response = await request.post("/api/community/posts", { headers, data: payloadFor(index) });
+        const payload = await response.json();
+        if (typeof payload.post?.id === "string") createdIds.push(payload.post.id);
+        expect(response.status()).toBe(201);
+        expect(payload).toMatchObject({ post: { id: expect.any(String), moderation_status: "published" }, safetyNotice: false });
+        expect(response.headers()["ratelimit-limit"]).toBe("5");
+        expect(response.headers()["ratelimit-remaining"]).toBe(String(5 - index));
+        expect(response.headers()["ratelimit-policy"]).toBe("5;w=600");
+      }
 
-    for (let index = 1; index <= 5; index += 1) {
-      const response = await request.post("/api/community/posts", {
-        headers,
-        data: {
-          title: `${marker} ${index}`,
-          body: "自动化验收内容，将在测试结束后立即删除。",
-          viewerRoles: ["student"],
-          commenterRoles: ["student"],
-        },
+      const limited = await request.post("/api/community/posts", { headers, data: payloadFor(6) });
+      expect(limited.status()).toBe(429);
+      expect(limited.headers()["ratelimit-limit"]).toBe("5");
+      expect(limited.headers()["ratelimit-remaining"]).toBe("0");
+      expect(limited.headers()["ratelimit-policy"]).toBe("5;w=600");
+      const retryAfter = Number(limited.headers()["retry-after"]);
+      expect(Number.isInteger(retryAfter)).toBe(true);
+      expect(retryAfter).toBeGreaterThan(0);
+      expect(retryAfter).toBeLessThanOrEqual(600);
+      expect(limited.headers()["ratelimit-reset"]).toBe(String(retryAfter));
+      await expect(limited.json()).resolves.toMatchObject({
+        error: (locale === "en" ? en : zh).community.messages.rateLimit.post,
+        rateLimited: true,
+        retryAfterSeconds: retryAfter,
       });
-      expect(response.status()).toBe(201);
-    }
 
-    const limited = await request.post("/api/community/posts", {
-      headers,
-      data: {
-        title: `${marker} 6`,
-        body: "这条请求应被频率限制，不应写入数据库。",
-        viewerRoles: ["student"],
-        commenterRoles: ["student"],
-      },
-    });
-    expect(limited.status()).toBe(429);
-    expect(limited.headers()["ratelimit-limit"]).toBe("5");
-    expect(limited.headers()["ratelimit-remaining"]).toBe("0");
-    expect(Number(limited.headers()["retry-after"])).toBeGreaterThan(0);
-    await expect(limited.json()).resolves.toMatchObject({ rateLimited: true });
-  } finally {
-    if (userId) {
-      await admin.from("community_posts").delete().eq("user_id", userId);
-      await admin.auth.admin.deleteUser(userId);
+      const inserted = await admin.from("community_posts").select("id,title,moderation_status")
+        .eq("author_user_id", userId).like("title", `${marker}%`);
+      expect(inserted.error).toBeNull();
+      expect(inserted.data?.map((post) => post.id).sort()).toEqual([...createdIds].sort());
+      expect(inserted.data).toHaveLength(5);
+      expect(inserted.data?.some((post) => post.title === payloadFor(6).title)).toBe(false);
+    } finally {
+      const marked = await admin.from("community_posts").select("id")
+        .eq("author_user_id", userId).like("title", `${marker}%`);
+      expect(marked.error).toBeNull();
+      const cleanupIds = [...new Set([...createdIds, ...(marked.data || []).map((post) => post.id)])];
+      if (cleanupIds.length) {
+        const removed = await admin.from("community_posts").delete().eq("author_user_id", userId).in("id", cleanupIds);
+        expect(removed.error).toBeNull();
+        const remaining = await admin.from("community_posts").select("id").eq("author_user_id", userId).in("id", cleanupIds);
+        expect(remaining.error).toBeNull();
+        expect(remaining.data).toEqual([]);
+      }
+      const remainingMarked = await admin.from("community_posts").select("id")
+        .eq("author_user_id", userId).like("title", `${marker}%`);
+      expect(remainingMarked.error).toBeNull();
+      expect(remainingMarked.data).toEqual([]);
     }
   }
 });

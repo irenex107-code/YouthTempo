@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
@@ -7,6 +7,7 @@ import { AiUrgentNotice } from "@/components/AiUrgentNotice";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
 import { isAiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
+import { useSessionActor, type SessionActor } from "@/lib/useSessionActor";
 
 type WorryResult = {
   decisionMethod: "deterministic_rules";
@@ -31,7 +32,30 @@ function formatTime(seconds: number) {
 }
 
 export default function WorryTimePage() {
+  const actor = useSessionActor();
+  const [workspace, setWorkspace] = useState({ userId: "", revision: 0 });
+  const nextUserId = actor.phase === "loading" ? workspace.userId : actor.actorId;
+  if (nextUserId !== workspace.userId) {
+    // An anonymous draft may become the first account's draft. A previous
+    // account's workspace is replaced before another account can render it.
+    setWorkspace({ userId: nextUserId, revision: workspace.revision + (workspace.userId ? 1 : 0) });
+  }
+  return <WorryTimeWorkspace key={workspace.revision} actor={actor} />;
+}
+
+function WorryTimeWorkspace({ actor }: { actor: SessionActor }) {
   const { locale, t } = useTranslation();
+  const lifetime = useRef({ mounted: false, epoch: 0, requests: new Set<AbortController>() });
+  useEffect(() => {
+    const scope = lifetime.current;
+    scope.mounted = true;
+    return () => {
+      scope.mounted = false;
+      ++scope.epoch;
+      for (const request of scope.requests) request.abort();
+      scope.requests.clear();
+    };
+  }, []);
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [worries, setWorries] = useState(["", "", ""]);
@@ -54,7 +78,16 @@ export default function WorryTimePage() {
     if (secondsLeft === 0) setTimerRunning(false);
   }, [secondsLeft]);
 
+  function cancelCurrentRequest() {
+    const scope = lifetime.current;
+    ++scope.epoch;
+    for (const request of scope.requests) request.abort();
+    scope.requests.clear();
+    setLoading(false);
+  }
+
   function updateWorry(index: number, value: string) {
+    cancelCurrentRequest();
     setWorries((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
     setDone(false);
     setValidation("");
@@ -63,11 +96,18 @@ export default function WorryTimePage() {
   }
 
   function updateControl(index: number, value: string) {
+    cancelCurrentRequest();
     setControls((current) => current.map((item, itemIndex) => (itemIndex === index ? value : item)));
     setDone(false);
     setValidation("");
     setResult(null);
     setUrgentReply("");
+  }
+
+  function updateAction(value: string) {
+    cancelCurrentRequest();
+    setAction(value);
+    setDone(false);
   }
 
   function resetTimer() {
@@ -76,6 +116,7 @@ export default function WorryTimePage() {
   }
 
   function reset() {
+    cancelCurrentRequest();
     setSecondsLeft(15 * 60);
     setTimerRunning(false);
     setWorries(["", "", ""]);
@@ -89,11 +130,18 @@ export default function WorryTimePage() {
   }
 
   async function organizeWorries() {
+    if (loading) return;
     const filledWorries = worries.filter((item) => item.trim().length > 0);
     if (filledWorries.length === 0) {
       setValidation(t("worryTime.messages.addWorry"));
       return;
     }
+    const scope = lifetime.current;
+    const sequence = ++scope.epoch;
+    const controller = new AbortController();
+    scope.requests.add(controller);
+    const sameActor = actor.phase === "ready" ? actor.trackRequest() : () => true;
+    const current = () => scope.mounted && sequence === scope.epoch && sameActor();
     setLoading(true);
     setValidation("");
     setError("");
@@ -101,9 +149,11 @@ export default function WorryTimePage() {
       const response = await fetch("/api/ai/worry-time", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({ locale, worries, controls, action }),
       });
       const data = await response.json();
+      if (!current()) return;
       if (!response.ok) throw new Error(data.error || t("worryTime.messages.connectionFailed"));
       if (isAiUrgentResponse(data)) {
         setResult(null);
@@ -113,11 +163,18 @@ export default function WorryTimePage() {
       setUrgentReply("");
       setResult(data);
     } catch (requestError) {
+      if (!current()) return;
       setError(requestError instanceof Error ? requestError.message : t("worryTime.messages.responseUnavailable"));
     } finally {
-      setLoading(false);
+      scope.requests.delete(controller);
+      if (current()) setLoading(false);
     }
   }
+
+  const worryFeedbackIds = [
+    validation ? "worry-time-validation" : "",
+    error ? "worry-time-error" : "",
+  ].filter(Boolean).join(" ") || undefined;
 
   return (
     <>
@@ -166,11 +223,14 @@ export default function WorryTimePage() {
 
             <article className="card">
               <h2 className="text-[1.7rem] font-bold leading-[1.25] text-ink">{t("worryTime.worries.title")}</h2>
-              <div className="mt-6 grid gap-5">
+              <div className="mt-6 grid gap-5" role="group" aria-label={t("worryTime.worries.title")} aria-describedby={worryFeedbackIds}>
                 {worries.map((worry, index) => (
                   <label key={index} className="grid gap-2">
                     <span className="text-sm font-bold text-ink">{t("worryTime.worries.item", { number: index + 1 })}</span>
                     <textarea
+                      id={`worry-time-worry-${index + 1}`}
+                      aria-invalid={Boolean(validation)}
+                      aria-describedby={worryFeedbackIds}
                       className="min-h-20 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage"
                       value={worry}
                       onChange={(e) => updateWorry(index, e.target.value)}
@@ -223,21 +283,18 @@ export default function WorryTimePage() {
             <article className="card">
               <h2 className="text-xl font-bold text-ink">{t("worryTime.action.title")}</h2>
               <textarea
+                id="worry-time-action"
+                aria-label={t("worryTime.action.title")}
+                aria-describedby={worryFeedbackIds}
                 className="mt-5 min-h-28 w-full rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage"
                 value={action}
-                onChange={(e) => {
-                  setAction(e.target.value);
-                  setDone(false);
-                }}
+                onChange={(e) => updateAction(e.target.value)}
                 placeholder={t("worryTime.action.placeholder")}
               />
               <div className="mt-3">
                 <VoiceInputButton
                   value={action}
-                  onChange={(value) => {
-                    setAction(value);
-                    setDone(false);
-                  }}
+                  onChange={updateAction}
                 />
               </div>
             </article>
@@ -246,7 +303,7 @@ export default function WorryTimePage() {
                 <p className="text-xs font-extrabold tracking-[0.1em] text-sage-dark">{t("worryTime.ruleBased.label")}</p>
                 <p className="mt-2 text-sm leading-6 text-muted">{t("worryTime.ruleBased.description")}</p>
               </div>
-              <button type="button" className="button-primary w-full" onClick={organizeWorries} disabled={loading}>
+              <button type="button" className="button-primary w-full" onClick={organizeWorries} disabled={loading} aria-describedby={worryFeedbackIds}>
                 {loading ? t("worryTime.actions.organizing") : t("worryTime.actions.organize")}
               </button>
               <button type="button" className="button-secondary mt-3 w-full" onClick={() => setDone(true)}>
@@ -255,8 +312,8 @@ export default function WorryTimePage() {
               <button type="button" className="mt-3 min-h-11 w-full text-sm font-bold text-muted transition hover:text-sage-dark" onClick={reset}>
                 {t("worryTime.actions.reset")}
               </button>
-              {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
-              {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
+              {validation ? <p id="worry-time-validation" role="alert" aria-atomic="true" className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
+              {error ? <p id="worry-time-error" role="alert" aria-atomic="true" className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
             </article>
           </div>
 

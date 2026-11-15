@@ -15,8 +15,10 @@ import {
   sendPilotDutyAlert,
 } from "@/lib/pilotDutyAlerts";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
+import { canAccessTeacherMessage, loadTeacherMessageScope } from "@/lib/studentMessageAccess";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
   if (!["GET", "POST", "PATCH"].includes(req.method || "")) {
     res.setHeader("Allow", "GET, POST, PATCH");
     return res.status(405).json({ error: "Method not allowed" });
@@ -184,12 +186,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === "PATCH") {
       const id = typeof req.body?.id === "string" ? req.body.id.trim() : "";
       if (!id) return res.status(400).json({ error: "请选择要标记的留言。" });
-      const { error } = await supabase
+      const { data: message, error: messageError } = await supabase.from("student_messages")
+        .select("id,school_id,sender_user_id,recipient_type,recipient_user_id,moderation_status")
+        .eq("id", id).eq("recipient_user_id", user.id).maybeSingle();
+      if (messageError) throw messageError;
+      if (!message) return res.status(404).json({ ok: false });
+      if (message.recipient_type === "teacher") {
+        if (!["sent", "safety_review"].includes(message.moderation_status as string)
+          || !canAccessTeacherMessage(await loadTeacherMessageScope(supabase, user.id), message)) {
+          return res.status(404).json({ ok: false });
+        }
+        const { data, error } = await supabase.rpc("mark_teacher_message_read", {
+          p_message_id: message.id, p_teacher_id: user.id,
+        });
+        if (error) throw error;
+        if (Array.isArray(data) && data.length === 0) return res.status(404).json({ ok: false });
+        if (!Array.isArray(data) || data.length !== 1 || data[0]?.message_id !== message.id
+          || typeof data[0]?.read_at !== "string" || !Number.isFinite(Date.parse(data[0].read_at))) {
+          throw new Error("teacher_message_read_receipt_unavailable");
+        }
+        return res.status(200).json({ ok: true });
+      }
+      let update = supabase
         .from("student_messages")
         .update({ read_at: new Date().toISOString() })
         .eq("id", id)
-        .eq("recipient_user_id", user.id);
+        .eq("recipient_user_id", user.id)
+        .eq("sender_user_id", message.sender_user_id)
+        .eq("recipient_type", message.recipient_type)
+        .eq("moderation_status", message.moderation_status);
+      update = message.school_id === null ? update.is("school_id", null) : update.eq("school_id", message.school_id);
+      const { data: updated, error } = await update.select("id").maybeSingle();
       if (error) throw error;
+      if (!updated) return res.status(404).json({ ok: false });
       return res.status(200).json({ ok: true });
     }
 
@@ -223,6 +252,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .order("created_at", { ascending: false })
       .limit(100);
 
+    const ordinaryTeacherInbox = !platformAdmin && !schoolAdminIds.length && profile?.role !== "学生";
     if (platformAdmin) {
       query = query.neq("duty_status", "not_applicable");
     } else if (schoolAdminIds.length) {
@@ -233,7 +263,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       query = query.eq("recipient_user_id", user.id).in("moderation_status", ["sent", "safety_review"]);
     }
 
-    const { data: messages, error: messagesError } = await query;
+    // Restrict before limit; chunk sender IDs to keep PostgREST URLs bounded.
+    const teacherScope = ordinaryTeacherInbox ? await loadTeacherMessageScope(supabase, user.id) : null;
+    const teacherMessages = [];
+    if (teacherScope) {
+      const { data: otherReceived, error: otherReceivedError } = await query.neq("recipient_type", "teacher");
+      if (otherReceivedError) throw otherReceivedError;
+      teacherMessages.push(...(otherReceived || []));
+      for (let offset = 0; offset < teacherScope.studentIds.length; offset += 100) {
+        const { data, error } = await supabase.from("student_messages")
+          .select("id,school_id,sender_user_id,recipient_type,recipient_user_id,anonymous_to_recipient,body,moderation_status,duty_status,alert_delivery_status,read_at,created_at")
+          .eq("recipient_user_id", user.id).eq("recipient_type", "teacher").eq("school_id", teacherScope.schoolId)
+          .in("sender_user_id", teacherScope.studentIds.slice(offset, offset + 100))
+          .in("moderation_status", ["sent", "safety_review"])
+          .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(100);
+        if (error) throw error;
+        teacherMessages.push(...(data || []));
+      }
+      teacherMessages.sort((left, right) => right.created_at.localeCompare(left.created_at) || right.id.localeCompare(left.id));
+    }
+    const { data: messages, error: messagesError } = teacherScope
+      ? { data: teacherMessages.slice(0, 100), error: null }
+      : await query;
     if (messagesError) throw messagesError;
     const profileIds = Array.from(new Set((messages || []).flatMap((message) => [
       message.sender_user_id as string,
@@ -245,17 +296,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (profilesError) throw profilesError;
     const profileById = new Map((profiles || []).map((item) => [item.id as string, item]));
 
+    const currentTeacherScope = teacherScope ? await loadTeacherMessageScope(supabase, user.id) : null;
+    const visibleMessages = currentTeacherScope
+      ? (messages || []).filter((message) => message.recipient_type !== "teacher" || canAccessTeacherMessage(currentTeacherScope, message))
+      : (messages || []);
+
     return res.status(200).json({
-      messages: (messages || []).map((message) => {
+      messages: visibleMessages.map((message) => {
         const sender = profileById.get(message.sender_user_id as string);
         const recipient = profileById.get(message.recipient_user_id as string);
+        const canRevealSender = Boolean(platformAdmin || (
+          schoolAdminIds.includes(message.school_id as string) && message.moderation_status === "safety_review"
+        ));
         const hideSender =
           message.anonymous_to_recipient &&
-          message.recipient_user_id === user.id &&
-          !schoolAdminIds.length
-          && !platformAdmin;
+          message.sender_user_id !== user.id &&
+          !canRevealSender;
         return {
-          ...message,
+          id: message.id,
+          school_id: message.school_id,
+          sender_user_id: hideSender ? null : message.sender_user_id,
+          recipient_type: message.recipient_type,
+          recipient_user_id: message.recipient_user_id,
+          anonymous_to_recipient: message.anonymous_to_recipient,
+          body: message.body,
+          moderation_status: message.moderation_status,
+          duty_status: message.duty_status,
+          alert_delivery_status: message.alert_delivery_status,
+          read_at: message.read_at,
+          created_at: message.created_at,
           sender_name: hideSender ? "匿名学生" : sender?.display_name || sender?.email || "学生",
           recipient_name:
             message.recipient_type === "self"
@@ -263,7 +332,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               : message.recipient_type === "pilot_duty"
                 ? "试点值班负责人"
               : recipient?.display_name || recipient?.email || "收件人",
-          canRevealSender: Boolean(platformAdmin || (schoolAdminIds.length && message.moderation_status === "safety_review")),
+          canRevealSender,
         };
       }),
       pilotDutyAvailable: isPilotDutyEnabled(),

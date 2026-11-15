@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { type KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { useInlineStudentConsent } from "@/lib/useInlineStudentConsent";
 import Link from "next/link";
 import {
   createCommunityComment,
@@ -36,6 +38,78 @@ const roleOptions: Array<{ key: CommunityRole; labelKey: TranslationKey; hintKey
 
 type DeleteTarget = { type: "post" | "comment"; id: string; postId?: string } | null;
 type ReportTarget = { postId?: string; commentId?: string } | null;
+
+const dialogFocusableSelector = [
+  "button:not([disabled])",
+  "a[href]",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
+
+function useDialogKeyboard({
+  open,
+  busy,
+  onCancel,
+  dialogRef,
+  initialFocusRef,
+}: {
+  open: boolean;
+  busy: boolean;
+  onCancel: () => void;
+  dialogRef: { current: HTMLDivElement | null };
+  initialFocusRef: { current: HTMLElement | null };
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const frame = requestAnimationFrame(() => (initialFocusRef.current || dialogRef.current)?.focus());
+    return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open, dialogRef, initialFocusRef]);
+
+  return (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" && !busy) {
+      event.preventDefault();
+      event.stopPropagation();
+      onCancel();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(dialogFocusableSelector) || [])
+      .filter((element) => element.getClientRects().length > 0 && !element.closest("[inert]"));
+    const tabbable = focusable.filter((element, _index, elements) => {
+      if (!(element instanceof HTMLInputElement) || element.type !== "radio" || !element.name) return true;
+      const group = elements.filter((candidate): candidate is HTMLInputElement => (
+        candidate instanceof HTMLInputElement
+        && candidate.type === "radio"
+        && candidate.name === element.name
+      ));
+      return (group.find((candidate) => candidate.checked) || group[0]) === element;
+    });
+    const first = tabbable[0];
+    const last = tabbable[tabbable.length - 1];
+    if (!first || !last) {
+      event.preventDefault();
+      dialogRef.current?.focus();
+      return;
+    }
+    if (!dialogRef.current?.contains(document.activeElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    } else if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+}
 
 const communityRules: Array<[TranslationKey, TranslationKey]> = [
   ["community.rules.respect.title", "community.rules.respect.text"],
@@ -118,28 +192,39 @@ function ReportDialog({
   onConfirm: () => void;
 }) {
   const { t } = useTranslation();
-  useEffect(() => {
-    if (!target) return undefined;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !busy) onCancel();
-    }
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [target, busy, onCancel]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const initialFocusRef = useRef<HTMLInputElement>(null);
+  const onKeyDown = useDialogKeyboard({
+    open: Boolean(target),
+    busy,
+    onCancel,
+    dialogRef,
+    initialFocusRef,
+  });
 
   if (!target) return null;
   const selected = communityReportCategory(category);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/35 px-4 py-8 backdrop-blur-sm" role="presentation">
-      <div role="dialog" aria-modal="true" aria-labelledby="report-community-title" className="w-full max-w-xl rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-community-title"
+        aria-describedby="report-community-description"
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+        data-testid="community-report-dialog"
+        className="w-full max-w-xl rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7"
+      >
         <p className="eyebrow">{t("community.report.label")}</p>
         <h2 id="report-community-title" className="mt-3 text-xl font-bold text-ink">{t("community.report.title")}</h2>
-        <p className="mt-3 text-sm leading-7 text-muted">{t("community.report.description")}</p>
+        <p id="report-community-description" className="mt-3 text-sm leading-7 text-muted">{t("community.report.description")}</p>
         <div className="mt-5 grid gap-2">
           {communityReportCategories.map((item) => (
             <label key={item.value} className={`cursor-pointer rounded-2xl border px-4 py-3 ${category === item.value ? "border-sage/45 bg-mint/55" : "border-ink/10"}`}>
               <span className="flex items-start gap-3">
-                <input type="radio" name="report-category" value={item.value} checked={category === item.value} onChange={() => onCategoryChange(item.value)} className="mt-1 accent-sage" />
+                <input ref={category === item.value ? initialFocusRef : undefined} type="radio" name="report-category" value={item.value} checked={category === item.value} onChange={() => onCategoryChange(item.value)} className="mt-1 accent-sage" />
                 <span><strong className="block text-sm text-ink">{t(reportCategoryCopy[item.value].label)}</strong><span className="mt-1 block text-xs leading-5 text-muted">{t(reportCategoryCopy[item.value].hint)}</span></span>
               </span>
             </label>
@@ -173,31 +258,37 @@ function DeleteDialog({
   onConfirm: () => void;
 }) {
   const { t } = useTranslation();
-  useEffect(() => {
-    if (!target) return undefined;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !busy) onCancel();
-    }
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [target, busy, onCancel]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const initialFocusRef = useRef<HTMLButtonElement>(null);
+  const onKeyDown = useDialogKeyboard({
+    open: Boolean(target),
+    busy,
+    onCancel,
+    dialogRef,
+    initialFocusRef,
+  });
 
   if (!target) return null;
   const label = target.type === "post" ? t("community.content.post") : t("community.content.comment");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/35 px-4 backdrop-blur-sm" role="presentation">
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-community-title"
+        aria-describedby="delete-community-description"
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+        data-testid="community-delete-dialog"
         className="w-full max-w-md rounded-[1.75rem] border border-white/60 bg-white p-6 shadow-2xl sm:p-7"
       >
         <h2 id="delete-community-title" className="mt-5 text-xl font-bold text-ink">{t("community.delete.title", { type: label })}</h2>
-        <p className="mt-3 text-sm leading-7 text-muted">
+        <p id="delete-community-description" className="mt-3 text-sm leading-7 text-muted">
           {t("community.delete.description", { type: label })}
         </p>
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onCancel} disabled={busy} autoFocus className="button-secondary">{t("community.actions.keep")}</button>
+          <button ref={initialFocusRef} type="button" onClick={onCancel} disabled={busy} className="button-secondary">{t("community.actions.keep")}</button>
           <button
             type="button"
             onClick={onConfirm}
@@ -214,6 +305,8 @@ function DeleteDialog({
 
 export default function CommunityPage() {
   const { locale, t } = useTranslation();
+  const consent = useInlineStudentConsent();
+  const draftOwner = useRef("");
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [currentRole, setCurrentRole] = useState<CommunityRole>("student");
@@ -234,30 +327,88 @@ export default function CommunityPage() {
   const [reportCategory, setReportCategory] = useState<CommunityReportCategory>("bullying_threat");
   const [reportDetails, setReportDetails] = useState("");
   const [reportBusy, setReportBusy] = useState(false);
+  const backgroundRef = useRef<HTMLDivElement>(null);
+  const noticeRef = useRef<HTMLParagraphElement>(null);
+  const dialogTriggerRef = useRef<HTMLElement | null>(null);
+  const dialogWasOpen = useRef(false);
+  const modalOpen = Boolean(deleteTarget || reportTarget);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const pageMain = backgroundRef.current?.parentElement;
+    const pageShell = pageMain?.parentElement;
+    const outsideMain = Array.from(pageShell?.children || [])
+      .filter((element): element is HTMLElement => element instanceof HTMLElement && element !== pageMain);
+    const previous = outsideMain.map((element) => ({
+      element,
+      inert: element.inert,
+      ariaHidden: element.getAttribute("aria-hidden"),
+    }));
+    for (const { element } of previous) {
+      element.inert = true;
+      element.setAttribute("aria-hidden", "true");
+    }
+    return () => {
+      for (const state of previous) {
+        state.element.inert = state.inert;
+        if (state.ariaHidden === null) state.element.removeAttribute("aria-hidden");
+        else state.element.setAttribute("aria-hidden", state.ariaHidden);
+      }
+    };
+  }, [modalOpen]);
+
+  useEffect(() => {
+    if (modalOpen) {
+      dialogWasOpen.current = true;
+      return;
+    }
+    if (!dialogWasOpen.current) return;
+    dialogWasOpen.current = false;
+    const frame = requestAnimationFrame(() => {
+      const trigger = dialogTriggerRef.current;
+      const target = trigger?.isConnected ? trigger : noticeRef.current || backgroundRef.current;
+      target?.focus();
+      dialogTriggerRef.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [modalOpen]);
+
+  useEffect(() => {
+    if (draftOwner.current && draftOwner.current !== consent.userId) {
+      setTitle(""); setBody(""); setCommentDrafts({}); setPosts([]); setBlockedMembers([]); setReports([]);
+      setReportTarget(null); setDeleteTarget(null); setReportDetails(""); setCurrentUserId(""); setNotice(""); setError("");
+      setBusy(false); setDeleting(false); setReportBusy(false);
+    }
+    draftOwner.current = consent.userId;
+  }, [consent.userId]);
 
   async function load() {
+    const current = consent.trackRequest();
     try {
       const user = await getCurrentUser();
+      if (!current()) return;
       setLoggedIn(Boolean(user));
-      if (!user) return;
+      if (!user) { setPosts([]); setBlockedMembers([]); setReports([]); return; }
       const [data, blockData, reportData] = await Promise.all([
         listCommunityPosts(),
         listCommunityBlocks(),
         listCommunityReports(),
       ]);
+      if (!current()) return;
       setPosts(data.posts);
       setCurrentRole(data.currentUser.role);
       setCurrentUserId(data.currentUser.id);
       setBlockedMembers(blockData.blocks);
       setReports(reportData.reports);
     } catch (loadError) {
+      if (!current()) return;
       setError(loadError instanceof Error ? loadError.message : t("community.messages.loadFailed"));
     }
   }
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [consent.userId, consent.phase]);
 
   const audienceText = useMemo(
     () => roleOptions.filter((item) => viewerRoles.includes(item.key)).map((item) => t(item.labelKey)).join("、"),
@@ -284,11 +435,15 @@ export default function CommunityPage() {
   }
 
   async function submitPost() {
+    if (busy) return;
+    if (!consent.canProceed || currentUserId !== consent.userId) { setError(t("inlineConsent.consentNeeded")); return; }
+    const current = consent.trackRequest();
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      const result = await createCommunityPost({ title, body, viewerRoles, commenterRoles, locale });
+      const result = await createCommunityPost({ title, body, viewerRoles, commenterRoles, locale }, consent.userId);
+      if (!current()) return;
       setTitle("");
       setBody("");
       setNotice(
@@ -298,19 +453,23 @@ export default function CommunityPage() {
       );
       await load();
     } catch (submitError) {
+      if (!current()) return;
       setError(submitError instanceof Error ? submitError.message : t("community.messages.postFailed"));
     } finally {
-      setBusy(false);
+      if (consent.isSameActor(consent.userId)) setBusy(false);
     }
   }
 
   async function submitComment(postId: string) {
     const draft = (commentDrafts[postId] || "").trim();
-    if (!draft) return;
+    if (!draft || busy) return;
+    if (!consent.canProceed || currentUserId !== consent.userId) { setError(t("inlineConsent.consentNeeded")); return; }
+    const current = consent.trackRequest();
     setBusy(true);
     setError("");
     try {
-      const result = await createCommunityComment(postId, draft, locale);
+      const result = await createCommunityComment(postId, draft, locale, consent.userId);
+      if (!current()) return;
       setCommentDrafts((current) => ({ ...current, [postId]: "" }));
       setNotice(
         result.safetyNotice
@@ -319,22 +478,26 @@ export default function CommunityPage() {
       );
       await load();
     } catch (submitError) {
+      if (!current()) return;
       setError(submitError instanceof Error ? submitError.message : t("community.messages.commentFailed"));
     } finally {
-      setBusy(false);
+      if (consent.isSameActor(consent.userId)) setBusy(false);
     }
   }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
+    const current = consent.trackRequest();
     setDeleting(true);
     setError("");
     try {
       if (deleteTarget.type === "post") {
-        await deleteCommunityPost(deleteTarget.id);
+        await deleteCommunityPost(deleteTarget.id, consent.userId);
+        if (!current()) return;
         setPosts((current) => current.filter((post) => post.id !== deleteTarget.id));
       } else {
-        await deleteCommunityComment(deleteTarget.id);
+        await deleteCommunityComment(deleteTarget.id, consent.userId);
+        if (!current()) return;
         setPosts((current) => current.map((post) =>
           post.id === deleteTarget.postId
             ? { ...post, comments: post.comments.filter((comment) => comment.id !== deleteTarget.id) }
@@ -344,13 +507,20 @@ export default function CommunityPage() {
       setNotice(deleteTarget.type === "post" ? t("community.messages.postDeleted") : t("community.messages.commentDeleted"));
       setDeleteTarget(null);
     } catch (deleteError) {
+      if (!current()) return;
       setError(deleteError instanceof Error ? deleteError.message : t("community.messages.deleteFailed"));
     } finally {
-      setDeleting(false);
+      if (consent.isSameActor(consent.userId)) setDeleting(false);
     }
   }
 
-  function openReport(postId?: string, commentId?: string) {
+  function openDelete(target: Exclude<DeleteTarget, null>, trigger: HTMLElement) {
+    dialogTriggerRef.current = trigger;
+    setDeleteTarget(target);
+  }
+
+  function openReport(trigger: HTMLElement, postId?: string, commentId?: string) {
+    dialogTriggerRef.current = trigger;
     setReportTarget({ postId, commentId });
     setReportCategory("bullying_threat");
     setReportDetails("");
@@ -359,49 +529,65 @@ export default function CommunityPage() {
 
   async function submitReport() {
     if (!reportTarget || reportBusy) return;
+    const current = consent.trackRequest();
     setReportBusy(true);
     try {
       const result = await reportCommunityContent({
         ...reportTarget,
         category: reportCategory,
         details: reportDetails.trim() || undefined,
-      });
+      }, consent.userId);
+      if (!current()) return;
       setReports((current) => [result.report, ...current]);
       setNotice(result.notice);
       setReportTarget(null);
     } catch (reportError) {
+      if (!current()) return;
       setError(reportError instanceof Error ? reportError.message : t("community.messages.reportFailed"));
     } finally {
-      setReportBusy(false);
+      if (consent.isSameActor(consent.userId)) setReportBusy(false);
     }
   }
 
   async function blockMember(targetUserId: string, name: string) {
     if (!window.confirm(t("community.block.confirm", { name }))) return;
+    const current = consent.trackRequest();
     setError("");
     try {
-      await blockCommunityMember(targetUserId);
+      await blockCommunityMember(targetUserId, consent.userId);
+      if (!current()) return;
       setNotice(t("community.block.blocked", { name }));
       await load();
     } catch (blockError) {
+      if (!current()) return;
       setError(blockError instanceof Error ? blockError.message : t("community.block.failed"));
     }
   }
 
   async function unblockMember(targetUserId: string, name: string) {
+    const current = consent.trackRequest();
     setError("");
     try {
-      await unblockCommunityMember(targetUserId);
+      await unblockCommunityMember(targetUserId, consent.userId);
+      if (!current()) return;
       setNotice(t("community.block.unblocked", { name }));
       await load();
     } catch (blockError) {
+      if (!current()) return;
       setError(blockError instanceof Error ? blockError.message : t("community.block.unblockFailed"));
     }
   }
 
   return (
     <>
-      <PageHero
+      <div
+        ref={backgroundRef}
+        tabIndex={-1}
+        inert={modalOpen}
+        aria-hidden={modalOpen || undefined}
+        data-testid="community-background"
+      >
+        <PageHero
         label={t("community.hero.label")}
         title={t("community.hero.title")}
         subtitle={t("community.hero.description")}
@@ -427,6 +613,8 @@ export default function CommunityPage() {
           </div>
         }
       />
+
+      <div className="container pt-6"><InlineStudentConsent controller={consent} /></div>
 
       <section id="community-rules" className="section pb-8 sm:pb-10">
         <div className="container">
@@ -524,7 +712,7 @@ export default function CommunityPage() {
                 </details>
               ) : null}
 
-              {notice ? <p role="status" className="mb-4 rounded-2xl border border-sage/20 bg-mist px-5 py-4 text-sm font-bold text-sage-dark">{notice}</p> : null}
+              {notice ? <p ref={noticeRef} tabIndex={-1} role="status" className="mb-4 rounded-2xl border border-sage/20 bg-mist px-5 py-4 text-sm font-bold text-sage-dark outline-none">{notice}</p> : null}
               {error ? <p role="alert" className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">{error}</p> : null}
 
               <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_390px] xl:gap-8">
@@ -582,7 +770,7 @@ export default function CommunityPage() {
                           {t("community.actions.reply")}
                         </a>
                         {post.author_user_id !== currentUserId ? (
-                          <button type="button" onClick={() => openReport(post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
+                          <button type="button" onClick={(event) => openReport(event.currentTarget, post.id)} className="inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-muted hover:bg-white hover:text-ink">
                             {t("community.actions.report")}
                           </button>
                         ) : null}
@@ -592,7 +780,7 @@ export default function CommunityPage() {
                           </button>
                         ) : null}
                         {post.can_delete ? (
-                          <button type="button" onClick={() => setDeleteTarget({ type: "post", id: post.id })} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                          <button type="button" onClick={(event) => openDelete({ type: "post", id: post.id }, event.currentTarget)} className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-full px-3 text-xs font-bold text-rose-700 hover:bg-rose-50">
                             {t("community.actions.deletePost")}
                           </button>
                         ) : null}
@@ -616,13 +804,13 @@ export default function CommunityPage() {
                                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted">{comment.body}</p>
                                 <div className="mt-3 flex flex-wrap items-center gap-1">
                                   {comment.author_user_id !== currentUserId ? (
-                                    <button type="button" onClick={() => openReport(undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">{t("community.actions.report")}</button>
+                                    <button type="button" onClick={(event) => openReport(event.currentTarget, undefined, comment.id)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">{t("community.actions.report")}</button>
                                   ) : null}
                                   {comment.author_user_id !== currentUserId ? (
                                     <button type="button" onClick={() => void blockMember(comment.author_user_id, comment.author_name)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-muted hover:bg-white hover:text-ink">{t("community.actions.blockMember")}</button>
                                   ) : null}
                                   {comment.can_delete ? (
-                                    <button type="button" onClick={() => setDeleteTarget({ type: "comment", id: comment.id, postId: post.id })} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-rose-700 hover:bg-rose-50">{t("community.actions.deleteComment")}</button>
+                                    <button type="button" onClick={(event) => openDelete({ type: "comment", id: comment.id, postId: post.id }, event.currentTarget)} className="rounded-full px-2.5 py-1.5 text-[0.7rem] font-bold text-rose-700 hover:bg-rose-50">{t("community.actions.deleteComment")}</button>
                                   ) : null}
                                 </div>
                               </div>
@@ -721,6 +909,8 @@ export default function CommunityPage() {
           )}
         </div>
       </section>
+
+      </div>
 
       <DeleteDialog target={deleteTarget} busy={deleting} onCancel={() => setDeleteTarget(null)} onConfirm={() => void confirmDelete()} />
       <ReportDialog

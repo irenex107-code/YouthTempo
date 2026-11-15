@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { isReportsLocalIntegrationEnabled } from "./lib/reports/availability";
 
 const isDevelopment = process.env.NODE_ENV === "development";
+// Only the explicitly enabled local report integration needs browser Auth
+// traffic to its disposable database. Production keeps its existing CSP.
+const localReportOrigin = isDevelopment && isReportsLocalIntegrationEnabled()
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin : "";
 
 const securityHeaders = [
   {
@@ -17,7 +22,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co${localReportOrigin ? ` ${localReportOrigin}` : ""}`,
       "worker-src 'self' blob:",
       "manifest-src 'self'",
     ].join("; "),
@@ -30,6 +35,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  distDir: localReportOrigin ? ".next-reports-integration" : ".next",
   outputFileTracingRoot: path.resolve(process.cwd()),
   devIndicators: false,
   i18n: {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PageHero } from "@/components/PageHero";
-import { getAccountStatus } from "@/lib/cloudRecords";
+import { useSessionActor } from "@/lib/useSessionActor";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
 
@@ -29,7 +29,7 @@ const publicPages: Record<PreviewRole, PublicPage[]> = {
   ],
   guardian: [
     { href: "/for-parents", label: "adminRolePreview.pages.parent" },
-    { href: "/talk", label: "adminRolePreview.pages.talk" },
+    { href: "/for-parents#conversation", label: "adminRolePreview.pages.talk" },
     { href: "/resources", label: "adminRolePreview.pages.resources" },
   ],
   teacher: [
@@ -51,18 +51,40 @@ const publicPages: Record<PreviewRole, PublicPage[]> = {
 
 export default function AdminRolePreviewPage() {
   const { t } = useTranslation();
+  const actor = useSessionActor();
   const [access, setAccess] = useState<"loading" | "allowed" | "denied">("loading");
+  const [accessActor, setAccessActor] = useState("");
   const [role, setRole] = useState<PreviewRole>("minor");
 
   useEffect(() => {
     let active = true;
-    getAccountStatus()
-      .then((status) => {
-        if (active) setAccess(status.adminAccess?.scope === "platform" ? "allowed" : "denied");
-      })
-      .catch(() => { if (active) setAccess("denied"); });
-    return () => { active = false; };
-  }, []);
+    setRole("minor");
+    setAccessActor(actor.actorId);
+    setAccess(actor.phase === "ready" ? "loading" : "denied");
+    if (actor.phase !== "ready") return () => { active = false; };
+    const current = actor.trackRequest();
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 10_000);
+    async function loadAccess() {
+      try {
+        const token = await actor.getToken(actor.actorId);
+        if (!active || !current()) return;
+        const response = await fetch("/api/account/status", {
+          headers: { authorization: `Bearer ${token}` }, cache: "no-store", signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("preview_access_unavailable");
+        const status = await response.json();
+        if (active && current()) setAccess(status.adminAccess?.scope === "platform" ? "allowed" : "denied");
+      } catch {
+        if (active && current()) setAccess("denied");
+      } finally { window.clearTimeout(timeout); }
+    }
+    void loadAccess();
+    return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
+  }, [actor.actorId, actor.phase, actor.getToken, actor.trackRequest]);
+
+  const screenAccess = actor.phase === "loading" ? "loading"
+    : actor.phase !== "ready" ? "denied" : accessActor === actor.actorId ? access : "loading";
 
   return (
     <>
@@ -74,15 +96,15 @@ export default function AdminRolePreviewPage() {
       />
       <section className="section section-muted">
         <div className="container max-w-6xl">
-          {access === "loading" ? <p className="card" role="status">{t("adminRolePreview.loading")}</p> : null}
-          {access === "denied" ? (
+          {screenAccess === "loading" ? <p className="card" role="status">{t("adminRolePreview.loading")}</p> : null}
+          {screenAccess === "denied" ? (
             <div className="card max-w-2xl">
               <h2 className="text-2xl font-bold text-ink">{t("adminRolePreview.deniedTitle")}</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{t("adminRolePreview.deniedDescription")}</p>
-              <Link href="/account" className="button-primary mt-5">{t("adminRolePreview.signIn")}</Link>
+              <Link href="/account?next=/admin/role-preview" className="button-primary mt-5">{t("adminRolePreview.signIn")}</Link>
             </div>
           ) : null}
-          {access === "allowed" ? (
+          {screenAccess === "allowed" ? (
             <>
               <p className="rounded-2xl border border-sage/25 bg-mint/50 px-5 py-4 text-sm leading-7 text-sage-dark" role="note">
                 {t("adminRolePreview.notice")}

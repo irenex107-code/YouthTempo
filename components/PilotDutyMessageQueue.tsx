@@ -60,7 +60,10 @@ const alertLabels: Record<DutyMessage["alert_delivery_status"], string> = {
   not_configured: "邮件尚未配置",
 };
 
-export function PilotDutyMessageQueue({ accessToken }: { accessToken: string }) {
+export function PilotDutyMessageQueue({ accessToken, request = fetch }: {
+  accessToken: string;
+  request?: (url: string, init?: RequestInit) => Promise<Response>;
+}) {
   const [payload, setPayload] = useState<DutyPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,7 +75,7 @@ export function PilotDutyMessageQueue({ accessToken }: { accessToken: string }) 
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/message-duty", {
+      const response = await request("/api/admin/message-duty", {
         headers: { authorization: `Bearer ${accessToken}` },
       });
       const body = await response.json();
@@ -97,7 +100,7 @@ export function PilotDutyMessageQueue({ accessToken }: { accessToken: string }) 
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/message-duty", {
+      const response = await request("/api/admin/message-duty", {
         method: "PATCH",
         headers: {
           authorization: `Bearer ${accessToken}`,
@@ -122,7 +125,7 @@ export function PilotDutyMessageQueue({ accessToken }: { accessToken: string }) 
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/message-duty", {
+      const response = await request("/api/admin/message-duty", {
         method: "POST",
         headers: {
           authorization: `Bearer ${accessToken}`,

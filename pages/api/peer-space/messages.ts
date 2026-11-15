@@ -22,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: t("peerSpaceChat.errors.signIn") });
-    if (!isPeerSpaceAccessApiEnabled()) return res.status(404).json({ error: t("peerSpaceChat.errors.unavailable") });
     const supabase = getSupabaseAdmin();
 
     if (req.method === "DELETE") {
@@ -38,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ deleted: true });
     }
 
+    if (!isPeerSpaceAccessApiEnabled()) return res.status(404).json({ error: t("peerSpaceChat.errors.unavailable") });
     const roomId = req.method === "GET" ? req.query.roomId : req.body?.roomId;
     if (!isUuid(roomId)) return res.status(400).json({ error: t("peerSpaceChat.errors.invalidRoom") });
     const access = await loadPeerSpaceRoomAccess(supabase, user.id, roomId);

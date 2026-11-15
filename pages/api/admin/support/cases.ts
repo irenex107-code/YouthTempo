@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { requirePlatformAdmin } from "@/lib/adminAccess";
-import { normalizeLocale } from "@/lib/i18n/config";
-import { getServerTranslator } from "@/lib/i18n/server";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
-import { isUuid, transitionSupportCase, type SupportCaseStatus } from "@/lib/supportWorkflow";
+import { hasCurrentSupportStaffScope, isUuid, transitionSupportCase, type SupportCaseStatus } from "@/lib/supportWorkflow";
 
 const referralTypes = ["school", "social_work", "medical", "professional", "community"];
 
@@ -13,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : req.cookies.NEXT_LOCALE);
+  const locale = getRequestLocale(req);
   const t = getServerTranslator(locale);
   try {
     const { supabase, user } = await requirePlatformAdmin(req);
@@ -42,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: t("supportFlow.errors.invalid") });
     }
     const { data: item, error: caseError } = await supabase.from("support_cases")
-      .select("id,status,case_type,appointment_at,appointment_status,referral_type,student_authorization_active")
+      .select("id,student_user_id,school_id,status,case_type,appointment_at,appointment_status,referral_type,student_authorization_active")
       .eq("id", caseId).maybeSingle();
     if (caseError) throw caseError;
     if (!item) return res.status(404).json({ error: t("supportFlow.errors.notReady") });
@@ -61,6 +60,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       if (action === "transfer" && (!["active", "transfer_requested", "assigned"].includes(item.status) || !note)) {
         return res.status(409).json({ error: t("supportFlow.errors.notReady") });
+      }
+      const { data: staff, error: staffError } = await supabase.from("support_staff_applications")
+        .select("status,category,age_scopes").eq("user_id", staffUserId).maybeSingle();
+      if (staffError) throw staffError;
+      const requiredAge = item.case_type === "adult_consultation" ? "18_plus" : "14_17";
+      if (staff?.status !== "approved" || !staff.age_scopes.includes(requiredAge)
+        || (item.case_type === "adult_consultation" && staff.category !== "counselor")
+        || !await hasCurrentSupportStaffScope(supabase, staffUserId, staff.category, item)) {
+        return res.status(409).json({ error: t("supportFlow.errors.staffScope") });
       }
       if (action === "transfer") {
         const { error: revokeError } = await supabase.from("support_case_assignments")
@@ -112,9 +120,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (error) throw error;
       if (!primary) return res.status(409).json({ error: t("supportFlow.errors.notReady") });
       const { data: staff, error: staffError } = await supabase.from("support_staff_applications")
-        .select("status").eq("user_id", primary.staff_user_id).maybeSingle();
+        .select("status,category").eq("user_id", primary.staff_user_id).maybeSingle();
       if (staffError) throw staffError;
       if (staff?.status !== "approved") return res.status(409).json({ error: t("supportFlow.errors.notReady") });
+      if (!await hasCurrentSupportStaffScope(supabase, primary.staff_user_id, staff.category, item)) {
+        return res.status(409).json({ error: t("supportFlow.errors.notReady") });
+      }
       nextStatus = "active";
     } else if (action === "refer" && ["triage", "awaiting_assignment", "assigned", "active", "paused", "transfer_requested"].includes(item.status)) {
       if (!referralTypes.includes(req.body?.referralType)) return res.status(400).json({ error: t("supportFlow.errors.invalid") });

@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { normalizeLocale } from "@/lib/i18n/config";
-import { getServerTranslator } from "@/lib/i18n/server";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
-import { isUuid, requireSupportStudent } from "@/lib/supportWorkflow";
+import { hasCurrentSupportStaffScope, isUuid, requireSupportStudent } from "@/lib/supportWorkflow";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -11,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : req.cookies.NEXT_LOCALE);
+  const locale = getRequestLocale(req);
   const t = getServerTranslator(locale);
   try {
     const user = await getAuthenticatedUser(req);
@@ -26,6 +25,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const decision = req.body?.decision;
       if (!isUuid(assignmentId) || !["accepted", "rejected"].includes(decision)) {
         return res.status(400).json({ error: t("supportFlow.errors.invalid") });
+      }
+      if (staff.category === "school_duty_teacher") {
+        const { data: offered, error: offeredError } = await supabase.from("support_case_assignments")
+          .select("case_id").eq("id", assignmentId).eq("staff_user_id", user.id).eq("status", "offered").maybeSingle();
+        if (offeredError) throw offeredError;
+        if (!offered) return res.status(404).json({ error: t("supportFlow.errors.notReady") });
+        const { data: item, error: itemError } = await supabase.from("support_cases")
+          .select("student_user_id,school_id,case_type").eq("id", offered.case_id).maybeSingle();
+        if (itemError) throw itemError;
+        if (!item || !await hasCurrentSupportStaffScope(supabase, user.id, staff.category, item)) {
+          return res.status(403).json({ error: t("supportFlow.errors.staffScope") });
+        }
       }
       const { data, error } = await supabase.from("support_case_assignments")
         .update({
@@ -50,18 +61,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const ids = (assignments || []).map((item) => item.case_id);
     const { data: cases, error: caseError } = ids.length
       ? await supabase.from("support_cases")
-        .select("id,student_user_id,case_type,status,need_summary,availability,appointment_at,appointment_status,student_authorization_active,created_at")
+        .select("id,student_user_id,school_id,case_type,status,need_summary,availability,appointment_at,appointment_status,student_authorization_active,created_at")
         .in("id", ids)
       : { data: [], error: null };
     if (caseError) throw caseError;
     const caseById = new Map((cases || []).map((item) => [item.id, item]));
+    const currentScopes = new Map<string, boolean>();
+    await Promise.all((cases || []).map(async (item) => {
+      currentScopes.set(item.id, await hasCurrentSupportStaffScope(supabase, user.id, staff.category, item));
+    }));
     const eligibility = new Map<string, boolean>();
     await Promise.all([...new Set((cases || []).map((item) => item.student_user_id))].map(async (studentId) => {
       try { eligibility.set(studentId, Boolean(await requireSupportStudent(supabase, studentId))); }
       catch { eligibility.set(studentId, false); }
     }));
     return res.status(200).json({
-      assignments: (assignments || []).map((assignment) => {
+      assignments: (assignments || []).filter((assignment) => staff.category !== "school_duty_teacher"
+        || currentScopes.get(assignment.case_id)).map((assignment) => {
         const item = caseById.get(assignment.case_id);
         const canRead = Boolean(item && assignment.assignment_role === "primary"
           && assignment.status === "accepted" && item.status === "active"

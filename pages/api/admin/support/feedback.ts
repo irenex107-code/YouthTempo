@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { requirePlatformAdmin } from "@/lib/adminAccess";
-import { normalizeLocale } from "@/lib/i18n/config";
-import { getServerTranslator } from "@/lib/i18n/server";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
 import { isUuid } from "@/lib/supportWorkflow";
 
@@ -24,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : req.cookies.NEXT_LOCALE);
+  const locale = getRequestLocale(req);
   const t = getServerTranslator(locale);
   try {
     const { supabase, user } = await requirePlatformAdmin(req);

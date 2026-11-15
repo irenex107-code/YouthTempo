@@ -219,6 +219,8 @@ async function createFixtures() {
 
   const users = await ensureUsers();
   const fixtureUserIds = Object.values(users).map((user) => user.id);
+  const fixtureSchoolIds = Object.values(fixture.schools).map((school) => school.id);
+  const consentedAt = new Date().toISOString();
   const identifierHashes = fixtureUserIds.map((userId) =>
     createHmac("sha256", process.env.RATE_LIMIT_SECRET || serviceRoleKey)
       .update(`user:${userId}`)
@@ -281,6 +283,29 @@ async function createFixtures() {
   );
 
   const schoolA = fixture.schools.a.id;
+  // Reset only relationships wholly owned by these fixed synthetic schools/users.
+  // A previous allowed-path test may have added another assignment or membership.
+  assertResult(
+    await supabase.from("teacher_student_assignments").delete()
+      .in("school_id", fixtureSchoolIds)
+      .in("teacher_user_id", fixtureUserIds)
+      .in("student_user_id", fixtureUserIds),
+    "重置虚拟师生关系",
+  );
+  assertResult(
+    await supabase.from("school_members").delete()
+      .in("school_id", fixtureSchoolIds)
+      .in("user_id", fixtureUserIds),
+    "重置虚拟学校成员关系",
+  );
+  assertResult(
+    await supabase.from("guardian_student_links")
+      .update({ status: "revoked", revoked_at: consentedAt, updated_at: consentedAt })
+      .in("school_id", fixtureSchoolIds)
+      .in("guardian_user_id", fixtureUserIds)
+      .in("student_user_id", fixtureUserIds),
+    "撤销虚拟亲子关系的残留状态",
+  );
   assertResult(
     await supabase.from("school_members").upsert(
       [
@@ -329,35 +354,32 @@ async function createFixtures() {
         guardian_user_id: users[guardianKey].id,
         student_user_id: users[studentKey].id,
         confirmed_by: users.schoolLead.id,
-        status: "active",
-        revoked_at: null,
-        updated_at: new Date().toISOString(),
+        status: "revoked",
+        revoked_at: consentedAt,
+        updated_at: consentedAt,
       })),
       { onConflict: "school_id,guardian_user_id,student_user_id" },
     ),
-    "创建虚拟亲子关系",
+    "保留已撤销的虚拟亲子关系",
   );
 
-  const consentedAt = new Date().toISOString();
   assertResult(
     await supabase.from("student_consents").upsert(
-      [
-        ["studentOne", "guardianOne"],
-        ["studentTwo", "guardianTwo"],
-      ].map(([studentKey, guardianKey]) => ({
-        student_user_id: users[studentKey].id,
-        school_id: schoolA,
-        age_band: "14_17",
-        consent_basis: "student_guardian",
-        policy_version: "2026-08-28",
-        status: "active",
-        student_assented_at: consentedAt,
-        guardian_user_id: users[guardianKey].id,
-        guardian_consented_at: consentedAt,
-        withdrawn_at: null,
-        withdrawn_by: null,
-        updated_at: consentedAt,
-      })),
+      Object.entries(fixture.users).filter(([, definition]) => definition.role === "学生")
+        .map(([studentKey, definition]) => ({
+          student_user_id: users[studentKey].id,
+          school_id: definition.school ? fixture.schools[definition.school].id : null,
+          age_band: "14_17",
+          consent_basis: "student_self_pilot",
+          policy_version: "2026-08-28",
+          status: "active",
+          student_assented_at: consentedAt,
+          guardian_user_id: null,
+          guardian_consented_at: null,
+          withdrawn_at: null,
+          withdrawn_by: null,
+          updated_at: consentedAt,
+        })),
       { onConflict: "student_user_id" },
     ),
     "创建虚拟学生知情同意",

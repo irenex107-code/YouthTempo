@@ -4,9 +4,11 @@ import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { shanghaiDateKey } from "@/lib/tempoGarden";
 import {
   gardenLocale,
+  gardenUseAccess,
   loadGardenParticipation,
   methodNotAllowed,
   requireGardenContext,
+  requireGardenManagementContext,
   sendGardenError,
 } from "@/pages/api/garden/_shared";
 
@@ -21,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const t = getServerTranslator(gardenLocale(req));
   try {
-    const context = await requireGardenContext(req, res);
+    const context = await (req.method === "GET" ? requireGardenManagementContext : requireGardenContext)(req, res);
     if (!context) return;
     const { supabase, user } = context;
 
@@ -57,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ reminderMode: mode });
     }
 
-    const [participation, preference, care, layout, keepsakes] = await Promise.all([
+    const [participation, preference, care, layout, keepsakes, access] = await Promise.all([
       loadGardenParticipation(supabase, user.id),
       supabase.from("tempo_reminder_preferences").select("mode")
         .eq("user_id", user.id).maybeSingle(),
@@ -67,6 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("user_id", user.id),
       supabase.from("tempo_garden_keepsakes").select("id,keepsake_date,keepsake_type")
         .eq("user_id", user.id).order("keepsake_date", { ascending: false }),
+      gardenUseAccess(context),
     ]);
     if (preference.error) throw preference.error;
     if (care.error) throw care.error;
@@ -78,9 +81,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : null;
     return res.status(200).json({
       ...participation.summary,
+      ...access,
+      hasExistingData: Boolean(participation.quickRows.length || participation.sweetRows.length
+        || preference.data || care.data || layout.data?.length || keepsakes.data?.length),
       reminderMode: preference.data?.mode || "off",
-      canCareToday: participation.summary.todayParticipated && !todayCare,
-      canAddKeepsakeToday: participation.summary.todayParticipated
+      canCareToday: access.canUseGarden && participation.summary.todayParticipated && !todayCare,
+      canAddKeepsakeToday: access.canUseGarden && participation.summary.todayParticipated
         && !(keepsakes.data || []).some((item) => item.keepsake_date === today),
       todayCare,
       layout: Object.fromEntries((layout.data || []).map((item) => [item.slot, item.item_key])),

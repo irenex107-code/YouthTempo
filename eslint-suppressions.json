@@ -1,0 +1,397 @@
+{
+  "components/AgePathWorkspace.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/CommunityModerationQueue.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/Navbar.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/PilotDutyMessageQueue.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/PilotFeedbackOverview.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/ProfessionalVerificationCard.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/ProfessionalVerificationQueue.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/VoiceInputButton.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "components/garden/GardenScene.tsx": {
+    "jsx-a11y/alt-text": {
+      "count": 1
+    },
+    "jsx-a11y/aria-unsupported-elements": {
+      "count": 1
+    }
+  },
+  "lib/reports/comprehensive.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "lib/reports/http.ts": {
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "lib/useInlineStudentConsent.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "lib/useSessionActor.ts": {
+    "react-hooks/exhaustive-deps": {
+      "count": 2
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "miniprogram/app.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "miniprogram/pages/history/index.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "miniprogram/pages/home/index.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "miniprogram/pages/login/index.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "miniprogram/pages/support/index.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "miniprogram/pages/sweet/index.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "miniprogram/utils/api.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "pages/admin/support.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "pages/api/account/apply-school-invites.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/account/consent.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/account/status.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/admin/school-assignments.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/community/blocks.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/mini/profile.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/wechat/check-bind-session.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/wechat/create-bind-session.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/api/wechat/mini-bind.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "pages/support/apply.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 4
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "pages/support/workbench.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "scripts/verify-isolated-comprehensive-reports.mjs": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 2
+    }
+  },
+  "scripts/verify-isolated-peer-space.mjs": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "scripts/verify-isolated-report-lifecycle.mjs": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "scripts/verify-isolated-report-vectors.mjs": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "tests/account-deletion-receipt-api.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 2
+    },
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    },
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "tests/account-deletion-receipt.spec.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/admin-private-records.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "tests/ai-locale.spec.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/community-rate-limit-locale.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "tests/completion-audit-api.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    },
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "tests/profile-role-client.spec.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "tests/reports-api.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "tests/reports-history-summary.spec.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/reports-sharing-flow.spec.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "tests/safety-copy-consistency.spec.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/support-school-duty-scope.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "tests/support-staff-api-eligibility.spec.ts": {
+    "@next/next/no-assign-module-variable": {
+      "count": 1
+    }
+  },
+  "tests/tempo-garden.spec.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "views/account/page.tsx": {
+    "@next/next/no-img-element": {
+      "count": 1
+    },
+    "react-hooks/exhaustive-deps": {
+      "count": 4
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 3
+    }
+  },
+  "views/admin/page.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 4
+    }
+  },
+  "views/admin/peer-space/live.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 3
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/admin/role-preview/page.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/community/page.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/feedback/page.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/garden/page.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/messages/page.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 2
+    }
+  },
+  "views/mood-journal/page.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/peer-space/live.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 7
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 4
+    }
+  },
+  "views/peer-space/page.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/reports/page.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 4
+    },
+    "react-hooks/refs": {
+      "count": 2
+    }
+  },
+  "views/support/CasePortal.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "views/worry-time/page.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  }
+}

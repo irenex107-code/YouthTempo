@@ -7,11 +7,16 @@ import { useTranslation } from "@/lib/i18n/client";
 export default function ForTeensPage() {
   const { t } = useTranslation();
   const startCards = [
-    { title: t("forTeens.start.cards.rhythm.title"), text: t("forTeens.start.cards.rhythm.text"), action: t("forTeens.start.cards.rhythm.action"), href: "/garden", illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp", illustrationAlt: t("forTeens.start.cards.rhythm.alt") },
-    { title: t("forTeens.start.cards.mood.title"), text: t("forTeens.start.cards.mood.text"), action: t("forTeens.start.cards.mood.action"), href: "/mood-journal", illustration: "/illustrations/system/feature-mood-puzzle.webp", illustrationAlt: t("forTeens.start.cards.mood.alt") },
-    { title: t("forTeens.start.cards.messages.title"), text: t("forTeens.start.cards.messages.text"), action: t("forTeens.start.cards.messages.action"), href: "/messages", illustration: "/illustrations/system/feature-mailbox.webp", illustrationAlt: t("forTeens.start.cards.messages.alt") },
-    { title: t("forTeens.start.cards.worry.title"), text: t("forTeens.start.cards.worry.text"), action: t("forTeens.start.cards.worry.action"), href: "/worry-time", illustration: "/illustrations/system/feature-worry-time.webp", illustrationAlt: t("forTeens.start.cards.worry.alt") },
-    { title: t("forTeens.start.cards.referral.title"), text: t("forTeens.start.cards.referral.text"), action: t("forTeens.start.cards.referral.action"), href: "/referral", illustration: "/illustrations/system/feature-progress-path.webp", illustrationAlt: t("forTeens.start.cards.referral.alt") },
+    { title: t("ageWorkspace.primary.garden.title"), text: t("ageWorkspace.primary.garden.text"), action: t("ageWorkspace.primary.garden.action"), href: "/garden", illustration: "/illustrations/system/feature-sweet-rhythm-v2.webp", illustrationAlt: t("forTeens.start.cards.rhythm.alt") },
+    { title: t("ageWorkspace.primary.expression.title"), text: t("ageWorkspace.primary.expression.text"), action: t("ageWorkspace.primary.expression.action"), href: "/mood-journal", illustration: "/illustrations/system/feature-mood-puzzle.webp", illustrationAlt: t("forTeens.start.cards.mood.alt") },
+    { title: t("ageWorkspace.primary.help.title"), text: t("ageWorkspace.primary.help.text"), action: t("ageWorkspace.primary.help.action"), href: "/referral", illustration: "/illustrations/system/feature-progress-path.webp", illustrationAlt: t("forTeens.start.cards.referral.alt") },
+  ];
+  const moreCards = [
+    { title: t("ageWorkspace.moreTools.cards.sweet.title"), text: t("ageWorkspace.moreTools.cards.sweet.text"), action: t("ageWorkspace.moreTools.cards.sweet.action"), href: "/check-in" },
+    { title: t("forTeens.start.cards.messages.title"), text: t("forTeens.start.cards.messages.text"), action: t("forTeens.start.cards.messages.action"), href: "/messages" },
+    { title: t("forTeens.start.cards.worry.title"), text: t("forTeens.start.cards.worry.text"), action: t("forTeens.start.cards.worry.action"), href: "/worry-time" },
+    { title: t("ageWorkspace.minor.cards.community.title"), text: t("ageWorkspace.minor.cards.community.text"), action: t("ageWorkspace.minor.cards.community.action"), href: "/community" },
+    { title: t("ageWorkspace.minor.cards.network.title"), text: t("ageWorkspace.minor.cards.network.text"), action: t("ageWorkspace.minor.cards.network.action"), href: "/support-request" },
   ];
 
   return (
@@ -22,7 +27,7 @@ export default function ForTeensPage() {
         subtitle={t("forTeens.hero.description")}
         action={
           <>
-            <Link href="/account" className="button-primary">{t("forTeens.hero.primaryAction")}</Link>
+            <Link href="/garden" className="button-primary">{t("ageWorkspace.primary.garden.action")}</Link>
             <Link href="/sweet-model" className="button-secondary">{t("forTeens.hero.secondaryAction")}</Link>
           </>
         }
@@ -41,7 +46,7 @@ export default function ForTeensPage() {
             title={t("forTeens.start.title")}
             description={t("forTeens.start.description")}
           />
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3" data-primary-tasks>
             {startCards.map((card) => (
               <article key={card.title} className="card flex flex-col p-5 sm:min-h-60">
                 {card.illustration ? (
@@ -57,6 +62,17 @@ export default function ForTeensPage() {
               </article>
             ))}
           </div>
+          <details className="mt-6 rounded-2xl border border-sage/20 bg-white/70 p-4 sm:p-5" data-public-more-tools>
+            <summary className="cursor-pointer font-semibold text-sage-dark">{t("ageWorkspace.moreTools.title")}</summary>
+            <p className="mt-3 text-sm leading-7 text-muted">{t("ageWorkspace.moreTools.description")}</p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {moreCards.map((card) => <article key={card.href} className="card flex flex-col">
+                <h3 className="text-lg font-bold text-ink">{card.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-7 text-muted">{card.text}</p>
+                <Link href={card.href} className="button-secondary mt-5 w-fit text-sm">{card.action}</Link>
+              </article>)}
+            </div>
+          </details>
         </div>
       </section>
 

@@ -12,13 +12,16 @@ type Summary = {
   comments: Array<{ id: string; feature: string; ageBand: string; comment: string; safetyReview: boolean; createdAt: string }>;
 };
 
-export function MicroFeedbackOverview({ accessToken }: { accessToken: string }) {
+export function MicroFeedbackOverview({ accessToken, request = fetch }: {
+  accessToken: string;
+  request?: (url: string, init?: RequestInit) => Promise<Response>;
+}) {
   const { locale, t } = useTranslation();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    fetch("/api/admin/pilot-experience", { headers: { authorization: `Bearer ${accessToken}` }, cache: "no-store" })
+    request("/api/admin/pilot-experience", { headers: { authorization: `Bearer ${accessToken}` }, cache: "no-store" })
       .then(async (response) => {
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || t("microFeedback.errors.unavailable"));
@@ -27,7 +30,7 @@ export function MicroFeedbackOverview({ accessToken }: { accessToken: string }) 
       .then((payload) => { if (active) setSummary(payload); })
       .catch((caught) => { if (active) setError(caught instanceof Error ? caught.message : t("microFeedback.errors.unavailable")); });
     return () => { active = false; };
-  }, [accessToken, t]);
+  }, [accessToken, request, t]);
   const percent = (value: number | null) => value === null
     ? t("microFeedbackAdmin.noAnswers")
     : new Intl.NumberFormat(locale === "en" ? "en" : "zh-CN", { style: "percent", maximumFractionDigits: 0 }).format(value);

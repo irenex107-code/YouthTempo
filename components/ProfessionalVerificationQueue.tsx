@@ -36,7 +36,10 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
-export function ProfessionalVerificationQueue({ accessToken }: { accessToken: string }) {
+export function ProfessionalVerificationQueue({ accessToken, request = fetch }: {
+  accessToken: string;
+  request?: (url: string, init?: RequestInit) => Promise<Response>;
+}) {
   const [items, setItems] = useState<Verification[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -48,7 +51,7 @@ export function ProfessionalVerificationQueue({ accessToken }: { accessToken: st
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/professional-verifications", {
+      const response = await request("/api/admin/professional-verifications", {
         headers: { authorization: `Bearer ${accessToken}` },
       });
       const payload = await response.json();
@@ -78,7 +81,7 @@ export function ProfessionalVerificationQueue({ accessToken }: { accessToken: st
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/professional-verifications", {
+      const response = await request("/api/admin/professional-verifications", {
         method: "PATCH",
         headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
         body: JSON.stringify({ userId, action, note }),

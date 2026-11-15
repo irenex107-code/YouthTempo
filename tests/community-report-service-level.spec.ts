@@ -2,23 +2,30 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "@playwright/test";
 import fixture from "./fixtures/permission-boundary.json";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
+const credentialsPresent = Boolean(supabaseUrl && supabaseAnonKey && password);
 
 type UserKey = "platformAdmin" | "guardianOne" | "schoolLead";
 
 async function sessionFor(key: UserKey) {
-  if (!password) throw new Error("缺少 E2E_PERMISSION_TEST_PASSWORD");
-  const client = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-  const { data, error } = await client.auth.signInWithPassword({
-    email: fixture.users[key].email,
-    password,
-  });
-  if (error || !data.session) throw error || new Error(`无法登录 ${key}`);
-  return { accessToken: data.session.access_token };
+  if (!supabaseUrl || !supabaseAnonKey || !password) {
+    throw new Error("举报服务目标验收缺少隔离环境凭据。");
+  }
+  try {
+    const client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data, error } = await client.auth.signInWithPassword({
+      email: fixture.users[key].email,
+      password,
+    });
+    if (error || !data.session) throw new Error("无法登录举报服务目标虚拟账号。");
+    return { accessToken: data.session.access_token };
+  } catch {
+    throw new Error("无法登录举报服务目标虚拟账号。");
+  }
 }
 
 function auth(accessToken: string) {
@@ -27,7 +34,7 @@ function auth(accessToken: string) {
 
 test("举报分类、首次复核目标和用户进度形成闭环", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "API 服务级别无需按视口重复执行");
-  test.skip(!password, "需要虚拟账号密码");
+  test.skip(!credentialsPresent, "需要隔离环境网址、浏览器凭据和虚拟账号密码");
   test.setTimeout(60_000);
 
   const [platformAdmin, guardian, schoolLead] = await Promise.all([
@@ -58,9 +65,8 @@ test("举报分类、首次复核目标和用户进度形成闭环", async ({ re
         details: "自动化验收：检查隐私类举报的服务目标。",
       },
     });
-    const reportText = await report.text();
-    expect(report.status(), reportText).toBe(201);
-    const reportBody = JSON.parse(reportText);
+    expect(report.status()).toBe(201);
+    const reportBody = await report.json();
     expect(reportBody.report).toMatchObject({
       category: "privacy_exposure",
       priority: "high",

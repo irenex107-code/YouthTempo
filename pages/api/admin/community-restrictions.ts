@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ action: Array.isArray(data) ? data[0] : data, notice: "禁言已解除。" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "社区账号限制暂时无法保存。";
-    const status = message.includes("只有平台管理员")
+    const status = message.includes("只有平台管理员") || message === "当前账号没有学校工作台权限。"
       ? 403
       : message.includes("请先登录")
         ? 401

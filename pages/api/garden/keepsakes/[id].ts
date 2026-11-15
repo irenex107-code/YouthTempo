@@ -4,7 +4,7 @@ import { enforceUserRateLimit } from "@/lib/rateLimit";
 import {
   gardenLocale,
   methodNotAllowed,
-  requireGardenContext,
+  requireGardenManagementContext,
   sendGardenError,
 } from "@/pages/api/garden/_shared";
 
@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const t = getServerTranslator(gardenLocale(req));
 
   try {
-    const context = await requireGardenContext(req, res);
+    const context = await requireGardenManagementContext(req, res);
     if (!context) return;
     const id = typeof req.query.id === "string" ? req.query.id : "";
     if (!uuidPattern.test(id)) {

@@ -74,7 +74,10 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-export function CommunityModerationQueue({ accessToken }: { accessToken: string }) {
+export function CommunityModerationQueue({ accessToken, request = fetch }: {
+  accessToken: string;
+  request?: (url: string, init?: RequestInit) => Promise<Response>;
+}) {
   const [payload, setPayload] = useState<ModerationPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -90,10 +93,10 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
     setError("");
     try {
       const [queueResponse, restrictionsResponse] = await Promise.all([
-        fetch("/api/admin/community-moderation", {
+        request("/api/admin/community-moderation", {
           headers: { authorization: `Bearer ${accessToken}` },
         }),
-        fetch("/api/admin/community-restrictions", {
+        request("/api/admin/community-restrictions", {
           headers: { authorization: `Bearer ${accessToken}` },
         }),
       ]);
@@ -131,7 +134,7 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/community-moderation", {
+      const response = await request("/api/admin/community-moderation", {
         method: "POST",
         headers: {
           authorization: `Bearer ${accessToken}`,
@@ -168,7 +171,7 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/community-restrictions", {
+      const response = await request("/api/admin/community-restrictions", {
         method: "POST",
         headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
         body: JSON.stringify({
@@ -195,7 +198,7 @@ export function CommunityModerationQueue({ accessToken }: { accessToken: string 
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/community-restrictions", {
+      const response = await request("/api/admin/community-restrictions", {
         method: "DELETE",
         headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
         body: JSON.stringify({ targetUserId: restriction.user_id, reason: reason.trim() }),

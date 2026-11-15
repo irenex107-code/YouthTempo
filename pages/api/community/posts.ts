@@ -12,9 +12,11 @@ import { moderateCommunityContent } from "@/lib/messageSafety";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { requireActiveStudentConsent } from "@/lib/studentConsent";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
-import { normalizeLocale } from "@/lib/i18n/config";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const locale = getRequestLocale(req);
+  const t = getServerTranslator(locale);
   if (!["GET", "POST", "DELETE"].includes(req.method || "")) {
     res.setHeader("Allow", "GET, POST, DELETE");
     return res.status(405).json({ error: "Method not allowed" });
@@ -64,7 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === "POST") {
       await requireActiveStudentConsent(supabase, user.id);
-      const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : undefined);
       const activeMute = await getActiveCommunityMute(supabase, user.id);
       if (activeMute) {
         return res.status(403).json({
@@ -100,7 +101,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         limit: 5,
         windowSeconds: 10 * 60,
         res,
-        message: "发布得有些频繁，请稍等一会儿再发。你写下的内容仍保留在当前页面。",
+        message: t("community.messages.rateLimit.post"),
+        unavailableMessage: t("community.messages.rateLimit.unavailable"),
       }))) return;
 
       const { data: post, error } = await supabase
@@ -125,6 +127,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Own management uses the account API; feed remains a consent-gated service.
+    await requireActiveStudentConsent(supabase, user.id);
     const blockedUserIds = await getCommunityBlockedUserIds(supabase, user.id);
     const postFields = "id,author_user_id,author_role,title,body,viewer_roles,commenter_roles,created_at";
     const [
@@ -167,7 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             .order("created_at", { ascending: true })
         : Promise.resolve({ data: [], error: null }),
       authorIds.length
-        ? supabase.from("profiles").select("id,display_name,email").in("id", authorIds)
+        ? supabase.from("profiles").select("id,display_name").in("id", authorIds)
         : Promise.resolve({ data: [], error: null }),
     ]);
     if (commentsError) throw commentsError;
@@ -182,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       { data: professionalVerifications, error: professionalVerificationError },
     ] = await Promise.all([
       commentAuthorIds.length
-        ? supabase.from("profiles").select("id,display_name,email").in("id", commentAuthorIds)
+        ? supabase.from("profiles").select("id,display_name").in("id", commentAuthorIds)
         : Promise.resolve({ data: [], error: null }),
       allAuthorIds.length
         ? supabase
@@ -210,7 +214,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const author = profileById.get(post.author_user_id as string);
         return {
           ...post,
-          author_name: author?.display_name || author?.email || communityRoleLabels[postRole],
+          author_name: author?.display_name || t(`community.roles.${postRole}.label`),
           author_role_label: communityRoleLabels[postRole],
           verified_professional:
             postRole === "professional" && verifiedProfessionalIds.has(post.author_user_id as string),
@@ -223,7 +227,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               const commentAuthor = profileById.get(comment.author_user_id as string);
               return {
                 ...comment,
-                author_name: commentAuthor?.display_name || commentAuthor?.email || communityRoleLabels[commentRole],
+                author_name: commentAuthor?.display_name || t(`community.roles.${commentRole}.label`),
                 author_role_label: communityRoleLabels[commentRole],
                 verified_professional:
                   commentRole === "professional" && verifiedProfessionalIds.has(comment.author_user_id as string),

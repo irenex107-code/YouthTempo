@@ -53,6 +53,19 @@ const englishRules: CrisisRule[] = [
   { reason: "harm_by_others", pattern: /\bi\s+am\s+being\s+(?:hurt|harmed|abused)\b/i },
 ];
 
+// Check these additions only after the original locale-ordered rules, preserving
+// existing urgent decisions and their reasons. Quoted or third-person text never
+// receives a blanket exemption. This is a bounded vocabulary, not a risk score.
+const additionalCrisisRules: CrisisRule[] = [
+  { reason: "suicidal_intent", pattern: /我(?:现在|今晚|今天|明天|最近)?(?:已经|真的)?(?:打算|准备|计划|决定|想要|想|要|会)(?:去)?结束(?:我)?自己(?:的)?生命(?!科学|中|里)/u },
+  { reason: "suicidal_intent", pattern: /\bi(?:\s+(?:intend|plan|want)\s+to|['’]ll|\s+will|(?:['’]m|\s+am)\s+(?:going|planning)\s+to)\s+commit\s+suicide\b/i },
+  { reason: "suicidal_intent", pattern: /\b(?:he|she|they|(?:(?:my|our|his|her|their|a)\s+)?(?:friend|classmate|student|sibling))\s+(?:wants?|plans?|intends?)\s+to\s+kill\s+(?:himself|herself|themself|themselves)\b/i },
+  // A by-agent belongs to this harm predicate. Nonhuman sources do not trigger
+  // it, and another clause can still contain an independent real-person signal.
+  { reason: "harm_by_others", pattern: /\b(?:he|she|they|(?:(?:my|our|his|her|their|a)\s+)?(?:friend|classmate|student|sibling))\s+(?:is|are)\s+being\s+(?:hurt|harmed|abused)\b(?:(?![,.;!?\n，。；！？]|\b(?:and|but|while|because|so|by)\b).)*\bby\s+(?:(?:a|an|the|my|his|her|their)\s+)?(?:family\s+member|parent|teacher|adult|partner|someone)\b/i },
+  { reason: "harm_by_others", pattern: /\b(?:he|she|they|(?:(?:my|our|his|her|their|a)\s+)?(?:friend|classmate|student|sibling))\s+(?:is|are)\s+being\s+(?:harmed|abused)\b(?!(?:(?![,.;!?\n，。；！？]|\b(?:and|but|while|because|so)\b).)*\bby\b)/i },
+];
+
 export function detectCrisis(text: unknown, locale: CrisisLocale): CrisisDetectionResult {
   if (typeof text !== "string" || !text.trim()) return { isUrgent: false };
 
@@ -60,7 +73,8 @@ export function detectCrisis(text: unknown, locale: CrisisLocale): CrisisDetecti
   const rules = locale === "en"
     ? [...englishRules, ...chineseRules]
     : [...chineseRules, ...englishRules];
-  const match = rules.find((rule) => rule.pattern.test(text));
+  const match = rules.find((rule) => rule.pattern.test(text))
+    ?? additionalCrisisRules.find((rule) => rule.pattern.test(text));
 
   return match
     ? { isUrgent: true, matchedReason: match.reason }

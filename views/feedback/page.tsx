@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
-import { getSupabase } from "@/lib/supabaseClient";
+import { useSessionActor, type SessionActor } from "@/lib/useSessionActor";
 import type { PilotFeedbackRole, PilotFeedbackRow } from "@/lib/pilotFeedback";
+import { PILOT_FEEDBACK_VERSION } from "@/lib/pilotFeedback";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
 import { localizedCloudErrorMessage } from "@/lib/cloudRecords";
@@ -54,6 +55,16 @@ function formFromFeedback(feedback: PilotFeedbackRow | null): FormState {
   };
 }
 
+function confirmsSubmission(body: unknown, submitted: FormState, role: PilotFeedbackRole | null): body is { feedback: PilotFeedbackRow } {
+  if (!body || typeof body !== "object" || !("feedback" in body) || !body.feedback || typeof body.feedback !== "object") return false;
+  const saved = body.feedback as Partial<PilotFeedbackRow>;
+  return "role" in body && body.role === role && "version" in body && body.version === PILOT_FEEDBACK_VERSION
+    && typeof saved.id === "string" && Boolean(saved.id) && saved.role === role && saved.form_version === PILOT_FEEDBACK_VERSION
+    && saved.overall_experience === submitted.overallExperience && saved.clarity === submitted.clarity && saved.safety === submitted.safety
+    && saved.most_helpful === submitted.mostHelpful.trim() && saved.hard_to_use === submitted.hardToUse.trim()
+    && saved.suggestion === submitted.suggestion.trim() && saved.may_contact === submitted.mayContact;
+}
+
 function RatingQuestion({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   const { t } = useTranslation();
   return (
@@ -74,74 +85,122 @@ function RatingQuestion({ label, value, onChange }: { label: string; value: numb
 }
 
 export default function PilotFeedbackPage() {
+  const actor = useSessionActor();
+  // Account changes unmount the old form immediately, before a new read finishes.
+  return <FeedbackWorkspace key={`${actor.phase}:${actor.actorId}`} actor={actor} />;
+}
+
+function FeedbackWorkspace({ actor }: { actor: SessionActor }) {
   const { locale, t } = useTranslation();
-  const [accessToken, setAccessToken] = useState("");
+  const { actorId, phase, getToken, trackRequest } = actor;
+  const copy = useRef({ locale, t });
+  useEffect(() => { copy.current = { locale, t }; }, [locale, t]);
   const [role, setRole] = useState<PilotFeedbackRole | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [hasSaved, setHasSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const editRevision = useRef(0);
+  const pendingSave = useRef<symbol | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const showVisitorCopy = !loading && !accessToken;
+  const showVisitorCopy = phase === "signed_out";
+  const reading = phase === "loading" || (phase === "ready" && loading);
+  const displayError = phase === "error" ? t("feedback.member.errors.loadFailed") : error;
 
   useEffect(() => {
+    let active = true;
+    const current = trackRequest();
+    const controller = new AbortController();
+    if (phase !== "ready") return;
     async function load() {
       setLoading(true);
       try {
-        const supabase = getSupabase();
-        const { data, error: sessionError } = supabase ? await supabase.auth.getSession() : { data: { session: null }, error: null };
-        if (sessionError) throw sessionError;
-        const token = data.session?.access_token || "";
-        setAccessToken(token);
-        if (!token) return;
-        const response = await fetch("/api/pilot-feedback", { headers: { authorization: `Bearer ${token}` } });
+        const token = await getToken(actorId);
+        if (!active || !current()) return;
+        const response = await fetch("/api/pilot-feedback", {
+          headers: { authorization: `Bearer ${token}` }, signal: controller.signal,
+        });
         const body = await response.json();
-        if (!response.ok) throw new Error(body.error || t("feedback.member.errors.loadFailed"));
+        if (!active || !current()) return;
+        if (!response.ok) {
+          setError(copy.current.t(response.status === 401 ? "feedback.member.errors.loadIdentityRequired"
+            : response.status === 403 ? "feedback.member.errors.loadAccessDenied" : "feedback.member.errors.loadFailed"));
+          return;
+        }
         setRole(body.role as PilotFeedbackRole);
         setForm(formFromFeedback((body.feedback || null) as PilotFeedbackRow | null));
         setHasSaved(Boolean(body.feedback));
       } catch (loadError) {
-        setError(localizedCloudErrorMessage(loadError, locale, t("feedback.member.errors.loadFailed")));
+        if (active && current()) setError(localizedCloudErrorMessage(loadError, copy.current.locale, copy.current.t("feedback.member.errors.loadFailed")));
       } finally {
-        setLoading(false);
+        if (active && current()) setLoading(false);
       }
     }
     void load();
-  }, []);
+    return () => { active = false; controller.abort(); };
+  }, [actorId, phase, getToken, trackRequest]);
 
   useEffect(() => {
     setError("");
     setNotice("");
   }, [locale]);
 
+  function editForm(changes: Partial<FormState>) {
+    ++editRevision.current;
+    setForm((current) => ({ ...current, ...changes }));
+    setHasUnsavedChanges(true);
+    setNotice("");
+  }
+
   async function submitFeedback(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pendingSave.current || phase !== "ready" || !actor.isSameActor(actorId)) return;
+    const current = trackRequest();
     if (!form.overallExperience || !form.clarity || !form.safety) {
       setError(t("feedback.member.errors.allRatingsRequired"));
       return;
     }
+    const submission = Symbol("feedback-save");
+    pendingSave.current = submission;
+    const submitted = { ...form };
+    const submittedRevision = editRevision.current;
     setSaving(true);
     setError("");
     setNotice("");
     try {
+      const token = await getToken(actorId);
+      if (!current()) return;
       const response = await fetch("/api/pilot-feedback", {
         method: "POST",
-        headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
-        body: JSON.stringify(form),
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify(submitted),
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || t("feedback.member.errors.saveFailed"));
-      setForm(formFromFeedback(body.feedback as PilotFeedbackRow));
+      if (!current()) return;
+      if (!response.ok) {
+        setError(copy.current.t([400, 401, 403, 429].includes(response.status)
+          ? "feedback.member.errors.saveFailed" : "feedback.member.errors.saveUnconfirmed"));
+        return;
+      }
+      if (!confirmsSubmission(body, submitted, role)) throw new Error("feedback_save_unconfirmed");
+      const unchanged = editRevision.current === submittedRevision;
+      if (unchanged) {
+        setForm(formFromFeedback(body.feedback));
+        setHasUnsavedChanges(false);
+      }
       setHasSaved(true);
-      setNotice(body.notice
-        ? localizedCloudErrorMessage(new Error(body.notice), locale, t("feedback.member.notices.received"))
-        : t("feedback.member.notices.received"));
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (saveError) {
-      setError(localizedCloudErrorMessage(saveError, locale, t("feedback.member.errors.saveFailed")));
+      setNotice(copy.current.t(unchanged ? "feedback.member.notices.received" : "feedback.member.notices.receivedWithNewEdits"));
+      if (unchanged) window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      if (!current()) return;
+      setError(copy.current.t("feedback.member.errors.saveUnconfirmed"));
     } finally {
-      setSaving(false);
+      if (pendingSave.current === submission) {
+        pendingSave.current = null;
+        if (current()) setSaving(false);
+      }
     }
   }
 
@@ -157,10 +216,10 @@ export default function PilotFeedbackPage() {
       <section className="section section-muted pt-8 sm:pt-12">
         <div className="container max-w-3xl">
           {notice ? <div className="mb-6 rounded-3xl border border-sage/30 bg-mint p-5" role="status"><p className="text-lg font-bold text-ink">{notice}</p><p className="mt-2 text-sm leading-7 text-muted">{t("feedback.member.notices.returnAnytime")}</p></div> : null}
-          {error ? <p className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700" role="alert">{error}</p> : null}
+          {displayError ? <p className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700" role="alert">{displayError}</p> : null}
 
-          {loading ? <div className="card text-sm font-bold text-muted">{t("feedback.visitor.loading")}</div> : null}
-          {!loading && !accessToken ? (
+          {reading ? <div className="card text-sm font-bold text-muted">{t("feedback.visitor.loading")}</div> : null}
+          {!reading && phase === "signed_out" ? (
             <div className="card text-center">
               <h2 className="text-xl font-bold text-ink">{t("feedback.visitor.title")}</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{t("feedback.visitor.description")}</p>
@@ -168,16 +227,16 @@ export default function PilotFeedbackPage() {
             </div>
           ) : null}
 
-          {!loading && accessToken && role ? (
+          {!reading && phase === "ready" && role ? (
             <form className="grid gap-5" onSubmit={submitFeedback}>
               <div className="rounded-3xl border border-sage/20 bg-mint/50 p-5">
                 <p className="text-sm font-bold text-sage-dark">{t("feedback.member.currentRole", { role: t(roleLabelKeys[role]) })}</p>
                 <p className="mt-2 text-sm leading-7 text-muted">{t("feedback.member.privacy")}</p>
               </div>
 
-              <RatingQuestion label={t("feedback.member.questions.overall")} value={form.overallExperience} onChange={(value) => setForm((current) => ({ ...current, overallExperience: value }))} />
-              <RatingQuestion label={t("feedback.member.questions.clarity")} value={form.clarity} onChange={(value) => setForm((current) => ({ ...current, clarity: value }))} />
-              <RatingQuestion label={t("feedback.member.questions.safety")} value={form.safety} onChange={(value) => setForm((current) => ({ ...current, safety: value }))} />
+              <RatingQuestion label={t("feedback.member.questions.overall")} value={form.overallExperience} onChange={(value) => editForm({ overallExperience: value })} />
+              <RatingQuestion label={t("feedback.member.questions.clarity")} value={form.clarity} onChange={(value) => editForm({ clarity: value })} />
+              <RatingQuestion label={t("feedback.member.questions.safety")} value={form.safety} onChange={(value) => editForm({ safety: value })} />
 
               <div className="card grid gap-5">
                 <p className="rounded-2xl bg-cream px-4 py-3 text-sm leading-6 text-muted">{t("feedback.member.personalInfoReminder")}</p>
@@ -192,19 +251,19 @@ export default function PilotFeedbackPage() {
                       className="field-control min-h-28 resize-y font-normal leading-7"
                       maxLength={1000}
                       value={form[key as keyof Pick<FormState, "mostHelpful" | "hardToUse" | "suggestion">] as string}
-                      onChange={(event) => setForm((current) => ({ ...current, [key]: event.target.value }))}
+                      onChange={(event) => editForm({ [key]: event.target.value })}
                       placeholder={placeholder}
                     />
                   </label>
                 ))}
                 <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-ink/10 bg-paper p-4 text-sm leading-6 text-ink">
-                  <input type="checkbox" className="mt-1 h-4 w-4 accent-sage-dark" checked={form.mayContact} onChange={(event) => setForm((current) => ({ ...current, mayContact: event.target.checked }))} />
+                  <input type="checkbox" className="mt-1 h-4 w-4 accent-sage-dark" checked={form.mayContact} onChange={(event) => editForm({ mayContact: event.target.checked })} />
                   <span><strong>{t("feedback.member.contactConsent.title")}</strong><span className="mt-1 block text-muted">{t("feedback.member.contactConsent.description")}</span></span>
                 </label>
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs leading-6 text-muted">{hasSaved ? t("feedback.member.savedHelp") : t("feedback.member.submitHelp")}</p>
+                <p className="text-xs leading-6 text-muted">{hasUnsavedChanges ? t("feedback.member.unsavedChanges") : hasSaved ? t("feedback.member.savedHelp") : t("feedback.member.submitHelp")}</p>
                 <button type="submit" className="button-primary w-full sm:w-auto" disabled={saving}>{saving ? t("feedback.member.saving") : hasSaved ? t("feedback.member.saveChanges") : t("feedback.member.submit")}</button>
               </div>
             </form>

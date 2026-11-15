@@ -2,12 +2,12 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import fixture from "./fixtures/permission-boundary.json";
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
+
+// Auth headers must not be retained in attached traces for real-session suites.
+test.use({ trace: "off" });
 
 type UserKey = keyof typeof fixture.users;
 type Session = { accessToken: string; userId: string };
@@ -18,7 +18,7 @@ type CommunityPost = {
 };
 
 async function sessionFor(key: UserKey): Promise<Session> {
-  if (!password) throw new Error("缺少 E2E_PERMISSION_TEST_PASSWORD");
+  if (!supabaseUrl || !supabaseAnonKey || !password) throw new Error("缺少隔离环境地址、匿名密钥或虚拟测试密码");
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -26,7 +26,7 @@ async function sessionFor(key: UserKey): Promise<Session> {
     email: fixture.users[key].email,
     password,
   });
-  if (error || !data.session) throw error || new Error(`无法登录 ${key}`);
+  if (error || !data.session) throw new Error(`虚拟账号 ${key} 未能完成登录`);
   return { accessToken: data.session.access_token, userId: data.user.id };
 }
 
@@ -48,7 +48,7 @@ function findPost(posts: CommunityPost[], id: string) {
 }
 
 test.describe("社区帖子与评论可见范围", () => {
-  test.skip(!password, "需要先初始化虚拟账号并配置 E2E_PERMISSION_TEST_PASSWORD");
+  test.skip(!supabaseUrl || !supabaseAnonKey || !password, "需要先初始化独立虚拟学校并配置完整测试环境");
 
   test("按作者选择的身份限制查看、评论与删除", async ({ request }, testInfo) => {
     test.skip(testInfo.project.name.includes("mobile"), "API 权限矩阵无需按视口重复执行");
@@ -68,6 +68,20 @@ test.describe("社区帖子与评论可见范围", () => {
     const marker = `[E2E-COMMUNITY] ${Date.now()}`;
 
     try {
+      for (const student of [studentOne, studentTwo]) {
+        const consent = await request.get("/api/account/consent", { headers: auth(student) });
+        expect(consent.status()).toBe(200);
+        expect(await consent.json()).toMatchObject({
+          role: "student", policyVersion: "2026-08-28",
+          consent: { status: "active", consentBasis: "student_self_pilot", guardianUserId: null,
+            guardianConsentedAt: null, hasLinkedGuardian: false },
+        });
+      }
+      // Guardian community participation is separate from access to a child's private records.
+      const guardianAccount = await request.get("/api/account/status", { headers: auth(guardianOne) });
+      expect(guardianAccount.status()).toBe(200);
+      expect((await guardianAccount.json()).linkedChildren).toEqual([]);
+
       const invalidResponse = await request.post("/api/community/posts", {
         headers: auth(studentOne),
         data: {

@@ -29,8 +29,8 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
   });
 }
 
-for (const [role, consent, shouldEnter] of [["学生", "active", true], ["学生", "withdrawn", false], ["家长", "active", false]] as const) {
-  test(`登录入口仅为知情确认有效的学生跳转：${role}/${consent}`, async ({ page }) => {
+for (const [role, consent, shouldEnter] of [["学生", "active", true], ["学生", "withdrawn", true], ["家长", "active", false]] as const) {
+  test(`登录入口将学生送回原任务，确认由原页完成：${role}/${consent}`, async ({ page }) => {
     const user = { id: "00000000-0000-4000-8000-000000000088", email: "garden-entry@example.invalid", aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {}, created_at: "2026-01-01T00:00:00Z" };
     const ref = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co").hostname.split(".")[0];
     await page.addInitScript(({ ref, user }) => localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify({ access_token: "synthetic-token", refresh_token: "synthetic-refresh", token_type: "bearer", expires_at: Math.floor(Date.now()/1000)+3600, user })), { ref, user });

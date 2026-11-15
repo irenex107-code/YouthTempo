@@ -47,19 +47,35 @@ function aiClientId(req: NextApiRequest, res: NextApiResponse) {
   return created;
 }
 
-async function consumeRateLimit(supabase: SupabaseClient, rule: RateLimitRule): Promise<RateLimitResult> {
-  const { data, error } = await supabase.rpc("consume_api_rate_limit", {
+async function consumeRateLimit(supabase: SupabaseClient, rule: RateLimitRule, signal?: AbortSignal): Promise<RateLimitResult> {
+  const query = supabase.rpc("consume_api_rate_limit", {
     p_identifier_hash: identifierHash(rule.identifier),
     p_action: rule.action,
     p_limit: rule.limit,
     p_window_seconds: rule.windowSeconds,
   });
+  const { data, error } = await (signal ? query.abortSignal(signal) : query);
   if (error) throw error;
   const row = Array.isArray(data) ? data[0] : data;
   if (!row || typeof row.allowed !== "boolean" || typeof row.remaining !== "number" || !row.reset_at) {
     throw new Error("Rate limit service returned an invalid result.");
   }
   return { allowed: row.allowed, remaining: row.remaining, resetAt: new Date(row.reset_at) };
+}
+
+export async function enforceAccountDeletionStatusRateLimit(req: NextApiRequest, res: NextApiResponse, supabase: SupabaseClient) {
+  try {
+    const result = await consumeRateLimit(supabase, { identifier: `account-delete-status-ip:${clientIp(req)}`,
+      action: "account_delete_status_ip", limit: 30, windowSeconds: 60 }, AbortSignal.timeout(2_000));
+    const retryAfter = applyHeaders(res, result, 30, 60);
+    if (result.allowed) return true;
+    res.setHeader("Retry-After", String(retryAfter));
+    res.status(429).json({ state: "unknown", retryAfter });
+  } catch (error) {
+    await reportOperationalError({ req, area: "auth", operation: "account_delete_status_rate_limit", error, statusCode: 503 });
+    res.status(503).json({ state: "unknown" });
+  }
+  return false;
 }
 
 function applyHeaders(
@@ -128,6 +144,7 @@ export async function enforceAiRateLimit(
   req: NextApiRequest,
   res: NextApiResponse,
   supabase: SupabaseClient,
+  message = "生成得有些频繁，请稍等一会儿再试。你刚才填写的内容仍保留在当前页面。",
 ) {
   const clientId = aiClientId(req, res);
   const clientResult = await consumeRateLimit(supabase, {
@@ -150,7 +167,7 @@ export async function enforceAiRateLimit(
   if (clientResult.allowed && ipResult?.allowed) return true;
   res.setHeader("Retry-After", String(retryAfterSeconds));
   res.status(429).json({
-    error: "生成得有些频繁，请稍等一会儿再试。你刚才填写的内容仍保留在当前页面。",
+    error: message,
     rateLimited: true,
     retryAfterSeconds,
   });

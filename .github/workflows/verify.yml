@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check ESLint against reviewed baseline
+        run: pnpm lint
+
       - name: Check TypeScript
         run: pnpm typecheck
 
@@ -67,8 +70,7 @@ jobs:
           }
           trap cleanup_fixtures EXIT INT TERM
 
-          pnpm test:fixtures:permissions
-          pnpm exec playwright test --workers=1 \
+          for suite in \
             tests/authenticated-permission-boundary.spec.ts \
             tests/authenticated-api-overreach.spec.ts \
             tests/membership-revocation.spec.ts \
@@ -76,4 +78,7 @@ jobs:
             tests/pilot-feedback-lifecycle.spec.ts \
             tests/school-exit.spec.ts \
             tests/community-visibility.spec.ts \
-            tests/community-moderation.spec.ts
+            tests/community-moderation.spec.ts; do
+            pnpm test:fixtures:permissions
+            pnpm exec playwright test "$suite" --project=desktop-chromium --workers=1 --retries=0 --trace=off
+          done

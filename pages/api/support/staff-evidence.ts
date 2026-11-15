@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { normalizeLocale } from "@/lib/i18n/config";
-import { getServerTranslator } from "@/lib/i18n/server";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
@@ -18,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const locale = normalizeLocale(req.cookies.NEXT_LOCALE);
+  const locale = getRequestLocale(req);
   const t = getServerTranslator(locale);
   try {
     const user = await getAuthenticatedUser(req);

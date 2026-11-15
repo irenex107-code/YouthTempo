@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 import { getCommunityBlockedUserIds, getCommunityIdentity } from "@/lib/community";
 import {
   communityReportCategory,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/communityReports";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const t = getServerTranslator(getRequestLocale(req));
   if (!["GET", "POST"].includes(req.method || "")) {
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
@@ -36,9 +38,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       limit: 20,
       windowSeconds: 60 * 60,
       res,
-      message: "举报提交得有些频繁，请稍后再试。",
+      message: t("community.messages.rateLimit.report"),
       area: "community",
-      unavailableMessage: "举报服务暂时不可用，请稍后再试。",
+      unavailableMessage: t("community.messages.rateLimit.reportUnavailable"),
     }))) return;
 
     const postId = typeof req.body?.postId === "string" ? req.body.postId.trim() : null;

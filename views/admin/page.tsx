@@ -1,15 +1,13 @@
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { CommunityModerationQueue } from "@/components/CommunityModerationQueue";
 import { PilotFeedbackOverview } from "@/components/PilotFeedbackOverview";
 import { MicroFeedbackOverview } from "@/components/MicroFeedbackOverview";
-import { SchoolOperationsOverview } from "@/components/SchoolOperationsOverview";
 import { ProfessionalVerificationQueue } from "@/components/ProfessionalVerificationQueue";
 import { PilotDutyMessageQueue } from "@/components/PilotDutyMessageQueue";
-import { AiGeneratedLabel } from "@/components/AiTransparencyNotice";
-import { getSupabase } from "@/lib/supabaseClient";
+import { useSessionActor, type SessionActor } from "@/lib/useSessionActor";
 import { useTranslation } from "@/lib/i18n/client";
 import { handleAuthRedirect } from "@/lib/cloudRecords";
 import { CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED } from "@/lib/guardianAccessPolicy";
@@ -30,6 +28,7 @@ type School = {
 type AssignmentRole = "学生" | "家长" | "支持老师" | "学校负责人" | "专业支持者";
 
 type AdminOverview = {
+  privateRecordsRestricted: boolean;
   admin: {
     email: string;
     role: string;
@@ -40,7 +39,7 @@ type AdminOverview = {
   counts: {
     profiles: number;
     schoolUsers: number;
-    sweetRecords: number;
+    sweetRecords: number | null;
     schools: number;
     schoolMembers: number;
     wechatBindings: number;
@@ -117,11 +116,6 @@ type AdminOverview = {
   }>;
 };
 
-type FollowupDraft = {
-  status: "new" | "in_progress" | "resolved";
-  note: string;
-};
-
 type SchoolPerson = {
   id: string;
   email: string;
@@ -148,77 +142,63 @@ type SchoolDirectory = SchoolRoster & {
   leaders: SchoolPerson[];
 };
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function recentRecordCount(
-  records: AdminOverview["recentRecords"],
-  userIds: string[],
-  days = 28,
-) {
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-  const ids = new Set(userIds);
-  return records.filter(
-    (record) => ids.has(record.user_id) && new Date(record.created_at).getTime() >= cutoff,
-  ).length;
-}
-
-function adminTitle(overview: AdminOverview | null) {
+function adminTitle(overview: AdminOverview | null, t: Translate) {
+  if (overview?.admin.role === "支持老师") return t("rolePaths.teacherWorkspace");
   if (overview?.admin.scope === "school") return "学校工作台";
   return "平台管理台";
 }
 
-function adminSubtitle(overview: AdminOverview | null) {
-  if (overview?.admin.role === "支持老师") return "先查看负责学生，再记录必要的支持进度。";
-  if (overview?.admin.scope === "school") return "管理本校成员和负责关系，及时了解学生的近期变化。";
+type Translate = ReturnType<typeof useTranslation>["t"];
+
+function adminSubtitle(overview: AdminOverview | null, t: Translate) {
+  if (overview?.admin.role === "支持老师") return t("adminPrivateRecords.teacherDescription");
+  if (overview?.admin.scope === "school") return t("adminPrivateRecords.schoolDescription");
   return "优先处理审核与反馈，再维护学校空间和全平台协作关系。";
 }
 
-function workspaceActions(overview: AdminOverview) {
-  if (overview.admin.scope === "platform") {
-    return [
-      { href: "#community-moderation", label: "社区审核", description: "优先处理举报与安全待确认内容" },
-      { href: "#pilot-feedback", label: "试点反馈", description: "查看学生、家长和老师的反馈" },
-      { href: "#professional-verifications", label: "专业身份", description: "核对个人资质与专业方向" },
-      { href: "#operations-analytics", label: "试点运营", description: "查看学校参与和关系完整度" },
-      { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
-      { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
-      { href: "#recent-changes", label: "近期变化", description: "查看跨学校的支持进度" },
-    ];
-  }
-
-  if (overview.admin.role === "支持老师") {
-    return [
-      { href: "#weekly-summary", label: "本周摘要", description: "查看负责学生最近 7 天的参与变化" },
-      { href: "#participation-stats", label: "参与统计", description: "查看负责学生的记录日数" },
-      { href: "#recent-changes", label: "需要了解", description: "先看负责学生的近期变化" },
-      { href: "#recent-records", label: "学生记录", description: "查看负责学生的完整记录" },
-      { href: "/referral", label: "支持路径", description: "需要时连接更多支持" },
-    ];
-  }
-
+function workspaceActions(overview: AdminOverview, t: Translate) {
+  const boundary = { href: "#private-records-boundary", label: t("adminPrivateRecords.title"), description: t("adminPrivateRecords.navigationDescription") };
+  if (overview.admin.scope === "platform") return [
+    { href: "#community-moderation", label: "社区审核", description: "优先处理举报与安全待确认内容" },
+    { href: "#pilot-feedback", label: "试点反馈", description: "查看学生、家长和老师的反馈" },
+    { href: "#professional-verifications", label: "专业身份", description: "核对个人资质与专业方向" },
+    { href: "#member-management", label: "学校与成员", description: "创建学校；仅在学校需要时代为登记成员" },
+    boundary,
+  ];
+  if (overview.admin.role === "支持老师") return [
+    { href: "/messages", label: t("rolePaths.teacherMessages"), description: t("rolePaths.teacherMessagesDescription") },
+    { href: "/account#students", label: t("rolePaths.teacherStudents"), description: t("rolePaths.teacherStudentsDescription") },
+    boundary,
+    { href: "/referral", label: "支持路径", description: "需要时连接更多支持" },
+  ];
   const actions = [
-    { href: "#monthly-trends", label: "月度趋势", description: "查看本校近 4 周总体参与变化" },
-    { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
-    { href: "#schools-overview", label: "学校概览", description: "按老师查看近 4 周总体情况" },
-    { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
+    { href: "#schools-overview", label: "学校概览", description: t("adminPrivateRecords.directoryDescription") },
     { href: "#member-management", label: "成员管理", description: "登记老师和学生" },
     { href: "#teacher-assignment", label: "负责关系", description: "分配老师负责的学生" },
+    boundary,
   ];
-  if (CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
-    actions.push({ href: "#guardian-assignment", label: "家庭关系", description: "确认家长与孩子" });
-  }
+  if (CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) actions.push({ href: "#guardian-assignment", label: "家庭关系", description: "确认家长与孩子" });
   return actions;
 }
 
 export default function AdminPage() {
+  const actor = useSessionActor();
+  return <AdminSession key={`${actor.phase}:${actor.actorId}`} actor={actor} />;
+}
+
+function AdminSession({ actor }: { actor: SessionActor }) {
+  const [accessError, setAccessError] = useState("");
+  // A denied trusted request discards all privileged children and form state.
+  return <AdminWorkspace key={accessError ? "denied" : "active"} actor={actor} accessError={accessError} onAccessDenied={setAccessError} />;
+}
+
+function AdminWorkspace({ actor, accessError, onAccessDenied }: { actor: SessionActor; accessError: string; onAccessDenied: (message: string) => void }) {
   const { t } = useTranslation();
+  const workspaceActive = useRef(true);
+  const overviewRequest = useRef(0);
+  const rosterRequest = useRef(0);
+  const schoolRevision = useRef(0);
+  const currentSchoolId = useRef("");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [accessToken, setAccessToken] = useState("");
   const [schoolName, setSchoolName] = useState("");
@@ -241,9 +221,6 @@ export default function AdminPage() {
   const [batchProgress, setBatchProgress] = useState(0);
   const [batchResults, setBatchResults] = useState<string[]>([]);
   const [removingMemberId, setRemovingMemberId] = useState("");
-  const [recordSchoolFilter, setRecordSchoolFilter] = useState("all");
-  const [followupDrafts, setFollowupDrafts] = useState<Record<string, FollowupDraft>>({});
-  const [savingFollowupId, setSavingFollowupId] = useState("");
   const [schoolRoster, setSchoolRoster] = useState<SchoolRoster | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState("");
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
@@ -257,7 +234,7 @@ export default function AdminPage() {
 
   const isPlatformAdmin = overview?.admin.scope === "platform";
   const activeSchools = overview?.schools.filter((school) => school.status === "active") || [];
-  const selectedSchool = activeSchools.find((school) => school.id === selectedSchoolId) || activeSchools[0];
+  const selectedSchool = activeSchools.find((school) => school.id === selectedSchoolId);
   const selectedDirectory = overview?.schoolDirectories.find(
     (directory) => directory.school_id === selectedSchool?.id,
   );
@@ -269,71 +246,170 @@ export default function AdminPage() {
   );
   const unassignedStudents =
     schoolRoster?.students.filter((student) => !assignedStudentIdSet.has(student.id)) || [];
-  const filteredRecentRecords =
-    recordSchoolFilter === "all"
-      ? overview?.recentRecords || []
-      : overview?.recentRecords.filter((record) => record.school_id === recordSchoolFilter) || [];
-  const visibleParticipationStats = selectedSchool
-    ? overview?.studentParticipationStats.filter((stat) => stat.school_id === selectedSchool.id) || []
-    : overview?.studentParticipationStats || [];
 
+  useEffect(() => {
+    workspaceActive.current = true;
+    return () => { workspaceActive.current = false; };
+  }, []);
+
+  function trackWorkspaceRequest(schoolId?: string) {
+    const sameActor = actor.trackRequest();
+    const revision = schoolRevision.current;
+    return () => workspaceActive.current && !accessError && sameActor() && actor.isSameActor(actor.actorId)
+      && (schoolId === undefined || (currentSchoolId.current === schoolId && schoolRevision.current === revision));
+  }
+
+  const rejectAccess = useCallback(() => {
+    workspaceActive.current = false;
+    ++overviewRequest.current;
+    ++rosterRequest.current;
+    onAccessDenied("请重新登录有管理权限的账号，再进入工作台。");
+  }, [onAccessDenied]);
+
+  const queueRequest = useCallback(async (url: string, init: RequestInit = {}) => {
+    // Only these existing same-origin queue APIs may receive an Auth token.
+    const allowedPaths = new Set([
+      "/api/admin/message-duty", "/api/admin/community-moderation", "/api/admin/community-restrictions",
+      "/api/admin/pilot-feedback", "/api/admin/pilot-experience", "/api/admin/professional-verifications",
+    ]);
+    const unavailable = () => new Error("请重新登录有管理权限的账号，再进入工作台。");
+    if (!allowedPaths.has(url)) throw unavailable();
+    const sameActor = actor.trackRequest();
+    const current = () => workspaceActive.current && !accessError && sameActor() && actor.isSameActor(actor.actorId);
+    if (!current()) throw unavailable();
+    let token: string;
+    try {
+      token = await actor.getToken(actor.actorId);
+    } catch {
+      if (current()) rejectAccess();
+      throw unavailable();
+    }
+    if (!current()) throw unavailable();
+    const headers = new Headers(init.headers);
+    headers.set("authorization", `Bearer ${token}`);
+    const response = await fetch(url, { ...init, headers, redirect: "error" });
+    if (!current()) throw unavailable();
+    if (response.status === 401 || response.status === 403) {
+      rejectAccess();
+      throw unavailable();
+    }
+    return response;
+  }, [actor.actorId, actor.getToken, actor.isSameActor, actor.trackRequest, accessError, rejectAccess]);
+
+  async function adminRequest(url: string, init: RequestInit, current: () => boolean) {
+    let token: string;
+    try {
+      token = await actor.getToken(actor.actorId);
+    } catch {
+      if (current()) rejectAccess();
+      return null;
+    }
+    if (!current()) return null;
+    const response = await fetch(url, { ...init, headers: { ...init.headers, authorization: `Bearer ${token}` } });
+    if (!current()) return null;
+    if (response.status === 401 || response.status === 403) {
+      rejectAccess();
+      return null;
+    }
+    const payload = await response.json();
+    if (!current()) return null;
+    return { response, payload, token };
+  }
+
+  function changeSelectedSchool(schoolId: string) {
+    if (currentSchoolId.current !== schoolId) {
+      currentSchoolId.current = schoolId;
+      ++schoolRevision.current;
+      ++rosterRequest.current;
+      setSchoolRoster(null);
+      setSelectedTeacherId("");
+      setSelectedStudentIds([]);
+      setSelectedGuardianId("");
+      setSelectedGuardianStudentIds([]);
+      setNewStudentTeacherId("");
+      setNewStudentGuardianId("");
+      setAssignmentName("");
+      setAssignmentEmail("");
+      setArchiveReason("");
+      setArchiveConfirmation("");
+      setBatchRows([]);
+      setBatchErrors([]);
+      setBatchFileName("");
+      setBatchResults([]);
+      setBatchProgress(0);
+      setBatchImporting(false);
+      setRosterLoading(false);
+      setRosterSaving(false);
+      setGuardianSaving(false);
+      setAddingMember(false);
+      setArchivingSchool(false);
+      setRemovingMemberId("");
+      setActionNotice("");
+      setError("");
+    }
+    setSelectedSchoolId(schoolId);
+  }
   async function loadAdminOverview() {
+    const sameWorkspace = trackWorkspaceRequest();
+    const request = ++overviewRequest.current;
+    const current = () => sameWorkspace() && request === overviewRequest.current;
+    if (!current()) return;
     setLoading(true);
     setError("");
     try {
       await handleAuthRedirect();
-      const supabase = getSupabase();
-      if (!supabase) throw new Error("管理服务暂时不可用，请稍后再试。");
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      const token = data.session?.access_token;
-      if (!token) throw new Error("请先登录管理员账号，再进入学校管理台。");
-      setAccessToken(token);
-
-      const response = await fetch("/api/admin/overview", {
-        headers: { authorization: `Bearer ${token}` },
-      });
-      const payload = await response.json();
+      if (!current()) return;
+      const result = await adminRequest("/api/admin/overview", {}, current);
+      if (!result) return;
+      const { response, payload, token } = result;
       if (!response.ok) throw new Error(payload.error || "管理员概览加载失败。");
       const nextOverview = payload as AdminOverview;
+      if (nextOverview.privateRecordsRestricted !== true) {
+        workspaceActive.current = false;
+        onAccessDenied(t("adminPrivateRecords.scopeUnconfirmed"));
+        return;
+      }
+      setAccessToken(token);
       setOverview(nextOverview);
-      setFollowupDrafts(
-        Object.fromEntries(
-          nextOverview.attentionQueue.map((item) => [
-            item.id,
-            { status: item.followup_status, note: item.followup_note },
-          ]),
-        ),
-      );
-      setSelectedSchoolId((current) =>
-        nextOverview.schools.some((school) => school.id === current && school.status === "active")
-          ? current
+      changeSelectedSchool(
+        nextOverview.schools.some((school) => school.id === currentSchoolId.current && school.status === "active")
+          ? currentSchoolId.current
           : nextOverview.schools.find((school) => school.status === "active")?.id || "",
       );
       setAssignmentRole((current) =>
         nextOverview.admin.scope === "school" && current === "学校负责人" ? "学生" : current,
       );
     } catch (adminError) {
-      setError(adminError instanceof Error ? adminError.message : "管理员概览加载失败。");
+      if (current()) setError(adminError instanceof Error ? adminError.message : "管理员概览加载失败。");
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadAdminOverview();
+    if (accessError || actor.phase !== "ready") {
+      setLoading(actor.phase === "loading");
+      setError(accessError || (actor.phase === "loading" ? "" : "请先登录有管理权限的账号，再进入工作台。"));
+      return;
+    }
+    void loadAdminOverview();
   }, []);
 
-  async function loadSchoolRoster(schoolId: string, token = accessToken) {
-    if (!token || !schoolId || !overview?.admin.canManageMembers) return;
+  async function loadSchoolRoster(schoolId: string) {
+    if (!accessToken || !schoolId || !overview?.admin.canManageMembers || currentSchoolId.current !== schoolId) return;
+    const sameSchool = trackWorkspaceRequest(schoolId);
+    const request = ++rosterRequest.current;
+    const current = () => sameSchool() && request === rosterRequest.current;
+    if (!current()) return;
     setRosterLoading(true);
     setError("");
     try {
-      const response = await fetch(
+      const result = await adminRequest(
         `/api/admin/teacher-student-assignments?schoolId=${encodeURIComponent(schoolId)}`,
-        { headers: { authorization: `Bearer ${token}` } },
+        {}, current,
       );
-      const payload = await response.json();
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "学校名单加载失败。");
       const roster = payload as SchoolRoster;
       setSchoolRoster(roster);
@@ -348,9 +424,9 @@ export default function AdminPage() {
           : roster.guardians[0]?.id || "",
       );
     } catch (rosterError) {
-      setError(rosterError instanceof Error ? rosterError.message : "学校名单加载失败。");
+      if (current()) setError(rosterError instanceof Error ? rosterError.message : "学校名单加载失败。");
     } finally {
-      setRosterLoading(false);
+      if (current()) setRosterLoading(false);
     }
   }
 
@@ -387,15 +463,16 @@ export default function AdminPage() {
   }, [schoolRoster, selectedGuardianId]);
 
   async function saveTeacherStudents() {
-    if (!accessToken || !selectedSchoolId || !selectedTeacherId) return;
+    if (!accessToken || !selectedSchoolId || !selectedTeacherId || !schoolRoster || rosterLoading) return;
+    const current = trackWorkspaceRequest(selectedSchoolId);
+    if (!current()) return;
     setRosterSaving(true);
     setActionNotice("");
     setError("");
     try {
-      const response = await fetch("/api/admin/teacher-student-assignments", {
+      const result = await adminRequest("/api/admin/teacher-student-assignments", {
         method: "POST",
         headers: {
-          authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({
@@ -403,28 +480,30 @@ export default function AdminPage() {
           teacherUserId: selectedTeacherId,
           studentUserIds: selectedStudentIds,
         }),
-      });
-      const payload = await response.json();
+      }, current);
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "老师负责学生保存失败。");
       setSchoolRoster(payload as SchoolRoster);
       setActionNotice("负责学生已保存。支持老师下次打开工作台时只会看到这些学生。");
     } catch (rosterError) {
-      setError(rosterError instanceof Error ? rosterError.message : "老师负责学生保存失败。");
+      if (current()) setError(rosterError instanceof Error ? rosterError.message : "老师负责学生保存失败。");
     } finally {
-      setRosterSaving(false);
+      if (current()) setRosterSaving(false);
     }
   }
 
   async function saveGuardianStudents() {
-    if (!accessToken || !selectedSchoolId || !selectedGuardianId || !schoolRoster) return;
+    if (!accessToken || !selectedSchoolId || !selectedGuardianId || !schoolRoster || rosterLoading) return;
+    const current = trackWorkspaceRequest(selectedSchoolId);
+    if (!current()) return;
     setGuardianSaving(true);
     setActionNotice("");
     setError("");
     try {
-      const response = await fetch("/api/admin/guardian-student-assignments", {
+      const result = await adminRequest("/api/admin/guardian-student-assignments", {
         method: "POST",
         headers: {
-          authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({
@@ -432,41 +511,43 @@ export default function AdminPage() {
           guardianUserId: selectedGuardianId,
           studentUserIds: selectedGuardianStudentIds,
         }),
-      });
-      const payload = await response.json();
+      }, current);
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "亲子关系保存失败。");
       setSchoolRoster({
         ...schoolRoster,
         guardianAssignments: payload.guardianAssignments,
       });
-      setActionNotice("亲子关系已确认。家长下次进入账户时会看到对应孩子的记录。");
+      setActionNotice(t("adminPrivateRecords.guardianRelationshipSaved"));
     } catch (guardianError) {
-      setError(guardianError instanceof Error ? guardianError.message : "亲子关系保存失败。");
+      if (current()) setError(guardianError instanceof Error ? guardianError.message : "亲子关系保存失败。");
     } finally {
-      setGuardianSaving(false);
+      if (current()) setGuardianSaving(false);
     }
   }
 
   async function handleCreateSchool(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accessToken) return;
+    const current = trackWorkspaceRequest();
+    if (!current()) return;
     setCreatingSchool(true);
     setActionNotice("");
     setError("");
     try {
-      const response = await fetch("/api/admin/schools", {
+      const result = await adminRequest("/api/admin/schools", {
         method: "POST",
         headers: {
-          authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({ name: schoolName }),
-      });
-      const payload = await response.json();
+      }, current);
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "学校空间创建失败。");
       const newSchool = payload.school as School;
       setSchoolName("");
-      setActionNotice("学校已创建。现在可以添加学校负责人。");
       setOverview((current) => current ? {
         ...current,
         counts: {
@@ -488,25 +569,27 @@ export default function AdminPage() {
           ...current.schoolDirectories,
         ],
       } : current);
-      setSelectedSchoolId(newSchool.id);
+      changeSelectedSchool(newSchool.id);
+      setActionNotice("学校已创建。现在可以添加学校负责人。");
     } catch (schoolError) {
-      setError(schoolError instanceof Error ? schoolError.message : "学校空间创建失败。");
+      if (current()) setError(schoolError instanceof Error ? schoolError.message : "学校空间创建失败。");
     } finally {
-      setCreatingSchool(false);
+      if (current()) setCreatingSchool(false);
     }
   }
 
   async function handleAssignUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!accessToken) return;
+    if (!accessToken || !selectedSchoolId) return;
+    const current = trackWorkspaceRequest(selectedSchoolId);
+    if (!current()) return;
     setAddingMember(true);
     setActionNotice("");
     setError("");
     try {
-      const response = await fetch("/api/admin/school-assignments", {
+      const result = await adminRequest("/api/admin/school-assignments", {
         method: "POST",
         headers: {
-          authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({
@@ -517,8 +600,9 @@ export default function AdminPage() {
           teacherUserId: assignmentRole === "学生" ? newStudentTeacherId : "",
           guardianUserId: assignmentRole === "学生" && CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED ? newStudentGuardianId : "",
         }),
-      });
-      const payload = await response.json();
+      }, current);
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "学校成员添加失败。");
       const addedName = assignmentName.trim();
       setAssignmentName("");
@@ -531,11 +615,11 @@ export default function AdminPage() {
           : `已添加 ${addedName}。`,
       );
       await loadAdminOverview();
-      await loadSchoolRoster(selectedSchoolId, accessToken);
+      if (current()) await loadSchoolRoster(selectedSchoolId);
     } catch (assignmentError) {
-      setError(assignmentError instanceof Error ? assignmentError.message : "学校成员添加失败。");
+      if (current()) setError(assignmentError instanceof Error ? assignmentError.message : "学校成员添加失败。");
     } finally {
-      setAddingMember(false);
+      if (current()) setAddingMember(false);
     }
   }
 
@@ -550,6 +634,8 @@ export default function AdminPage() {
   }
 
   async function readRosterFile(file: File | undefined) {
+    const current = trackWorkspaceRequest(selectedSchoolId);
+    if (!current()) return;
     setBatchResults([]);
     setBatchProgress(0);
     if (!file) {
@@ -565,6 +651,7 @@ export default function AdminPage() {
       return;
     }
     const result = parseSchoolRosterCsv(await file.text());
+    if (!current()) return;
     setBatchFileName(file.name);
     setBatchRows(result.rows);
     setBatchErrors(result.errors);
@@ -572,6 +659,8 @@ export default function AdminPage() {
 
   async function importRosterRows() {
     if (!accessToken || !selectedSchoolId || !batchRows.length || batchErrors.length) return;
+    const current = trackWorkspaceRequest(selectedSchoolId);
+    if (!current()) return;
     setBatchImporting(true);
     setBatchProgress(0);
     setBatchResults([]);
@@ -585,11 +674,11 @@ export default function AdminPage() {
     const results: string[] = [];
 
     for (const [index, row] of orderedRows.entries()) {
+      if (!current()) return;
       try {
-        const response = await fetch("/api/admin/school-assignments", {
+        const result = await adminRequest("/api/admin/school-assignments", {
           method: "POST",
           headers: {
-            authorization: `Bearer ${accessToken}`,
             "content-type": "application/json",
           },
           body: JSON.stringify({
@@ -600,11 +689,13 @@ export default function AdminPage() {
             teacherEmail: row.teacherEmail,
             guardianEmail: row.guardianEmail,
           }),
-        });
-        const payload = await response.json();
+        }, current);
+        if (!result) return;
+        const { response, payload } = result;
         if (!response.ok) throw new Error(payload.error || "添加失败");
         results.push(`第 ${row.rowNumber} 行 · ${row.name}：已添加`);
       } catch (rowError) {
+        if (!current()) return;
         const message = rowError instanceof Error ? rowError.message : "添加失败";
         results.push(`第 ${row.rowNumber} 行 · ${row.name}：${message}`);
       }
@@ -619,21 +710,22 @@ export default function AdminPage() {
         : `批量登记完成，共 ${results.length} 人。`,
     );
     await loadAdminOverview();
-    await loadSchoolRoster(selectedSchoolId, accessToken);
-    setBatchImporting(false);
+    if (current()) await loadSchoolRoster(selectedSchoolId);
+    if (current()) setBatchImporting(false);
   }
 
   async function handleArchiveSchool(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accessToken || !selectedSchool || selectedSchool.status !== "active") return;
+    const current = trackWorkspaceRequest(selectedSchool.id);
+    if (!current()) return;
     setArchivingSchool(true);
     setActionNotice("");
     setError("");
     try {
-      const response = await fetch("/api/admin/schools", {
+      const result = await adminRequest("/api/admin/schools", {
         method: "PATCH",
         headers: {
-          authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({
@@ -641,46 +733,50 @@ export default function AdminPage() {
           confirmationName: archiveConfirmation,
           reason: archiveReason,
         }),
-      });
-      const payload = await response.json();
+      }, current);
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "学校退出试点失败。");
       const archivedName = selectedSchool.name;
       const nextSchoolId = activeSchools.find((school) => school.id !== selectedSchool.id)?.id || "";
       setArchiveReason("");
       setArchiveConfirmation("");
-      setSelectedSchoolId(nextSchoolId);
+      changeSelectedSchool(nextSchoolId);
+      setArchivingSchool(false);
       setActionNotice(`${archivedName} 已退出试点，学校访问权限和关系已解除。`);
       await loadAdminOverview();
     } catch (archiveError) {
-      setError(archiveError instanceof Error ? archiveError.message : "学校退出试点失败。");
+      if (current()) setError(archiveError instanceof Error ? archiveError.message : "学校退出试点失败。");
     } finally {
-      setArchivingSchool(false);
+      if (current()) setArchivingSchool(false);
     }
   }
 
   async function removeSchoolMember(person: SchoolPerson, role: AssignmentRole) {
     if (!accessToken || !selectedSchoolId || removingMemberId) return;
+    const current = trackWorkspaceRequest(selectedSchoolId);
+    if (!current()) return;
     const confirmed = window.confirm(
       `确定将“${person.display_name || person.email}”移出${selectedSchool?.name || "当前学校"}吗？\n\n账号和个人历史不会被删除，但该成员会失去当前学校的查看权限和负责关系。`,
     );
-    if (!confirmed) return;
+    if (!confirmed || !current()) return;
 
     setRemovingMemberId(person.id);
     setActionNotice("");
     setError("");
     try {
-      const response = await fetch("/api/admin/school-assignments", {
+      const result = await adminRequest("/api/admin/school-assignments", {
         method: "DELETE",
         headers: {
-          authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
         body: JSON.stringify({
           schoolId: selectedSchoolId,
           userId: person.id,
         }),
-      });
-      const payload = await response.json();
+      }, current);
+      if (!result) return;
+      const { response, payload } = result;
       if (!response.ok) throw new Error(payload.error || "成员移出失败。");
 
       setOverview((current) => current ? {
@@ -735,42 +831,15 @@ export default function AdminPage() {
       } : current);
       setActionNotice(`${payload.displayName || person.display_name || person.email} 已移出当前学校。`);
     } catch (removeError) {
-      setError(removeError instanceof Error ? removeError.message : "成员移出失败。");
+      if (current()) setError(removeError instanceof Error ? removeError.message : "成员移出失败。");
     } finally {
-      setRemovingMemberId("");
-    }
-  }
-
-  async function saveFollowup(recordId: string, schoolId: string) {
-    if (!accessToken) return;
-    const draft = followupDrafts[recordId];
-    if (!draft) return;
-    setSavingFollowupId(recordId);
-    setActionNotice("");
-    setError("");
-    try {
-      const response = await fetch("/api/admin/followups", {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${accessToken}`,
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ recordId, schoolId, ...draft }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "跟进状态保存失败。");
-      setActionNotice("跟进状态已保存。");
-      await loadAdminOverview();
-    } catch (followupError) {
-      setError(followupError instanceof Error ? followupError.message : "跟进状态保存失败。");
-    } finally {
-      setSavingFollowupId("");
+      if (current()) setRemovingMemberId("");
     }
   }
 
   return (
     <>
-      <PageHero label="角色工作台" title={adminTitle(overview)} subtitle={adminSubtitle(overview)} />
+      <PageHero label="角色工作台" title={adminTitle(overview, t)} subtitle={adminSubtitle(overview, t)} />
       {isPlatformAdmin ? (
         <nav className="container flex flex-wrap gap-3 py-4" aria-label={t("adminSupport.title")}>
           <Link href="/admin/role-preview" className="button-secondary">{t("adminRolePreview.action")}</Link>
@@ -785,11 +854,11 @@ export default function AdminPage() {
             <p className="mb-3 text-xs font-bold text-sage-dark">工作导航</p>
             <nav
               className={`grid gap-3 ${
-                workspaceActions(overview).length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+                workspaceActions(overview, t).length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
               }`}
               aria-label={`${overview.admin.role}工作导航`}
             >
-              {workspaceActions(overview).map((action) => (
+              {workspaceActions(overview, t).map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
@@ -816,7 +885,7 @@ export default function AdminPage() {
               <h2 className="mt-3 text-[1.6rem] font-bold text-ink">需要管理权限</h2>
               <p className="mt-4 text-[0.95rem] leading-7 text-muted">{error}</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href="/account" className="button-primary">去账号登录</Link>
+                <Link href="/account?next=/admin" className="button-primary">去账号登录</Link>
                 <Link href="/contact" className="button-secondary">查看联系入口</Link>
               </div>
             </div>
@@ -832,8 +901,8 @@ export default function AdminPage() {
                   {isPlatformAdmin
                     ? "你可以查看全部学校的成员和负责关系。学校负责人负责日常维护，你可以在需要时协助添加和调整。"
                     : overview.admin.role === "支持老师"
-                      ? "你可以查看本校学生近期 SWEET 记录，并记录必要的支持进度。"
-                      : "你可以添加本校学生和支持老师，并查看本校 SWEET 记录。"}
+                      ? t("adminPrivateRecords.teacherDescription")
+                      : t("adminPrivateRecords.schoolDescription")}
                 </p>
                 {selectedSchool ? (
                   <div className="mt-6 rounded-2xl border border-sage/35 bg-mint px-4 py-4">
@@ -851,9 +920,9 @@ export default function AdminPage() {
                   <p className="mt-2 text-sm leading-6 text-muted">学生、学校负责人和支持老师；当前试点不新建家长账号。</p>
                 </div>
                 <div className="card">
-                  <p className="text-xs font-bold text-sage">SWEET 记录</p>
-                  <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.sweetRecords}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "所有学校的近期记录。" : "本校学生记录。"}</p>
+                  <p className="text-xs font-bold text-sage">{t("adminPrivateRecords.recordsLabel")}</p>
+                  <p className="mt-3 text-lg font-bold text-ink">{t("adminPrivateRecords.restrictedValue")}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{t("adminPrivateRecords.countUnavailable")}</p>
                 </div>
                 <div className="card">
                   <p className="text-xs font-bold text-sage">在用学校</p>
@@ -866,21 +935,25 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {isPlatformAdmin && accessToken ? <PilotDutyMessageQueue accessToken={accessToken} /> : null}
+      {isPlatformAdmin && accessToken ? <PilotDutyMessageQueue accessToken={accessToken} request={queueRequest} /> : null}
 
-      {isPlatformAdmin && accessToken ? <CommunityModerationQueue accessToken={accessToken} /> : null}
+      {isPlatformAdmin && accessToken ? <CommunityModerationQueue accessToken={accessToken} request={queueRequest} /> : null}
 
-      {isPlatformAdmin && accessToken ? <PilotFeedbackOverview accessToken={accessToken} /> : null}
-      {isPlatformAdmin && accessToken ? <MicroFeedbackOverview accessToken={accessToken} /> : null}
+      {isPlatformAdmin && accessToken ? <PilotFeedbackOverview accessToken={accessToken} request={queueRequest} /> : null}
+      {isPlatformAdmin && accessToken ? <MicroFeedbackOverview accessToken={accessToken} request={queueRequest} /> : null}
 
-      {isPlatformAdmin && accessToken ? <ProfessionalVerificationQueue accessToken={accessToken} /> : null}
+      {isPlatformAdmin && accessToken ? <ProfessionalVerificationQueue accessToken={accessToken} request={queueRequest} /> : null}
 
-      {isPlatformAdmin && overview ? (
-        <SchoolOperationsOverview
-          directories={overview.schoolDirectories}
-          trends={overview.schoolMonthlyTrends}
-          attentionQueue={overview.attentionQueue}
-        />
+      {overview ? (
+        <section id="private-records-boundary" className="section scroll-mt-24">
+          <div className="container">
+            <div className="card" role="status">
+              <h2 className="text-lg font-bold text-ink">{t("adminPrivateRecords.title")}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{t("adminPrivateRecords.description")}</p>
+              <p className="mt-2 text-sm leading-7 text-muted">{t("adminPrivateRecords.safetyDescription")}</p>
+            </div>
+          </div>
+        </section>
       ) : null}
 
       {overview?.admin.canManageMembers ? (
@@ -915,7 +988,7 @@ export default function AdminPage() {
                 {overview.schools.length > 1 || isPlatformAdmin ? (
                   <label className="grid gap-2 text-sm font-bold text-ink">
                     学校
-                    <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={selectedSchoolId} onChange={(event) => setSelectedSchoolId(event.target.value)}>
+                    <select className="rounded-2xl border border-ink/10 bg-white/80 px-4 py-3 text-sm outline-none focus:border-sage" value={selectedSchoolId} onChange={(event) => changeSelectedSchool(event.target.value)}>
                       <option value="">选择学校</option>
                       {activeSchools.map((school) => <option key={school.id} value={school.id}>{school.name}</option>)}
                     </select>
@@ -1110,7 +1183,7 @@ export default function AdminPage() {
                       key={school.id}
                       type="button"
                       className={`rounded-2xl border px-4 py-4 text-left transition ${selectedSchoolId === school.id ? "border-sage bg-mint" : "border-ink/10 bg-white/75"}`}
-                      onClick={() => setSelectedSchoolId(school.id)}
+                      onClick={() => changeSelectedSchool(school.id)}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="font-bold text-ink">{school.name}</p>
@@ -1220,183 +1293,11 @@ export default function AdminPage() {
       ) : null}
 
       {overview && overview.admin.role !== "支持老师" ? (
-        <section id="monthly-trends" className="section scroll-mt-24">
-          <div className="container">
-            <SectionHeader
-              title={isPlatformAdmin ? "学校近 4 周总体趋势" : "本校近 4 周总体趋势"}
-              description="按滚动周查看 SWEET 记录参与情况，只用于了解试点节奏，不代表学生状态评价。"
-            />
-            <div className="grid gap-5 lg:grid-cols-2">
-              {overview.schoolMonthlyTrends.map((trend) => {
-                const maxRecords = Math.max(1, ...trend.weeks.map((week) => week.record_count));
-                return (
-                  <article key={trend.school_id} className="card">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <p className="eyebrow">滚动近 4 周</p>
-                        <h2 className="mt-2 text-[1.35rem] font-bold text-ink">{trend.school_name}</h2>
-                      </div>
-                      <div className="text-right text-sm text-muted">
-                        <p><strong className="text-2xl text-ink">{trend.record_count}</strong> 条记录</p>
-                        <p className="mt-1">{trend.active_student_count}/{trend.student_count} 名学生参与</p>
-                      </div>
-                    </div>
-                    <div className="mt-6 grid gap-4" aria-label={`${trend.school_name}近四周记录趋势`}>
-                      {trend.weeks.map((week) => (
-                        <div key={week.start} className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 text-sm">
-                          <span className="font-bold text-ink">{week.label}</span>
-                          <span className="h-3 overflow-hidden rounded-full bg-cream">
-                            <span
-                              className="block h-full rounded-full bg-sage"
-                              style={{ width: `${Math.max(week.record_count ? 10 : 0, (week.record_count / maxRecords) * 100)}%` }}
-                            />
-                          </span>
-                          <span className="min-w-[5.5rem] text-right text-xs text-muted">
-                            {week.record_count} 条 · {week.active_student_count} 人
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {overview ? (
-        <section id="weekly-summary" className="section section-muted scroll-mt-24">
-          <div className="container">
-            <SectionHeader
-              title={overview.admin.role === "支持老师" ? "我的每周阶段摘要" : "老师每周阶段摘要"}
-              description="最近 7 天与此前 7 天对比，帮助安排沟通节奏；记录数量变化不等于状态变好或变差。"
-            />
-            <div className="grid gap-4 lg:grid-cols-2">
-              {overview.teacherWeeklySummaries.length ? overview.teacherWeeklySummaries.map((summary) => (
-                <article key={`${summary.school_id}-${summary.teacher_user_id}`} className="card">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="eyebrow">最近 7 天</p>
-                      <h2 className="mt-2 text-[1.25rem] font-bold text-ink">
-                        {overview.admin.role === "支持老师" ? "我的负责学生" : summary.teacher_name}
-                      </h2>
-                    </div>
-                    <span className="rounded-full bg-mint px-3 py-2 text-xs font-bold text-sage-dark">
-                      负责 {summary.student_count} 人
-                    </span>
-                  </div>
-                  <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <p className="text-xs text-muted">本周记录</p>
-                      <p className="mt-1 text-2xl font-bold text-ink">{summary.current_record_count}</p>
-                    </div>
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <p className="text-xs text-muted">参与学生</p>
-                      <p className="mt-1 text-2xl font-bold text-ink">{summary.active_student_count}</p>
-                    </div>
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <p className="text-xs text-muted">较前 7 天</p>
-                      <p className="mt-1 text-2xl font-bold text-ink">
-                        {summary.record_change > 0 ? `+${summary.record_change}` : summary.record_change}
-                      </p>
-                    </div>
-                    <div className={`rounded-2xl px-3 py-3 ${summary.attention_student_count ? "bg-[#f7e8dc]" : "bg-mint"}`}>
-                      <p className="text-xs text-muted">建议了解</p>
-                      <p className="mt-1 text-2xl font-bold text-ink">{summary.attention_student_count}</p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm leading-6 text-muted">
-                    {summary.latest_record_at
-                      ? `最近一条记录：${formatDate(summary.latest_record_at)}。`
-                      : "近 4 周暂时没有新记录。"}
-                    本周记录变化只反映填写频次，请结合实际情况理解。
-                  </p>
-                </article>
-              )) : (
-                <div className="card">
-                  <p className="font-bold text-ink">暂时没有可生成摘要的老师负责关系。</p>
-                  <p className="mt-2 text-sm text-muted">完成老师与学生分配后，这里会自动出现每周摘要。</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {overview ? (
-        <section id="participation-stats" className="section scroll-mt-24">
-          <div className="container">
-            <SectionHeader
-              title="学生参与统计"
-              description="用于依据活动规则人工核对奖励。同一天保存多次只计 1 天；系统不会自动判定或发放现金奖励。"
-            />
-            {selectedSchool ? (
-              <div className="mb-5 rounded-2xl border border-sage/25 bg-mint/70 px-4 py-4 text-sm leading-6 text-ink sm:px-5">
-                <p className="font-bold">当前学校：{selectedSchool.name}</p>
-                <p className="mt-1 text-muted">
-                  “当前连续”要求最近一次记录在今天或昨天；中断后归零。“最长连续”会保留曾经达到的连续天数。
-                </p>
-              </div>
-            ) : null}
-            <div className="grid gap-4">
-              {visibleParticipationStats.length ? visibleParticipationStats.map((stat) => (
-                <article key={`${stat.school_id}-${stat.user_id}`} className="card">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <h2 className="text-lg font-bold text-ink">{stat.student_name}</h2>
-                      {stat.student_email ? <p className="mt-1 break-all text-xs text-muted">{stat.student_email}</p> : null}
-                    </div>
-                    <p className="rounded-full bg-cream px-3 py-2 text-xs font-bold text-sage-dark">
-                      {stat.latest_record_at ? `最近记录 ${formatDate(stat.latest_record_at)}` : "尚无记录"}
-                    </p>
-                  </div>
-                  <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <dt className="text-xs text-muted">近 7 天</dt>
-                      <dd className="mt-1 text-xl font-bold text-ink">{stat.last_7_active_days} 天</dd>
-                    </div>
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <dt className="text-xs text-muted">近 28 天</dt>
-                      <dd className="mt-1 text-xl font-bold text-ink">{stat.last_28_active_days} 天</dd>
-                    </div>
-                    <div className="rounded-2xl bg-mint px-3 py-3">
-                      <dt className="text-xs text-muted">当前连续</dt>
-                      <dd className="mt-1 text-xl font-bold text-ink">{stat.current_streak_days} 天</dd>
-                    </div>
-                    <div className="rounded-2xl bg-mint px-3 py-3">
-                      <dt className="text-xs text-muted">最长连续</dt>
-                      <dd className="mt-1 text-xl font-bold text-ink">{stat.longest_streak_days} 天</dd>
-                    </div>
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <dt className="text-xs text-muted">累计记录日</dt>
-                      <dd className="mt-1 text-xl font-bold text-ink">{stat.total_record_days} 天</dd>
-                    </div>
-                    <div className="rounded-2xl bg-cream px-3 py-3">
-                      <dt className="text-xs text-muted">累计记录数</dt>
-                      <dd className="mt-1 text-xl font-bold text-ink">{stat.record_count} 条</dd>
-                    </div>
-                  </dl>
-                </article>
-              )) : (
-                <div className="card">
-                  <p className="font-bold text-ink">当前范围内还没有可统计的学生。</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">学校添加学生并完成老师分配后，统计会自动显示。</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {overview && overview.admin.role !== "支持老师" ? (
         <section id="schools-overview" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader
-              title={isPlatformAdmin ? "学校与人员总览" : "学校近 4 周概览"}
-              description={isPlatformAdmin
-                ? "按学校和老师查看人员关系与近期参与情况。"
-                : "先了解每位老师负责学生的整体情况，需要时再进入下方查看具体记录。"}
+              title={t("adminPrivateRecords.directoryTitle")}
+              description={t("adminPrivateRecords.directoryDescription")}
             />
             <div className="grid gap-5">
               {activeSchools.map((school) => {
@@ -1477,12 +1378,6 @@ export default function AdminPage() {
                               .filter((assignment) => assignment.teacher_user_id === teacher.id)
                               .map((assignment) => studentsById.get(assignment.student_user_id))
                               .filter((student): student is SchoolPerson => Boolean(student));
-                            const studentIds = students.map((student) => student.id);
-                            const fourWeekRecords = recentRecordCount(overview.recentRecords, studentIds);
-                            const attentionCount = overview.attentionQueue.filter(
-                              (item) => studentIds.includes(item.user_id) && item.school_id === school.id,
-                            ).length;
-
                             return (
                               <div key={teacher.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
                                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -1499,16 +1394,7 @@ export default function AdminPage() {
                                     </span>
                                   )) : <span className="text-xs text-muted">尚未分配学生</span>}
                                 </div>
-                                <div className="mt-4 grid grid-cols-2 gap-2 border-t border-ink/10 pt-4 text-xs">
-                                  <p className="rounded-xl bg-cream px-3 py-2 font-bold text-ink">
-                                    近 4 周 {fourWeekRecords} 条记录
-                                  </p>
-                                  <p className={`rounded-xl px-3 py-2 font-bold ${
-                                    attentionCount ? "bg-[#f7e8dc] text-[#824b2d]" : "bg-mint text-sage-dark"
-                                  }`}>
-                                    {attentionCount ? `${attentionCount} 人建议了解` : "暂无待了解变化"}
-                                  </p>
-                                </div>
+                                <p className="mt-4 border-t border-ink/10 pt-4 text-xs leading-6 text-muted">{t("adminPrivateRecords.directoryPrivateBoundary")}</p>
                               </div>
                             );
                           }) : (
@@ -1578,7 +1464,7 @@ export default function AdminPage() {
               <summary className={isPlatformAdmin ? "flex cursor-pointer list-none flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white px-5 py-5 shadow-sm transition hover:border-sage" : "hidden"}>
                 <span>
                   <span className="block text-[1.25rem] font-bold text-ink">老师与学生分配</span>
-                  <span className="mt-1 block text-sm font-normal text-muted">选择老师可以查看和跟进的学生</span>
+                  <span className="mt-1 block text-sm font-normal text-muted">{t("adminPrivateRecords.assignmentDescription")}</span>
                 </span>
                 <span className="button-secondary pointer-events-none group-open:hidden">展开管理</span>
                 <span className="button-secondary pointer-events-none hidden group-open:inline-flex">收起</span>
@@ -1586,11 +1472,7 @@ export default function AdminPage() {
               <div className={isPlatformAdmin ? "pt-8" : ""}>
                 <SectionHeader
                   title={isPlatformAdmin ? "老师与学生分配" : "分配老师负责的学生"}
-                  description={
-                    isPlatformAdmin
-                      ? `当前学校：${selectedSchool?.name || "请选择学校"}。保存后，老师只会看到分配给自己的学生。`
-                      : "支持老师只会看到分配给自己的学生记录；学校负责人仍可查看全校。"
-                  }
+                  description={t("adminPrivateRecords.assignmentDescription")}
                 />
             <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
               <div className="card">
@@ -1742,7 +1624,7 @@ export default function AdminPage() {
                   <p className="eyebrow">待分配</p>
                   <h2 className="mt-2 text-[1.35rem] font-bold text-ink">尚未分配学生</h2>
                   <p className="mt-3 text-sm leading-7 text-muted">
-                    未分配学生仍可被学校负责人查看，但支持老师暂时看不到其记录。
+                    {t("adminPrivateRecords.directoryPrivateBoundary")}
                   </p>
                   <div className="mt-5 flex flex-wrap gap-2">
                     {unassignedStudents.length ? unassignedStudents.map((student) => (
@@ -1771,7 +1653,7 @@ export default function AdminPage() {
               <summary className={isPlatformAdmin ? "flex cursor-pointer list-none flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-white px-5 py-5 shadow-sm transition hover:border-sage" : "hidden"}>
                 <span>
                   <span className="block text-[1.25rem] font-bold text-ink">家长与孩子关联</span>
-                  <span className="mt-1 block text-sm font-normal text-muted">设置家长可以查看哪位孩子的记录</span>
+                  <span className="mt-1 block text-sm font-normal text-muted">{t("adminPrivateRecords.directoryPrivateBoundary")}</span>
                 </span>
                 <span className="button-secondary pointer-events-none group-open:hidden">展开管理</span>
                 <span className="button-secondary pointer-events-none hidden group-open:inline-flex">收起</span>
@@ -1779,11 +1661,7 @@ export default function AdminPage() {
               <div className={isPlatformAdmin ? "pt-8" : ""}>
                 <SectionHeader
                   title={isPlatformAdmin ? "家长与孩子关联" : "确认家长与孩子"}
-                  description={
-                    isPlatformAdmin
-                      ? `当前学校：${selectedSchool?.name || "请选择学校"}。关系确认后，家长只能看到所关联孩子的记录。`
-                      : "先登记家长账号，再选择该家长可以查看的孩子。关系由学校确认，家长不能自行扩大查看范围。"
-                  }
+                  description={t("adminPrivateRecords.directoryPrivateBoundary")}
                 />
                 <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
                   <div className="card">
@@ -1871,187 +1749,6 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview ? (
-        <section id="recent-changes" className="section section-muted scroll-mt-24">
-          <div className="container">
-            <SectionHeader
-              title="需要了解的近期变化"
-              description="依据最近一次 SWEET 记录中的日常节律变化整理，帮助学校安排温和的了解和支持。这不是诊断或风险评级，请结合学生的真实情况判断。"
-            />
-            {actionNotice ? <p className="mb-4 rounded-2xl bg-white/75 px-4 py-3 text-sm font-bold text-sage-dark">{actionNotice}</p> : null}
-            {error ? <p className="mb-4 rounded-2xl border border-ink/10 bg-white/75 px-4 py-3 text-sm font-bold text-ink">{error}</p> : null}
-            <div className="grid gap-4">
-              {overview.attentionQueue.length > 0 ? overview.attentionQueue.map((item) => {
-                const draft = followupDrafts[item.id] || {
-                  status: item.followup_status,
-                  note: item.followup_note,
-                };
-                const isResolved = draft.status === "resolved";
-
-                return (
-                  <article key={item.id} className={`card ${isResolved ? "opacity-75" : ""}`}>
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-lg font-bold text-ink">{item.student_name || "学生"}</h3>
-                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${item.level === "priority" ? "bg-[#f7e8dc] text-[#824b2d]" : "bg-mint text-sage-dark"}`}>
-                            {item.level === "priority" ? "建议尽快了解" : "建议近期了解"}
-                          </span>
-                        </div>
-                        {item.student_email ? <p className="mt-1 break-all text-xs text-muted">{item.student_email}</p> : null}
-                      </div>
-                      <p className="rounded-full bg-cream px-4 py-2 text-xs font-bold text-sage-dark">{formatDate(item.created_at)}</p>
-                    </div>
-
-                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                      {item.reasons.map((reason) => (
-                        <p key={reason} className="rounded-2xl border border-ink/10 bg-cream px-4 py-3 text-sm leading-6 text-ink">
-                          {reason}
-                        </p>
-                      ))}
-                    </div>
-                    {item.summary ? (
-                      <div className="mt-4">
-                        <AiGeneratedLabel />
-                        <p className="mt-2 text-sm leading-7 text-muted">{item.summary}</p>
-                      </div>
-                    ) : null}
-
-                    <div className="mt-6 grid gap-4 border-t border-ink/10 pt-5 lg:grid-cols-[12rem_1fr_auto] lg:items-end">
-                      <label className="grid gap-2 text-sm font-bold text-ink">
-                        跟进状态
-                        <select
-                          className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
-                          value={draft.status}
-                          onChange={(event) => setFollowupDrafts((current) => ({
-                            ...current,
-                            [item.id]: { ...draft, status: event.target.value as FollowupDraft["status"] },
-                          }))}
-                        >
-                          <option value="new">待了解</option>
-                          <option value="in_progress">跟进中</option>
-                          <option value="resolved">已完成</option>
-                        </select>
-                      </label>
-                      <label className="grid gap-2 text-sm font-bold text-ink">
-                        必要备注
-                        <input
-                          className="rounded-2xl border border-ink/10 bg-white px-4 py-3 text-sm outline-none focus:border-sage"
-                          value={draft.note}
-                          maxLength={500}
-                          onChange={(event) => setFollowupDrafts((current) => ({
-                            ...current,
-                            [item.id]: { ...draft, note: event.target.value },
-                          }))}
-                          placeholder="只记录必要的支持信息，避免写入无关隐私"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 lg:w-auto"
-                        disabled={savingFollowupId === item.id}
-                        onClick={() => saveFollowup(item.id, item.school_id)}
-                      >
-                        {savingFollowupId === item.id ? "保存中…" : "保存进度"}
-                      </button>
-                    </div>
-                  </article>
-                );
-              }) : (
-                <div className="card">
-                  <p className="font-bold text-ink">目前没有需要单独了解的近期变化。</p>
-                  <p className="mt-2 text-sm leading-7 text-muted">新的 SWEET 记录出现明显节律变化时，会整理到这里。</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {overview ? (
-        <section id="recent-records" className="section scroll-mt-24">
-          <div className="container">
-            <SectionHeader
-              title="全部最近记录"
-              description={isPlatformAdmin ? "先查看全平台记录，也可以切换到一所学校。" : "查看你负责学校中的近期 SWEET 记录。"}
-            />
-            {!isPlatformAdmin && overview.admin.role === "学校负责人" ? (
-              <div className="mb-6">
-                <Link href="/account#records" className="button-secondary">
-                  查看学生原始回答
-                </Link>
-              </div>
-            ) : null}
-            {isPlatformAdmin && activeSchools.length ? (
-              <div className="mb-6">
-                <p className="mb-3 text-sm font-bold text-ink">记录范围</p>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="按学校筛选记录">
-                  <button
-                    type="button"
-                    className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
-                      recordSchoolFilter === "all"
-                        ? "border-sage bg-sage text-white"
-                        : "border-ink/10 bg-white text-ink hover:border-sage"
-                    }`}
-                    onClick={() => setRecordSchoolFilter("all")}
-                  >
-                    全部学校
-                  </button>
-                  {activeSchools.map((school) => (
-                    <button
-                      key={school.id}
-                      type="button"
-                      className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
-                        recordSchoolFilter === school.id
-                          ? "border-sage bg-sage text-white"
-                          : "border-ink/10 bg-white text-ink hover:border-sage"
-                      }`}
-                      onClick={() => setRecordSchoolFilter(school.id)}
-                    >
-                      {school.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            <div className="grid gap-4">
-              {filteredRecentRecords.length > 0 ? filteredRecentRecords.map((record) => (
-                <article key={record.id} className="card">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-bold text-ink">{record.student_name}</h3>
-                        <span className="rounded-full bg-mint px-3 py-1 text-xs font-bold text-sage-dark">
-                          {record.school_name || "未关联学校"}
-                        </span>
-                      </div>
-                      {record.student_email ? <p className="mt-1 break-all text-xs text-muted">{record.student_email}</p> : null}
-                      <AiGeneratedLabel className="mt-4" />
-                      <p className="mt-2 text-sm leading-7 text-muted">{record.summary}</p>
-                    </div>
-                    <p className="rounded-full bg-cream px-4 py-2 text-xs font-bold text-sage-dark">{formatDate(record.created_at)}</p>
-                  </div>
-                </article>
-              )) : (
-                <div className="card">
-                  <p className="font-bold text-ink">
-                    {recordSchoolFilter === "all" ? "还没有 SWEET 记录。" : "这所学校还没有 SWEET 记录。"}
-                  </p>
-                  {recordSchoolFilter !== "all" ? (
-                    <button
-                      type="button"
-                      className="button-secondary mt-4"
-                      onClick={() => setRecordSchoolFilter("all")}
-                    >
-                      查看全部学校
-                    </button>
-                  ) : null}
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : null}
     </>
   );
 }

@@ -22,7 +22,7 @@ test("账户页使用服务端年龄分组显示不同说明和入口", async ()
   expect(source).toContain('studentAgeBand === "18_plus"');
   expect(source).toContain('["14_17", "18_plus"].includes');
   expect(source).toContain('href={isAdultStudent ? "/for-young-adults" : "/for-teens"}');
-  expect(source).toContain('href={isAdultStudent ? "/referral" : "/messages"}');
+  expect(source).toContain('href={isAdultStudent ? YOUNG_ADULT_REFERRAL_HREF : "/messages"}');
 });
 
 test("悄悄话信箱按年龄说明收件范围且不宣称进入咨询", async () => {

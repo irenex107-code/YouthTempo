@@ -196,7 +196,7 @@ export default function PrivacySafetyPage() {
 
       <section className="section">
         <div className="container grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-          <InfoCard title={t("privacySafety.emergency.title")} label="Safety first">
+          <InfoCard title={t("privacySafety.emergency.title")} label={t("privacySafety.emergency.label")}>
             {t("privacySafety.emergency.text")}
           </InfoCard>
           <div className="card">

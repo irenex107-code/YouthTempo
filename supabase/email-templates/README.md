@@ -1,4 +1,4 @@
-# YouthTempo 登录验证码邮件
+# YouthTempo 登录验证码 / Sign-in code 邮件
 
 Supabase Dashboard 中需要同时更新以下两个模板，确保首次注册和已有账号登录的邮件体验一致：
 
@@ -7,10 +7,12 @@ Supabase Dashboard 中需要同时更新以下两个模板，确保首次注册�
 
 两个模板都使用相同设置：
 
-- Subject: `[YouthTempo] 登录验证码`
-- Body: 使用本目录下 `otp.html` 的完整内容
+- Subject: `[YouthTempo] 登录验证码 / Sign-in code`
+- Body: 两个位置都使用本目录下同一份中英合并 `otp.html` 完整内容；不按locale拆分模板
 
 模板必须保留 `{{ .Token }}`，不要加入 `{{ .ConfirmationURL }}`。如果模板包含确认链接，Supabase 会发送链接而不是纯验证码。
+
+本仓库只记录拟配置值；正式后台是否已同步、真实邮件是否投递和显示正确，仍须在最终环境验收中独立确认。
 
 ## 正式环境要求
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/lib/i18n/client";
+import { useSessionActor, type SessionActor } from "@/lib/useSessionActor";
 
 type SpeechRecognitionEventLike = Event & {
   results: ArrayLike<{
@@ -45,9 +46,16 @@ function appendTranscript(current: string, transcript: string) {
   return `${current.trimEnd()} ${clean}`;
 }
 
-export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
+export function VoiceInputButton(props: VoiceInputButtonProps) {
+  const actor = useSessionActor();
+  return <VoiceInputSession key={`${actor.phase}:${actor.actorId}`} {...props} actor={actor} />;
+}
+
+function VoiceInputSession({ value, onChange, actor }: VoiceInputButtonProps & { actor: SessionActor }) {
   const { locale, t } = useTranslation();
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const mounted = useRef(false);
+  const generation = useRef(0);
   const valueRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const [supported, setSupported] = useState<boolean | null>(null);
@@ -59,13 +67,25 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
     onChangeRef.current = onChange;
   }, [onChange, value]);
 
+  function retireRecognition() {
+    ++generation.current;
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    if (!recognition) return;
+    recognition.onresult = null; recognition.onerror = null; recognition.onend = null;
+    try { recognition.abort(); } catch { /* Already-ended browser recognition. */ }
+  }
+
   useEffect(() => {
+    mounted.current = true;
     setSupported(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition));
-    return () => recognitionRef.current?.abort();
+    return () => { mounted.current = false; retireRecognition(); };
   }, []);
 
   function stopListening() {
-    recognitionRef.current?.stop();
+    // stop() may still deliver the current instance's final transcript.
+    try { recognitionRef.current?.stop(); }
+    catch { setMessage(t("common.voiceInput.notUnderstood")); }
     setListening(false);
   }
 
@@ -77,12 +97,18 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
       return;
     }
 
+    retireRecognition();
+    const scope = generation.current;
+    const sameActor = actor.phase === "ready" ? actor.trackRequest() : () => true;
     setMessage("");
     const recognition = new Recognition();
+    const current = () => mounted.current && recognitionRef.current === recognition
+      && generation.current === scope && sameActor();
     recognition.lang = locale === "en" ? "en-US" : "zh-CN";
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.onresult = (event) => {
+      if (!current()) return;
       const transcripts: string[] = [];
       for (let index = 0; index < event.results.length; index += 1) {
         const result = event.results[index];
@@ -94,6 +120,7 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
       setMessage(t("common.voiceInput.transcribed"));
     };
     recognition.onerror = (event) => {
+      if (!current()) return;
       const permissionDenied = event.error === "not-allowed" || event.error === "service-not-allowed";
       setMessage(
         permissionDenied
@@ -103,6 +130,7 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
       setListening(false);
     };
     recognition.onend = () => {
+      if (!current()) return;
       setListening(false);
       recognitionRef.current = null;
     };
@@ -112,6 +140,8 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
     try {
       recognition.start();
     } catch {
+      if (!current()) return;
+      retireRecognition();
       setListening(false);
       setMessage(t("common.voiceInput.startFailed"));
     }
@@ -136,6 +166,7 @@ export function VoiceInputButton({ value, onChange }: VoiceInputButtonProps) {
         }`}
         onClick={listening ? stopListening : startListening}
         aria-pressed={listening}
+        disabled={actor.phase === "loading"}
       >
         {listening ? t("common.voiceInput.stop") : t("common.voiceInput.start")}
       </button>

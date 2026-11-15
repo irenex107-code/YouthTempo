@@ -260,7 +260,7 @@ export async function requireAiEligibility(req: NextApiRequest, res: NextApiResp
     const statusCode = Number((error as { statusCode?: unknown; status?: unknown })?.statusCode || (error as { status?: unknown })?.status);
     if (statusCode === 401 || statusCode === 403) {
       res.status(statusCode).json({
-        error: aiText(locale, "请先在账户页完成适用的知情确认，再使用 AI 辅助记录整理。", "Complete the applicable consent steps in your account before using AI-assisted record summaries."),
+        error: aiText(locale, "请先完成本页的使用确认，再使用 AI 辅助记录整理。", "Complete the consent steps on this page before using AI-assisted record summaries."),
       });
       return false;
     }
@@ -274,7 +274,9 @@ export async function requireAiEligibility(req: NextApiRequest, res: NextApiResp
 
 export async function requireAiRateLimit(req: NextApiRequest, res: NextApiResponse, locale: AiLocale) {
   try {
-    return await enforceAiRateLimit(req, res, getSupabaseAdmin());
+    return await enforceAiRateLimit(req, res, getSupabaseAdmin(), aiText(locale,
+      "生成得有些频繁，请稍等一会儿再试。你刚才填写的内容仍保留在当前页面。",
+      "You are generating summaries a little quickly. Wait a moment before trying again. Your draft is still on this page."));
   } catch (error) {
     await reportOperationalError({ req, area: "ai", operation: "rate_limit", error, statusCode: 503 });
     res.status(503).json({

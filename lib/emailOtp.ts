@@ -4,6 +4,7 @@ type OtpRequestMessages = {
   unauthorized: string;
   rateLimited: string;
   network: string;
+  service?: string;
   fallback: string;
 };
 
@@ -11,6 +12,7 @@ type OtpVerificationMessages = {
   invalid: string;
   rateLimited: string;
   network: string;
+  service?: string;
   fallback: string;
 };
 
@@ -28,48 +30,46 @@ const defaultVerificationMessages: OtpVerificationMessages = {
   fallback: "验证码验证失败，请稍后重试。",
 };
 
-function errorText(error: unknown) {
-  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
-    return error.message.toLowerCase();
-  }
-  return error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+function errorDetails(error: unknown): { status?: unknown; code?: unknown; name?: unknown; message?: unknown } {
+  return error && typeof error === "object" ? error : {};
 }
 
-function isNetworkError(message: string) {
-  return message.includes("fetch") || message.includes("network") || message.includes("网络");
+function isServiceError(error: unknown) {
+  const { status } = errorDetails(error);
+  return typeof status === "number" && status >= 500 && status <= 599;
+}
+
+function isNetworkError(error: unknown) {
+  const { name, status, message } = errorDetails(error);
+  // auth-js 2.70 wraps fetch failures with status 0; 502/503/504 are service failures.
+  if (name === "AuthRetryableFetchError" && status === 0) return true;
+  return name === "TypeError" && typeof message === "string" && [
+    "Failed to fetch", "Load failed", "NetworkError when attempting to fetch resource.",
+  ].includes(message);
 }
 
 export function isOtpRateLimitError(error: unknown) {
-  if (error && typeof error === "object") {
-    if ("status" in error && error.status === 429) return true;
-    if ("code" in error && ["over_email_send_rate_limit", "over_request_rate_limit"].includes(String(error.code))) return true;
-  }
-  const message = errorText(error);
-  return message.includes("429") || message.includes("rate limit") || message.includes("too many") || message.includes("频繁");
+  const { status, code } = errorDetails(error);
+  if (isServiceError(error)) return false;
+  return status === 429 || code === "over_email_send_rate_limit" || code === "over_request_rate_limit";
 }
 
 export function otpRequestErrorMessage(error: unknown, messages: OtpRequestMessages = defaultRequestMessages) {
-  const message = errorText(error);
   if (isOtpRateLimitError(error)) return messages.rateLimited;
-  if (message.includes("not authorized") || message.includes("unauthorized email")) {
+  if (isServiceError(error)) return messages.service || messages.fallback;
+  if (errorDetails(error).code === "email_address_not_authorized") {
     return messages.unauthorized;
   }
-  if (isNetworkError(message)) return messages.network;
+  if (isNetworkError(error)) return messages.network;
   return messages.fallback;
 }
 
 export function otpVerificationErrorMessage(error: unknown, messages: OtpVerificationMessages = defaultVerificationMessages) {
-  const message = errorText(error);
   if (isOtpRateLimitError(error)) return messages.rateLimited;
-  if (
-    message.includes("token")
-    || message.includes("otp")
-    || message.includes("invalid")
-    || message.includes("expired")
-    || message.includes("验证码")
-  ) {
+  if (isServiceError(error)) return messages.service || messages.fallback;
+  if (errorDetails(error).code === "otp_expired") {
     return messages.invalid;
   }
-  if (isNetworkError(message)) return messages.network;
+  if (isNetworkError(error)) return messages.network;
   return messages.fallback;
 }

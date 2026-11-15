@@ -570,7 +570,9 @@ a {
   }
 
   .garden-scene-heading {
-    max-width: calc(100% - 2rem);
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
   }
 
   .garden-main-plant-seed,
@@ -624,6 +626,16 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .button-primary,
+  .button-secondary { transition: none; }
+
+  .button-primary:hover,
+  .button-primary:active,
+  .button-secondary:hover,
+  .button-secondary:active { transform: none; }
+
   .garden-main-plant,
   .garden-placed-item,
   .garden-scene-feedback,

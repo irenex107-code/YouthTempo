@@ -32,14 +32,22 @@ function assertSupabaseServerConfig() {
   }
 }
 
-export function getSupabaseAdmin() {
+export function getSupabaseAdmin(options?: { requestTimeoutMs?: number }) {
   assertSupabaseServerConfig();
+
+  const timeout = options?.requestTimeoutMs;
+  const requestFetch: typeof fetch = (input, init) => {
+    const prior = init?.signal || (input instanceof Request ? input.signal : undefined);
+    const deadline = AbortSignal.timeout(timeout!);
+    return fetch(input, { ...init, signal: prior ? AbortSignal.any([prior, deadline]) : deadline });
+  };
 
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
+    ...(timeout ? { global: { fetch: requestFetch } } : {}),
   });
 }
 

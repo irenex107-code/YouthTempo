@@ -1,6 +1,6 @@
 # YouthTempo 邮箱 OTP 与 SMTP 验收
 
-> **2026-10-09 OTP 登录修复：** 发送限流按结构化状态与错误码识别，新增“已收到验证码，直接输入”入口，仍执行八位验证码服务端验证并保留重发冷却。中英文桌面／手机模拟修复专项 16 passed，既有 OTP／i18n 专项 18 passed，类型检查、生产构建和双语键对齐通过。测试使用合成认证响应；正式发布后的实际邮箱与手机微信复验仍待完成，不关闭邮件、真机或运营阻断项，整体仍为 **READY WITH CONDITIONS**。
+> **2026-10-09 OTP 修复已发布：** 用户明确授权后，PR #9 合并为 `af1ba6391a6dd3bbc459210cd5f94cef027145cc`；正式分支 Verify（37926447824）成功：公开／安全 559 passed、47 skipped，移动浏览器 13 passed、2 skipped；隔离 E2E 凭据缺失导致登录态 CI 套件跳过。Deploy Production（37927058455）成功，香港正式站健康检查 `ok`。正式页面中文／英文 × 桌面／微信 UA 模拟共 4 组限流与已收码入口复测通过，使用拦截的合成认证响应，未发送邮件、创建生产账号或修改数据库。八位验证码服务端验证、重发冷却与会话保存保持；用户真实微信 OTP 登录仍待复验，不能据此关闭真机／邮件／运营阻断项，整体仍为 **READY WITH CONDITIONS**。证据：`deliverables/garden-acceptance-2026-10-09/otp-production-smoke.json`。
 
 
 更新时间：2026-08-04
@@ -36,7 +36,7 @@ SMTP 密码只能直接录入 Supabase Dashboard，不能写入 `.env.local`、�
 
 ## Supabase Auth 核对
 
-- Magic Link / OTP 与 Confirm sign up 模板都使用 `[YouthTempo] 登录验证码` 和 `supabase/email-templates/otp.html`。
+- Magic Link / OTP 与 Confirm sign up 模板都使用同一主题 `[YouthTempo] 登录验证码 / Sign-in code` 和同一份中英合并 `supabase/email-templates/otp.html`；不新增按locale分流的发送链。
 - 模板必须包含 `{{ .Token }}`，不得包含 `{{ .ConfirmationURL }}`。
 - OTP 长度保持 8 位，有效期不超过 3600 秒。
 - 自有 SMTP 启用后，检查 Auth > Rate Limits；Supabase 默认先限制为每小时 30 封，再按试点规模审慎调整。

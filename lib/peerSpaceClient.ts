@@ -31,12 +31,16 @@ export async function peerSpaceRequest<T>(
   locale: Locale,
   method = "GET",
   body?: Record<string, unknown>,
+  expectedUserId?: string,
 ): Promise<T> {
   const supabase = getSupabase();
   if (!supabase) throw new Error(locale === "en" ? "Account service is unavailable." : "账号服务暂时不可用。");
   const { data, error } = await supabase.auth.getSession();
   if (error) throw new Error(locale === "en" ? "Please sign in again." : "请重新登录。");
   if (!data.session?.access_token) throw new Error(locale === "en" ? "Please sign in first." : "请先登录。");
+  if (expectedUserId && data.session.user.id !== expectedUserId) {
+    throw new Error(locale === "en" ? "Your account has changed. Check it before continuing." : "账号已变化，请确认后再继续。");
+  }
   const separator = path.includes("?") ? "&" : "?";
   const response = await fetch(`${path}${separator}locale=${encodeURIComponent(locale)}`, {
     method,

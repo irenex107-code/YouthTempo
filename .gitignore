@@ -31,3 +31,6 @@ backups/
 
 # 本地视觉头脑风暴会话
 .superpowers/
+
+# Disposable report integration development output
+.next-reports-integration/

@@ -1,43 +1,25 @@
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
 
-const raw = await readFile(new URL("../.env.local", import.meta.url), "utf8");
-const local = Object.fromEntries(
-  raw
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith("#") && line.includes("="))
-    .map((line) => {
-      const separator = line.indexOf("=");
-      const key = line.slice(0, separator).trim();
-      const value = line.slice(separator + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
-      return [key, value];
-    }),
-);
-
-const allowedKeys = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "E2E_PERMISSION_TEST_PASSWORD",
-];
-const childEnv = {
-  ...process.env,
-  PLAYWRIGHT_BASE_URL: process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000",
-};
-for (const key of allowedKeys) {
-  if (local[key]) childEnv[key] = local[key];
-}
-delete childEnv.SUPABASE_SERVICE_ROLE_KEY;
-delete childEnv.OPENAI_API_KEY;
-delete childEnv.WECHAT_MINI_APP_SECRET;
-
+// Node preserves caller-provided environment values over .env.local values.
+// The shared runner resets the isolated fixture before executing this suite.
 const child = spawn(
   process.execPath,
-  ["node_modules/@playwright/test/cli.js", "test", "tests/community-report-service-level.spec.ts"],
-  { cwd: new URL("..", import.meta.url), env: childEnv, stdio: "inherit" },
+  ["--env-file-if-exists=.env.local", "scripts/run-permission-test-suites.mjs", "--group=report-sla"],
+  { cwd: new URL("..", import.meta.url), env: process.env, stdio: "inherit" },
 );
 
-child.on("exit", (code, signal) => {
+const forwardInterrupt = () => child.kill("SIGINT");
+const forwardTerminate = () => child.kill("SIGTERM");
+process.on("SIGINT", forwardInterrupt);
+process.on("SIGTERM", forwardTerminate);
+
+child.once("error", () => {
+  console.error("举报服务目标验收未能启动。");
+  process.exitCode = 1;
+});
+child.once("exit", (code, signal) => {
+  process.removeListener("SIGINT", forwardInterrupt);
+  process.removeListener("SIGTERM", forwardTerminate);
   if (signal) process.kill(process.pid, signal);
-  else process.exit(code || 0);
+  else process.exitCode = code ?? 1;
 });

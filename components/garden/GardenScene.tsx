@@ -19,6 +19,7 @@ type GardenSceneProps = {
   selectedItems: Partial<Record<GardenLayoutSlot, GardenItemKey>>;
   interaction: GardenSceneInteraction | null;
   overlay?: ReactNode;
+  readOnly?: boolean;
 };
 
 const plantSources: Record<TempoGardenData["stage"], { src: string; width: number; height: number }> = {
@@ -74,11 +75,11 @@ const mobileBackground = getImageProps({
   priority: true,
 }).props;
 
-export function GardenScene({ stage, statusText, onExplore, selectedItems, interaction, overlay }: GardenSceneProps) {
+export function GardenScene({ stage, statusText, onExplore, selectedItems, interaction, overlay, readOnly = false }: GardenSceneProps) {
   const { t } = useTranslation();
   const plant = plantSources[stage];
   return (
-    <section className="garden-scene" aria-labelledby="garden-scene-title">
+    <section className="garden-scene w-full" aria-labelledby="garden-scene-title">
       <picture aria-hidden="true">
         <source media="(max-width: 640px)" srcSet={mobileBackground.srcSet} sizes={mobileBackground.sizes} />
         <img {...desktopBackground} className="garden-scene-background" />
@@ -102,7 +103,7 @@ export function GardenScene({ stage, statusText, onExplore, selectedItems, inter
         <p className="mt-2 text-sm font-semibold text-sage-dark">{statusText}</p>
       </div>
       <p className="sr-only">{t(`garden.scene.alt.${stage}`)}</p>
-      {(["pond", "bench", "bird"] as const).map((place) => (
+      {!readOnly && (["pond", "bench", "bird"] as const).map((place) => (
         <button
           key={place}
           type="button"

@@ -10,26 +10,57 @@ const steps = [
 ];
 
 function recordPayload(answers) {
-  return steps.map((step) => ({ id: step.id, title: step.title, label: step.label, dimension: `${step.label} ${step.title}`, fields: [{ id: "state", title: step.question, value: answers[step.id] || "" }] }));
+  return steps.map((step) => ({ id: step.id, title: step.title, label: step.label, fields: [{ id: "state", title: step.question, value: answers[step.id] || "" }] }));
 }
 
 Page({
   data: { steps, answers: {}, completed: 0, consentAccepted: false, submitting: false, result: null, message: "", isError: false },
-  onShow() { if (!getSession()) wx.redirectTo({ url: "/pages/login/index" }); },
+  onShow() {
+    const actor = getSession()?.user?.id;
+    if (!actor) return wx.redirectTo({ url: "/pages/login/index" });
+    if (this._actor && this._actor !== actor) this.reset();
+    this._actor = actor; this._disposed = false;
+  },
+  onHide() { this._disposed = true; this._revision = (this._revision || 0) + 1; this._operation = (this._operation || 0) + 1; this.setData({ submitting: false }); },
+  onUnload() { this._disposed = true; this._revision = (this._revision || 0) + 1; this._operation = (this._operation || 0) + 1; },
   selectAnswer(event) {
+    this._revision = (this._revision || 0) + 1;
+    this._pendingWrite = null;
     const answers = { ...this.data.answers, [event.currentTarget.dataset.step]: event.currentTarget.dataset.value };
     this.setData({ answers, completed: Object.keys(answers).length, result: null, message: "" });
   },
-  toggleConsent() { this.setData({ consentAccepted: !this.data.consentAccepted }); },
+  toggleConsent() { this._revision = (this._revision || 0) + 1; this.setData({ consentAccepted: !this.data.consentAccepted, result: null }); },
   async generateAndSave() {
+    if (this.data.submitting) return;
+    const actor = getSession()?.user?.id;
+    if (!actor || !this.data.consentAccepted) return;
+    const revision = this._revision || 0;
+    const operation = this._operation = (this._operation || 0) + 1;
+    const current = () => !this._disposed && this._operation === operation && getSession()?.user?.id === actor && (this._revision || 0) === revision && this.data.consentAccepted;
     this.setData({ submitting: true, message: "", isError: false, result: null });
     const records = recordPayload(this.data.answers);
+    const recordsKey = JSON.stringify(records);
+    let write = this._pendingWrite;
     try {
-      const result = await api("/api/ai/check-in", { method: "POST", data: { currentDate: new Date().toISOString(), sensitiveConsentAccepted: true, aiNoticeAccepted: true, aiNoticeVersion: AI_NOTICE_VERSION, records } });
-      await api("/api/mini/records", { method: "POST", data: { records, summary: result.summary, smallStep: result.smallStep, recommendedNextTool: result.recommendedNextTool } });
-      this.setData({ result, message: "已经保存到你的历史记录。" });
-    } catch (error) { this.setData({ message: error.message, isError: true }); }
-    finally { this.setData({ submitting: false }); }
+      if (!write || write.actor !== actor || write.recordsKey !== recordsKey) {
+        const scope = await api("/api/sweet-records", { retryAuthentication: false });
+        if (!current()) return;
+        const result = await api("/api/ai/check-in", { method: "POST", retryAuthentication: false, data: { currentDate: new Date().toISOString(), sensitiveConsentAccepted: true, aiNoticeAccepted: true, aiNoticeVersion: AI_NOTICE_VERSION, records } });
+        if (!current()) return;
+        write = { actor, recordsKey, scope, result, record: { records, summary: result.summary, smallStep: result.smallStep, recommendedNextTool: result.recommendedNextTool } };
+        // A failed/unknown dispatch is retried only with this original head
+        // and payload. A real edit/reset is the explicit new-operation boundary.
+        this._pendingWrite = write;
+      }
+      await api("/api/mini/records", { method: "POST", retryAuthentication: false, data: {
+        operationDay: write.scope.operationDay, targetDay: write.scope.targetDay, expectedHead: write.scope.headToken,
+        intent: "replace_summary", record: write.record,
+      } });
+      if (this._pendingWrite === write) this._pendingWrite = null;
+      if (!current()) return;
+      this.setData({ result: write.result, message: "已经保存到你的历史记录。" });
+    } catch (error) { if (current()) this.setData({ message: error.message, isError: true }); }
+    finally { if (!this._disposed && this._operation === operation && getSession()?.user?.id === actor) this.setData({ submitting: false }); }
   },
-  reset() { this.setData({ answers: {}, completed: 0, consentAccepted: false, result: null, message: "" }); wx.pageScrollTo({ scrollTop: 0, duration: 250 }); },
+  reset() { this._revision = (this._revision || 0) + 1; this._operation = (this._operation || 0) + 1; this._pendingWrite = null; this.setData({ answers: {}, completed: 0, consentAccepted: false, submitting: false, result: null, message: "" }); wx.pageScrollTo({ scrollTop: 0, duration: 250 }); },
 });

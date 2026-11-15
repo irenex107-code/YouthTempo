@@ -1,6 +1,8 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
+import zh from "../locales/zh-CN.json";
+import en from "../locales/en.json";
 import {
   gardenSceneLevel,
   gardenSummary,
@@ -43,7 +45,31 @@ async function useIllustrativeGarden(page: Page, initialTotal = 0, loadStatus = 
       introSeen,
     },
   });
+  await page.route("**/auth/v1/**", (route) => route.abort());
+  await page.route("**/rest/v1/**", (route) => route.abort());
   await page.route("**/auth/v1/user", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(user) }));
+  // Garden now verifies profile and the existing participation confirmation
+  // before reading private data. This fixture represents an already-confirmed
+  // student; garden 403/503 responses below remain independent server failures.
+  await page.route("**/api/account/status", (route) => {
+    expect(route.request().method()).toBe("GET");
+    return route.fulfill({ json: {
+      displayRole: "学生", profile: { id: user.id, display_name: "Garden preview", role: "学生", school_id: null },
+      hasSchool: false, adminAccess: null, studentAgeBand: "14_17",
+      linkedChildren: [], linkedGuardians: [], assignedTeachers: [], assignedStudents: [],
+    } });
+  });
+  await page.route("**/api/account/consent", (route) => {
+    expect(route.request().method()).toBe("GET");
+    return route.fulfill({ json: {
+      role: "student", policyVersion: "2026-08-28", children: [], consent: {
+        studentUserId: user.id, studentName: "Garden preview", ageBand: "14_17",
+        consentBasis: "student_self_pilot", policyVersion: "2026-08-28", status: "active",
+        studentAssentedAt: "2026-10-28T04:00:00Z", guardianUserId: null,
+        guardianConsentedAt: null, withdrawnAt: null, hasLinkedGuardian: false,
+      },
+    } });
+  });
   await page.route("**/api/garden?**", async (route) => {
     if (route.request().method() === "POST") {
       total += 1;
@@ -131,9 +157,11 @@ test("花园只按参与成长，答案好坏不改变奖励", () => {
   expect(gardenSummary(quick, sweet, new Date("2026-09-19T12:00:00Z"))).toMatchObject({
     stage: "sprout", total: 2, thisWeek: 2, thisMonth: 2,
   });
+  const steadyQuick = [{ ...quick[0], feeling: "steady" }];
+  const higherScoreSweet = [{ ...sweet[0], score: 100 }];
   expect(gardenSummary(
-    [{ ...quick[0], feeling: "steady" }],
-    [{ ...sweet[0], score: 100 }],
+    steadyQuick,
+    higherScoreSweet,
     new Date("2026-09-19T12:00:00Z"),
   )).toEqual(gardenSummary(quick, sweet, new Date("2026-09-19T12:00:00Z")));
 });
@@ -248,7 +276,8 @@ test("花园不读取、返回或展示 AI 小结", async () => {
     readFile(path.join(process.cwd(), "locales/zh-CN.json"), "utf8"),
     readFile(path.join(process.cwd(), "locales/en.json"), "utf8"),
   ]);
-  expect(sharedApi).toContain('.from("sweet_records").select("created_at")');
+  expect(sharedApi).toContain('table: "tempo_check_ins" | "sweet_records"');
+  expect(sharedApi).toContain('supabase.from(table).select("id,created_at").eq("user_id", userId)');
   expect(`${api}\n${sharedApi}`).not.toContain('select("created_at,summary")');
   expect(`${api}\n${sharedApi}\n${cloud}\n${page}`).not.toContain("recentRhythm");
   expect(page).not.toContain("/api/ai/");
@@ -278,7 +307,7 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
   await page.goto("/garden");
 
   await expect(page.getByRole("heading", { name: "欢迎来到你的 SWEET 花园" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "我的疗愈庭院" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: zh.garden.scene.title })).toBeVisible();
   await expect(page.getByRole("heading", { name: "轻量记录" })).toHaveCount(0);
   await page.getByRole("button", { name: "继续看看" }).click();
   await expect(page.getByRole("heading", { name: "记录之后，可以照料一次" })).toBeVisible();
@@ -289,10 +318,14 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
 
   await page.getByRole("radio", { name: "有些沉重" }).check();
   await page.getByRole("button", { name: "记录这一刻" }).click();
+  await expect(page.getByRole("region", { name: zh.garden.growth.savedTitle, exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByTestId("garden-care-invitation")).toHaveText(zh.garden.care.available);
+  await page.getByRole("button", { name: "照料", exact: true }).click();
   await expect(page.getByRole("heading", { name: "今天想怎样照料？" })).toBeVisible();
-  await expect(page.getByText("今天已经有一条记录，可以选择一次照料。")).toBeVisible();
+  await expect(page.getByRole("dialog").getByText(zh.garden.care.available, { exact: true })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "我的疗愈庭院" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: zh.garden.scene.title })).toBeVisible();
   await expect(page.getByRole("heading", { name: "欢迎来到你的 SWEET 花园" })).toHaveCount(0);
   if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });
@@ -300,7 +333,8 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
 test("已有记录不会重看介绍", async ({ page }) => {
   await useIllustrativeGarden(page, 1, 200, true);
   await page.goto("/garden");
-  await expect(page.getByRole("heading", { name: "我的疗愈庭院" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: zh.garden.scene.title })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "庭院操作" }).getByRole("button")).toHaveCount(3);
   await expect(page.getByRole("heading", { name: "欢迎来到你的 SWEET 花园" })).toHaveCount(0);
 });
 
@@ -312,12 +346,12 @@ test("英文首次介绍、跳过和减少动态效果可用", async ({ page }) 
   await expect(page.getByRole("heading", { name: "Welcome to your SWEET Garden" })).toBeVisible();
   await expect(page.locator(".garden-main-plant")).toHaveCSS("animation-name", "none");
   await page.getByRole("button", { name: "Skip introduction" }).click();
-  await expect(page.getByRole("heading", { name: "My quiet garden" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: en.garden.scene.title })).toBeVisible();
   await page.getByRole("button", { name: "Look at the pond" }).click();
   await expect(page.locator(".garden-scene-effect-pond")).toHaveCSS("animation-name", "none");
   await expect(page.locator(".garden-scene-feedback")).toHaveCSS("animation-name", "none");
   await page.reload();
-  await expect(page.getByRole("heading", { name: "My quiet garden" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: en.garden.scene.title })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Welcome to your SWEET Garden" })).toHaveCount(0);
 });
 
@@ -356,10 +390,10 @@ test("探索、照料和布置都直接回应在庭院场景中", async ({ page,
 
   await page.getByRole("button", { name: "照料" }).click();
   await page.getByRole("button", { name: "浇一点水" }).click();
-  await expect(scene.getByRole("status")).toContainText("水落下来了。");
+  await expect(scene.getByRole("status")).toContainText(zh.garden.care.options.water.response);
   await expect(scene.locator(".garden-scene-effect-water")).toBeVisible();
 
-  await page.getByRole("button", { name: "布置" }).click();
+  await page.getByRole("button", { name: "布置", exact: true }).click();
   await page.getByRole("button", { name: "小片野花" }).click();
   await expect(page.getByRole("heading", { name: "布置庭院" })).toHaveCount(0);
   await expect(scene.locator('[data-garden-item="wildflower_patch"]')).toBeVisible();
@@ -369,14 +403,16 @@ test("探索、照料和布置都直接回应在庭院场景中", async ({ page,
   await page.reload();
   await expect(page.locator('[data-garden-item="wildflower_patch"]')).toBeVisible();
   await page.getByRole("button", { name: "照料" }).click();
-  await expect(page.getByText(/今天已经用“浇一点水”照料过庭院了/)).toBeVisible();
+  await expect(page.getByText(zh.garden.care.completed.replace("{{action}}", zh.garden.care.options.water.title), { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "关闭" }).click();
+  await page.locator("[data-garden-options] > summary").click();
   await page.getByRole("button", { name: "看看纪念物" }).click();
   await page.getByRole("button", { name: "一朵花" }).click();
   await expect(page.getByText("今天的纪念物已经保存。")).toBeVisible();
   await expect(page.getByRole("listitem").getByText("一朵花")).toBeVisible();
   await page.reload();
+  await page.locator("[data-garden-options] > summary").click();
   await page.getByRole("button", { name: "看看纪念物" }).click();
   await expect(page.getByRole("listitem").getByText("一朵花")).toBeVisible();
 

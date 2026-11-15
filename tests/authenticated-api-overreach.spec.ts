@@ -3,16 +3,14 @@ import { expect, test, type APIResponse } from "@playwright/test";
 import fixture from "./fixtures/permission-boundary.json";
 
 const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
 
 type UserKey = keyof typeof fixture.users;
 
 async function sessionFor(key: UserKey) {
-  if (!password) throw new Error("缺少 E2E_PERMISSION_TEST_PASSWORD");
+  if (!password || !supabaseAnonKey) throw new Error("缺少隔离环境的测试密码或匿名密钥");
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -135,7 +133,7 @@ test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校
     ]);
   });
 
-  await test.step("本校关系接口也会拒绝夹带外校学生 ID", async () => {
+  await test.step("本校老师关系拒绝夹带外校学生，家长关系创建保持关闭", async () => {
     await expectStatus(
       await request.post("/api/admin/teacher-student-assignments", {
         headers: headers(schoolLead.accessToken),
@@ -147,9 +145,17 @@ test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校
       }),
       400,
     );
-    expect(await recordIds(teacherOne.supabase, fixture.records.studentOne.id)).toEqual([
+    expect(await recordIds(teacherOne.supabase, fixture.records.studentOne.id)).toEqual([]);
+    expect(await recordIds(studentOne.supabase, fixture.records.studentOne.id)).toEqual([
       fixture.records.studentOne.id,
     ]);
+    const roster = await request.get(`/api/admin/teacher-student-assignments?schoolId=${fixture.schools.a.id}`, {
+      headers: headers(schoolLead.accessToken),
+    });
+    await expectStatus(roster, 200);
+    expect((await roster.json()).assignments).toEqual(expect.arrayContaining([
+      { teacher_user_id: teacherOne.userId, student_user_id: studentOne.userId },
+    ]));
 
     await expectStatus(
       await request.post("/api/admin/guardian-student-assignments", {
@@ -160,25 +166,24 @@ test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校
           studentUserIds: [studentThree.userId],
         },
       }),
-      400,
+      409,
     );
-    expect(await recordIds(guardianOne.supabase, fixture.records.studentOne.id)).toEqual([
+    expect(await recordIds(guardianOne.supabase, fixture.records.studentOne.id)).toEqual([]);
+    expect(await recordIds(studentOne.supabase, fixture.records.studentOne.id)).toEqual([
       fixture.records.studentOne.id,
     ]);
   });
 
-  await test.step("老师不能跟进未分配学生，学生不能伪造留言收件人", async () => {
-    await expectStatus(
-      await request.post("/api/admin/followups", {
-        headers: headers(teacherOne.accessToken),
-        data: {
-          schoolId: fixture.schools.a.id,
-          recordId: fixture.records.studentTwo.id,
-          status: "in_progress",
-        },
-      }),
-      403,
-    );
+  await test.step("普通负责关系不开放私人SWEET跟进，学生不能伪造留言收件人", async () => {
+    for (const recordId of [fixture.records.studentOne.id, fixture.records.studentTwo.id]) {
+      await expectStatus(
+        await request.post("/api/admin/followups", {
+          headers: headers(teacherOne.accessToken),
+          data: { schoolId: fixture.schools.a.id, recordId, status: "in_progress" },
+        }),
+        403,
+      );
+    }
     await expectStatus(
       await request.post("/api/messages", {
         headers: headers(studentOne.accessToken),
@@ -199,7 +204,7 @@ test("已登录用户伪造 API 参数仍不能跨角色、跨学生或跨学校
           body: "[E2E] 这条伪造家长收件人的留言不应被发送",
         },
       }),
-      403,
+      409,
     );
   });
 

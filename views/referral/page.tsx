@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { IllustrationPanel } from "@/components/IllustrationPanel";
 import { AiUrgentNotice } from "@/components/AiUrgentNotice";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
 import { isAiUrgentResponse } from "@/lib/safety/aiUrgentResponse";
+import { useSessionActor, type SessionActor } from "@/lib/useSessionActor";
+import {
+  normalizeReferralDisplayContext,
+  YOUNG_ADULT_REFERRAL_DISPLAY_CONTEXT,
+  type ReferralDisplayContext,
+} from "@/lib/referralDisplayContext";
 
 const flowStepKeys: TranslationKey[] = [
   "referral.flow.select",
@@ -30,6 +37,21 @@ const supportTierTitleKeys: Record<ReferralResult["supportTier"], TranslationKey
   school_support: "referral.paths.moreSupport",
   professional_support: "referral.paths.moreSupport",
 };
+
+const youngAdultCopyKeys: Partial<Record<TranslationKey, TranslationKey>> = {
+  "referral.hero.description": "referral.youngAdult.heroDescription",
+  "referral.questions.trustedAdult.title": "referral.youngAdult.trustedContactQuestion",
+  "referral.questions.supportType.options.school": "referral.youngAdult.schoolOrCampusSupport",
+  "referral.paths.expressionAndTell": "referral.youngAdult.paths.expressionAndTell",
+  "referral.paths.rhythmAndTell": "referral.youngAdult.paths.rhythmAndTell",
+  "referral.paths.tellAdult": "referral.youngAdult.paths.tellAdult",
+};
+
+function referralCopyKey(key: TranslationKey, displayContext?: ReferralDisplayContext): TranslationKey {
+  return displayContext === YOUNG_ADULT_REFERRAL_DISPLAY_CONTEXT
+    ? youngAdultCopyKeys[key] || key
+    : key;
+}
 
 type Question = {
   id: string;
@@ -247,23 +269,65 @@ function getRecommendedPath(answers: Answers) {
 
 type Translate = ReturnType<typeof useTranslation>["t"];
 
-function buildAnsweredSummary(answers: Answers, t: Translate) {
+function buildAnsweredSummary(answers: Answers, t: Translate, displayContext?: ReferralDisplayContext) {
   const selected = questionnaire
     .filter((item) => getSelections(answers, item.id).length)
     .map((item) => {
       const copy = questionCopyKeys[item.id];
       const labels = getSelections(answers, item.id).map((value) => {
         const optionIndex = item.options.indexOf(value);
-        return optionIndex >= 0 ? t(copy.options[optionIndex]) : value;
+        return optionIndex >= 0 ? t(referralCopyKey(copy.options[optionIndex], displayContext)) : value;
       });
-      return t("referral.result.answerSummary", { question: t(copy.title).replace("？", ""), answers: labels.join("、") });
+      return t("referral.result.answerSummary", {
+        question: t(referralCopyKey(copy.title, displayContext)).replace("？", ""),
+        answers: labels.join("、"),
+      });
     });
 
   return selected.length ? selected.join("；") : t("referral.result.noSelection");
 }
 
 export default function ReferralPage() {
+  const router = useRouter();
+  const actor = useSessionActor();
+  // This untrusted query value selects copy only. It is not an age,
+  // eligibility, consent, or authorization assertion.
+  const displayContext = router.isReady
+    ? normalizeReferralDisplayContext(router.query.displayContext)
+    : undefined;
+  const [workspace, setWorkspace] = useState({ userId: "", revision: 0 });
+  const nextUserId = actor.phase === "loading" ? workspace.userId : actor.actorId;
+  if (nextUserId !== workspace.userId) {
+    // An anonymous draft may become the first account's draft. A previous
+    // account's workspace is replaced before another account can render it.
+    setWorkspace({ userId: nextUserId, revision: workspace.revision + (workspace.userId ? 1 : 0) });
+  }
+  return <ReferralWorkspace
+    key={`${workspace.revision}:${displayContext || "default"}`}
+    actor={actor}
+    displayContext={displayContext}
+  />;
+}
+
+function ReferralWorkspace({
+  actor,
+  displayContext,
+}: {
+  actor: SessionActor;
+  displayContext?: ReferralDisplayContext;
+}) {
   const { locale, t } = useTranslation();
+  const lifetime = useRef({ mounted: false, epoch: 0, requests: new Set<AbortController>() });
+  useEffect(() => {
+    const scope = lifetime.current;
+    scope.mounted = true;
+    return () => {
+      scope.mounted = false;
+      ++scope.epoch;
+      for (const request of scope.requests) request.abort();
+      scope.requests.clear();
+    };
+  }, []);
   const [answers, setAnswers] = useState<Answers>({});
   const [note, setNote] = useState("");
   const [referralResult, setReferralResult] = useState<ReferralResult | null>(null);
@@ -276,9 +340,17 @@ export default function ReferralPage() {
   const complete = questionnaire.every((item) => getSelections(answers, item.id).length > 0);
   const recommendedPath = getRecommendedPath(answers);
   const resultLinks = recommendedPath.links as RecommendationLink[];
-  const resultPathTitleKey: TranslationKey = referralResult
+  const resultPathTitleKey = referralCopyKey(referralResult
     ? supportTierTitleKeys[referralResult.supportTier]
-    : recommendedPath.titleKey;
+    : recommendedPath.titleKey, displayContext);
+
+  function cancelCurrentRequest() {
+    const scope = lifetime.current;
+    ++scope.epoch;
+    for (const request of scope.requests) request.abort();
+    scope.requests.clear();
+    setLoading(false);
+  }
 
   function handleOptionClick(item: Question, option: string) {
     const currentSelections = getSelections(answers, item.id);
@@ -302,6 +374,7 @@ export default function ReferralPage() {
       }
     }
 
+    cancelCurrentRequest();
     setAnswers((current) => {
       const updated = { ...current };
       if (nextSelections.length) {
@@ -325,6 +398,7 @@ export default function ReferralPage() {
   }
 
   async function generateRecommendation() {
+    if (loading) return;
     if (!getSelections(answers, "currentState").length) {
       setValidation(t("referral.messages.selectCurrentState"));
       return;
@@ -340,6 +414,12 @@ export default function ReferralPage() {
       return current;
     }, {});
 
+    const scope = lifetime.current;
+    const sequence = ++scope.epoch;
+    const controller = new AbortController();
+    scope.requests.add(controller);
+    const sameActor = actor.phase === "ready" ? actor.trackRequest() : () => true;
+    const current = () => scope.mounted && sequence === scope.epoch && sameActor();
     setLoading(true);
     setError("");
     setValidation("");
@@ -347,8 +427,10 @@ export default function ReferralPage() {
       const response = await fetch("/api/ai/referral", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           locale,
+          ...(displayContext ? { displayContext } : {}),
           ...payload,
           note: [
             `当前状态：${getSelections(answers, "currentState").join("、")}`,
@@ -358,6 +440,7 @@ export default function ReferralPage() {
         }),
       });
       const data = await response.json();
+      if (!current()) return;
       if (!response.ok) throw new Error(data.error || t("referral.messages.responseUnavailable"));
       if (isAiUrgentResponse(data)) {
         setReferralResult(null);
@@ -367,9 +450,11 @@ export default function ReferralPage() {
       setUrgentReply("");
       setReferralResult(data);
     } catch (requestError) {
+      if (!current()) return;
       setError(requestError instanceof Error ? requestError.message : t("referral.messages.responseUnavailable"));
     } finally {
-      setLoading(false);
+      scope.requests.delete(controller);
+      if (current()) setLoading(false);
     }
   }
 
@@ -377,7 +462,7 @@ export default function ReferralPage() {
     <>
       <PageHero
         title={t("referral.hero.title")}
-        subtitle={t("referral.hero.description")}
+        subtitle={t(referralCopyKey("referral.hero.description", displayContext))}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-progress-path.webp"
@@ -423,7 +508,9 @@ export default function ReferralPage() {
               <article key={item.id} className="card">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-bold leading-snug text-ink">{t(questionCopyKeys[item.id].title)}</h3>
+                    <h3 className="text-lg font-bold leading-snug text-ink">
+                      {t(referralCopyKey(questionCopyKeys[item.id].title, displayContext))}
+                    </h3>
                     {item.instruction ? (
                       <p className="mt-2 text-xs font-bold text-sage">{questionCopyKeys[item.id].instruction ? t(questionCopyKeys[item.id].instruction!) : item.instruction}</p>
                     ) : null}
@@ -446,7 +533,7 @@ export default function ReferralPage() {
                             : "border-ink/10 bg-white/80 text-muted hover:border-sage/50 hover:text-sage-dark"
                         }`}
                       >
-                        {selected ? "✓ " : ""}{t(questionCopyKeys[item.id].options[optionIndex])}
+                        {selected ? "✓ " : ""}{t(referralCopyKey(questionCopyKeys[item.id].options[optionIndex], displayContext))}
                       </button>
                     );
                   })}
@@ -472,7 +559,7 @@ export default function ReferralPage() {
                   <textarea
                     className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none transition focus:border-sage"
                     value={note}
-                    onChange={(event) => setNote(event.target.value)}
+                    onChange={(event) => { cancelCurrentRequest(); setNote(event.target.value); }}
                     placeholder={t("referral.generate.notePlaceholder")}
                   />
                 </label>
@@ -500,7 +587,7 @@ export default function ReferralPage() {
               <p className="mt-2 text-xs leading-6 text-muted">{t("referral.ruleBased.description")}</p>
               <p className="text-sm font-bold text-sage">{t("referral.result.label")}</p>
               <h2 className="mt-2 text-[1.7rem] font-bold leading-[1.25] text-ink">{t("referral.result.title")}</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">{buildAnsweredSummary(answers, t)}</p>
+              <p className="mt-3 text-sm leading-7 text-muted">{buildAnsweredSummary(answers, t, displayContext)}</p>
 
               <div className="mt-6 grid gap-5 md:grid-cols-2">
                 <div className="rounded-2xl bg-cream p-5">

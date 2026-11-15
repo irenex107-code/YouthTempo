@@ -88,7 +88,8 @@ for (const [locale, copy] of [["zh-CN", zh.account], ["en", en.account]] as cons
     expect(sends).toBe(0);
     await page.reload();
     await page.clock.install({ time: new Date("2026-10-09T08:00:00Z") });
-    await page.clock.pauseAt(new Date("2026-10-09T08:00:00Z"));
+    // Pause before sending, with enough headroom for the install RPC to finish.
+    await page.clock.pauseAt(new Date("2026-10-09T08:01:00Z"));
     await page.getByPlaceholder("name@example.com").fill("otp-recovery@example.invalid");
     await page.getByRole("button", { name: copy.visitor.sendOtp, exact: true }).click();
     await expect(page.getByText(copy.notices.otpSent, { exact: true })).toBeVisible();
@@ -131,9 +132,15 @@ test("已有验证码验证成功后保存会话，刷新后继续使用该会�
   await page.getByRole("button", { name: zh.account.visitor.signIn, exact: true }).click();
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter(k => /^sb-.*-auth-token$/.test(k)).length)).toBe(1);
   await expect.poll(() => userReads).toBeGreaterThan(0);
+  // Successful student sign-in continues to the garden. Check session
+  // persistence on the account route, which deliberately revalidates /user.
+  await expect(page).toHaveURL(/\/garden$/);
+  await page.goto("/account");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("OTP test");
   const readsBeforeReload = userReads;
   await page.reload();
   await expect.poll(() => userReads).toBeGreaterThan(readsBeforeReload);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("OTP test");
   await expect(page.getByPlaceholder("name@example.com")).toHaveCount(0);
   expect(sends).toBe(0);
 });

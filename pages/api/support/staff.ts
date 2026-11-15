@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { normalizeLocale } from "@/lib/i18n/config";
-import { getServerTranslator } from "@/lib/i18n/server";
+import { getRequestLocale, getServerTranslator } from "@/lib/i18n/server";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
 import { parseStaffApplication } from "@/lib/supportWorkflow";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { isActiveStudentConsent } from "@/lib/studentConsent";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const locale = normalizeLocale(typeof req.body?.locale === "string" ? req.body.locale : req.cookies.NEXT_LOCALE);
+  const locale = getRequestLocale(req);
   const t = getServerTranslator(locale);
   try {
     const user = await getAuthenticatedUser(req);
@@ -28,18 +28,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ error: t("supportFlow.errors.locked") });
     }
     if (current?.category === "school_duty_teacher") {
+      if (current.status !== "pending") {
+        return res.status(409).json({ error: t("supportFlow.errors.locked") });
+      }
       if (req.body?.action !== "confirm_invitation"
         || req.body?.boundariesConfirmed !== true
         || req.body?.crisisRulesConfirmed !== true
         || req.body?.privacyRulesConfirmed !== true) {
         return res.status(400).json({ error: t("supportFlow.errors.invalid") });
       }
-      const { error } = await supabase.from("support_staff_applications")
+      const { data: confirmed, error } = await supabase.from("support_staff_applications")
         .update({
           boundaries_confirmed: true, crisis_rules_confirmed: true, privacy_rules_confirmed: true,
           updated_at: new Date().toISOString(),
-        }).eq("user_id", user.id).eq("status", "pending");
+        }).eq("user_id", user.id).eq("status", "pending").select("user_id").maybeSingle();
       if (error) throw error;
+      if (!confirmed) return res.status(409).json({ error: t("supportFlow.errors.locked") });
       return res.status(200).json({ saved: true });
     }
     const { data: profile, error: profileError } = await supabase.from("profiles")
@@ -47,9 +51,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (profileError) throw profileError;
     if (profile?.role === "学生") {
       const { data: consent, error: consentError } = await supabase.from("student_consents")
-        .select("age_band,consent_basis,status").eq("student_user_id", user.id).maybeSingle();
+        .select("age_band,consent_basis,status,policy_version,student_assented_at,guardian_user_id,guardian_consented_at")
+        .eq("student_user_id", user.id).maybeSingle();
       if (consentError) throw consentError;
-      if (consent?.age_band !== "18_plus" || consent.consent_basis !== "adult_self" || consent.status !== "active") {
+      if (consent?.age_band !== "18_plus" || consent.consent_basis !== "adult_self" || !isActiveStudentConsent(consent)) {
         return res.status(403).json({ error: t("supportFlow.errors.noAccess") });
       }
     }

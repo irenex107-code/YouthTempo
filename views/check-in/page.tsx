@@ -1,6 +1,9 @@
 import { GardenGuide } from "@/components/garden/GardenWelcome";
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { useInlineStudentConsent } from "@/lib/useInlineStudentConsent";
+import { detectCrisisInValues, getCrisisResponse } from "@/lib/safety/crisisDetection";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { AiUrgentNotice } from "@/components/AiUrgentNotice";
@@ -8,7 +11,11 @@ import { AiGeneratedLabel, AiTransparencyNotice } from "@/components/AiTranspare
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
 import { aiRequestHeaders } from "@/lib/aiClient";
-import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
+import { getCurrentUser, readCloudSweetScope, saveCloudSweetRecord } from "@/lib/cloudRecords";
+import type { CloudSweetRecord } from "@/lib/cloudRecords";
+import { SweetPersistenceError, sweetRecordsKey, sweetStoredDay } from "@/lib/sweetPersistenceProtocol";
+import type { SweetScope, SweetIntent, SweetRecordInput } from "@/lib/sweetPersistenceProtocol";
+import { getSupabase } from "@/lib/supabaseClient";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
@@ -47,6 +54,25 @@ type AiResult = {
   recommendedNextTool: string;
   supportReminder: string;
 };
+
+type SummaryIntent = Extract<SweetIntent, "replace_summary" | "preserve_summary" | "clear_summary">;
+
+type SaveLifecycle = { completedKeys: Set<string> };
+
+type SavedSummary = {
+  summary: string | null;
+  smallStep: string | null;
+  recommendedNextTool: string | null;
+};
+
+function savedSummary(record: CloudSweetRecord): SavedSummary | null {
+  const result = {
+    summary: record.summary || null,
+    smallStep: record.small_step || null,
+    recommendedNextTool: record.recommended_next_tool || null,
+  };
+  return Object.values(result).some(Boolean) ? result : null;
+}
 
 const steps: CheckStep[] = [
   {
@@ -188,9 +214,36 @@ function isFieldComplete(value: FieldValue) {
 
 export default function CheckInPage() {
   const { locale, t } = useTranslation();
+  const consent = useInlineStudentConsent();
+  const draftOwner = useRef("");
+  const draftRequest = useRef({ mounted: false, revision: 0, sequence: 0, controller: null as AbortController | null });
+  const saveSequence = useRef(0);
+  const activeSave = useRef(0);
+  const answerRevision = useRef(0);
+  const [saveLifecycle, setSaveLifecycle] = useState<SaveLifecycle>(() => ({ completedKeys: new Set() }));
+  const currentSaveLifecycle = useRef(saveLifecycle);
+  const resultLifecycle = useRef(new WeakMap<AiResult, SaveLifecycle>());
+  const [rawCompleted, setRawCompleted] = useState(false);
+
+  const startSaveLifecycle = useCallback(() => {
+    const next: SaveLifecycle = { completedKeys: new Set() };
+    currentSaveLifecycle.current = next;
+    setSaveLifecycle(next);
+    setRawCompleted(false);
+    return next;
+  }, []);
+  // Identity events are synchronous; React may batch a complete A -> B -> A.
+  // Unlike consent access epochs, this survives same-account revalidation.
+  const identity = useRef({ actor: undefined as string | undefined, epoch: 0 });
+  const conflictRequired = useRef(false);
+  const [conflicted, setConflicted] = useState(false);
+  const previewSequence = useRef(0);
+  const [reviewing, setReviewing] = useState(false);
+  const [preview, setPreview] = useState<{ scope: SweetScope; current: () => boolean } | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [savableResult, setSavableResult] = useState<AiResult | null>(null);
   const [urgentReply, setUrgentReply] = useState("");
   const [loading, setLoading] = useState(false);
   const [sensitiveConsentAccepted, setSensitiveConsentAccepted] = useState(false);
@@ -199,6 +252,15 @@ export default function CheckInPage() {
   const [saveStatus, setSaveStatus] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedRecordKey, setSavedRecordKey] = useState("");
+  const [savedContentKey, setSavedContentKey] = useState("");
+  const lastSaved = useRef<{
+    recordKey: string; contentKey: string; result: SavedSummary | null;
+    createdAt: string; operation: number; sameDraft: () => boolean;
+    accessCurrent: () => boolean; scope: SweetScope;
+  } | null>(null);
+  const pendingWrite = useRef<{ scope: SweetScope; contentKey: string; recordKey: string;
+    intent: SummaryIntent; record: SweetRecordInput; operation: number; sameDraft: () => boolean } | null>(null);
+  const aiPersistence = useRef<{ result: AiResult; scope: SweetScope } | null>(null);
   const [detailsOpen, setDetailsOpen] = useState<Record<StepId, boolean>>({
     sleep: false,
     wake: false,
@@ -209,6 +271,19 @@ export default function CheckInPage() {
   const questionCardRef = useRef<HTMLElement | null>(null);
   const resultRef = useRef<HTMLElement | null>(null);
   const shouldScrollToQuestionRef = useRef(false);
+
+  useEffect(() => {
+    const scope = draftRequest.current;
+    const answersScope = answerRevision;
+    scope.mounted = true;
+    return () => {
+      scope.mounted = false;
+      ++scope.sequence;
+      ++answersScope.current;
+      scope.controller?.abort();
+      activeSave.current = 0;
+    };
+  }, []);
 
   const step = steps[currentStep];
   const currentAnswer = answers[step.id];
@@ -236,17 +311,46 @@ export default function CheckInPage() {
     setCurrentStep(Math.max(0, Math.min(index, steps.length - 1)));
   }
 
+  const cancelSummary = useCallback(() => {
+    // Retire captured save/generate callbacks, but retain any dispatched
+    // command in pendingWrite for reconciliation at its original expected head.
+    startSaveLifecycle();
+    setSavableResult(null);
+    const scope = draftRequest.current;
+    ++scope.revision;
+    ++scope.sequence;
+    scope.controller?.abort();
+    scope.controller = null;
+    setLoading(false);
+    ++previewSequence.current;
+    setPreview(null);
+    setReviewing(false);
+    setAiResult(null);
+    aiPersistence.current = null;
+    setError("");
+    // Storage already dispatched may still finish. Keep its busy state until
+    // that operation settles; its old result must not mark this new draft saved.
+  }, [startSaveLifecycle]);
+
   function setSingleValue(fieldId: string, value: string) {
+    ++answerRevision.current;
+    pendingWrite.current = null;
+    cancelSummary();
     setAnswers((current) => ({ ...current, [step.id]: { ...current[step.id], [fieldId]: value } }));
     setValidation("");
     setSaveStatus("");
     setSavedRecordKey("");
+    setSavedContentKey("");
+    lastSaved.current = null;
     setSensitiveConsentAccepted(false);
     setAiResult(null);
     setUrgentReply("");
   }
 
   function toggleMultiValue(fieldId: string, value: string) {
+    ++answerRevision.current;
+    pendingWrite.current = null;
+    cancelSummary();
     setAnswers((current) => {
       const existing = current[step.id][fieldId];
       const list = Array.isArray(existing) ? existing : [];
@@ -261,15 +365,22 @@ export default function CheckInPage() {
     setValidation("");
     setSaveStatus("");
     setSavedRecordKey("");
+    setSavedContentKey("");
+    lastSaved.current = null;
     setAiResult(null);
     setUrgentReply("");
   }
 
   function setTextValue(fieldId: string, value: string) {
+    ++answerRevision.current;
+    pendingWrite.current = null;
+    cancelSummary();
     setAnswers((current) => ({ ...current, [step.id]: { ...current[step.id], [fieldId]: value } }));
     setValidation("");
     setSaveStatus("");
     setSavedRecordKey("");
+    setSavedContentKey("");
+    lastSaved.current = null;
     setAiResult(null);
     setUrgentReply("");
   }
@@ -283,7 +394,10 @@ export default function CheckInPage() {
     goToStep(currentStep + 1);
   }
 
-  function reset() {
+  const reset = useCallback(() => {
+    ++answerRevision.current;
+    pendingWrite.current = null;
+    cancelSummary();
     setAnswers(initialAnswers);
     setCurrentStep(0);
     setAiResult(null);
@@ -292,7 +406,86 @@ export default function CheckInPage() {
     setValidation("");
     setSaveStatus("");
     setSavedRecordKey("");
+    setSavedContentKey("");
+    lastSaved.current = null;
+    setSensitiveConsentAccepted(false);
     setDetailsOpen({ sleep: false, wake: false, eat: false, exercise: false, task: false });
+  }, [cancelSummary]);
+
+  useEffect(() => {
+    if (draftOwner.current && draftOwner.current !== consent.userId) {
+      activeSave.current = 0;
+      reset();
+      setSaving(false);
+    }
+    draftOwner.current = consent.userId;
+  }, [consent.userId, reset]);
+
+  useEffect(() => {
+    const subscription = getSupabase()?.auth.onAuthStateChange((event, session) => {
+      const actor = session?.user.id || "";
+      if (identity.current.actor === undefined) { identity.current.actor = actor; return; }
+      if (identity.current.actor === actor && event !== "SIGNED_OUT") return;
+      identity.current = { actor, epoch: identity.current.epoch + 1 };
+      pendingWrite.current = null;
+      aiPersistence.current = null;
+      lastSaved.current = null;
+      conflictRequired.current = false;
+      setConflicted(false);
+      activeSave.current = 0;
+      setSaving(false);
+      reset();
+    });
+    return () => subscription?.data.subscription.unsubscribe();
+  }, [reset]);
+
+  function requireConflictReview() {
+    conflictRequired.current = true;
+    setConflicted(true);
+    ++previewSequence.current;
+    setPreview(null);
+    setReviewing(false);
+  }
+
+  async function reviewLatest() {
+    if (!conflictRequired.current || activeSave.current || reviewing || !consent.canProceed) return;
+    const sequence = ++previewSequence.current;
+    const epoch = identity.current.epoch;
+    const answersAtReview = answerRevision.current;
+    const revision = draftRequest.current.revision;
+    const accessCurrent = consent.trackRequest();
+    const current = () => draftRequest.current.mounted && sequence === previewSequence.current
+      && epoch === identity.current.epoch && answersAtReview === answerRevision.current
+      && revision === draftRequest.current.revision && accessCurrent();
+    setPreview(null);
+    setReviewing(true);
+    try {
+      const scope = await readCloudSweetScope(consent.userId, undefined, current);
+      if (current()) { setPreview({ scope, current }); setSaveStatus(""); }
+    } catch (error) {
+      if (current()) setSaveStatus(recordSaveErrorMessage(error));
+    } finally {
+      if (sequence === previewSequence.current) setReviewing(false);
+    }
+  }
+
+  function confirmReviewed(result: AiResult | null) {
+    if (!preview || activeSave.current) return;
+    if (!preview.current() || sweetStoredDay(new Date().toISOString()) !== preview.scope.operationDay) {
+      ++previewSequence.current;
+      setPreview(null);
+      setSaveStatus(t("checkIn.messages.persistenceScopeExpired"));
+      return;
+    }
+    const scope = preview.scope;
+    ++previewSequence.current;
+    setPreview(null);
+    // This is a new, explicit operation against the displayed version.
+    // saveCurrentRecord must not read a newer baseline during confirmation.
+    const lifecycle = startSaveLifecycle();
+    setSavableResult(result);
+    if (result) resultLifecycle.current.set(result, lifecycle);
+    void saveCurrentRecord(result, undefined, scope, true, lifecycle);
   }
 
   function getRecordPayload() {
@@ -304,9 +497,59 @@ export default function CheckInPage() {
     }));
   }
 
+  function renderRecords(records: SweetRecordInput["records"]) {
+    return records.map((record) => {
+      const step = steps.find((item) => item.id === record.id);
+      if (!step) return null;
+      const copy = stepCopyKeys[step.id];
+      return <div key={record.id} className="mt-3">
+        <h4 className="font-bold">{t(copy.title)}</h4>
+        <dl className="text-sm leading-7">{record.fields.filter((field) => isFieldComplete(field.value)).map((field) => {
+          const fieldCopy = copy.fields[field.id];
+          const definition = step.fields.find((item) => item.id === field.id);
+          const display = (value: string) => {
+            const index = definition?.options?.indexOf(value) ?? -1;
+            const key = index >= 0 ? fieldCopy?.options?.[index] : undefined;
+            return key ? t(key) : value;
+          };
+          return <div key={field.id}><dt>{fieldCopy ? t(fieldCopy.title) : field.title}</dt>
+            <dd className="whitespace-pre-wrap break-words">{Array.isArray(field.value) ? field.value.map(display).join(locale === "en" ? ", " : "、") : display(field.value)}</dd></div>;
+        })}</dl>
+      </div>;
+    });
+  }
+
+  function renderSummary(result: SavedSummary | null) {
+    return result ? <dl className="mt-3 text-sm leading-7">
+      <dt className="font-bold">{t("checkIn.result.title")}</dt><dd className="whitespace-pre-wrap break-words">{result.summary || t("checkIn.conflict.noSummary")}</dd>
+      <dt className="font-bold">{t("checkIn.result.smallStep")}</dt><dd className="whitespace-pre-wrap break-words">{result.smallStep || t("checkIn.conflict.noSummary")}</dd>
+      <dt className="font-bold">{t("checkIn.result.nextTool")}</dt><dd className="whitespace-pre-wrap break-words">{result.recommendedNextTool || t("checkIn.conflict.noSummary")}</dd>
+    </dl> : <p className="mt-3 text-sm">{t("checkIn.conflict.noSummary")}</p>;
+  }
+
+  function getContentKey(result: SavedSummary | null) {
+    return JSON.stringify({
+      records: getRecordPayload(),
+      summary: result?.summary || null,
+      smallStep: result?.smallStep || null,
+      recommendedNextTool: result?.recommendedNextTool || null,
+    });
+  }
+
   function recordSaveErrorMessage(saveError: unknown) {
     const message = saveError instanceof Error ? saveError.message : "";
+    if (saveError instanceof SweetPersistenceError) {
+      if (saveError.code === "conflict") return t("checkIn.messages.persistenceConflict");
+      if (saveError.code === "scope_expired") return t("checkIn.messages.persistenceScopeExpired");
+      if (saveError.code === "outcome_unknown") return t("checkIn.messages.persistenceUnknown");
+      if (saveError.code === "denied") return t("inlineConsent.consentNeeded");
+      if (saveError.code === "write_rejected") return t("checkIn.messages.saveFailed");
+      // An unavailable read cannot settle a previous write's unknown outcome.
+      if (saveError.code === "protocol_unavailable") return t("checkIn.messages.persistenceUnavailable");
+      return t("checkIn.messages.persistenceUnavailable");
+    }
     const normalized = message.toLowerCase();
+    if (normalized.includes("知情") || normalized.includes("使用确认") || normalized.includes("consent")) return t("inlineConsent.consentNeeded");
     if (normalized.includes("jwt") || normalized.includes("session") || normalized.includes("登录")) {
       return t("checkIn.messages.sessionExpired");
     }
@@ -316,45 +559,168 @@ export default function CheckInPage() {
     if (normalized.includes("fetch") || normalized.includes("network") || normalized.includes("failed to")) {
       return t("checkIn.messages.networkError");
     }
-    return t("checkIn.messages.saveFailed");
+    // Opaque SDK/auth/read errors provide no evidence about a prior commit.
+    return t("checkIn.messages.persistenceUnavailable");
   }
 
-  async function saveCurrentRecord(result: AiResult | null = aiResult) {
-    if (saving) return;
-    if (!allRequiredDone) {
-      setValidation(t("checkIn.messages.completeBeforeSave"));
-      return;
-    }
-    const recordPayload = {
-      records: getRecordPayload(),
-      summary: result?.summary,
-      smallStep: result?.smallStep,
-      recommendedNextTool: result?.recommendedNextTool,
-    };
-    const recordKey = JSON.stringify(recordPayload.records);
-    if (recordKey === savedRecordKey) {
-      setSaveStatus(t("checkIn.messages.alreadySaved"));
-      return;
-    }
+  async function saveCurrentRecord(result: AiResult | null = aiResult, expectedRevision?: number, frozenScope?: SweetScope, reviewed = false, lifecycle = saveLifecycle) {
+    // Captured callbacks belong to their original operation, even after a new
+    // render, edit, identity change or explicit generation has started.
+    if (currentSaveLifecycle.current !== lifecycle) return;
+    if (result && resultLifecycle.current.get(result) !== lifecycle) return;
+    const requestedKey = getContentKey(result);
+    if (lifecycle.completedKeys.has(requestedKey)) return;
+    if (saving || activeSave.current) return;
+    if (showUrgentIfNeeded()) return;
+    if (conflictRequired.current && !reviewed) { setSaveStatus(t("checkIn.messages.persistenceConflict")); return; }
+    if (!allRequiredDone) { setValidation(t("checkIn.messages.completeBeforeSave")); return; }
+    if (!consent.canProceed) { setSaveStatus(t("inlineConsent.consentNeeded")); return; }
+    const ui = draftRequest.current;
+    const revision = expectedRevision ?? ui.revision;
+    const actor = consent.userId;
+    const sameActor = consent.trackRequest();
+    const identityAtSave = identity.current.epoch;
+    const current = () => ui.mounted && ui.revision === revision && currentSaveLifecycle.current === lifecycle
+      && identity.current.epoch === identityAtSave && sameActor();
+    if (!current()) return;
+    const records = getRecordPayload();
+    const recordKey = sweetRecordsKey(records);
+    const answersAtSave = answerRevision.current;
+    // Persistence facts survive AI choices/access rechecks. Only UI/access
+    // guards can confirm a result for the current screen.
+    const sameDraft = () => ui.mounted && answerRevision.current === answersAtSave && identity.current.epoch === identityAtSave && consent.isSameActor(actor);
+    const receipt = !reviewed && lastSaved.current?.sameDraft() && lastSaved.current.recordKey === recordKey ? lastSaved.current : null;
+    const pendingDraft = !reviewed && pendingWrite.current?.sameDraft() && pendingWrite.current.recordKey === recordKey ? pendingWrite.current : null;
+    const retry = pendingDraft?.contentKey === requestedKey ? pendingDraft : null;
+    const generated = result && aiPersistence.current?.result === result ? aiPersistence.current.scope : undefined;
+    const operation = ++saveSequence.current;
+    activeSave.current = operation;
     setSaving(true);
+    setSaveStatus("");
     try {
       const user = await getCurrentUser();
-      if (!user) {
-        setSaveStatus(t("checkIn.messages.signInToSave"));
-        return;
+      if (!current()) return;
+      if (!user) { setSaveStatus(t("checkIn.messages.signInToSave")); return; }
+      // Every independent action gets a database baseline. An unknown retry or
+      // an AI operation uses its already frozen baseline, never a newer token.
+      const frozen = frozenScope ?? retry?.scope ?? generated ?? pendingDraft?.scope;
+      const basis = frozen ?? await readCloudSweetScope(actor, undefined, current);
+      if (!current()) return;
+      const sameDayReceipt = receipt?.scope.targetDay === basis.targetDay ? receipt : null;
+      const reconciliation = result === null && sameDayReceipt !== null && !sameDayReceipt?.accessCurrent();
+      const protectsUnknownSummary = result === null && pendingDraft?.intent === "replace_summary"
+        && pendingDraft.scope.targetDay === basis.targetDay;
+      let intent: SummaryIntent = retry?.intent ?? (result !== null ? "replace_summary" : !reviewed && (sameDayReceipt || protectsUnknownSummary) ? "preserve_summary" : "clear_summary");
+      let acceptedBasis = basis;
+      let source = basis.record;
+      if (source && source.user_id !== actor) throw new SweetPersistenceError("protocol_unavailable");
+      let stored: CloudSweetRecord;
+      if (reconciliation || intent === "preserve_summary") {
+        // Preserving unchanged answers is a read reconciliation, never a
+        // reason to rebase an old mutation or write a null downgrade.
+        if (frozen) {
+          acceptedBasis = await readCloudSweetScope(actor, basis.targetDay, current);
+          if (!current()) return;
+          if (acceptedBasis.operationDay !== basis.operationDay) throw new SweetPersistenceError("scope_expired");
+          source = acceptedBasis.record;
+        }
+        // Query errors/missing rows are unknown, not an instruction to clear.
+        if (!source && pendingDraft && acceptedBasis.headToken === basis.headToken) {
+          // An authoritative empty read allows a fresh raw save at the ORIGINAL
+          // expected version. It cannot erase a committed/unknown summary.
+          intent = "clear_summary";
+          const record = structuredClone({ records });
+          pendingWrite.current = { scope: basis, contentKey: requestedKey, recordKey, intent, record, operation, sameDraft };
+          stored = await saveCloudSweetRecord(record, actor, { scope: basis, intent, current });
+        } else {
+          if (!source || sweetRecordsKey(source.records) !== recordKey) throw new SweetPersistenceError("protocol_unavailable");
+          stored = source;
+        }
+      } else {
+        const preserving = result;
+        const recordPayload = retry?.record ?? structuredClone({ records, summary: preserving?.summary ?? undefined,
+          smallStep: preserving?.smallStep ?? undefined, recommendedNextTool: preserving?.recommendedNextTool ?? undefined });
+        // This shortcut is a fresh authoritative read, not an old receipt or
+        // a cached baseline from an in-flight/unknown operation.
+        const alreadyCurrent = !frozen && source && sweetRecordsKey(source.records) === recordKey
+          && getContentKey(savedSummary(source)) === getContentKey(preserving);
+        if (alreadyCurrent && source) stored = source;
+        else {
+          pendingWrite.current = { scope: basis, contentKey: requestedKey, recordKey, intent, record: recordPayload, operation, sameDraft };
+          stored = await saveCloudSweetRecord(recordPayload, actor, { scope: basis, intent, current });
+        }
       }
-      await saveCloudSweetRecord(recordPayload);
+      if (pendingWrite.current?.operation === operation || (pendingDraft && acceptedBasis.headToken !== pendingDraft.scope.headToken)) pendingWrite.current = null;
+      if (!sameDraft() || activeSave.current !== operation || operation < (lastSaved.current?.operation ?? 0)) return;
+      if (stored.user_id !== actor) throw new SweetPersistenceError("protocol_unavailable");
+      const persistedResult = savedSummary(stored);
+      const persistedKey = getContentKey(persistedResult);
+      const acceptedScope: SweetScope = { ...acceptedBasis, headToken: stored.id, record: stored };
+      lastSaved.current = { recordKey, contentKey: persistedKey, result: persistedResult, scope: acceptedScope,
+        createdAt: stored.created_at, operation, sameDraft, accessCurrent: sameActor };
+      // Close the mutation even when an AI choice/access recheck invalidated
+      // its UI. Read-only preserve reconciliation never completes a null write.
+      const canConfirm = current();
+      const completesMutation = intent !== "preserve_summary" && persistedKey === requestedKey;
+      if (completesMutation) {
+        lifecycle.completedKeys.add(requestedKey);
+        if (result) setSavableResult((selected) => selected === result ? null : selected);
+        if (currentSaveLifecycle.current === lifecycle) {
+          const terminal: SaveLifecycle = { completedKeys: new Set(lifecycle.completedKeys) };
+          currentSaveLifecycle.current = terminal;
+          setSaveLifecycle(terminal);
+          if (result === null) setRawCompleted(true);
+        }
+      }
+      if (result !== null && aiPersistence.current?.result === result) aiPersistence.current = null;
+      if (!canConfirm) return;
+      if (reviewed) { conflictRequired.current = false; setConflicted(false); }
       setSavedRecordKey(recordKey);
-      setSaveStatus(t("checkIn.messages.saved"));
+      setSavedContentKey(persistedKey);
+      const confirmsVisible = !aiResult || persistedKey === getContentKey(result ?? aiResult);
+      setSaveStatus(confirmsVisible ? t(reconciliation || (sameDayReceipt && source?.id === stored.id)
+        ? "checkIn.messages.alreadySaved" : "checkIn.messages.saved") : "");
+
     } catch (saveError) {
+      // Retain the complete dispatched command on every failure. A fresh read
+      // is allowed for reconciliation/review, never to rebase this command.
+      if (saveError instanceof SweetPersistenceError && ["conflict", "scope_expired"].includes(saveError.code)
+        && sameDraft()) requireConflictReview();
+      if (!current()) return;
+      if (saveError instanceof SweetPersistenceError && saveError.code === "denied") void consent.refresh();
       reportClientOperationFailure("save", "sweet_record_save", saveError);
       setSaveStatus(recordSaveErrorMessage(saveError));
     } finally {
-      setSaving(false);
+      if (ui.mounted && activeSave.current === operation) { activeSave.current = 0; setSaving(false); }
     }
   }
 
-  async function requestSummary(): Promise<AiResult | AiUrgentResponse> {
+  function beginSummaryRequest() {
+    const scope = draftRequest.current;
+    const revision = scope.revision;
+    const sequence = ++scope.sequence;
+    const controller = new AbortController();
+    scope.controller?.abort();
+    scope.controller = controller;
+    const sameActor = consent.trackRequest();
+    return {
+      revision,
+      controller,
+      current: () => scope.mounted && scope.revision === revision && scope.sequence === sequence && sameActor(),
+    };
+  }
+
+  function finishSummaryRequest(request: ReturnType<typeof beginSummaryRequest>) {
+    const scope = draftRequest.current;
+    // Access revalidation can invalidate a response without starting a newer
+    // request. The owner must still release its busy state when it settles.
+    if (scope.controller === request.controller) {
+      scope.controller = null;
+      if (scope.mounted) setLoading(false);
+    }
+  }
+
+  async function requestSummary(request: ReturnType<typeof beginSummaryRequest>): Promise<AiResult | AiUrgentResponse> {
     const payload = {
       locale,
       currentDate: new Date().toISOString(),
@@ -363,29 +729,46 @@ export default function CheckInPage() {
       aiNoticeVersion: AI_NOTICE_VERSION,
       records: getRecordPayload().map((item) => ({ ...item, dimension: `${item.label} ${item.title}` })),
     };
+    const headers = await aiRequestHeaders(consent.userId);
+    if (!request.current()) throw new Error("summary_interrupted");
     const response = await fetch("/api/ai/check-in", {
       method: "POST",
-      headers: await aiRequestHeaders(),
+      headers,
+      signal: request.controller.signal,
       body: JSON.stringify(payload),
     });
     const data = await response.json();
+    if (!request.current()) throw new Error("summary_interrupted");
+    if (response.status === 401 || response.status === 403) void consent.refresh();
     if (!response.ok) throw new Error(data.error || t("checkIn.messages.summaryFailed"));
     return data as AiResult | AiUrgentResponse;
   }
 
   async function generateSummary() {
-    if (loading || saving) return;
+    if (currentSaveLifecycle.current !== saveLifecycle) return;
+    if (loading || saving || activeSave.current) return;
+    if (showUrgentIfNeeded()) return;
+    if (conflictRequired.current) { setSaveStatus(t("checkIn.messages.persistenceConflict")); return; }
     if (!allRequiredDone) {
       setValidation(t("checkIn.messages.completeBeforeGenerate"));
       return;
     }
+    if (!consent.studentReady) { setValidation(t("inlineConsent.consentNeeded")); return; }
+    if (!sensitiveConsentAccepted) { setValidation(t("aiTransparency.confirm")); return; }
+    const lifecycle = startSaveLifecycle();
+    setSavableResult(null);
+    const request = beginSummaryRequest();
+    const current = () => currentSaveLifecycle.current === lifecycle && request.current();
 
     setLoading(true);
     setError("");
     setValidation("");
     setSaveStatus("");
     try {
-      const result = await requestSummary();
+      const persistenceScope = await readCloudSweetScope(consent.userId, undefined, current);
+      if (!current()) return;
+      const result = await requestSummary(request);
+      if (!current()) return;
       if (isAiUrgentResponse(result)) {
         setAiResult(null);
         setUrgentReply(result.reply);
@@ -393,26 +776,44 @@ export default function CheckInPage() {
       }
       setUrgentReply("");
       setAiResult(result);
+      setSavableResult(result);
+      resultLifecycle.current.set(result, lifecycle);
+      aiPersistence.current = { result, scope: persistenceScope };
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t("checkIn.messages.responseUnavailable"));
+      if (!current()) return;
+      if (requestError instanceof SweetPersistenceError) setSaveStatus(recordSaveErrorMessage(requestError));
+      else setError(requestError instanceof Error ? requestError.message : t("checkIn.messages.responseUnavailable"));
     } finally {
-      setLoading(false);
+      finishSummaryRequest(request);
     }
   }
 
   async function generateAndSave() {
-    if (loading || saving) return;
+    if (currentSaveLifecycle.current !== saveLifecycle) return;
+    if (loading || saving || activeSave.current) return;
+    if (showUrgentIfNeeded()) return;
+    if (conflictRequired.current) { setSaveStatus(t("checkIn.messages.persistenceConflict")); return; }
     if (!allRequiredDone) {
       setValidation(t("checkIn.messages.completeRequired"));
       return;
     }
+    if (!consent.studentReady) { setValidation(t("inlineConsent.consentNeeded")); return; }
+    if (!sensitiveConsentAccepted) { setValidation(t("aiTransparency.confirm")); return; }
+    const lifecycle = startSaveLifecycle();
+    setSavableResult(null);
+    const request = beginSummaryRequest();
+    const current = () => currentSaveLifecycle.current === lifecycle && request.current();
 
     setLoading(true);
     setError("");
     setValidation("");
     setSaveStatus("");
+    let persistenceScope: SweetScope | undefined;
     try {
-      const result = await requestSummary();
+      persistenceScope = await readCloudSweetScope(consent.userId, undefined, current);
+      if (!current()) return;
+      const result = await requestSummary(request);
+      if (!current()) return;
       if (isAiUrgentResponse(result)) {
         setAiResult(null);
         setUrgentReply(result.reply);
@@ -420,23 +821,37 @@ export default function CheckInPage() {
       }
       setUrgentReply("");
       setAiResult(result);
-      await saveCurrentRecord(result);
+      setSavableResult(result);
+      resultLifecycle.current.set(result, lifecycle);
+      aiPersistence.current = { result, scope: persistenceScope };
+      await saveCurrentRecord(result, request.revision, persistenceScope, false, lifecycle);
     } catch (requestError) {
+      if (!current()) return;
+      if (requestError instanceof SweetPersistenceError) {
+        setSaveStatus(recordSaveErrorMessage(requestError));
+        return;
+      }
       setError(
         requestError instanceof Error
           ? requestError.message
           : t("checkIn.messages.summaryUnavailableSaveAllowed"),
       );
-      await saveCurrentRecord(null);
+      if (persistenceScope) await saveCurrentRecord(null, request.revision, persistenceScope, false, lifecycle);
     } finally {
-      setLoading(false);
+      finishSummaryRequest(request);
     }
+  }
+
+  function showUrgentIfNeeded() {
+    if (!detectCrisisInValues(getRecordPayload(), locale).isUrgent) return false;
+    setAiResult(null); setUrgentReply(getCrisisResponse(locale));
+    return true;
   }
 
   return (
     <>
       <PageHero
-        label="SWEET Rhythm Check-in"
+        label={t("checkIn.hero.label")}
         title={t("checkIn.hero.title")}
         subtitle={t("checkIn.hero.description")}
         aside={
@@ -593,15 +1008,22 @@ export default function CheckInPage() {
               {validation ? <p className="mt-4 text-sm font-bold text-sage-dark">{validation}</p> : null}
 
               {currentStep === steps.length - 1 ? (
+                <InlineStudentConsent controller={consent} className="mt-7" />
+              ) : null}
+              {currentStep === steps.length - 1 ? (
                 <AiTransparencyNotice
                   id="check-in-ai-notice"
                   className="mt-7"
                   checked={sensitiveConsentAccepted}
-                  onChange={setSensitiveConsentAccepted}
+                  onChange={(checked) => { cancelSummary(); setSensitiveConsentAccepted(checked); }}
                 />
               ) : null}
 
               <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
+                {currentStep === steps.length - 1 ? <button type="button" className="button-secondary w-full sm:w-auto"
+                  disabled={loading || saving || rawCompleted || !allRequiredDone} onClick={() => void saveCurrentRecord(null)}>
+                  {t(saving ? "checkIn.actions.saving" : "checkIn.actions.saveFirst")}
+                </button> : null}
                 <button type="button" className="button-secondary w-full sm:w-auto" disabled={currentStep === 0} onClick={() => goToStep(currentStep - 1)}>
                   {t("checkIn.actions.previous")}
                 </button>
@@ -618,6 +1040,35 @@ export default function CheckInPage() {
             </article>
 
             {saveStatus ? <p className="mt-5 rounded-2xl bg-white/80 p-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
+            {conflicted ? <section role="region" aria-labelledby="sweet-conflict-title" className="mt-5 rounded-2xl border border-sage/25 bg-white/85 p-5">
+              <h2 id="sweet-conflict-title" className="font-bold">{t("checkIn.conflict.title")}</h2>
+              <p className="mt-2 text-sm leading-7">{t("checkIn.conflict.explanation")}</p>
+              <button type="button" className="button-secondary mt-4" disabled={reviewing || saving || !consent.canProceed} onClick={() => void reviewLatest()}>
+                {t(reviewing ? "checkIn.conflict.viewing" : "checkIn.conflict.view")}
+              </button>
+              {preview ? <>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <div className="min-w-0 rounded-2xl bg-mist/65 p-4">
+                    <h3 className="font-bold">{t("checkIn.conflict.latest")}</h3>
+                    {preview.scope.record ? <>
+                      <p className="text-sm">{t("checkIn.conflict.savedAt", { time: new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(preview.scope.record.created_at)) })}</p>
+                      {renderRecords(preview.scope.record.records)}
+                      {renderSummary(savedSummary(preview.scope.record))}
+                    </> : <p className="mt-3 text-sm">{t("checkIn.conflict.noRecord")}</p>}
+                  </div>
+                  <div className="min-w-0 rounded-2xl border border-ink/10 p-4">
+                    <h3 className="font-bold">{t("checkIn.conflict.draft")}</h3>
+                    {renderRecords(getRecordPayload())}
+                    {renderSummary(aiResult)}
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {aiResult ? <button type="button" className="button-primary max-w-full whitespace-normal" disabled={saving || !preview.current() || !consent.canProceed} onClick={() => confirmReviewed(aiResult)}>{t("checkIn.conflict.confirmSummary")}</button> : null}
+                  <button type="button" className="button-secondary max-w-full whitespace-normal" disabled={saving || !preview.current() || !consent.canProceed} onClick={() => confirmReviewed(null)}>{t("checkIn.conflict.confirmRaw")}</button>
+                  <button type="button" className="button-secondary max-w-full whitespace-normal" disabled={saving} onClick={() => { ++previewSequence.current; setPreview(null); }}>{t("checkIn.conflict.cancel")}</button>
+                </div>
+              </> : null}
+            </section> : null}
             {error ? (
               <div className="mt-6 rounded-2xl bg-white/80 p-5">
                 <p className="text-sm font-bold text-sage-dark">{error}</p>
@@ -625,7 +1076,7 @@ export default function CheckInPage() {
                   <button type="button" className="button-primary w-full sm:w-auto" disabled={loading} onClick={generateSummary}>
                     {loading ? t("checkIn.actions.retrying") : t("checkIn.actions.regenerate")}
                   </button>
-                  <button type="button" className="button-secondary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
+                  <button type="button" className="button-secondary w-full sm:w-auto" disabled={loading || saving || (aiResult ? aiResult !== savableResult : rawCompleted)} onClick={() => saveCurrentRecord()}>
                     {saving ? t("checkIn.actions.saving") : t("checkIn.actions.saveFirst")}
                   </button>
                 </div>
@@ -667,8 +1118,8 @@ export default function CheckInPage() {
                 <p className="mt-6 rounded-2xl bg-cream p-4 text-sm font-bold leading-7 text-sage-dark">{aiResult.supportReminder}</p>
                 <p className="mt-4 text-xs leading-6 text-muted">{t("checkIn.result.disclaimer")}</p>
                 <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap">
-                  <button type="button" className="button-primary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>
-                    {saving ? t("checkIn.actions.saving") : savedRecordKey ? t("checkIn.actions.savedToAccount") : t("checkIn.actions.saveToAccount")}
+                  <button type="button" className="button-primary w-full sm:w-auto" disabled={loading || saving || (aiResult ? aiResult !== savableResult : rawCompleted)} onClick={() => saveCurrentRecord()}>
+                    {saving ? t("checkIn.actions.saving") : savedContentKey === getContentKey(aiResult) ? t("checkIn.actions.savedToAccount") : t("checkIn.actions.saveToAccount")}
                   </button>
                   <Link href="/mood-journal" className="button-secondary w-full sm:w-auto">{t("checkIn.actions.openMoodJournal")}</Link>
                   <Link href="/worry-time" className="button-secondary w-full sm:w-auto">{t("checkIn.actions.openWorryTime")}</Link>

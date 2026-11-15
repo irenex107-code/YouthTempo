@@ -4,7 +4,7 @@ import { getServerTranslator } from "@/lib/i18n/server";
 import { reportOperationalError } from "@/lib/operationalMonitoring";
 import { enforceUserRateLimit } from "@/lib/rateLimit";
 import { detectCrisis } from "@/lib/safety/crisisDetection";
-import { canCreateAdultConsultation, requireSupportStudent } from "@/lib/supportWorkflow";
+import { canCreateAdultConsultation, getAdultConsultationAvailability, requireSupportHistoryStudent, requireSupportStudent } from "@/lib/supportWorkflow";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -22,17 +22,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: t("supportFlow.errors.signIn") });
     const supabase = getSupabaseAdmin();
-    const student = await requireSupportStudent(supabase, user.id);
-    if (!student) return res.status(403).json({ error: t("supportFlow.errors.noAccess") });
-    const adultAvailable = student.ageBand === "18_plus" && await canCreateAdultConsultation(supabase, user);
     if (req.method === "GET") {
-      const caseType = student.ageBand === "14_17" ? "youth_request" : "adult_consultation";
-      const { data: cases, error } = adultAvailable || student.ageBand === "14_17"
-        ? await supabase.from("support_cases")
-          .select("id,case_type,status,risk_priority,need_summary,availability,appointment_at,appointment_status,referral_type,student_authorization_active,created_at,updated_at,closed_at")
-          .eq("student_user_id", user.id).eq("case_type", caseType)
-          .order("created_at", { ascending: false }).limit(50)
-        : { data: [], error: null };
+      const student = await requireSupportHistoryStudent(supabase, user.id);
+      if (!student) return res.status(403).json({ error: t("supportFlow.errors.noAccess") });
+      let adultAvailabilityReason: "available" | "not_open" | "ineligible" | "unavailable" =
+        student.historyReason === "consent_unavailable" ? "unavailable" : "ineligible";
+      if (student.canUseNewService && student.ageBand === "18_plus") {
+        try { adultAvailabilityReason = await getAdultConsultationAvailability(supabase, user); }
+        catch { adultAvailabilityReason = "unavailable"; /* Eligibility failure must not hide owned history. */ }
+      }
+      const adultAvailable = adultAvailabilityReason === "available";
+      const { data: cases, error } = await supabase.from("support_cases")
+        .select("id,case_type,status,risk_priority,need_summary,availability,appointment_at,appointment_status,referral_type,student_authorization_active,created_at,updated_at,closed_at,row_revision")
+        .eq("student_user_id", user.id).in("case_type", ["youth_request", "adult_consultation"])
+        .order("created_at", { ascending: false }).limit(50);
       if (error) throw error;
       const caseIds = (cases || []).map((item) => item.id);
       const { data: assignments, error: assignmentError } = caseIds.length
@@ -61,7 +64,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const staffById = new Map((staff || []).filter((item) => item.status === "approved")
         .map((item) => [item.user_id, item]));
       return res.status(200).json({
+        canUseNewService: student.canUseNewService && (student.ageBand === "14_17" || adultAvailable),
+        historyReason: student.historyReason,
         consultationAvailable: adultAvailable,
+        adultAvailabilityReason,
         ageBand: student.ageBand,
         cases: (cases || []).map((item) => ({
           ...item,
@@ -80,6 +86,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })),
       });
     }
+    const student = await requireSupportStudent(supabase, user.id);
+    if (!student) return res.status(403).json({ error: t("supportFlow.errors.noAccess") });
+    const adultAvailable = student.ageBand === "18_plus" && await canCreateAdultConsultation(supabase, user);
     const type = req.body?.type;
     if ((type === "adult_consultation" && !adultAvailable)
       || (type === "youth_request" && student.ageBand !== "14_17")

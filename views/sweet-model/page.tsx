@@ -11,7 +11,7 @@ export default function SweetModelPage() {
   return (
     <>
       <PageHero
-        label="SWEET Framework"
+        label={t("sweetModel.hero.label")}
         title={t("sweetModel.hero.title")}
         subtitle={t("sweetModel.hero.description")}
         aside={

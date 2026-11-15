@@ -1,16 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
-import { expect, test } from "@playwright/test";
+import { expect, test, type APIRequestContext } from "@playwright/test";
 import fixture from "./fixtures/permission-boundary.json";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://saqkzfsmabsgbwdvuras.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_NiIGAQ6Wf--HakVNwFnSmA_zqzSGHRv";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const password = process.env.E2E_PERMISSION_TEST_PASSWORD;
+
+test.use({ trace: "off" });
+test.describe.configure({ mode: "serial" });
 
 type UserKey = keyof typeof fixture.users;
 
 async function sessionFor(key: UserKey) {
-  if (!password) throw new Error("缺少 E2E_PERMISSION_TEST_PASSWORD");
+  if (!supabaseUrl || !supabaseAnonKey || !password) throw new Error("缺少隔离环境地址、匿名密钥或虚拟测试密码");
   const client = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
@@ -18,7 +21,7 @@ async function sessionFor(key: UserKey) {
     email: fixture.users[key].email,
     password,
   });
-  if (error || !data.session) throw error || new Error(`无法登录 ${key}`);
+  if (error || !data.session) throw new Error(`虚拟账号 ${key} 未能完成登录`);
   return { accessToken: data.session.access_token, userId: data.user.id };
 }
 
@@ -26,15 +29,23 @@ function auth(accessToken: string) {
   return { Authorization: `Bearer ${accessToken}` };
 }
 
+async function publicPosts(request: APIRequestContext, accessToken: string) {
+  const response = await request.get("/api/community/posts", { headers: auth(accessToken) });
+  expect(response.status()).toBe(200);
+  return (await response.json()).posts as Array<{ id: string; comments: Array<{ id: string }> }>;
+}
+
 test("平台管理员可处理、移除并恢复社区内容，其他角色不能进入审核接口", async ({ request }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "审核 API 权限与视口无关，无需重复执行");
-  test.skip(!password || !serviceRoleKey, "需要虚拟账号密码和服务端测试密钥");
+  test.skip(!supabaseUrl || !supabaseAnonKey || !password || !serviceRoleKey, "需要完整的隔离虚拟学校环境");
   test.setTimeout(120_000);
 
-  const [platformAdmin, guardian, schoolLead] = await Promise.all([
+  const [platformAdmin, guardian, schoolLead, student, professional] = await Promise.all([
     sessionFor("platformAdmin"),
     sessionFor("guardianOne"),
     sessionFor("schoolLead"),
+    sessionFor("studentOne"),
+    sessionFor("professional"),
   ]);
   const admin = createClient(supabaseUrl, serviceRoleKey!, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -43,10 +54,15 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
   let unmutedPostId = "";
 
   try {
-    const forbiddenQueue = await request.get("/api/admin/community-moderation", {
-      headers: auth(schoolLead.accessToken),
-    });
-    expect(forbiddenQueue.status()).toBe(403);
+    for (const reader of [guardian, schoolLead, student, professional]) {
+      const forbiddenQueue = await request.get("/api/admin/community-moderation", {
+        headers: auth(reader.accessToken),
+      });
+      expect(forbiddenQueue.status()).toBe(403);
+    }
+    const guardianAccount = await request.get("/api/account/status", { headers: auth(guardian.accessToken) });
+    expect(guardianAccount.status()).toBe(200);
+    expect((await guardianAccount.json()).linkedChildren).toEqual([]);
 
     const createPost = await request.post("/api/community/posts", {
       headers: auth(guardian.accessToken),
@@ -58,7 +74,12 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
       },
     });
     expect(createPost.status()).toBe(202);
-    postId = (await createPost.json()).post.id as string;
+    const created = await createPost.json();
+    expect(created).toMatchObject({ post: { moderation_status: "safety_review" }, safetyNotice: true });
+    postId = created.post.id as string;
+    for (const reader of [guardian, schoolLead, student]) {
+      expect((await publicPosts(request, reader.accessToken)).some((post) => post.id === postId)).toBe(false);
+    }
 
     const queue = await request.get("/api/admin/community-moderation", {
       headers: auth(platformAdmin.accessToken),
@@ -79,6 +100,9 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
       data: { contentType: "post", contentId: postId, action: "publish", note: "复核上下文后允许发布" },
     });
     expect(publish.status()).toBe(200);
+    expect((await publicPosts(request, guardian.accessToken)).some((post) => post.id === postId)).toBe(true);
+    expect((await publicPosts(request, schoolLead.accessToken)).some((post) => post.id === postId)).toBe(true);
+    expect((await publicPosts(request, student.accessToken)).some((post) => post.id === postId)).toBe(false);
 
     const selfReport = await request.post("/api/community/reports", {
       headers: auth(guardian.accessToken),
@@ -124,6 +148,9 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
       data: { contentType: "post", contentId: postId, action: "remove", note: "复测移除与恢复流程" },
     });
     expect(remove.status()).toBe(200);
+    for (const reader of [guardian, schoolLead]) {
+      expect((await publicPosts(request, reader.accessToken)).some((post) => post.id === postId)).toBe(false);
+    }
 
     const afterRemove = await request.get("/api/admin/community-moderation", {
       headers: auth(platformAdmin.accessToken),
@@ -138,6 +165,10 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
       data: { contentType: "post", contentId: postId, action: "publish", note: "确认误移除，恢复显示" },
     });
     expect(restore.status()).toBe(200);
+    for (const reader of [guardian, schoolLead]) {
+      expect((await publicPosts(request, reader.accessToken)).some((post) => post.id === postId)).toBe(true);
+    }
+    expect((await publicPosts(request, student.accessToken)).some((post) => post.id === postId)).toBe(false);
 
     const forbiddenMute = await request.post("/api/admin/community-restrictions", {
       headers: auth(schoolLead.accessToken),
@@ -199,9 +230,83 @@ test("平台管理员可处理、移除并恢复社区内容，其他角色不�
   } finally {
     if (postId) {
       await admin.from("community_moderation_actions").delete().eq("content_id", postId);
-      await admin.from("community_posts").delete().eq("id", postId);
+      await admin.from("community_posts").delete().eq("id", postId).eq("author_user_id", guardian.userId);
     }
-    if (unmutedPostId) await admin.from("community_posts").delete().eq("id", unmutedPostId);
+    if (unmutedPostId) await admin.from("community_posts").delete().eq("id", unmutedPostId).eq("author_user_id", guardian.userId);
     await admin.from("community_restrictions").delete().eq("user_id", guardian.userId);
+  }
+});
+
+test("高风险评论先进入安全复核，只有平台管理员能审核且普通列表不泄露待审内容", async ({ request }, testInfo) => {
+  test.skip(testInfo.project.name.includes("mobile"), "评论审核的 API/数据库边界无需按视口重复执行");
+  test.skip(!supabaseUrl || !supabaseAnonKey || !password || !serviceRoleKey, "需要完整的隔离虚拟学校环境");
+  test.setTimeout(120_000);
+
+  const [platformAdmin, guardian, teacher] = await Promise.all([
+    sessionFor("platformAdmin"), sessionFor("guardianOne"), sessionFor("teacherOne"),
+  ]);
+  const admin = createClient(supabaseUrl, serviceRoleKey!, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  let postId = "", commentId = "";
+  const marker = `[E2E-COMMENT-REVIEW] ${Date.now()}`;
+  try {
+    const createPost = await request.post("/api/community/posts", {
+      headers: auth(guardian.accessToken),
+      data: { title: marker, body: "这是一条合成社区交流内容。", viewerRoles: ["guardian", "teacher"], commenterRoles: ["teacher"] },
+    });
+    expect(createPost.status()).toBe(201);
+    postId = (await createPost.json()).post.id as string;
+    const comment = await request.post("/api/community/comments", {
+      headers: auth(teacher.accessToken),
+      data: { postId, body: `${marker} 我觉得活着没有意义。此句仅用于隔离的安全复核验收。` },
+    });
+    expect(comment.status()).toBe(202);
+    const created = await comment.json();
+    expect(created).toMatchObject({ comment: { moderation_status: "safety_review" }, safetyNotice: true });
+    commentId = created.comment.id as string;
+
+    for (const reader of [guardian, teacher]) {
+      const ordinaryPost = (await publicPosts(request, reader.accessToken)).find((post) => post.id === postId);
+      expect(ordinaryPost).toBeDefined();
+      expect(ordinaryPost?.comments.some((item) => item.id === commentId)).toBe(false);
+    }
+    const queue = await request.get("/api/admin/community-moderation", { headers: auth(platformAdmin.accessToken) });
+    expect(queue.status()).toBe(200);
+    expect((await queue.json()).items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ content_id: commentId, content_type: "comment", moderation_status: "safety_review" }),
+    ]));
+    const forbidden = await request.post("/api/admin/community-moderation", {
+      headers: auth(teacher.accessToken),
+      data: { contentType: "comment", contentId: commentId, action: "publish", note: "不应允许普通老师发布待审评论" },
+    });
+    expect(forbidden.status()).toBe(403);
+    const stillPending = await admin.from("community_comments").select("moderation_status")
+      .eq("id", commentId).eq("author_user_id", teacher.userId).single();
+    expect(stillPending.error).toBeNull();
+    expect(stillPending.data?.moderation_status).toBe("safety_review");
+
+    const remove = await request.post("/api/admin/community-moderation", {
+      headers: auth(platformAdmin.accessToken),
+      data: { contentType: "comment", contentId: commentId, action: "remove", note: "合成评论审核：从公开区移除并保留处理记录" },
+    });
+    expect(remove.status()).toBe(200);
+    const removed = await admin.from("community_comments").select("moderation_status")
+      .eq("id", commentId).eq("author_user_id", teacher.userId).single();
+    expect(removed.error).toBeNull();
+    expect(removed.data?.moderation_status).toBe("removed");
+    const history = await request.get("/api/admin/community-moderation", { headers: auth(platformAdmin.accessToken) });
+    expect(history.status()).toBe(200);
+    expect((await history.json()).history).toEqual(expect.arrayContaining([
+      expect.objectContaining({ content_id: commentId, content_type: "comment", current_status: "removed" }),
+    ]));
+    expect((await publicPosts(request, guardian.accessToken)).find((post) => post.id === postId)?.comments
+      .some((item) => item.id === commentId)).toBe(false);
+  } finally {
+    if (commentId) {
+      await admin.from("community_moderation_actions").delete().eq("content_type", "comment").eq("content_id", commentId);
+      await admin.from("community_comments").delete().eq("id", commentId).eq("author_user_id", teacher.userId);
+    }
+    if (postId) await admin.from("community_posts").delete().eq("id", postId).eq("author_user_id", guardian.userId);
   }
 });

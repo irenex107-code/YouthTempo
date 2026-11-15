@@ -61,16 +61,19 @@ test("Messages 与 Community 写入 API 使用 locale 检测结果作为原有�
   const files = [
     {
       path: "pages/api/messages.ts",
+      locale: "normalizeLocale(",
       call: "moderateStudentMessage(body, locale)",
       insert: "moderation_status: result.status",
     },
     {
       path: "pages/api/community/posts.ts",
+      locale: "getRequestLocale(req)",
       call: "moderateCommunityContent(`${title}\\n${body}`, locale)",
       insert: "moderation_status: moderation.status",
     },
     {
       path: "pages/api/community/comments.ts",
+      locale: "getRequestLocale(req)",
       call: "moderateCommunityContent(body, locale)",
       insert: "moderation_status: moderation.status",
     },
@@ -78,7 +81,7 @@ test("Messages 与 Community 写入 API 使用 locale 检测结果作为原有�
 
   for (const file of files) {
     const source = await readFile(path.join(process.cwd(), file.path), "utf8");
-    expect(source, `${file.path} 应规范化 locale`).toContain("normalizeLocale(");
+    expect(source, `${file.path} 应规范化 locale`).toContain(file.locale);
     expect(source, `${file.path} 应执行 locale-aware 安全检测`).toContain(file.call);
     expect(source, `${file.path} 应沿用现有 moderation_status 写入`).toContain(file.insert);
     expect(source, `${file.path} 应返回 safetyNotice`).toContain("safetyNotice:");
@@ -92,8 +95,8 @@ test("Messages 与 Community 前端提交当前 locale", async () => {
   ]);
 
   expect(messages).toMatch(/sendStudentMessage\(\{[\s\S]{0,240}\blocale,/);
-  expect(community).toContain("createCommunityPost({ title, body, viewerRoles, commenterRoles, locale })");
-  expect(community).toContain("createCommunityComment(postId, draft, locale)");
+  expect(community).toMatch(/createCommunityPost\(\{ title, body, viewerRoles, commenterRoles, locale \}(?:,\s*consent\.userId)?\)/);
+  expect(community).toMatch(/createCommunityComment\(postId, draft, locale(?:,\s*consent\.userId)?\)/);
 });
 
 test("英文安全提示温和明确且不固定中国大陆资源", async () => {
