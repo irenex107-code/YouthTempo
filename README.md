@@ -6,9 +6,9 @@ YouthTempo is a bilingual youth mental health support platform preparing for a s
 
 YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健康支持平台。它帮助年轻人理解情绪、建立更健康的日常节律，并在困扰恶化为危机之前连接到合适的支持。
 
-**Pilot focus:** young people aged 14–18, together with guardians, teachers, school leads, platform administrators, and verified professional supporters.
+**Pilot focus:** young people aged 14–17, together with guardians, teachers, school leads, platform administrators, and verified professional supporters.
 
-**试点重点：**14–18 岁青少年，以及与他们相关的家长、老师、学校负责人、平台管理员和经过验证的专业支持者。
+**试点重点：**14–17 岁青少年，以及与他们相关的家长、老师、学校负责人、平台管理员和经过验证的专业支持者。
 
 [Visit the YouthTempo pilot site](https://youthtempo.com)
 
@@ -50,7 +50,7 @@ YouthTempo 不诊断、治疗或治愈心理疾病。它的作用是支持觉察
 
 ## 4. Target Users
 
-- **Young people aged 14–18:** the primary school-pilot users, completing check-ins and using support tools.
+- **Young people aged 14–17:** the primary school-pilot users, completing check-ins and using support tools.
 - **Guardians:** viewing information for linked young people within confirmed relationships and consent boundaries.
 - **Teachers and school support staff:** following assigned students, changes over time, and messages requiring attention.
 - **School leads:** reviewing school-level participation and trends without making individual records the default view.
@@ -58,7 +58,7 @@ YouthTempo 不诊断、治疗或治愈心理疾病。它的作用是支持觉察
 - **Verified professional supporters:** participating through a controlled verification and review process.
 - **Young adults aged 18–25:** an additional independent-use pathway outside the core school pilot.
 
-- **14–18 岁青少年：**学校试点的核心用户，完成日常记录并使用支持工具。
+- **14–17 岁青少年：**学校试点的核心用户，完成日常记录并使用支持工具。
 - **家长：**在已确认的关联关系和同意边界内，查看关联孩子的信息。
 - **老师与学校支持人员：**关注本人负责的学生、阶段变化和需要了解的来信。
 - **学校负责人：**查看学校层面的参与情况和趋势，而不是默认浏览每个学生的原始记录。
