@@ -2041,6 +2041,9 @@
       "profileSavedDraftKept": "The submitted profile was confirmed saved. Your later edits remain in the input and have not been saved.",
       "profileRefreshFailed": "The submitted profile was confirmed saved, but the current page state could not be checked again. Later edits remain in the input. Check your identity and profile before submitting again.",
       "confirmedStateUnverified": "This operation received a complete success response, but your current identity could not be checked again. Check your identity and current state before continuing.",
+      "consentVerified": "Your audit record confirms that this operation committed. The page shows the separately checked current state, without restoring a historical state. Any later write still requires your explicit action.",
+      "consentRelease": "Operation verified; release the submission hold",
+      "consentReleased": "This operation was verified against its audit record and the submission hold is released. Nothing was resubmitted. Check the current state before explicitly starting any later action.",
       "errors": {
         "identity": "Your current sign-in did not pass the write check, so this write was not submitted. Verify your identity before deciding whether to act.",
         "permission": "Your current identity or permission did not pass the check, so this write was refused. Check your identity and available access. It will not be retried automatically.",

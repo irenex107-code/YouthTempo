@@ -109,7 +109,7 @@ export function InlineStudentConsent({ controller: c, studentOnly = false, class
       {c.phase === "other" ? <p className="mt-3 text-sm leading-6">{t("inlineConsent.notStudent")}</p> : null}
       {c.phase === "error" || c.phase === "unknown" ? <>
         <p role="alert" className="mt-3 text-sm leading-6">{t(c.phase === "unknown" ? "inlineConsent.submitUnknown" : "inlineConsent.loadFailed")}</p>
-        <button type="button" disabled={c.busy} className="button-secondary mt-4" onClick={() => void c.refresh()}>
+        <button type="button" disabled={c.busy} className="button-secondary mt-4" onClick={() => void c.refresh(undefined, c.phase === "unknown")}>
           {t(c.phase === "unknown" ? "inlineConsent.checkStatus" : "inlineConsent.retry")}
         </button>
       </> : null}

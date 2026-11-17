@@ -7,7 +7,7 @@ import {
   consentSummary,
 } from "@/lib/studentConsent";
 
-const consentFields = "student_user_id,age_band,consent_basis,policy_version,status,student_assented_at,guardian_user_id,guardian_consented_at,withdrawn_at";
+const consentFields = "student_user_id,age_band,consent_basis,policy_version,status,student_assented_at,guardian_user_id,guardian_consented_at,withdrawn_at,updated_at";
 
 async function loadConsentResponse(supabase: ReturnType<typeof getSupabaseAdmin>, userId: string) {
   const [{ data: profile, error: profileError }, { data: guardianLinks, error: guardianError }] = await Promise.all([
@@ -31,6 +31,7 @@ async function loadConsentResponse(supabase: ReturnType<typeof getSupabaseAdmin>
     if (error) throw error;
     return {
       role: "student" as const,
+      consentRevision: consent?.updated_at || null,
       policyVersion: STUDENT_CONSENT_POLICY_VERSION,
       consent: consentSummary(
         consent,
@@ -80,167 +81,76 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  res.setHeader("Cache-Control", "no-store");
   try {
     const user = await getAuthenticatedUser(req);
     if (!user) return res.status(401).json({ error: "请先登录。" });
     const supabase = getSupabaseAdmin();
 
-    if (req.method === "GET") return res.status(200).json(await loadConsentResponse(supabase, user.id));
-
-    if (req.method === "POST" && req.body?.action === "student_assent") {
-      const ageBand = req.body?.ageBand as StudentAgeBand;
-      if (!["under_14", "14_17", "18_plus"].includes(ageBand)) {
-        return res.status(400).json({ error: "请选择年龄范围。" });
+    if (req.method === "GET") {
+      const operationId = req.query?.operationId;
+      if (operationId !== undefined && (typeof operationId !== "string"
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(operationId))) {
+        return res.status(400).json({ error: "无法识别的确认操作。" });
       }
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role,school_id")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profileError) throw profileError;
-      if (profile?.role !== "学生") return res.status(403).json({ error: "只有学生账号需要完成学生确认。" });
-
-      const now = new Date().toISOString();
-      const status = ageBand === "under_14" ? "ineligible" : "active";
-      const consentBasis = ageBand === "under_14" ? "not_applicable" : ageBand === "18_plus" ? "adult_self" : "student_self_pilot";
-      const { error } = await supabase.from("student_consents").upsert({
-        student_user_id: user.id,
-        school_id: profile.school_id || null,
-        age_band: ageBand,
-        consent_basis: consentBasis,
-        policy_version: STUDENT_CONSENT_POLICY_VERSION,
-        status,
-        student_assented_at: ageBand === "under_14" ? null : now,
-        guardian_user_id: null,
-        guardian_consented_at: null,
-        withdrawn_at: null,
-        withdrawn_by: null,
-        updated_at: now,
-      });
+      if (operationId === undefined) return res.status(200).json(await loadConsentResponse(supabase, user.id));
+      // Read only. An absent event does not prove that a dispatched write failed.
+      const { data: event, error } = await supabase.from("student_consent_events")
+        .select("id,student_user_id,actor_user_id,event_type,age_band,consent_basis,policy_version")
+        .eq("id", operationId).eq("student_user_id", user.id).eq("actor_user_id", user.id).maybeSingle();
       if (error) throw error;
-      const { error: eventError } = await supabase.from("student_consent_events").insert({
-        student_user_id: user.id,
-        school_id: profile.school_id || null,
-        actor_user_id: user.id,
-        event_type: ageBand === "under_14" ? "declared_under_14" : "student_assented",
-        age_band: ageBand,
-        consent_basis: consentBasis,
-        policy_version: STUDENT_CONSENT_POLICY_VERSION,
-      });
-      if (eventError) throw eventError;
-      return res.status(200).json(await loadConsentResponse(supabase, user.id));
+      const receipt = event ? {
+        operationId: event.id, eventId: event.id, studentUserId: event.student_user_id, actorUserId: event.actor_user_id,
+        action: event.event_type === "consent_withdrawn" ? "withdraw"
+          : ["student_assented", "declared_under_14"].includes(event.event_type) ? "student_assent" : null,
+        ageBand: event.age_band, consentBasis: event.consent_basis, policyVersion: event.policy_version,
+      } : null;
+      const snapshot = await loadConsentResponse(supabase, user.id);
+      return res.status(200).json({ ...snapshot, verification: { operationId: operationId.toLowerCase(), event: receipt } });
     }
 
     if (req.method === "POST" && req.body?.action === "guardian_consent") {
-      if (!CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
-        return res.status(403).json({ error: "当前试点未开放家长确认。" });
-      }
-      const studentUserId = typeof req.body?.studentUserId === "string" ? req.body.studentUserId.trim() : "";
-      if (!studentUserId) return res.status(400).json({ error: "请选择孩子账号。" });
-      const { data: link, error: linkError } = await supabase
-        .from("guardian_student_links")
-        .select("school_id")
-        .eq("guardian_user_id", user.id)
-        .eq("student_user_id", studentUserId)
-        .eq("status", "active")
-        .maybeSingle();
-      if (linkError) throw linkError;
-      if (!link) return res.status(403).json({ error: "只有学校已确认关联的监护人可以完成确认。" });
-      const { data: consent, error: consentError } = await supabase
-        .from("student_consents")
-        .select("age_band,consent_basis,policy_version,status,student_assented_at")
-        .eq("student_user_id", studentUserId)
-        .maybeSingle();
-      if (consentError) throw consentError;
-      if (
-        !consent ||
-        consent.age_band !== "14_17" ||
-        consent.consent_basis !== "student_guardian" ||
-        consent.status !== "pending_guardian" ||
-        !consent.student_assented_at ||
-        consent.policy_version !== STUDENT_CONSENT_POLICY_VERSION
-      ) {
-        return res.status(409).json({ error: "请先让孩子在自己的账户中阅读说明并完成学生确认。" });
-      }
-      const now = new Date().toISOString();
-      const { error } = await supabase.from("student_consents").update({
-        school_id: link.school_id,
-        guardian_user_id: user.id,
-        guardian_consented_at: now,
-        consent_basis: "student_guardian",
-        status: "active",
-        withdrawn_at: null,
-        withdrawn_by: null,
-        updated_at: now,
-      }).eq("student_user_id", studentUserId);
-      if (error) throw error;
-      const { error: eventError } = await supabase.from("student_consent_events").insert({
-        student_user_id: studentUserId,
-        school_id: link.school_id,
-        guardian_user_id: user.id,
-        actor_user_id: user.id,
-        event_type: "guardian_consented",
-        age_band: "14_17",
-        consent_basis: "student_guardian",
-        policy_version: STUDENT_CONSENT_POLICY_VERSION,
-      });
-      if (eventError) throw eventError;
-      return res.status(200).json(await loadConsentResponse(supabase, user.id));
+      return res.status(403).json({ error: "当前试点未开放家长确认。" });
     }
-
-    if (req.method === "DELETE") {
-      const requestedStudentId = typeof req.body?.studentUserId === "string" ? req.body.studentUserId.trim() : "";
-      const studentUserId = requestedStudentId || user.id;
-      if (studentUserId !== user.id && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED) {
-        return res.status(403).json({ error: "当前试点只有学生本人可以撤回确认。" });
+    const action = req.method === "DELETE" ? "withdraw"
+      : req.body?.action === "student_assent" ? "student_assent" : null;
+    if (action) {
+      if (["actorUserId", "p_actor_user_id", "p_student_user_id"].some(field =>
+        req.body?.[field] !== undefined && req.body[field] !== user.id)) {
+        return res.status(403).json({ error: "当前试点只有学生本人可以更新确认。" });
       }
-      const { data: consent, error: consentError } = await supabase
-        .from("student_consents")
-        .select("age_band,consent_basis,policy_version,school_id,guardian_user_id")
-        .eq("student_user_id", studentUserId)
-        .maybeSingle();
-      if (consentError) throw consentError;
-      if (!consent) return res.status(404).json({ error: "尚未找到可撤回的确认。" });
-
-      if (studentUserId !== user.id) {
-        const { data: link, error: linkError } = await supabase
-          .from("guardian_student_links")
-          .select("school_id")
-          .eq("guardian_user_id", user.id)
-          .eq("student_user_id", studentUserId)
-          .eq("status", "active")
-          .maybeSingle();
-        if (linkError) throw linkError;
-        if (!link) return res.status(403).json({ error: "你不能撤回这个学生账号的确认。" });
-        if (consent.consent_basis !== "student_guardian") {
-          return res.status(403).json({ error: "学生自主试用确认只能由学生本人撤回。" });
-        }
+      const target = (typeof req.body?.studentUserId === "string" ? req.body.studentUserId.trim() : "") || user.id;
+      if (target !== user.id) return res.status(403).json({ error: "当前试点只有学生本人可以更新确认。" });
+      const ageBand = action === "student_assent" ? req.body?.ageBand as StudentAgeBand : null;
+      if (action === "student_assent" && !["under_14", "14_17", "18_plus"].includes(ageBand || "")) {
+        return res.status(400).json({ error: "请选择年龄范围。" });
       }
-      const now = new Date().toISOString();
-      const { error } = await supabase.from("student_consents").update({
-        status: "withdrawn",
-        withdrawn_at: now,
-        withdrawn_by: user.id,
-        updated_at: now,
-      }).eq("student_user_id", studentUserId);
-      if (error) throw error;
-      const { error: eventError } = await supabase.from("student_consent_events").insert({
-        student_user_id: studentUserId,
-        school_id: consent.school_id,
-        guardian_user_id: consent.guardian_user_id,
-        actor_user_id: user.id,
-        event_type: "consent_withdrawn",
-        age_band: consent.age_band,
-        consent_basis: consent.consent_basis,
-        policy_version: consent.policy_version,
+      const operationId = typeof req.body?.operationId === "string" ? req.body.operationId.toLowerCase() : req.body?.operationId;
+      const expected = req.body?.expectedUpdatedAt;
+      if (typeof operationId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(operationId)
+        || (expected !== null && (typeof expected !== "string" || !Number.isFinite(Date.parse(expected))))) {
+        return res.status(400).json({ error: "请重新读取确认状态后再操作。" });
+      }
+      const { data: operation, error } = await supabase.rpc("apply_student_consent", {
+        p_actor_user_id: user.id, p_student_user_id: user.id, p_action: action,
+        p_age_band: ageBand, p_expected_updated_at: expected, p_operation_id: operationId,
       });
-      if (eventError) throw eventError;
-      return res.status(200).json(await loadConsentResponse(supabase, user.id));
+      if (error) throw error; // No legacy writes, retries or fallback when the RPC is unavailable.
+      const outcome = operation?.outcome;
+      if (["denied", "invalid", "not_found", "conflict", "operation_mismatch"].includes(outcome)) {
+        const status = outcome === "denied" ? 403 : outcome === "invalid" ? 400 : outcome === "not_found" ? 404 : 409;
+        return res.status(status).json({ writeOutcome: "not_committed", error: outcome === "denied"
+          ? "只有学生本人可以更新确认。" : outcome === "not_found" ? "尚未找到可撤回的确认。" : "确认状态已变化，请重新读取后再操作。" });
+      }
+      if (!["applied", "replayed"].includes(outcome) || operation.operationId !== operationId
+        || operation.eventId !== operationId || operation.action !== action
+        || operation.studentUserId !== user.id || operation.actorUserId !== user.id) throw new Error("invalid_consent_receipt");
+      return res.status(200).json({ ...await loadConsentResponse(supabase, user.id), operation });
     }
 
     return res.status(400).json({ error: "无法识别的确认操作。" });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "知情同意状态更新失败。";
+    void error;
     return res.status(500).json({ error: "知情同意状态暂时无法更新，请稍后再试。" });
   }
 }

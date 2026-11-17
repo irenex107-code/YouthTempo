@@ -165,7 +165,21 @@ export type StudentConsentResponse = {
   policyVersion: string;
   consent: StudentConsentSummary | null;
   children: StudentConsentSummary[];
+  consentRevision?: string | null;
+  operation?: {
+    outcome: "applied" | "replayed"; operationId: string; eventId: string;
+    action: "student_assent" | "withdraw"; studentUserId: string; actorUserId: string;
+  };
+  verification?: {
+    operationId: string;
+    event: { operationId: string; eventId: string; studentUserId: string; actorUserId: string;
+      action: "student_assent" | "withdraw" | null; ageBand: StudentConsentSummary["ageBand"];
+      consentBasis: StudentConsentSummary["consentBasis"]; policyVersion: string } | null;
+  };
 };
+
+export type ConsentWriteIntent = Readonly<{ ownerUserId: string; operationId: string; expectedUpdatedAt: string | null }>;
+export type AccountConsentWriteOptions = AccountWriteOptions & { intent?: ConsentWriteIntent; signal?: AbortSignal; onDispatch?: () => void };
 
 /** Used only by the five Account-page writes; no retry or durable receipt. */
 export type AccountWriteOptions = { current: () => boolean };
@@ -202,16 +216,71 @@ export function isAccountConsentSnapshot(value: unknown, owner: string): value i
   return data.role === "other" && data.consent === null && data.children.length === 0;
 }
 
+/** Freeze once at the user action, before any asynchronous identity check. */
+export function createConsentWriteIntent(snapshot: StudentConsentResponse | null, owner: string): ConsentWriteIntent {
+  if (!isAccountConsentSnapshot(snapshot, owner) || snapshot.role !== "student"
+    || !Object.hasOwn(snapshot, "consentRevision")
+    || (snapshot.consentRevision !== null && (typeof snapshot.consentRevision !== "string"
+      || !Number.isFinite(Date.parse(snapshot.consentRevision))))) {
+    throw new AccountWriteError("not_dispatched", "service");
+  }
+  return Object.freeze({ ownerUserId: owner, operationId: globalThis.crypto.randomUUID(), expectedUpdatedAt: snapshot.consentRevision });
+}
+
+export function isConsentWriteResponse(value: unknown, owner: string, intent: ConsentWriteIntent,
+  action: "student_assent" | "withdraw", ageBand?: "under_14" | "14_17" | "18_plus"): value is StudentConsentResponse {
+  if (!isAccountConsentSnapshot(value, owner) || value.role !== "student") return false;
+  const receipt = value.operation;
+  if (!receipt || !["applied", "replayed"].includes(receipt.outcome) || receipt.operationId !== intent.operationId
+    || receipt.eventId !== intent.operationId || receipt.action !== action
+    || receipt.studentUserId !== owner || receipt.actorUserId !== owner) return false;
+  const c = value.consent!;
+  // A receipt proves a historical intent; the separately read current state may have moved on.
+  if (action === "withdraw") return c.status === "withdrawn" && Boolean(c.withdrawnAt);
+  return c.ageBand === ageBand && c.withdrawnAt === null && c.guardianUserId === null && c.guardianConsentedAt === null
+    && (ageBand === "under_14" ? c.status === "ineligible" && c.consentBasis === "not_applicable" && c.studentAssentedAt === null
+      : c.status === "active" && c.consentBasis === (ageBand === "18_plus" ? "adult_self" : "student_self_pilot"));
+}
+
+/** An audit receipt proves the frozen intent, never that its historical state is still current. */
+export function isVerifiedConsentOperation(value: unknown, intent: ConsentWriteIntent,
+  action: "student_assent" | "withdraw", ageBand?: StudentConsentSummary["ageBand"]) {
+  if (!isAccountConsentSnapshot(value, intent.ownerUserId) || value.role !== "student"
+    || !Object.hasOwn(value, "consentRevision")
+    || (typeof value.consentRevision !== "string" || !Number.isFinite(Date.parse(value.consentRevision)))) return false;
+  const verification = value.verification, event = verification?.event;
+  if (verification?.operationId !== intent.operationId || !event
+    || event.operationId !== intent.operationId || event.eventId !== intent.operationId
+    || event.studentUserId !== intent.ownerUserId || event.actorUserId !== intent.ownerUserId
+    || event.action !== action || event.policyVersion !== STUDENT_CONSENT_POLICY_VERSION) return false;
+  if (action === "withdraw") return true; // Withdrawal preserves the original row's age/basis.
+  return event.ageBand === ageBand && event.consentBasis === (ageBand === "under_14" ? "not_applicable"
+    : ageBand === "18_plus" ? "adult_self" : ageBand === "14_17" ? "student_self_pilot" : undefined);
+}
+
+export async function verifyStudentConsentOperation(intent: ConsentWriteIntent, action: "student_assent" | "withdraw",
+  ageBand: StudentConsentSummary["ageBand"] | undefined, current: () => boolean) {
+  if (!current()) throw new AccountWriteError("unknown", "identity");
+  const snapshot = await getStudentConsentStatus(intent.ownerUserId, intent.operationId);
+  if (!current()) throw new AccountWriteError("unknown", "identity");
+  return { snapshot, committed: isVerifiedConsentOperation(snapshot, intent, action, ageBand) };
+}
+
 async function accountConsentWrite(method: "POST" | "DELETE", body: Record<string, string | undefined>,
-  owner: string | undefined, options: AccountWriteOptions) {
+  owner: string | undefined, options: AccountConsentWriteOptions) {
   let dispatched = false;
   try {
+    const guardian = body.action === "guardian_consent";
+    if (!guardian && !options.intent) throw new AccountWriteError("not_dispatched", "service");
+    if (!guardian && options.intent?.ownerUserId !== owner) throw new AccountWriteError("not_dispatched", "identity");
     const token = await getAccessToken(owner);
     if (!owner || !options.current()) throw new AccountWriteError("not_dispatched", "identity");
     dispatched = true;
+    options.onDispatch?.();
     const response = await fetch("/api/account/consent", {
-      method, headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify(body),
+      method, signal: options.signal, cache: "no-store",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ ...body, ...(guardian ? {} : { operationId: options.intent!.operationId, expectedUpdatedAt: options.intent!.expectedUpdatedAt }) }),
     });
     const data: unknown = await response.json();
     if (!options.current()) throw new AccountWriteError("unknown");
@@ -219,7 +288,8 @@ async function accountConsentWrite(method: "POST" | "DELETE", body: Record<strin
       // These are the existing handler's pre-write returns, never error-text matching.
       const reason: AccountWriteReason | undefined = response.status === 401 ? "identity"
         : response.status === 400 ? "input" : response.status === 403 ? "permission"
-          : response.status === 409 && body.action === "guardian_consent" ? "scope"
+          : response.status === 409 && (body.action === "guardian_consent"
+            || (data && typeof data === "object" && (data as { writeOutcome?: unknown }).writeOutcome === "not_committed")) ? "scope"
             : response.status === 404 && method === "DELETE" ? "not_found" : undefined;
       if (reason && data && typeof data === "object" && typeof (data as { error?: unknown }).error === "string") {
         throw new AccountWriteError("rejected", reason);
@@ -232,7 +302,8 @@ async function accountConsentWrite(method: "POST" | "DELETE", body: Record<strin
         : data.role !== "guardian" || !data.children.some(child => child.studentUserId === target))) {
       throw new AccountWriteError("unknown");
     }
-    // A 2xx reaches here only after the handler's write, event and final read.
+    if (!guardian && !isConsentWriteResponse(data, owner, options.intent!, method === "DELETE" ? "withdraw" : "student_assent",
+      body.ageBand as "under_14" | "14_17" | "18_plus" | undefined)) throw new AccountWriteError("unknown");
     return data;
   } catch (error) {
     if (error instanceof AccountWriteError) throw error;
@@ -615,53 +686,34 @@ export async function deleteAccountPermanently(confirmationEmail: string, expect
   }
 }
 
-export async function getStudentConsentStatus(expectedUserId?: string) {
+export async function getStudentConsentStatus(expectedUserId?: string, operationId?: string) {
   const token = await getAccessToken(expectedUserId);
-  const response = await fetch("/api/account/consent", {
+  const response = await fetch(`/api/account/consent${operationId ? `?operationId=${encodeURIComponent(operationId)}` : ""}`, {
     headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "知情同意状态加载失败。");
-  return data as StudentConsentResponse;
+  // Reads must meet the same contract as writes before changing access or settling UNKNOWN.
+  if (!isAccountConsentSnapshot(data, expectedUserId || data?.consent?.studentUserId || "")) {
+    throw new Error("consent_status_unverified");
+  }
+  return data;
 }
 
-export async function submitStudentAssent(ageBand: "under_14" | "14_17" | "18_plus", expectedUserId?: string, options?: AccountWriteOptions) {
-  if (options) return accountConsentWrite("POST", { action: "student_assent", ageBand }, expectedUserId, options);
-  const token = await getAccessToken(expectedUserId);
-  const response = await fetch("/api/account/consent", {
-    method: "POST",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify({ action: "student_assent", ageBand }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "学生确认提交失败。");
-  return data as StudentConsentResponse;
+export async function submitStudentAssent(ageBand: "under_14" | "14_17" | "18_plus", expectedUserId?: string, options?: AccountConsentWriteOptions) {
+  if (!options) throw new AccountWriteError("not_dispatched", "service");
+  return accountConsentWrite("POST", { action: "student_assent", ageBand }, expectedUserId, options);
 }
 
-export async function submitGuardianConsent(studentUserId: string, expectedUserId?: string, options?: AccountWriteOptions) {
-  if (options) return accountConsentWrite("POST", { action: "guardian_consent", studentUserId }, expectedUserId, options);
-  const token = await getAccessToken(expectedUserId);
-  const response = await fetch("/api/account/consent", {
-    method: "POST",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify({ action: "guardian_consent", studentUserId }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "监护人确认提交失败。");
-  return data as StudentConsentResponse;
+export async function submitGuardianConsent(studentUserId: string, expectedUserId?: string, options?: AccountConsentWriteOptions) {
+  if (!options) throw new AccountWriteError("not_dispatched", "permission");
+  return accountConsentWrite("POST", { action: "guardian_consent", studentUserId }, expectedUserId, options);
 }
 
-export async function withdrawStudentConsent(studentUserId?: string, expectedUserId?: string, options?: AccountWriteOptions) {
-  if (options) return accountConsentWrite("DELETE", { studentUserId }, expectedUserId, options);
-  const token = await getAccessToken(expectedUserId);
-  const response = await fetch("/api/account/consent", {
-    method: "DELETE",
-    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify({ studentUserId }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || "撤回确认失败。");
-  return data as StudentConsentResponse;
+export async function withdrawStudentConsent(studentUserId?: string, expectedUserId?: string, options?: AccountConsentWriteOptions) {
+  if (!options) throw new AccountWriteError("not_dispatched", "service");
+  return accountConsentWrite("DELETE", { studentUserId }, expectedUserId, options);
 }
 
 export class StudentMessageReadError extends Error {

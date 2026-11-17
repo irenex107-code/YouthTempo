@@ -16,6 +16,7 @@ import {
   CloudProfile,
   CloudSweetRecord,
   StudentConsentResponse,
+  ConsentWriteIntent,
   WechatBindSession,
   WechatIdentity,
   checkWechatBindSession,
@@ -46,6 +47,8 @@ import {
   signOut,
   submitGuardianConsent,
   submitStudentAssent,
+  createConsentWriteIntent,
+  verifyStudentConsentOperation,
   verifyEmailOtp,
   withdrawStudentConsent,
   localizedCloudErrorMessage,
@@ -77,16 +80,22 @@ type AccountWriteAttempt = {
   kind: AccountWriteKind; slot: string; owner: string; target: string; day?: string;
   actorRevision: number; generation: number;
   phase: "pending" | "unknown"; checking: boolean; checked: boolean; checkFailed: boolean;
+  checkEpoch: number; intent?: ConsentWriteIntent; ageBand?: "under_14" | "14_17" | "18_plus";
+  dispatched?: boolean; verifiedFingerprint?: string;
   trigger: HTMLElement | null;
   current: () => boolean;
+  owned: () => boolean;
 };
-type AccountWriteView = Omit<AccountWriteAttempt, "current" | "trigger">;
+type AccountWriteView = Omit<AccountWriteAttempt, "current" | "owned" | "trigger" | "intent">;
+function personalConsentWrite(attempt: Pick<AccountWriteAttempt, "kind" | "owner" | "target">) {
+  return attempt.kind === "assent" || (attempt.kind === "withdraw" && attempt.target === attempt.owner);
+}
 
 function accountConsentFingerprint(status: StudentConsentResponse) {
   const summary = (item: StudentConsentResponse["consent"]) => item && [item.studentUserId, item.status,
     item.ageBand, item.consentBasis, item.policyVersion, item.studentAssentedAt, item.guardianUserId,
     item.guardianConsentedAt, item.withdrawnAt];
-  return JSON.stringify([status.role, status.policyVersion, summary(status.consent),
+  return JSON.stringify([status.role, status.policyVersion, status.consentRevision, summary(status.consent),
     [...status.children].sort((a, b) => a.studentUserId.localeCompare(b.studentUserId)).map(summary)]);
 }
 
@@ -478,12 +487,20 @@ export default function AccountPage() {
       id: attempt.id, kind: attempt.kind, slot: attempt.slot, owner: attempt.owner, target: attempt.target,
       day: attempt.day, actorRevision: attempt.actorRevision, generation: attempt.generation,
       phase: attempt.phase, checking: attempt.checking, checked: attempt.checked, checkFailed: attempt.checkFailed,
+      checkEpoch: attempt.checkEpoch,
     })));
   }
   function showWriteNotice(key: TranslationKey, attempt: AccountWriteAttempt) { writeNoticeOwner.current = attempt; writeNotice.current = t(key); setNotice(writeNotice.current); }
   function showWriteError(key: TranslationKey, attempt: AccountWriteAttempt) { writeErrorOwner.current = attempt; writeError.current = t(key); setError(writeError.current); }
   function retireAccountWrites() {
-    writeAttemptsRef.current.clear();
+    for (const [slot, attempt] of writeAttemptsRef.current) {
+      if (personalConsentWrite(attempt) && attempt.intent && attempt.dispatched) {
+        // Page-local intent survives state and account generations, hidden from other owners.
+        // Its old async response remains invalid because current() keeps its original epoch.
+        attempt.phase = "unknown"; attempt.checked = false; attempt.checking = false;
+        attempt.checkFailed = false; attempt.verifiedFingerprint = undefined; ++attempt.checkEpoch;
+      } else writeAttemptsRef.current.delete(slot);
+    }
     consentAttemptRef.current = null;
     setConsentLoading(false);
     const oldNotice = writeNotice.current, oldError = writeError.current;
@@ -524,13 +541,14 @@ export default function AccountPage() {
   }
   function writeLockedNow(kind: AccountWriteKind, target: string, day?: string) {
     const previous = writeAttemptsRef.current.get(writeSlot(kind, target, day));
-    return Boolean(previous?.current() && !(kind === "withdraw" && previous.kind !== "withdraw" && previous.phase === "unknown"));
+    return Boolean(previous && (personalConsentWrite(previous) ? previous.owned() : previous.current()));
   }
   const visibleWriteAttempts = writeAttempts.filter(attempt => attempt.owner === actor.actorId
-    && attempt.actorRevision === actor.revision && attempt.generation === writeGeneration);
+    && ((personalConsentWrite(attempt) && attempt.phase === "unknown")
+      || (attempt.actorRevision === actor.revision && attempt.generation === writeGeneration)));
   function writeLocked(kind: AccountWriteKind, target: string, day?: string) {
     const previous = visibleWriteAttempts.find(attempt => attempt.slot === writeSlot(kind, target, day));
-    return Boolean(previous && !(kind === "withdraw" && previous.kind !== "withdraw" && previous.phase === "unknown"));
+    return Boolean(previous);
   }
   function beginAccountWrite(kind: AccountWriteKind, target: string, day?: string) {
     const scope = accountRequest();
@@ -549,11 +567,13 @@ export default function AccountPage() {
     const attempt: AccountWriteAttempt = {
       id: ++writeSequence.current,
       kind, slot, owner: scope.owner, target, day, phase: "pending", checking: false, checked: false, checkFailed: false,
+      checkEpoch: 0,
       actorRevision: actor.revision, generation,
       trigger: document.activeElement instanceof HTMLElement ? document.activeElement : null,
       current: () => scope.current() && generation === consentGeneration.current
         && writeAttemptsRef.current.get(slot) === attempt
         && (!day || recordGeneration === (recordGenerations.current.get(day) || 0)),
+      owned: () => actor.isSameActor(scope.owner) && writeAttemptsRef.current.get(slot) === attempt,
     };
     writeAttemptsRef.current.set(slot, attempt); // Synchronous barrier, including queued React callbacks.
     if (!["profile", "sweet"].includes(kind)) { consentAttemptRef.current = attempt; setConsentLoading(true); }
@@ -572,7 +592,7 @@ export default function AccountPage() {
     if (failure instanceof AccountWriteError && failure.outcome === "unknown") {
       attempt.phase = "unknown";
       attempt.checked = false;
-      showWriteError(fallback, attempt);
+      showWriteError(personalConsentWrite(attempt) ? "account.writeRecovery.unknown" : fallback, attempt);
       publishWrites();
     } else {
       finishAccountWrite(attempt);
@@ -594,8 +614,35 @@ export default function AccountPage() {
 
   async function checkAccountWrite(view: AccountWriteView) {
     const attempt = writeAttemptsRef.current.get(view.slot);
-    if (!attempt || attempt.id !== view.id || !attempt.current() || attempt.phase !== "unknown" || attempt.checking) return;
+    if (!attempt || attempt.id !== view.id || !(personalConsentWrite(attempt) ? attempt.owned() : attempt.current())
+      || attempt.phase !== "unknown" || attempt.checking) return;
+    const checkEpoch = ++attempt.checkEpoch;
     attempt.checking = true; attempt.checked = false; attempt.checkFailed = false; publishWrites();
+    if (personalConsentWrite(attempt)) {
+      const currentActor = actor.trackRequest(), generation = consentGeneration.current;
+      const current = () => attempt.owned() && currentActor() && generation === consentGeneration.current
+        && checkEpoch === attempt.checkEpoch && attempt.phase === "unknown";
+      try {
+        await confirmActor(attempt.owner);
+        if (!current() || !attempt.intent) return;
+        const result = await withTimeout(verifyStudentConsentOperation(attempt.intent,
+          attempt.kind === "withdraw" ? "withdraw" : "student_assent", attempt.ageBand, current), 8_000, "account_read_unverified");
+        if (!current()) return;
+        await confirmActor(attempt.owner);
+        if (!current()) return;
+        applyConsentStatus(result.snapshot, true); // Current state only; never restore the audit's old state.
+        if (!attempt.owned() || !currentActor()) return;
+        attempt.checked = result.committed;
+        attempt.checkFailed = !result.committed;
+        attempt.verifiedFingerprint = result.committed ? consentFingerprint.current : undefined;
+        attempt.checking = false; publishWrites();
+      } catch {
+        if (current()) attempt.checkFailed = true;
+      } finally {
+        if (attempt.owned() && checkEpoch === attempt.checkEpoch) { attempt.checking = false; publishWrites(); }
+      }
+      return;
+    }
     try {
       await confirmActor(attempt.owner);
       if (!attempt.current()) return;
@@ -628,14 +675,16 @@ export default function AccountPage() {
   }
   function releaseAccountWrite(view: AccountWriteView) {
     const attempt = writeAttemptsRef.current.get(view.slot);
-    if (!attempt || attempt.id !== view.id || !attempt.current() || attempt.phase !== "unknown" || !attempt.checked || attempt.checking) return;
+    if (!attempt || attempt.id !== view.id || !(personalConsentWrite(attempt) ? attempt.owned() : attempt.current())
+      || attempt.phase !== "unknown" || !attempt.checked || attempt.checking) return;
+    if (personalConsentWrite(attempt) && attempt.verifiedFingerprint !== consentFingerprint.current) return;
     finishAccountWrite(attempt);
     if (attempt.kind === "assent") setConsentRead(false); // New submit must pass the existing acknowledgement again.
     if (writeErrorOwner.current === attempt) {
       const value = writeError.current; setError(current => current === value ? "" : current);
       writeError.current = ""; writeErrorOwner.current = null;
     }
-    showWriteNotice("account.writeRecovery.released", attempt); // No write or old command is dispatched.
+    showWriteNotice(personalConsentWrite(attempt) ? "account.writeRecovery.consentReleased" : "account.writeRecovery.released", attempt);
     const currentActor = actor.trackRequest(), generation = consentGeneration.current;
     window.requestAnimationFrame(() => {
       if (!currentActor() || generation !== consentGeneration.current) return;
@@ -1403,15 +1452,19 @@ export default function AccountPage() {
     if (!attempt) return;
     setError(""); setNotice("");
     try {
+      const intent = createConsentWriteIntent(consentStatus, attempt.owner);
+      attempt.intent = intent; attempt.ageBand = ageBand;
       await confirmActor(attempt.owner);
       if (!attempt.current()) return;
-      const status = await submitStudentAssent(ageBand, attempt.owner, { current: attempt.current });
+      const status = await submitStudentAssent(ageBand, attempt.owner, { current: attempt.current, intent,
+        onDispatch: () => { attempt.dispatched = true; } });
       const confirmedAgeBand = status.consent?.ageBand;
       await completeAccountConsentWrite(attempt, status, confirmedAgeBand === "under_14" ? "account.notices.under14Ineligible"
         : confirmedAgeBand === "18_plus" ? "account.notices.adultConsentComplete" : "account.notices.studentAssentRecorded");
     } catch (failure) {
       accountWriteFailed(attempt, failure, "account.errors.studentAssentFailed");
     } finally {
+      if (attempt.phase === "pending" && attempt.dispatched && !attempt.current()) { attempt.phase = "unknown"; publishWrites(); }
       if (attempt.phase === "pending") finishAccountWrite(attempt);
       if (consentAttemptRef.current === attempt) { consentAttemptRef.current = null; setConsentLoading(false); }
     }
@@ -1441,13 +1494,17 @@ export default function AccountPage() {
     if (!attempt) return;
     setError(""); setNotice("");
     try {
+      const intent = createConsentWriteIntent(consentStatus, attempt.owner);
+      attempt.intent = intent;
       await confirmActor(attempt.owner);
       if (!attempt.current()) return;
-      const status = await withdrawStudentConsent(studentUserId, attempt.owner, { current: attempt.current });
+      const status = await withdrawStudentConsent(studentUserId, attempt.owner, { current: attempt.current, intent,
+        onDispatch: () => { attempt.dispatched = true; } });
       await completeAccountConsentWrite(attempt, status, "account.notices.consentWithdrawn");
     } catch (failure) {
       accountWriteFailed(attempt, failure, "account.errors.consentWithdrawFailed");
     } finally {
+      if (attempt.phase === "pending" && attempt.dispatched && !attempt.current()) { attempt.phase = "unknown"; publishWrites(); }
       if (attempt.phase === "pending") finishAccountWrite(attempt);
       if (consentAttemptRef.current === attempt) { consentAttemptRef.current = null; setConsentLoading(false); }
     }
@@ -1745,14 +1802,16 @@ export default function AccountPage() {
                   <article key={attempt.slot} data-account-write-recovery={attempt.kind} className="rounded-2xl border border-sage/30 bg-white p-5 shadow-soft">
                     <h2 className="text-lg font-bold">{t(`account.writeRecovery.operations.${attempt.kind}`)}</h2>
                     {attempt.day ? <p className="mt-2 text-sm">{t("account.writeRecovery.targetDay", { date: attempt.day })}</p> : null}
-                    <p role="alert" className="mt-3 text-sm leading-7">{t("account.writeRecovery.unknown")}</p>
+                    <p role="alert" className="mt-3 text-sm leading-7">{t(personalConsentWrite(attempt) && attempt.checked
+                      ? "account.writeRecovery.consentVerified" : "account.writeRecovery.unknown")}</p>
                     {attempt.checkFailed ? <p role="alert" className="mt-3 text-sm font-bold">{t("account.writeRecovery.checkFailed")}</p> : null}
-                    {attempt.checked ? <p role="status" className="mt-3 text-sm leading-7">{t("account.writeRecovery.checked")}</p> : null}
+                    {attempt.checked && !personalConsentWrite(attempt) ? <p role="status" className="mt-3 text-sm leading-7">{t("account.writeRecovery.checked")}</p> : null}
                     <div className="mt-4 flex flex-col gap-3 sm:items-start">
                       <button type="button" className="button-secondary w-full whitespace-normal break-words sm:w-auto" disabled={attempt.checking}
                         onClick={() => void checkAccountWrite(attempt)}>{t(attempt.checking ? "account.writeRecovery.checking" : "account.writeRecovery.check")}</button>
                       {attempt.checked ? <button type="button" className="button-primary w-full whitespace-normal break-words sm:w-auto" disabled={attempt.checking}
-                        onClick={() => releaseAccountWrite(attempt)}>{t("account.writeRecovery.release")}</button> : null}
+                        onClick={() => releaseAccountWrite(attempt)}>{t(personalConsentWrite(attempt)
+                          ? "account.writeRecovery.consentRelease" : "account.writeRecovery.release")}</button> : null}
                     </div>
                   </article>
                 ))}
