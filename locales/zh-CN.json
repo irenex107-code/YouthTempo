@@ -73,10 +73,24 @@
     "hero": {
       "label": "青少年日常支持平台",
       "title": "SWEET花园",
-      "description": "这里是一个观察自己、照顾日常节奏的小庭院。可以先看看池塘、长椅和小鸟，准备好后再留下记录。",
+      "description": "YouthTempo 是面向 14–17 岁中学生和 18–25 岁青年人的双语早期支持平台。用 SWEET 记录日常节奏，回看过去的记录，需要时找人聊聊。",
       "primaryAction": "SWEET花园",
       "secondaryAction": "花园怎么玩",
       "imageAlt": "青少年按照自己的节奏向前，并获得家长、老师和专业支持者陪伴的插画"
+    },
+    "showcase": {
+      "action": "看一条 SWEET 示例",
+      "title": "一条 SWEET 记录，从填写到回看",
+      "description": "以下是虚构示例，答案来自 SWEET 记录的实际选项。访客可以直接查看。",
+      "recordTitle": "周一的 SWEET 记录",
+      "reviewTitle": "回看保存的记录",
+      "reviewText": "登录并保存后，到账号里的「{{history}}」按日期找到那天的记录。",
+      "growthTitle": "这条记录怎么算进花园",
+      "growthText": "周一记两次也只算 1 天，周四再记就累计到 2 天。花园按北京时间计算，记录日可以不连续。",
+      "supportLink": "找人聊聊",
+      "designTitle": "学生反馈怎样影响了花园设计",
+      "feedback": "在一次小规模可用性测试中，学生发现很难坚持做完整记录。他们的反馈促成了更简短的每日快速记录，以及随记录日累计成长的花园。",
+      "credit": "创办人兼产品负责人 Li Ting Xiao 把项目临床顾问介绍的 SWEET 框架做成了双语记录，并设计了学生回看记录的流程。她负责产品研究、原型、界面、文案和部署。"
     },
     "demo": {
       "eyebrow": "SWEET 记录示例",
