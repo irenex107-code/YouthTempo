@@ -17,26 +17,18 @@ async function getCount(query: PromiseLike<{ count: number | null; error: unknow
   return count || 0;
 }
 
-async function getInsightRecords(
-  supabase: SupabaseClient,
-  since: string,
-  schoolIds: string[] | null,
-  studentIds: string[] | null,
-) {
+async function getInsightRecords(supabase: SupabaseClient, since: string) {
   const pageSize = 1000;
   const maxRecords = 10_000;
   const records: Array<{ user_id: string; school_id: string; created_at: string }> = [];
 
   for (let from = 0; from < maxRecords; from += pageSize) {
-    let query = supabase
+    const { data, error } = await supabase
       .from("sweet_records")
       .select("user_id,school_id,created_at")
       .gte("created_at", since)
       .order("created_at", { ascending: false })
       .range(from, from + pageSize - 1);
-    if (schoolIds) query = query.in("school_id", schoolIds);
-    if (studentIds) query = query.in("user_id", studentIds);
-    const { data, error } = await query;
     if (error) throw error;
     records.push(...(data || []));
     if ((data || []).length < pageSize) return records;
@@ -106,6 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const context = await getAdminContext(req);
+    const platformScope = context.kind === "platform";
     const { supabase } = context;
     const isSupportOnly =
       context.kind === "school" &&
@@ -318,25 +311,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         student,
       ])).values(),
     );
-    const participationRecords = await getParticipationRecords(
+    const participationRecords = platformScope ? await getParticipationRecords(
       supabase,
       Array.from(new Set(uniqueParticipationStudents.map((student) => student.school_id))),
       Array.from(new Set(uniqueParticipationStudents.map((student) => student.user_id))),
-    );
-    const adminSchoolIdSet = new Set(directorySchoolIds);
-    const supportAssignmentKeySet = new Set(
-      (ownSupportAssignments || []).map((assignment) => `${assignment.school_id}:${assignment.student_user_id}`),
-    );
-    const authorizedParticipationRecords = context.kind === "platform"
-      ? participationRecords
-      : participationRecords.filter((record) =>
-          adminSchoolIdSet.has(record.school_id) ||
-          supportAssignmentKeySet.has(`${record.school_id}:${record.user_id}`),
-        );
-    const studentParticipationStats = buildStudentParticipationStats(
-      authorizedParticipationRecords,
-      uniqueParticipationStudents,
-    );
+    ) : [];
+    const studentParticipationStats = platformScope
+      ? buildStudentParticipationStats(participationRecords, uniqueParticipationStudents)
+      : [];
 
     let profileCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
@@ -344,9 +326,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let schoolUserCountQuery = context.kind === "school"
       ? supabase.from("profiles").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
       : supabase.from("profiles").select("id", { count: "exact", head: true }).not("school_id", "is", null);
-    let recordCountQuery = context.kind === "school"
-      ? supabase.from("sweet_records").select("id", { count: "exact", head: true }).in("school_id", schoolIds)
-      : supabase.from("sweet_records").select("id", { count: "exact", head: true });
     const memberCountQuery = context.kind === "school"
       ? supabase.from("school_members").select("id", { count: "exact", head: true }).in("school_id", schoolIds).eq("status", "active")
       : supabase.from("school_members").select("id", { count: "exact", head: true });
@@ -355,7 +334,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (isSupportOnly && assignedStudentIds.length > 0) {
       profileCountQuery = profileCountQuery.in("id", assignedStudentIds);
       schoolUserCountQuery = schoolUserCountQuery.in("id", assignedStudentIds);
-      recordCountQuery = recordCountQuery.in("user_id", assignedStudentIds);
     }
 
     const [profileCount, schoolUserCount, sweetRecordCount, schoolMemberCount, wechatIdentityCount] = hasScopedSchools
@@ -364,25 +342,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : await Promise.all([
           getCount(profileCountQuery),
           getCount(schoolUserCountQuery),
-          getCount(recordCountQuery),
+          platformScope ? getCount(supabase.from("sweet_records").select("id", { count: "exact", head: true })) : Promise.resolve(0),
           getCount(memberCountQuery),
           getCount(wechatCountQuery),
         ])
       : [0, 0, 0, 0, 0];
 
-    let recentRecordsQuery = supabase
-      .from("sweet_records")
-      .select("id,user_id,school_id,records,summary,created_at")
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (context.kind === "school") recentRecordsQuery = recentRecordsQuery.in("school_id", schoolIds);
-    if (isSupportOnly && assignedStudentIds.length > 0) {
-      recentRecordsQuery = recentRecordsQuery.in("user_id", assignedStudentIds);
-    }
-    const { data: recentRecords, error: recordsError } =
-      isSupportOnly && assignedStudentIds.length === 0
-        ? { data: [], error: null }
-        : await recentRecordsQuery;
+    const { data: recentRecords, error: recordsError } = platformScope
+      ? await supabase
+        .from("sweet_records")
+        .select("id,user_id,school_id,records,summary,created_at")
+        .order("created_at", { ascending: false })
+        .limit(200)
+      : { data: [], error: null };
     if (recordsError) throw recordsError;
     const effectiveRecentRecords = latestSweetRecordsPerUserDay(recentRecords || []).slice(0, 40);
 
@@ -416,20 +388,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    let attentionRecordsQuery = supabase
-      .from("sweet_records")
-      .select("id,user_id,school_id,records,summary,created_at")
-      .gte("created_at", since)
-      .order("created_at", { ascending: false })
-      .limit(100);
-    if (context.kind === "school") attentionRecordsQuery = attentionRecordsQuery.in("school_id", schoolIds);
-    if (isSupportOnly && assignedStudentIds.length > 0) {
-      attentionRecordsQuery = attentionRecordsQuery.in("user_id", assignedStudentIds);
-    }
-    const { data: attentionRecords, error: attentionError } =
-      isSupportOnly && assignedStudentIds.length === 0
-        ? { data: [], error: null }
-        : await attentionRecordsQuery;
+    const { data: attentionRecords, error: attentionError } = platformScope
+      ? await supabase
+        .from("sweet_records")
+        .select("id,user_id,school_id,records,summary,created_at")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(100)
+      : { data: [], error: null };
     if (attentionError) throw attentionError;
 
     const latestAttentionByUser = new Map<string, {
@@ -487,15 +453,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const insightSince = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString();
-    const insightRecords =
-      isSupportOnly && assignedStudentIds.length === 0
-        ? []
-        : await getInsightRecords(
-            supabase,
-            insightSince,
-            context.kind === "school" ? schoolIds : null,
-            isSupportOnly ? assignedStudentIds : null,
-          );
+    const insightRecords = platformScope ? await getInsightRecords(supabase, insightSince) : [];
 
     let insightTeachers: InsightTeacher[] = schoolDirectories.flatMap((directory) => directory.teachers.map((teacher) => ({
       school_id: directory.school_id,
@@ -516,19 +474,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })));
     }
 
-    const teacherWeeklySummaries = buildTeacherWeeklySummaries(
+    const teacherWeeklySummaries = platformScope ? buildTeacherWeeklySummaries(
       insightRecords,
       insightTeachers,
       attentionQueue.map((item) => item.user_id),
-    );
-    const schoolMonthlyTrends = buildSchoolMonthlyTrends(
+    ) : [];
+    const schoolMonthlyTrends = platformScope ? buildSchoolMonthlyTrends(
       insightRecords,
       (schools || []).filter((school) => directorySchoolIds.includes(school.id as string)).map((school) => ({
         school_id: school.id as string,
         school_name: school.name as string,
         student_count: schoolDirectories.find((directory) => directory.school_id === school.id)?.students.length || 0,
       })),
-    );
+    ) : [];
 
     return res.status(200).json({
       admin: {

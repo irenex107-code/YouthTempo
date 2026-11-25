@@ -492,36 +492,6 @@ alter table public.guardian_student_links
   add constraint pilot_guardian_links_inactive check (status <> 'active') not valid;
 
 drop policy if exists "sweet_records_select_school_members" on public.sweet_records;
-create policy "sweet_records_select_school_members"
-on public.sweet_records for select
-to authenticated
-using (
-  school_id is not null
-  and exists (
-    select 1 from public.profiles viewer
-    where viewer.id = (select auth.uid()) and viewer.role <> '家长'
-  )
-  and exists (
-    select 1 from public.school_members member
-    where member.school_id = sweet_records.school_id
-      and member.user_id = (select auth.uid())
-      and member.status = 'active'
-      and (
-        member.member_role = 'school_admin'
-        or (
-          member.member_role = 'school_support'
-          and exists (
-            select 1
-            from public.teacher_student_assignments assignment
-            where assignment.school_id = sweet_records.school_id
-              and assignment.teacher_user_id = (select auth.uid())
-              and assignment.student_user_id = sweet_records.user_id
-              and assignment.status = 'active'
-          )
-        )
-      )
-  )
-);
 
 drop policy if exists "sweet_records_insert_own" on public.sweet_records;
 create policy "sweet_records_insert_own"

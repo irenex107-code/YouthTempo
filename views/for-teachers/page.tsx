@@ -7,7 +7,7 @@ import { useTranslation } from "@/lib/i18n/client";
 export default function ForTeachersPage() {
   const { t } = useTranslation();
   const capabilityCards = [
-    { title: t("forTeachers.capabilities.items.week.title"), description: t("forTeachers.capabilities.items.week.description"), illustration: "/illustrations/system/teacher-overview-v2.webp", alt: t("forTeachers.capabilities.items.week.alt") },
+    { title: t("forTeachers.capabilities.items.week.title"), description: t("forTeachers.capabilities.items.week.description"), illustration: "/illustrations/system/role-teacher.webp", alt: t("forTeachers.capabilities.items.week.alt") },
     { title: t("forTeachers.capabilities.items.details.title"), description: t("forTeachers.capabilities.items.details.description"), illustration: "/illustrations/system/teacher-student-view-v3.webp", alt: t("forTeachers.capabilities.items.details.alt") },
     { title: t("forTeachers.capabilities.items.listen.title"), description: t("forTeachers.capabilities.items.listen.description"), illustration: "/illustrations/system/feature-mailbox.webp", alt: t("forTeachers.capabilities.items.listen.alt") },
   ];

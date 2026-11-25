@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { canAccessStudent, canManageSchool, getAdminContext } from "@/lib/adminAccess";
+import { getServerTranslator } from "@/lib/i18n/server";
 
 const allowedStatuses = ["new", "in_progress", "resolved"] as const;
 
@@ -11,6 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const context = await getAdminContext(req);
+    if (context.kind === "school") {
+      const t = getServerTranslator(req.cookies?.NEXT_LOCALE);
+      return res.status(403).json({ error: t("forTeachers.capabilities.items.details.description") });
+    }
     const recordId = String(req.body?.recordId || "").trim();
     const schoolId = String(req.body?.schoolId || "").trim();
     const status = String(req.body?.status || "").trim();
