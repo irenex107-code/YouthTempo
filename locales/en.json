@@ -73,10 +73,24 @@
     "hero": {
       "label": "Everyday mental health support for young people",
       "title": "SWEET Garden",
-      "description": "A small courtyard for noticing how you feel and caring for your daily rhythms. Visit the pond, bench and bird, then leave a record whenever you feel ready.",
+      "description": "YouthTempo is a bilingual early support platform for students aged 14–17 and young adults aged 18–25. Use SWEET to record your daily rhythms, revisit past entries, and find someone to talk to when you need support.",
       "primaryAction": "SWEET Garden",
       "secondaryAction": "How the garden works",
       "imageAlt": "A young person moving forward at their own pace, supported by parents, teachers, and professionals"
+    },
+    "showcase": {
+      "action": "See a SWEET example",
+      "title": "One SWEET check-in, from recording to looking back",
+      "description": "A fictional example with answers from the SWEET check-in. You can view it without signing in.",
+      "recordTitle": "Monday’s SWEET check-in",
+      "reviewTitle": "Revisit a saved check-in",
+      "reviewText": "After signing in and saving, open “{{history}}” in your account to find the check-in for that date.",
+      "growthTitle": "How this check-in counts",
+      "growthText": "Two check-ins on Monday still count as one day. Record again on Thursday and your garden counts two days. It uses Beijing time, and the days can be spread out.",
+      "supportLink": "Find someone to talk to",
+      "designTitle": "How student feedback shaped the garden",
+      "feedback": "In a small usability test, students found regular full check-ins hard to keep up with. Their feedback led to a shorter daily check-in and a garden that grows as they record on more days.",
+      "credit": "Founder and product lead Li Ting Xiao adapted the SWEET framework introduced by the project’s clinical advisor into bilingual check-ins and designed how students can review their records. She led product research, prototyping, interface design, writing and deployment."
     },
     "demo": {
       "eyebrow": "SWEET check-in preview",

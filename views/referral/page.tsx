@@ -543,7 +543,7 @@ export default function ReferralPage() {
         </div>
       </section>
 
-      <section className="section">
+      <section id="direct-support" className="section">
         <div className="container rounded-2xl border border-sage/25 bg-mint/60 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
           <div>
             <h2 className="text-xl font-bold text-ink">{t("referral.direct.title")}</h2>
