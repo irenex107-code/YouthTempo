@@ -1,6 +1,6 @@
 # Project Identity
 
-YouthTempo is a bilingual youth mental health support platform for a small-scale school pilot. It is designed primarily for young people aged 14–18 and also supports guardians, teachers, school leads, platform administrators, and verified professional supporters.
+YouthTempo is a bilingual early mental health support platform with a secondary school path for ages 14–17 and an independent young-adult path for ages 18–25. Guardians, teachers, school leads, administrators and verified supporters have role-specific tools. The release decision for a real school pilot is separate.
 
 The product helps young people notice emotions, reflect on daily rhythms through the SWEET model, and reach appropriate human support before challenges become crises. It provides early support and reflection tools; it does not diagnose, provide therapy, or replace emergency or professional care.
 
@@ -10,12 +10,18 @@ For pilot-readiness work, keep `PILOT_READINESS_AUDIT.md`, `SECURITY_PERMISSION_
 
 The current operational conclusion is **READY WITH CONDITIONS**, not **READY**. A healthy production site or a completed technical check does not close human sign-off, school-operation, physical-device, mail-delivery, recovery-operation, or external-alert blockers. Do not mark those items complete without the dated evidence required by `ROADMAP.md`.
 
+## Handover entry
+
+Use [README local development](README.md#local-development) to rebuild the public checkout and [ROADMAP.md](ROADMAP.md) for project status. In the full maintainer workspace, task authorization and checkpoints start at `project-management/YouthTempo_Plan_v1.0/00_START_HERE.md` and its `CURRENT_TASK.md` pointer.
+
 ## Product Boundaries
 
 - Young people can complete SWEET check-ins and use reflection tools such as Mood Journal, Talk, Worry Time, and Referral.
 - SWEET Talk is the parent communication tool based on AIDET. It is not a sixth SWEET rhythm dimension.
-- Linked guardians can view the records and messages they are authorized to access.
-- Teachers work from assigned-student relationships. School leads work within their school scope.
+- SWEET Garden counts distinct dates with a saved record in Asia/Shanghai. Same-day entries count once and dates can be nonconsecutive.
+- Ordinary authenticated users can read their own private SWEET records. Guardian links, teacher assignments and school leadership grant no access to a young person's private SWEET. Guardians have public guidance and communication tools.
+- Teachers may read and newly export messages students chose to address to them while student consent, teacher role, school membership and assignment are active. Revocation or consent withdrawal excludes previous messages from new requests. Replacement teachers do not inherit them. Students retain their history and export. Keep separately authorized safety review intact.
+- School reports, youth AI Talk, public adult chatroom access and formal consultation are closed. Separate local acceptance, released behavior, real-school pilot permission and formal role verification in ROADMAP.md.
 - Community posts and comments use role-scoped visibility and moderation states.
 - Platform administration, school operations, moderation, and professional verification are privileged workflows.
 - The public site and core authenticated user flows support Chinese and English. Do not assume every administrative screen is localized.

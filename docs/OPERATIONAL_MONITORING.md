@@ -1,5 +1,11 @@
 # YouthTempo 运行错误监控
 
+## 现行正式入口（2026-11-26）
+
+正式站运行于腾讯云香港 Lighthouse。已获准的线上读查从正式应用容器的标准错误流与 Docker 运行日志查找 `operation_failed`、`monitor_delivery_failed`，只记录脱敏事件。发布入口及健康检查见 [README 的正式部署说明](../README.md#production-deployment)。外部收件、生产受控失败及备份恢复告警按 [ROADMAP](../ROADMAP.md) 的独立条件验收。
+
+以下保留原监控说明及其当时的 CloudBase Run 环境。
+
 更新时间：2026-08-03
 
 ## 已覆盖范围

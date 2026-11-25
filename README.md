@@ -1,24 +1,26 @@
 # YouthTempo
 
-> Project Documentation v2.1 · 项目文档 v2.1
+> Project documentation · 项目文档 · 2026-11-26
 
 YouthTempo is a bilingual youth mental health support platform preparing for a small-scale school pilot. It helps young people understand emotions, build healthier everyday rhythms, and reach appropriate support before challenges become crises.
 
 YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健康支持平台。它帮助年轻人理解情绪、建立更健康的日常节律，并在困扰恶化为危机之前连接到合适的支持。
 
-**Pilot focus:** young people aged 14–18, together with guardians, teachers, school leads, platform administrators, and verified professional supporters.
+**Official site / 正式站** · [中文](https://youthtempo.com/) · [English](https://youthtempo.com/en)
 
-**试点重点：**14–18 岁青少年，以及与他们相关的家长、老师、学校负责人、平台管理员和经过验证的专业支持者。
-
-[Visit the YouthTempo pilot site](https://youthtempo.com)
-
-[访问 YouthTempo 试点网站](https://youthtempo.com)
+| 入口 | 中文 | English |
+| --- | --- | --- |
+| 14–17 岁中学生 / Secondary school students aged 14–17 | [中学生入口](https://youthtempo.com/for-teens) | [Secondary school students](https://youthtempo.com/en/for-teens) |
+| 18–25 岁青年 / Young adults aged 18–25 | [大学生与青年入口](https://youthtempo.com/for-young-adults) | [University students and young adults](https://youthtempo.com/en/for-young-adults) |
+| SWEET 公开示例 / Public SWEET example | [查看五项示例](https://youthtempo.com/#sweet-example) | [View the five-part example](https://youthtempo.com/en#sweet-example) |
+| 直接求助 / Find someone to talk to | [求助入口](https://youthtempo.com/referral#direct-support) | [Find support](https://youthtempo.com/en/referral#direct-support) |
+| 教师与隐私 / Teachers and privacy | [教师](https://youthtempo.com/for-teachers) · [隐私与安全](https://youthtempo.com/privacy-safety) | [Teachers](https://youthtempo.com/en/for-teachers) · [Privacy & safety](https://youthtempo.com/en/privacy-safety) |
 
 ## 1. Project Overview
 
-YouthTempo brings self-reflection, everyday rhythm awareness, and human support pathways into one calm, accessible experience. Young people can complete a SWEET check-in, use guided tools to organize emotions and worries, review their history, and decide when to reach out. Authorized family and school participants receive role-appropriate views without replacing the young person's own voice.
+Young people can reflect on their daily rhythms, put feelings into words, review their own SWEET history, and find someone to talk to. The 14–17 and 18–25 entry pages describe the choices each age group has. The school pilot has a separate approval process.
 
-YouthTempo 将自我梳理、日常节律觉察和现实求助路径放进一个平静、易用的体验中。年轻人可以完成 SWEET 日常记录，借助引导工具整理情绪与担忧，查看自己的历史变化，并判断何时需要向他人求助。获得授权的家庭和学校成员会看到与自身职责相符的信息，同时保留年轻人作为主体的表达空间。
+年轻人可以记录日常节律、梳理感受、回看自己的 SWEET 历史，在需要时找人聊聊。14–17 岁和 18–25 岁各有适合本年龄段的入口。真实学校试点另行放行。
 
 The project is built for pilot learning rather than large-scale commercial claims. Its current purpose is to test usability, safety, data boundaries, and collaboration across young people, families, schools, and professional support.
 
@@ -50,21 +52,18 @@ YouthTempo 不诊断、治疗或治愈心理疾病。它的作用是支持觉察
 
 ## 4. Target Users
 
-- **Young people aged 14–18:** the primary school-pilot users, completing check-ins and using support tools.
-- **Guardians:** viewing information for linked young people within confirmed relationships and consent boundaries.
-- **Teachers and school support staff:** following assigned students, changes over time, and messages requiring attention.
-- **School leads:** reviewing school-level participation and trends without making individual records the default view.
-- **Platform administrators:** managing schools, safety operations, permissions, and audit workflows.
-- **Verified professional supporters:** participating through a controlled verification and review process.
-- **Young adults aged 18–25:** an additional independent-use pathway outside the core school pilot.
 
-- **14–18 岁青少年：**学校试点的核心用户，完成日常记录并使用支持工具。
-- **家长：**在已确认的关联关系和同意边界内，查看关联孩子的信息。
-- **老师与学校支持人员：**关注本人负责的学生、阶段变化和需要了解的来信。
-- **学校负责人：**查看学校层面的参与情况和趋势，而不是默认浏览每个学生的原始记录。
-- **平台管理员：**管理学校、安全运营、权限和审计流程。
-- **经过验证的专业支持者：**通过受控的资质提交和审核流程参与平台。
-- **18–25 岁青年：**在学校试点之外，使用独立的成年人入口。
+- **Ages 14–17:** secondary school students have an age-specific workspace and support guide. Account tools require sign-in and the applicable consent.
+- **Ages 18–25:** young adults can use their own workspace after signing in and completing their personal confirmation. No guardian or school relationship is required for this path.
+- **Guardians:** public guides and the SWEET Talk conversation tool. A guardian link grants no access to the young person's private SWEET records or student-to-teacher messages.
+- **Teachers and school leads:** teachers work within their current assignments. The school report is closed. See [privacy and access](#privacy-and-access) for message eligibility and access after reassignment.
+- **Administrators and verified supporters:** controlled workspaces with separate permissions for administration and safety review.
+
+- **14–17 岁：**中学生使用相应工作台和求助说明。账户工具需要登录并完成适用的使用确认。
+- **18–25 岁：**青年登录并完成本人确认后可独立使用，无需家长或学校关联。
+- **家长：**可查看公开指南及使用 SWEET Talk 沟通工具。监护关联不授予查看孩子私人 SWEET 或学生发给老师的留言的权限。
+- **老师与学校负责人：**负责老师在有效分工内提供支持。目前未开放学校报告。留言访问条件及换任后的规则见[隐私与权限](#privacy-and-access)。
+- **管理员与已验证的支持者：**按独立权限使用管理及安全复核等工作台。
 
 ## 5. SWEET Model
 
@@ -98,9 +97,10 @@ A short SWEET-based reflection that helps users review the day, receive a struct
 
 ### SWEET Garden / SWEET 花园
 
-A private garden that grows with participation in quick check-ins and full SWEET reflections. On a first visit with no existing records, three short, manually advanced introduction pages explain the garden before the first check-in. The introduction can be skipped; it is remembered per account in that browser. Mood choices and missed days never reduce growth. Reminder preferences do not send push notifications or email.
 
-这是一个按轻量记录与完整 SWEET 参与次数成长的私人花园。没有既有记录的用户首次进入时，会先看到三页可手动切换的介绍，再开始第一次记录；介绍也可跳过，并按账号在当前浏览器记住。情绪选项和漏记不会让植物倒退；提醒偏好目前不发送推送或邮件。
+The private garden counts distinct days with a saved quick record or full SWEET check-in, using Beijing time (UTC+8). Two entries on Monday count as one day. Another entry on Thursday brings the total to two. Missed days and mood choices do not reduce growth. The [public example](https://youthtempo.com/en#sweet-example) uses fictional answers and can be viewed without signing in. First-time users with no records can skip the short introduction. Reminder preferences stay in the app; they do not send push or email.
+
+私人花园按北京时间累计有已保存轻量记录或完整 SWEET 的日期。周一记两次也只算一天，周四再记累计两天。漏记和情绪选项不会让植物倒退。[公开示例](https://youthtempo.com/#sweet-example)使用虚构作答，访客可直接查看。没有既有记录的用户可以跳过首次介绍。提醒偏好在站内使用，不发送推送或邮件。
 
 ### Mood Journal
 
@@ -110,9 +110,10 @@ Helps users name emotions, organize an experience, and find words for asking for
 
 ### Talk
 
-A brief, supportive AI conversation for making one difficult situation feel clearer, with defined boundaries and urgent-support guidance.
 
-通过简短、支持性的 AI 对话，帮助用户把眼前最困扰的一件事说清楚一点，同时保留明确的能力边界和紧急求助提示。
+SWEET Talk helps parents prepare a conversation using AIDET. The youth AI Talk conversation is closed, and its page points young people to other tools and human support.
+
+SWEET Talk 用 AIDET 帮助家长准备一次沟通。青少年 AI 对话「陪我捋一捋」目前关闭，页面提供其他梳理工具和现实求助入口。
 
 ### Worry Time
 
@@ -146,9 +147,9 @@ A role-scoped space for supportive posts and comments, with configurable visibil
 
 ### School & Support Workspaces
 
-Role-specific views for guardians, assigned teachers, school leads, platform administrators, and verified professional supporters.
+The public parent and teacher pages explain who can offer support and how. Sign-in, active consent, verified roles and current relationships govern protected workflows. School reports, the public young-adult chatroom and formal consultation are currently closed.
 
-为家长、负责老师、学校负责人、平台管理员和经过验证的专业支持者提供与职责相匹配的工作界面。
+公开家长页和教师页说明谁可以提供支持、如何联系。受保护功能依登录、有效同意、核验身份及当前关系开放。学校报告、面向公众的成年人聊天室和正式心理咨询目前关闭。
 
 ### Bilingual Experience
 
@@ -196,17 +197,20 @@ Safety detection supports timely escalation but does not claim perfect detection
 
 ## 9. Privacy Protection
 
-YouthTempo applies data minimization and role-appropriate access throughout the pilot. Users see only the information required for their role and confirmed relationships. Database-level Row Level Security, server-side authorization, consent records, and audit histories reinforce these boundaries.
 
-YouthTempo 在试点中坚持数据最小化和按角色授权。用户只能看到完成自身职责所需、且符合已确认关系的信息；数据库行级安全、服务端权限判断、同意记录和审计历史共同强化这些边界。
+<a id="privacy-and-access"></a>
 
-The product includes user data export, account deletion, consent withdrawal, and school-exit handling. It does not promise absolute confidentiality or risk-free storage. Sensitive credentials and user content must never be committed to source control or exposed in client-side code.
+**Private SWEET records.** Signed-in users can view their own saved records in Account. The ordinary account role can read only its own records. Guardian links, teacher assignments and school leadership grant no access to a young person's private SWEET.
 
-产品提供用户数据导出、账户注销、同意撤回和学校退出后的数据处理流程，但不作“绝对保密”或“零风险存储”的承诺。敏感凭据和用户内容不得提交到源代码仓库，也不得暴露在客户端代码中。
+**Messages sent to a teacher.** A teacher can read and newly export only the messages addressed to them while the student's consent, teacher role, school membership and assignment are active. When a required permission ends, new requests exclude those messages. The replacement teacher does not inherit them. The student retains their own history and export. Copies already seen or downloaded cannot be recalled. Authorized safety review is a separate workflow.
 
-An encrypted off-site backup and isolated recovery drill was completed on 11 August 2026. Daily encrypted backups on the Hong Kong server and off-site synchronization to a restricted maintainer device are enabled, and two consecutive runs have been verified. Recovery readiness remains conditional on cross-day observation, external failure alerts, and a real Email OTP/session check against the isolated recovery application.
+**私人 SWEET。** 登录用户可在账户回看自己的已保存记录。普通用户只读本人记录。家长关联、老师负责关系和学校负责人身份均不授予青少年私人 SWEET 的读取权限。
 
-2026 年 8 月 11 日已完成一次真实加密异地备份与隔离恢复演练。香港服务器的每日加密备份和到受限维护设备的异地同步均已启用，并已验证连续两次运行。恢复准备状态仍取决于跨日连续观察、外部失败告警，以及隔离恢复应用上的真实 Email OTP/session 验收。
+**发给老师的留言。** 只有学生主动发给该老师、且学生同意、教师身份、学校成员身份与负责关系均有效，老师才可读取或新导出。必要权限终止后，新请求不再提供原留言，接任老师不继承。学生本人仍可在历史和导出中找回，已经读过或下载的副本无法远程收回。安全复核由另外授权的人员办理。
+
+Account tools include data export, account deletion and consent withdrawal. Backup and recovery evidence, procedures and open conditions are in the [database recovery guide](docs/DATABASE_RECOVERY.md).
+
+账户提供导出、注销和撤回同意入口。备份恢复的操作、证据和剩余条件见[数据库恢复说明](docs/DATABASE_RECOVERY.md)。
 
 ## 10. Technical Architecture
 
@@ -265,6 +269,8 @@ The production application is built as a standalone Docker image and deployed to
 | 测试 | Playwright、TypeScript 检查、生产构建 |
 | 部署 | Docker、Nginx、腾讯云香港轻量应用服务器 |
 
+<a id="production-deployment"></a>
+
 ### Production deployment automation / 正式环境自动部署
 
 Every push to `main` first runs the repository's `Verify` workflow. A production deployment starts only after that workflow succeeds. GitHub Actions connects with a dedicated command-only SSH key, builds the exact verified commit on the Hong Kong server, starts a candidate container on localhost port 3001, and checks it before replacing the production container on port 3000. If the post-cutover health check fails, the deployment script restores the previous image.
@@ -299,164 +305,72 @@ Chinese is the product-copy source of truth, and the Chinese and English diction
 
 ## 13. User Flow
 
-### Young person
 
-```text
-Landing page
-    → Email OTP sign-in
-    → Consent or personal confirmation
-    → SWEET Check-in
-    → Non-diagnostic reflection and next step
-    → Personal history
-    → Mood Journal / Talk / Worry Time
-    → Messages or Referral when more support is needed
-```
+1. Choose the 14–17 or 18–25 path. Visitors can try the fictional SWEET example and open the support guide.
+2. For personal tools, sign in with the eight-digit email code and complete the applicable consent or personal confirmation.
+3. Use the SWEET Garden or a guided reflection. Find saved full SWEET entries in Account. The help link can be opened independently of a check-in.
 
-```text
-访问首页
-    → Email OTP 登录
-    → 完成知情同意或本人确认
-    → SWEET 日常记录
-    → 查看非诊断性小结和下一步
-    → 查看个人历史
-    → 使用 Mood Journal / Talk / Worry Time
-    → 需要更多支持时使用 Messages 或 Referral
-```
-
-### Connected support
-
-Guardians, teachers, and school leads sign in through the same authentication entry, then receive views based on verified relationships and responsibilities. They do not receive unrestricted access to all young people's data.
-
-家长、老师和学校负责人通过同一身份认证入口登录，之后根据已确认的关系和职责看到相应界面，而不会获得对所有青少年数据的无限制访问。
+1. 选择 14–17 岁或 18–25 岁入口。访客可查看虚构 SWEET 示例、浏览求助指南。
+2. 使用个人工具时，通过八位邮箱验证码登录，完成适用的使用同意或本人确认。
+3. 从 SWEET 花园或相应梳理工具开始，在账户回看已保存的完整 SWEET。可以直接打开求助入口。
 
 ## 14. Development Status
 
-### Implemented and verified for the current pilot scope / 当前试点范围内已实现并完成验证
 
-- SWEET generation, cloud records, history, and deletion.
-- Role-specific experiences for students, guardians, teachers, school leads, and platform administrators.
-- School, teacher–student, and guardian–student relationship boundaries.
-- Community visibility, reporting, moderation, blocking, and restrictions.
-- Server-controlled profile roles and client role-mutation protection.
-- Chinese and English public pages and core authenticated experiences.
-- Locale-aware AI responses and bilingual safety detection.
-- Message and community safety review paths.
-- An optional student-only pilot duty queue with audited handling and metadata-only email alerts; its production migrations are applied, while SMTP, duty hours, and real delivery verification remain open conditions.
-- Eight-digit Email OTP flow, session creation, safe errors, and historical delivery evidence; current multi-provider delivery revalidation remains a pilot condition.
-- CI, permission-boundary tests, security headers, rate limiting, and production deployment.
-- Real encrypted off-site database backup, isolated logical restore, relationship validation, JWT/RLS role checks, and account-deletion replay; the measured database-only logical restore time was 24 seconds.
-- Daily encrypted backup on the Hong Kong server and restricted off-site synchronization, with two consecutive successful runs and checksum verification.
-
-- SWEET 生成、云端记录、历史查看和删除。
-- 学生、家长、老师、学校负责人和平台管理员的角色体验。
-- 学校、老师—学生和家长—孩子关系边界。
-- 社区可见范围、举报、审核、屏蔽和限制。
-- 服务端角色控制和客户端角色篡改保护。
-- 中英文公开页面和核心登录后体验。
-- 跟随语言的 AI 回应与双语安全识别。
-- 消息和社区安全复核路径。
-- 可选的纯学生试点值班队列、处理审计和仅含元数据的邮件提醒；正式迁移已应用，SMTP、值班时段和真实投递仍是开放条件。
-- 八位 Email OTP、session 创建、安全错误和历史投递证据；多邮箱当次投递复验仍是试点准入条件。
-- CI、权限边界测试、安全响应头、频率限制和正式部署。
-- 真实加密异地数据库备份、隔离逻辑恢复、关系校验、JWT/RLS 角色边界验证和账号删除重放；本次仅数据库逻辑恢复实测为 24 秒。
-- 香港服务器每日加密备份和受限异地同步，已连续成功两次并完成校验和复核。
-
-### In progress before or during pilot operations / 试点前或试点运营期间仍在推进
-
-- Recovery closure: real Email OTP/session validation on the isolated recovery application, cross-day backup observation, external failure alerts, and complete business RPO/RTO validation.
-- Final external alert receiver and controlled failure validation for login, save, AI, and community paths.
-- Manual acceptance on physical iPhone, Android, and WeChat in-app browsers.
-- Custom SMTP, sender-domain authentication, and current QQ/163/Outlook delivery revalidation.
-- Signed guardian-access policy and confirmed school crisis-escalation contacts, duty hours, and offline response path.
-- Production enablement and real delivery validation for the student-only pilot duty queue, including a backup duty contact and an offline path.
-
-- 恢复闭环收口：隔离恢复应用真实 Email OTP/session、跨日备份观察、外部失败告警和完整业务 RPO/RTO 验收。
-- 正式外部告警接收端，以及登录、保存、AI、社区四类受控失败验收。
-- iPhone、安卓和微信内置浏览器真机验收。
-- 自有 SMTP、发件域认证和 QQ/163/Outlook 当次投递复验。
-- 监护人访问政策签署，以及学校危机升级联系人、值班时段和线下应急路径确认。
-- 纯学生试点值班队列的正式启用与真实投递验收，包括替补值班人和线下路径。
+| Scope / 范围 | As of 2026-11-26 / 截至 2026-11-26 |
+| --- | --- |
+| Public site / 正式站公开页面 | Both age paths, bilingual SWEET Garden and fictional example, parent guides, teacher and privacy explanations, and direct support links. / 双语年龄分流、SWEET 花园和虚构示例、家长指南、教师和隐私说明及直接求助已上线。 |
+| Account tools / 账户工具 | Email OTP, personal SWEET records and history, garden participation, data export and account deletion are deployed. Protected outreach and community functions depend on account eligibility. / 邮箱验证码、本人 SWEET 记录和历史、花园参与、数据导出和注销已上线。受保护的留言和社区功能按账号资格开放。 |
+| Closed features / 当前关闭 | Youth AI Talk, school reports, public young-adult chatroom and formal consultation. / 青少年 AI 对话、学校报告、公开成年人聊天室及正式心理咨询暂未开放。 |
+| Release evidence / 发布证据 | The admissions showcase passed the public guest check. S02 / P01-15 completed its limited release. The formal teacher-handoff role retest is `NOT_RUN` and requests already in flight during revocation remain `OPEN`. / 招生官公开展示通过访客复验。S02／P01-15 限定正式发布已完成，正式教师交接角色复验 `NOT_RUN`，撤权时在途请求 `OPEN`。 [Release PR / 发布 PR](https://github.com/irenex107-code/YouthTempo/pull/12) |
+| Real-school pilot / 真实学校试点 | READY WITH CONDITIONS. School operations, sign-offs, online recovery/alerts, delivery and physical-device evidence have separate release conditions. Android awaits a physical device. / READY WITH CONDITIONS。学校运营、签署、恢复及告警、投递和真机按各自门禁取证。Android 待实体机。 |
 
 ## 15. Roadmap
 
-YouthTempo's roadmap prioritizes pilot readiness over feature expansion:
+[ROADMAP.md](ROADMAP.md) records project priorities and completion. [AGENTS.md](AGENTS.md) explains maintainer scope and recovery. In the full maintainer workspace, start at `project-management/YouthTempo_Plan_v1.0/00_START_HERE.md` and follow its pointer to `CURRENT_TASK.md`.
 
-1. Close Email OTP delivery, recovery-operation, and external-alert conditions.
-2. Complete signed policy, school-response, and physical-device acceptance.
-3. Run a small, consent-based school pilot and collect role-specific feedback.
-4. Review usability, safety operations, participation patterns, and data governance before expanding scope.
-5. Improve infrastructure, documentation, and partner workflows based on pilot evidence.
+当前优先级与完成状态查 [ROADMAP.md](ROADMAP.md)，维护边界与中断恢复查 [AGENTS.md](AGENTS.md)。完整维护工作区从 `project-management/YouthTempo_Plan_v1.0/00_START_HERE.md` 进入，再查 `CURRENT_TASK.md`。
 
-YouthTempo 的路线图优先保障试点可用，而不是继续堆叠功能：
+| 项目 / Topic | 现行操作源 / Operating source |
+| --- | --- |
+| 运行、测试 / Run and verify | [Local development / 本地开发](#local-development) |
+| 正式发布及回退 / Release and rollback | [Production deployment / 正式部署](#production-deployment) · [Deployment workflow](.github/workflows/deploy-production.yml) · [Lighthouse script](scripts/deploy-lighthouse.sh) |
+| 账户投递、监控、恢复 / OTP, monitoring and recovery | [Email OTP and SMTP](docs/EMAIL_OTP_SMTP.md) · [Monitoring](docs/OPERATIONAL_MONITORING.md) · [Recovery](docs/DATABASE_RECOVERY.md) |
+| 试点权限和验收 / Pilot permissions and acceptance | [权限矩阵](SECURITY_PERMISSION_MATRIX.md) · [监护政策](PARENTAL_ACCESS_POLICY_DECISION.md) · [准备度审查](PILOT_READINESS_AUDIT.md) · [人工验收](PILOT_MANUAL_CHECKLIST.md) · [学校清单](SCHOOL_PILOT_READINESS_CHECKLIST.md) |
+| 公开示例、图片与历史材料 / Examples, assets and historic material | [视觉资产与截图索引](docs/visual-assets.md) · [Changelog](CHANGELOG.md) |
 
-1. 收口 Email OTP 投递、恢复运行和外部告警条件。
-2. 完成政策签署、学校应急路径和真机验收。
-3. 在知情同意基础上开展小规模学校试点，并收集不同角色的反馈。
-4. 在扩大范围前，复盘易用性、安全运营、参与情况和数据治理。
-5. 根据试点证据继续完善基础设施、文档和合作流程。
-
-Current priorities and acceptance criteria are maintained in [`ROADMAP.md`](./ROADMAP.md).
-
-当前优先级和验收标准统一维护在 [`ROADMAP.md`](./ROADMAP.md)。
-
-The current overall status is **READY WITH CONDITIONS**, not **READY**. Technical deployment health does not close human sign-off, school-operation, real-device, mail-delivery, or external-alert blockers.
-
-当前总体状态为 **READY WITH CONDITIONS**，而不是 **READY**。正式网站可访问并不代表人工签署、学校运营、真机、邮件投递或外部告警等阻塞项已经关闭。
-
-Pilot evidence and sign-off documents: [`PILOT_READINESS_AUDIT.md`](./PILOT_READINESS_AUDIT.md), [`SECURITY_PERMISSION_MATRIX.md`](./SECURITY_PERMISSION_MATRIX.md), [`PILOT_MANUAL_CHECKLIST.md`](./PILOT_MANUAL_CHECKLIST.md), [`SCHOOL_PILOT_READINESS_CHECKLIST.md`](./SCHOOL_PILOT_READINESS_CHECKLIST.md), and [`PARENTAL_ACCESS_POLICY_DECISION.md`](./PARENTAL_ACCESS_POLICY_DECISION.md).
-
-Recovery procedures and the latest drill evidence are maintained in [`docs/DATABASE_RECOVERY.md`](./docs/DATABASE_RECOVERY.md).
-
-试点证据、人工验收、学校准备与监护人访问决策均在上述文件中维护；当前总体结论为 **READY WITH CONDITIONS**。
+<a id="local-development"></a>
 
 ## 16. Local Development
 
-### Prerequisites / 环境要求
 
-- Node.js 22 recommended (`>=20.9.0 <27` supported)
-- pnpm `11.9.0`
+Use the Node.js version range for your checkout in [package.json](package.json). Node.js 22.13+ in the 22.x line is recommended. Use pnpm 11.9.0, pinned by `packageManager`. If your installation uses Corepack, enable its pnpm shim first. For a release check, check out the specified commit in a fresh clone before installing.
 
-- 建议使用 Node.js 22，支持版本为 `>=20.9.0 <27`
-- pnpm `11.9.0`
-
-Install dependencies and start the local application:
-
-安装依赖并启动本地应用：
+Node.js 支持范围以当前检出的 [package.json](package.json) 为准，建议使用 22.13 及以上的 22.x。pnpm 版本由 `packageManager` 固定为 11.9.0。通过 Corepack 管理时，先启用它提供的 pnpm 命令。核验交付版本时，在独立克隆中检出已指定提交后再安装。
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev:local
 ```
 
-Open the Chinese site at `http://127.0.0.1:3000` or the English site at `http://127.0.0.1:3000/en/`.
+Open the [Chinese homepage](http://127.0.0.1:3000/) and the [English homepage](http://127.0.0.1:3000/en). Stop the development server before the production build.
 
-中文版地址为 `http://127.0.0.1:3000`，英文版地址为 `http://127.0.0.1:3000/en/`。
+浏览[本机中文首页](http://127.0.0.1:3000/)和[本机英文首页](http://127.0.0.1:3000/en)。正式构建前先退出开发服务器。
 
-Local environment credentials are required for connected Auth, database, and AI workflows. Obtain them through the authorized project maintainer and keep them outside source control.
+Run the core checks in the same clean checkout. On macOS, the default Playwright run uses installed Google Chrome. Set `CI=1` for E2E when using the installed Playwright Chromium instead.
 
-涉及 Auth、数据库和 AI 的本地流程需要相应环境凭据。请通过获得授权的项目维护者获取，并始终将凭据保留在版本控制之外。
-
-Run the core verification commands:
-
-运行核心验证命令：
+在同一个干净副本进行核心检查。macOS 默认使用已安装的 Google Chrome；使用已安装的 Playwright Chromium 时，为 E2E 命令设置 `CI=1`。
 
 ```bash
 pnpm typecheck
 pnpm build
+pnpm test:e2e:install
 pnpm test:e2e
 ```
 
-Install Playwright browsers before the first browser test:
+The public checks can run with no `.env.local`. For separately authorized Auth, database or model tests, use [the example variable names](.env.local.example) and maintainer-provided settings for an isolated environment. The authenticated permission, SWEET, community and rate-limit suites require a reset of the virtual-school fixture. Credential-dependent checks are reported as skipped or not run when unavailable.
 
-首次运行浏览器测试前，请安装 Playwright 浏览器：
-
-```bash
-pnpm test:e2e:install
-```
-
-Targeted suites also cover authenticated permissions, SWEET lifecycle, community moderation, internationalization, AI locale handling, crisis detection, role protection, and mobile browser behavior.
-
-专项测试还覆盖登录后权限、SWEET 生命周期、社区审核、国际化、AI 语言处理、危机识别、角色保护和移动浏览器表现。
+公开检查可在没有 `.env.local` 的情况下运行。另获授权的身份、数据库或模型联测按[变量名示例](.env.local.example)配置，由维护者提供隔离环境配置。登录态权限、SWEET、社区和频率限制套件须重置虚拟学校 fixture。依赖凭据的检查在未配置时记为跳过或未运行。
 
 ## 17. Security Notes
 
