@@ -14,8 +14,17 @@ test("历史 active 监护关系不再授予 SWEET Data API 读取", async () =>
   expect(migration).toContain('using (student_user_id = (select auth.uid()))');
   expect(migration).toContain("check (status <> 'active') not valid");
   expect(migration).toContain("viewer.role <> '家长'");
+
+  expect(schema).toMatch(/alter table public\.sweet_records enable row level security/i);
   expect(schema).not.toContain('create policy "sweet_records_select_guardian"');
-  expect(schema).toContain("viewer.role <> '家长'");
+  expect(schema).not.toContain('create policy "sweet_records_select_school_members"');
+  const readPolicies = [...schema.matchAll(/^\s*create policy\s+("[^"]+"|\w+)\s+on\s+(?:"?public"?\.)?"?sweet_records"?(?=\s)([^;]+);/gim)]
+    .filter(([, , clauses]) => !/\bfor\s+(?:insert|update|delete)\b/i.test(clauses))
+    .map(([, name, clauses]) => ({ name: name.replaceAll('"', ""), clauses: clauses.trim().replace(/\s+/g, " ") }));
+  expect(readPolicies).toEqual([{
+    name: "sweet_records_select_own",
+    clauses: "for select to authenticated using ((select auth.uid()) = user_id)",
+  }]);
 });
 
 test("服务端不给家长读取留言、代撤回或重新确认学生同意", async () => {
