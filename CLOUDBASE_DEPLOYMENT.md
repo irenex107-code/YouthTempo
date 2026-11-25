@@ -1,3 +1,5 @@
+> **2026-11-26 · 历史部署说明。** 当前正式环境为腾讯云香港 Lighthouse，[中文站](https://youthtempo.com/)及[英文站](https://youthtempo.com/en)是现行入口。部署、健康检查与回退从 [README 的正式部署说明](README.md#production-deployment)进入。下方保留原 CloudBase Run 手册与历史网址供查档。
+
 # YouthTempo 腾讯云部署
 
 腾讯云 CloudBase Run 是 YouthTempo 当前唯一正式网站部署目标。Supabase 继续承担身份认证和主数据库，CloudBase Run 运行 Next.js 服务和 API。

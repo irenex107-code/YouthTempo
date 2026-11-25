@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-25 · Public showcase and limited S02 / P01-15 release
+
+- The bilingual public site shows both age paths (14–17 and 18–25), a fictional SWEET example, and a direct support link. The example explains how the garden counts recorded dates in Beijing time.
+- Private SWEET records are available to their owner. Teachers can read or newly export student messages addressed to them while the applicable consent, teacher role, school membership and assignment are active. School reports remain closed.
+- The admissions showcase passed guest checks. The formal teacher-handoff role retest is NOT_RUN and requests already in flight at revocation remain OPEN. [Deployment](https://github.com/irenex107-code/YouthTempo/actions/runs/45642189507)
+
 ## 2026-08-01 · Pilot readiness consolidation
 
 - 第一期目标收窄为 14–18 岁在校青少年及其家庭、老师和学校。

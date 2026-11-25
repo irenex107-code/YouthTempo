@@ -2,6 +2,12 @@
 
 本文件记录全站使用的插画与图片来源。真实照片、医学图示、数据图表或科普材料只有在来源、使用许可和用途均明确后才能加入产品。
 
+## 现行示例与截图（2026-11-26）
+
+- 用[中文 SWEET 示例](https://youthtempo.com/#sweet-example)和[英文 SWEET 示例](https://youthtempo.com/en#sweet-example)展示五项虚构作答及按天累计规则。从[中文年龄分流](https://youthtempo.com/for-young-people)或[英文年龄分流](https://youthtempo.com/en/for-young-people)进入两个工作台。
+- 展示截图以当日未登录正式站、标明日期及视口的取证为准。`outputs/youthtempo-preview.html` 与 [2026-09-19 会前核对](TEACHER_REVIEW_BROWSER_CHECK.md)是历史材料，保留供查档。
+- 下方记录插画的原始用途和生成来源，页面实际使用的文件以该发布版本的代码为准。素材授权与代码许可证由项目维护者确认。
+
 ## 原创品牌插画
 
 以下文件由 OpenAI 内置图像生成工具为 YouthTempo 原创生成，不属于医疗证据、科普资料或任何权威机构内容；页面会以“插画”方式使用，不暗示真实人物或机构背书。
