@@ -46,7 +46,7 @@
       }
     },
     "footer": {
-      "description": "Young people can check in with how they are doing and make sense of their feelings. With permission, parents and teachers can understand changes and help connect them with the right support when needed.",
+      "description": "Young people can record daily life and reflect on feelings. Parents can explore supportive communication, and teachers provide support within their authorized scope. Support pathways are available when needed.",
       "tagline": "Start with everyday life.",
       "links": {
         "resources": "Support guide",
@@ -150,8 +150,8 @@
       },
       "teachers": {
         "title": "I am a teacher",
-        "label": "Notice changes",
-        "text": "See broader changes among the students you support, understand individual situations when needed, and connect with families or professional support.",
+        "label": "Assigned students and messages",
+        "text": "View your school-confirmed student list and messages students sent you that you are still authorized to receive. The list shows support responsibilities. School reports are not yet open.",
         "action": "Go to the teacher space"
       }
     },
@@ -285,16 +285,16 @@
   },
   "forTeachers": {
     "metadata": { "title": "For Teachers | YouthTempo" },
-    "hero": { "label": "For teachers", "title": "Teacher workspace", "description": "Start by looking for ongoing changes among the students you support. When needed, review the details and decide together with the student whether to involve family or connect with further support.", "primaryAction": "Open the teacher workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
+    "hero": { "label": "For teachers", "title": "Teacher workspace", "description": "Start with your school-confirmed student list and the messages students choose to send you. Offer support within your responsibilities and permissions. The new school report is not yet open; a teacher assignment alone does not give access to full student records.", "primaryAction": "Open the teacher workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
     "capabilities": {
       "title": "What teachers can do here",
       "items": {
-        "week": { "title": "Start with the past week", "description": "See which students have recent records and whether any changes in their daily rhythms have continued.", "alt": "A teacher reviewing an overview of recent changes among the students they support" },
-        "details": { "title": "Then look at the details", "description": "When needed, review a student's recent summaries and their own records, then use specific changes to begin a conversation.", "alt": "A teacher and student reviewing the five SWEET areas of everyday rhythm together" },
-        "listen": { "title": "Hear what students want to say", "description": "Read messages that students chose to write to a teacher when they found them difficult to say face to face.", "alt": "A teacher reading a private message from a student" }
+        "week": { "title": "See the students you support", "description": "The school-confirmed list shows whom you support. It gives teachers and school leads no access to students’ private SWEET check-ins or participation statistics.", "alt": "A teacher holding a notebook" },
+        "details": { "title": "Understand what you can access", "description": "School reports are currently unavailable. Students can review their full SWEET check-ins in their own accounts. Parents cannot view a child’s private records.", "alt": "A teacher and student discussing everyday rhythms together" },
+        "listen": { "title": "Hear what students want to say", "description": "You can read messages students choose to send you while their participation consent, your teacher role, school membership and assignment are active. Refreshing your inbox or downloading a new copy after an assignment ends or consent is withdrawn will exclude those messages. A replacement teacher only receives messages addressed to them. Copies already viewed or downloaded cannot be recalled.", "alt": "A teacher reading a private message from a student" }
       }
     },
-    "conversation": { "title": "Use the record to start a conversation", "text": "When changes in sleep, eating, movement, or task engagement continue, you might begin with: “Has something been leaving you especially tired lately?” Listen first, then decide together whether more support is needed.", "recordsAction": "View my students", "messagesAction": "View messages", "referralAction": "View support pathways" },
+    "conversation": { "title": "Start with what a student chooses to share", "text": "You might begin with: “Is there anything you would like to talk about, or anything I could help with?” Listen first, then decide together whether more support is needed. Having no records or messages does not mean that a student needs no support.", "recordsAction": "View my students", "messagesAction": "View messages", "referralAction": "View support pathways" },
     "feedback": { "title": "What could work better?", "description": "Take two minutes to share how the platform worked in practice and help us improve the pilot.", "action": "Share teacher feedback" }
   },
   "forYoungAdults": {
@@ -948,14 +948,14 @@
       "firstSignIn": "First sign-in", "label": "My account", "completeProfile": "Complete your profile", "greeting": "Hello, {{name}}", "accountFallback": "your account",
       "completeProfileDescription": "Add your name and select your role. The next time you sign in, you will go straight to your records.",
       "linkedChildren": "You are linked to {{names}} and can view rhythm records within the access confirmed by the school.", "noLinkedChildren": "The current student-only pilot does not create parent or guardian accounts or child connections. A future approved flow for minors will provide separate information.",
-      "descriptions": { "platformAdmin": "Open platform administration to view schools, members, and support assignments.", "schoolLead": "Manage members at your school and view records submitted by students at the school.", "supportTeacher": "View recent records and changes for students assigned to you by the school.", "guardian": "Parent or guardian access is closed in the current student-only pilot. A future approved flow for minors will provide separate information.", "schoolStudent": "Records you save appear here and are shared with the appropriate teacher according to your school's support arrangements.", "personal": "Save a SWEET check-in to return to it here later." }
+      "descriptions": { "platformAdmin": "Open platform administration to view schools, members, and support assignments.", "schoolLead": "Manage members and assignments at your school, and handle school support matters you are authorized to access.", "supportTeacher": "View students assigned to you and handle messages and support matters you are authorized to receive.", "guardian": "Parent or guardian access is closed in the current student-only pilot. A future approved flow for minors will provide separate information.", "schoolStudent": "Saved SWEET check-ins appear in your personal history. A school assignment does not share these private records.", "personal": "Save a SWEET check-in to return to it here later." }
     },
     "actions": { "platformAdmin": "Platform administration", "schoolAdmin": "School administration", "studentRecords": "View student records", "assignedStudents": "View assigned students", "followUpWorkspace": "Follow-up workspace", "childRecords": "View child records", "moreSupport": "Find more support", "recordToday": "SWEET Garden", "saveContinue": "Save and continue", "saveProfile": "Save profile", "signOut": "Sign out", "submitting": "Submitting...", "processing": "Processing..." },
     "profile": { "name": "Name", "namePlaceholder": "What should we call you?", "accountType": "Account type" },
     "summary": { "currentRole": "Current role", "confirming": "Confirming", "confirmingRole": "Confirming your role...", "visibleRecords": "Visible records", "recordCountOne": "{{count}} record", "recordCount": "{{count}} records", "savedToAccount": "Saved to this account", "lastSevenDays": "Last 7 days", "daysRecordedOne": "Records on {{count}} day", "daysRecorded": "Records on {{count}} days", "notEveryDay": "You do not need to complete one every day", "schoolSpace": "School space", "joined": "Joined", "notJoined": "Not joined", "configuredBySchool": "Managed by the school" },
     "ageGuidance": {
       "label": "A way of using YouthTempo that fits you",
-      "minor": { "heroDescription": "You are taking part in the student-only trial. Records are for your own review by default; additional access requires an existing, authorized school relationship.", "title": "Check in at your own pace, then choose a specific person when you want to share", "description": "You can complete check-ins and reflection tools independently. The current pilot does not create parent or guardian connections. If your school has assigned a support teacher, you can write to that teacher through Private Messages, or keep the message for yourself. Contacting the pilot duty lead is a separate choice and does not mean that counselling has begun.", "primaryAction": "View the student space", "secondaryAction": "Write down what is hard to say" },
+      "minor": { "heroDescription": "You are taking part in the student-only trial. Your full SWEET check-ins stay in your personal history. A school relationship does not share them with teachers or parents.", "title": "Check in at your own pace, then choose a specific person when you want to share", "description": "You can complete check-ins and reflection tools independently. The current pilot does not create parent or guardian connections. If your school has assigned a support teacher, you can write to that teacher through Private Messages, or keep the message for yourself. Contacting the pilot duty lead is a separate choice and does not mean that counselling has begun.", "primaryAction": "View the student space", "secondaryAction": "Write down what is hard to say" },
       "adult": { "heroDescription": "You are using YouthTempo independently as an adult. A school or parent does not need to join, and records are for your own review by default.", "title": "Read your records against your own baseline, not a secondary-school timetable", "description": "Late nights, late mornings, takeaway meals, or an irregular schedule do not by themselves indicate a mental health problem. Notice whether changes are unusual for you and continue to affect energy, study, work, relationships, or basic daily life. When you want human help, choose an appropriate university resource, community service, or qualified professional.", "primaryAction": "View independent-use guidance", "secondaryAction": "Explore support pathways" }
     },
     "consent": {
@@ -1023,21 +1023,21 @@
       "legalPrefix": "The 2-, 24-, and 72-hour targets above are the times we aim to meet for an initial review; they are not uniform legal deadlines. If someone is in danger, do not wait for a community response. The community rules are informed by"
     },
     "account": {
-      "title": "Sign-in and data retention", "description": "Individual users can view their own records. School roles access records according to school membership and student assignments. Parents can only view records for children whose connection to them has been confirmed by the school.",
+      "title": "Sign-in and data retention", "description": "Full SWEET check-ins stay in the student’s personal history. An assignment or school role does not give teachers or school leads access. In this pilot, parents cannot view a child’s private records, and school reports are unavailable.",
       "email": { "title": "Email sign-in", "text": "Sign in with a verification code sent to your email. You do not need to create or remember a password." },
       "records": { "title": "Saving records", "text": "SWEET records that you choose to save after signing in are added to your personal history." },
-      "school": { "title": "School access", "text": "School leads can view records for students at their school. Support teachers can only view students assigned to them by the school." },
+      "school": { "title": "School access", "text": "The assigned-student list shows support responsibilities. Teachers can read or newly export messages students chose to send them while the student’s consent, the teacher role, school membership and assignment are active. After access ends or consent is withdrawn, new requests exclude those messages. A replacement teacher does not inherit them. Students can still find the original messages in their own history and exports. Safety review is handled separately by authorized staff." },
       "delete": { "title": "Deleting records", "text": "Students can delete their own saved SWEET records under Account." },
       "export": { "title": "Exporting data and closing an account", "text": "After signing in, you can immediately download a copy of your data or permanently close your account. YouthTempo does not retain exported files." }
     },
     "consent": {
       "title": "Informed consent for the student-only trial", "description": "The current YouthTempo student-only trial is for students aged 14 or older. Students aged 14–17 may provide separate personal consent after understanding how sensitive information and AI processing are used; a school, teacher, or guardian does not need to join.",
       "student": { "title": "The student provides separate consent", "text": "Students read about the data covered, its purposes, AI processing, who may be able to see it, and how to withdraw. They select only an age range and do not provide an exact date of birth. They can then generate AI summaries and save their own records." },
-      "guardian": { "title": "Relationships are not created automatically", "text": "Student-only trial consent does not mean that a guardian or school has confirmed participation and does not create any relationship. Without a school-verified active relationship, parents, teachers, and schools cannot view records. A future formal school pilot will use a new consent version and review the applicable confirmations again." },
+      "guardian": { "title": "Relationships are not created automatically", "text": "Consent for the student-only trial does not create any relationship with a guardian or school. Parents cannot access a child’s private records, and the new school report is not yet open. Before it opens, the applicable confirmations will be completed and the teacher’s trend view, optional detailed sharing, and exit arrangements will be explained." },
       "summary": { "title": "Confirm before each use of AI", "text": "Before SWEET Check-in or Mood Journal sends necessary content to AI to generate a record summary, it shows a processing notice and version number and requires an active checkbox. Worry Time and Find the Right Support use fixed rules and do not call AI; Talk It Through is closed during the first school pilot. Fixed urgent safety messages also do not depend on AI or wait for this confirmation." },
       "withdraw": { "title": "Consent can be withdrawn", "text": "Students can withdraw student-only trial consent from the Account page. After withdrawal, they cannot save new records, send messages, or post in the community." },
       "coverage": { "title": "What the consent covers", "text": "Account details, SWEET everyday-rhythm responses, AI-assisted record summaries, rule-based tool results, private messages, community posts, and the relationship information needed to limit access for schools, teachers, and guardians. Users are not asked for a national identity number or exact date of birth." },
-      "afterWithdrawal": { "title": "What happens after withdrawal", "text": "After consent is withdrawn, no new records can be saved and no new messages or community posts can be sent. Existing content can still be viewed, downloaded, or deleted individually, and the account can be closed to delete associated data." },
+      "afterWithdrawal": { "title": "What happens after withdrawal", "text": "After withdrawing consent, students can no longer save new records, send messages or post in the community. The original teacher can no longer retrieve messages in their inbox or in a new export while consent is withdrawn. Students can still view, download or delete their own content, or close their account and delete associated data." },
       "legalPrefix": "When personal information is processed on the basis of consent, the law requires consent to be informed, voluntary, explicit, and easy to withdraw. Separate consent is required for sensitive personal information such as medical and health information, and guardian consent is required for the personal information of children under 14. The current student-only trial does not accept users under 14; the applicable student and guardian confirmations will be reviewed again before a formal school pilot. See"
     },
     "retention": {
@@ -1051,7 +1051,7 @@
     },
     "schoolExit": {
       "title": "Data handling when a school leaves the pilot", "description": "After a school leaves, it can no longer access information about the students involved. Student and parent accounts are not closed as a result.",
-      "access": { "title": "School access ends immediately", "text": "When withdrawal takes effect, school leads, teachers, and other school roles immediately lose access to the school space, student records, and support relationships." },
+      "access": { "title": "School access ends immediately", "text": "When a school leaves, staff lose access to that school’s workspace. Teachers can no longer retrieve or newly export messages based on their former school assignments." },
       "personal": { "title": "Personal accounts remain active", "text": "Student, parent, and teacher accounts are not deleted because a school leaves. Individuals can continue to view or export their own data or close their account." },
       "relationships": { "title": "School relationships are removed", "text": "School memberships, teacher–student relationships, parent–child relationships, and pending invitations are removed. School affiliation is removed from personal SWEET records, messages, and consent records." },
       "notes": { "title": "School collaboration data is deleted", "text": "Follow-up notes created only for school collaboration are deleted when the school leaves. Exit-operation records that do not contain student content may be retained for up to 24 months." },
@@ -1061,7 +1061,7 @@
       "label": "Data covered", "title": "What data may be retained?", "description": "We retain records users actively submit, account details, and relationship information needed to provide school support. This information is not used to label or rank people.",
       "sweet": { "title": "SWEET rhythm records", "text": "Everyday rhythm information such as sleep, waking, meals, movement, and task engagement." },
       "account": { "title": "Account details", "text": "Email address, display name, and the role selected by the user, used for sign-in and to distinguish support roles." },
-      "school": { "title": "School relationships", "text": "School, student, support-teacher, and teacher–student assignment information used to limit who can see records." },
+      "school": { "title": "School relationships", "text": "School membership and teacher assignments organize support and help determine who can receive a message a student chooses to send." },
       "summary": { "title": "Organized summaries", "text": "This includes faithful AI-assisted summaries of the current record, communication starters chosen by the user, and optional next steps organized by fixed rules." }
     },
     "laws": { "minorProtection": "Regulations on the Protection of Minors in Cyberspace", "personalInformation": "Personal Information Protection Law of the People's Republic of China", "networkData": "Regulations on Network Data Security Management", "and": "and" },
@@ -1150,8 +1150,8 @@
       "text": "After 3, 7, 14 and 28 participation days in total, the flower border, hill path, pond edge and bench corner become available. On a day with a record, you can save one flower, stone or lantern keepsake and remove it later."
     },
     "privacy": {
-      "title": "Where things are saved and who can see them",
-      "text": "After you sign in and complete the applicable consent, records and garden choices are saved to your account. Quick garden records, decorations and keepsakes are available only to you. Full SWEET records follow existing access permissions for assigned teachers and other authorized people. Check your account relationships and privacy information for details."
+      "title": "What stays private",
+      "text": "After you sign in and complete consent, quick garden records, decorations, keepsakes and full SWEET check-ins are saved to your account. You can review full SWEET check-ins under Account. A school relationship does not give teachers, school leads or parents access to your private records. Your teacher can read messages you choose to send them while your consent and assignment are active. School reports are currently unavailable."
     },
     "choice": {
       "title": "You can visit without recording",

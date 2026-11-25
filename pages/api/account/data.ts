@@ -4,6 +4,7 @@ import { ACCOUNT_DATA_POLICY_VERSION, accountDataRetention } from "@/lib/account
 import { reportOperationalError } from "@/lib/operationalMonitoring";
 import { transitionSupportCase } from "@/lib/supportWorkflow";
 import { getAuthenticatedUser, getSupabaseAdmin } from "@/lib/supabaseServer";
+import { canAccessTeacherMessage, loadTeacherMessageScope } from "@/lib/studentMessageAccess";
 
 function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
@@ -20,7 +21,33 @@ async function rows<T>(query: PromiseLike<{ data: T[] | null; error: { message: 
   return data || [];
 }
 
-async function buildAccountExport(user: { id: string; email?: string | null; created_at: string; updated_at?: string; last_sign_in_at?: string }) {
+const receivedMessageColumns = "id,school_id,sender_user_id,recipient_type,recipient_user_id,anonymous_to_recipient,body,moderation_status,read_at,created_at";
+
+async function receivedAccountMessages(
+  supabase: ReturnType<typeof getSupabaseAdmin>, userId: string, purpose: "download" | "deletionAudit",
+) {
+  const received = () => supabase.from("student_messages").select(receivedMessageColumns)
+    .eq("recipient_user_id", userId).neq("sender_user_id", userId).order("created_at");
+  if (purpose === "deletionAudit") return rows(received());
+
+  const scope = await loadTeacherMessageScope(supabase, userId);
+  const visible = await rows(received().neq("recipient_type", "teacher"));
+  for (let offset = 0; offset < scope.studentIds.length; offset += 100) {
+    const ids = scope.studentIds.slice(offset, offset + 100);
+    for (let cursor = 0; ; cursor += 500) {
+      const page = await rows(received().eq("recipient_type", "teacher").eq("school_id", scope.schoolId)
+        .in("sender_user_id", ids).order("id").range(cursor, cursor + 499));
+      visible.push(...page);
+      if (page.length < 500) break;
+    }
+  }
+  return visible.sort((left, right) => left.created_at.localeCompare(right.created_at) || left.id.localeCompare(right.id));
+}
+
+async function buildAccountExport(
+  user: { id: string; email?: string | null; created_at: string; updated_at?: string; last_sign_in_at?: string },
+  purpose: "download" | "deletionAudit",
+) {
   const supabase = getSupabaseAdmin();
   const email = user.email?.trim().toLowerCase() || "";
 
@@ -71,7 +98,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
     rows(supabase.from("user_permissions").select("id,owner_user_id,grantee_email,permission_type,status,created_at,revoked_at").eq("owner_user_id", user.id)),
     rows(supabase.from("wechat_identities").select("id,user_id,openid,unionid,created_at,updated_at").eq("user_id", user.id)),
     rows(supabase.from("student_messages").select("id,school_id,sender_user_id,recipient_type,recipient_user_id,anonymous_to_recipient,body,moderation_status,read_at,created_at").eq("sender_user_id", user.id).order("created_at")),
-    rows(supabase.from("student_messages").select("id,school_id,sender_user_id,recipient_type,recipient_user_id,anonymous_to_recipient,body,moderation_status,read_at,created_at").eq("recipient_user_id", user.id).neq("sender_user_id", user.id).order("created_at")),
+    receivedAccountMessages(supabase, user.id, purpose),
     rows(supabase.from("community_posts").select("id,author_user_id,author_role,title,body,viewer_roles,commenter_roles,moderation_status,created_at,updated_at").eq("author_user_id", user.id).order("created_at")),
     rows(supabase.from("community_comments").select("id,post_id,author_user_id,author_role,body,moderation_status,created_at").eq("author_user_id", user.id).order("created_at")),
     rows(supabase.from("community_reports").select("id,post_id,comment_id,reason,category,priority,status,created_at,target_review_at,resolved_at").eq("reporter_user_id", user.id).order("created_at")),
@@ -103,6 +130,13 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
       : Promise.resolve([]),
   ]);
 
+  let visibleReceivedMessages = receivedMessages;
+  if (purpose === "download" && receivedMessages.some((message) => message.recipient_type === "teacher")) {
+    const currentScope = await loadTeacherMessageScope(supabase, user.id);
+    visibleReceivedMessages = receivedMessages.filter((message) => message.recipient_type !== "teacher"
+      || canAccessTeacherMessage(currentScope, message));
+  }
+
   return {
     format: "YouthTempo account data export",
     formatVersion: 1,
@@ -130,7 +164,7 @@ async function buildAccountExport(user: { id: string; email?: string | null; cre
       wechatIdentities,
       messages: profile[0]?.role === "家长" ? [] : [
         ...sentMessages,
-        ...receivedMessages.map((message) => message.anonymous_to_recipient
+        ...visibleReceivedMessages.map((message) => message.anonymous_to_recipient
           ? { ...message, sender_user_id: null }
           : message),
       ],
@@ -176,7 +210,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const user = await getAuthenticatedUser(req);
     if (!user?.email) return res.status(401).json({ error: "请先登录。" });
-    const accountExport = await buildAccountExport(user);
+    const accountExport = await buildAccountExport(user, req.method === "GET" ? "download" : "deletionAudit");
 
     if (req.method === "GET") {
       const date = new Date().toISOString().slice(0, 10);

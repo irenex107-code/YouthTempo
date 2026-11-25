@@ -176,7 +176,7 @@ function adminTitle(overview: AdminOverview | null) {
 
 function adminSubtitle(overview: AdminOverview | null) {
   if (overview?.admin.role === "支持老师") return "先查看负责学生，再记录必要的支持进度。";
-  if (overview?.admin.scope === "school") return "管理本校成员和负责关系，及时了解学生的近期变化。";
+  if (overview?.admin.scope === "school") return "管理本校成员和负责关系。";
   return "优先处理审核与反馈，再维护学校空间和全平台协作关系。";
 }
 
@@ -195,19 +195,13 @@ function workspaceActions(overview: AdminOverview) {
 
   if (overview.admin.role === "支持老师") {
     return [
-      { href: "#weekly-summary", label: "本周摘要", description: "查看负责学生最近 7 天的参与变化" },
-      { href: "#participation-stats", label: "参与统计", description: "查看负责学生的记录日数" },
-      { href: "#recent-changes", label: "需要了解", description: "先看负责学生的近期变化" },
-      { href: "#recent-records", label: "学生记录", description: "查看负责学生的完整记录" },
+      { href: "/account#students", label: "负责名单", description: "查看学校确认的负责名单" },
+      { href: "/messages", label: "查看收到的话", description: "查看当前获准接收的留言" },
       { href: "/referral", label: "支持路径", description: "需要时连接更多支持" },
     ];
   }
 
   const actions = [
-    { href: "#monthly-trends", label: "月度趋势", description: "查看本校近 4 周总体参与变化" },
-    { href: "#participation-stats", label: "奖励统计", description: "按学生核对记录日数和连续日数" },
-    { href: "#schools-overview", label: "学校概览", description: "按老师查看近 4 周总体情况" },
-    { href: "#recent-changes", label: "需要了解", description: "先看本校学生的近期变化" },
     { href: "#member-management", label: "成员管理", description: "登记老师和学生" },
     { href: "#teacher-assignment", label: "负责关系", description: "分配老师负责的学生" },
   ];
@@ -850,11 +844,13 @@ export default function AdminPage() {
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schoolUsers}</p>
                   <p className="mt-2 text-sm leading-6 text-muted">学生、学校负责人和支持老师；当前试点不新建家长账号。</p>
                 </div>
+                {isPlatformAdmin ? (
                 <div className="card">
                   <p className="text-xs font-bold text-sage">SWEET 记录</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.sweetRecords}</p>
                   <p className="mt-2 text-sm leading-6 text-muted">{isPlatformAdmin ? "所有学校的近期记录。" : "本校学生记录。"}</p>
                 </div>
+                ) : null}
                 <div className="card">
                   <p className="text-xs font-bold text-sage">在用学校</p>
                   <p className="mt-3 text-3xl font-bold text-ink">{overview.counts.schools}</p>
@@ -1219,7 +1215,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview && overview.admin.role !== "支持老师" ? (
+      {overview?.admin.scope === "platform" ? (
         <section id="monthly-trends" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader
@@ -1265,7 +1261,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview ? (
+      {overview?.admin.scope === "platform" ? (
         <section id="weekly-summary" className="section section-muted scroll-mt-24">
           <div className="container">
             <SectionHeader
@@ -1324,7 +1320,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview ? (
+      {overview?.admin.scope === "platform" ? (
         <section id="participation-stats" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader
@@ -1389,7 +1385,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview && overview.admin.role !== "支持老师" ? (
+      {overview?.admin.scope === "platform" ? (
         <section id="schools-overview" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader
@@ -1871,7 +1867,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview ? (
+      {overview?.admin.scope === "platform" ? (
         <section id="recent-changes" className="section section-muted scroll-mt-24">
           <div className="container">
             <SectionHeader
@@ -1968,7 +1964,7 @@ export default function AdminPage() {
         </section>
       ) : null}
 
-      {overview ? (
+      {overview?.admin.scope === "platform" ? (
         <section id="recent-records" className="section scroll-mt-24">
           <div className="container">
             <SectionHeader

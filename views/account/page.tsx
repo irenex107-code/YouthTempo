@@ -45,7 +45,6 @@ import {
   otpRequestErrorMessage,
   otpVerificationErrorMessage,
 } from "@/lib/emailOtp";
-import { rhythmOverview } from "@/lib/rhythmInsights";
 import { localizedStoredCheckInValue, storedCheckInLabel } from "@/lib/checkInHistoryCopy";
 
 type Translate = (key: TranslationKey, values?: TranslationValues) => string;
@@ -69,13 +68,6 @@ function recordCountLabel(count: number, locale: Locale, t: Translate) {
 
 function recordedDaysLabel(count: number, locale: Locale, t: Translate) {
   return t(locale === "en" && count === 1 ? "account.summary.daysRecordedOne" : "account.summary.daysRecorded", { count });
-}
-
-function relationshipDaysLabel(period: "fourWeek" | "sevenDay", count: number, locale: Locale, t: Translate) {
-  const key = locale === "en" && count === 1
-    ? `account.relationships.${period}DaysOne`
-    : `account.relationships.${period}Days`;
-  return t(key as TranslationKey, { count });
 }
 
 function countRecentRecordDays(records: CloudSweetRecord[], userId?: string) {
@@ -117,13 +109,6 @@ export function roleDisplayLabel(role: string, t: Translate) {
   return t("account.roles.student");
 }
 
-function recordsTitle(role: string, t: Translate) {
-  if (role === "学校负责人") return t("account.records.titles.school");
-  if (role === "支持老师") return t("account.records.titles.teacher");
-  if (role === "家长") return t("account.records.titles.guardian");
-  return t("account.records.titles.own");
-}
-
 function recordsDescription(role: string, hasSchool: boolean, t: Translate) {
   if (role === "平台管理员") return t("account.hero.descriptions.platformAdmin");
   if (role === "学校负责人") return t("account.hero.descriptions.schoolLead");
@@ -135,8 +120,6 @@ function recordsDescription(role: string, hasSchool: boolean, t: Translate) {
 function emptyRecordsDescription(role: string, t: Translate) {
   if (role === "学生") return t("account.records.empty.student");
   if (role === "家长") return t("account.records.empty.guardian");
-  if (role === "支持老师") return t("account.records.empty.teacher");
-  if (role === "学校负责人") return t("account.records.empty.schoolLead");
   return t("account.records.empty.default");
 }
 
@@ -181,7 +164,6 @@ export default function AccountPage() {
   const [identityChecking, setIdentityChecking] = useState(true);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
-  const [selectedRelatedUserId, setSelectedRelatedUserId] = useState("");
   const [consentStatus, setConsentStatus] = useState<StudentConsentResponse | null>(null);
   const [consentLoading, setConsentLoading] = useState(false);
   const [ageBand, setAgeBand] = useState<"under_14" | "14_17" | "18_plus">("14_17");
@@ -212,23 +194,13 @@ export default function AccountPage() {
   const isAdultStudent = studentAgeBand === "18_plus";
   const visibleAccountRecords = displayRole === "家长" && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED
     ? []
-    : isPlatformAdmin && user
-      ? records.filter((record) => record.user_id === user.id)
-      : records;
+    : records.filter((record) => record.user_id === user?.id);
   const recentRecordDays = countRecentRecordDays(visibleAccountRecords, user?.id);
   const isSchoolLead = displayRole === "学校负责人";
   const isSupportTeacher = displayRole === "支持老师";
   const isParent = displayRole === "家长";
   const linkedChildren = accountStatus?.linkedChildren || [];
   const assignedStudents = accountStatus?.assignedStudents || [];
-  const relatedPeople = isParent ? linkedChildren : isSupportTeacher ? assignedStudents : [];
-  const activeRelatedUserId =
-    selectedRelatedUserId && relatedPeople.some((person) => person.id === selectedRelatedUserId)
-      ? selectedRelatedUserId
-      : relatedPeople[0]?.id || "";
-  const activeRelatedPerson = relatedPeople.find((person) => person.id === activeRelatedUserId) || null;
-  const relatedOverview = rhythmOverview(records, isParent ? 28 : 7, activeRelatedUserId);
-  const linkedChildById = new Map(linkedChildren.map((child) => [child.id, child]));
   const accountError = (error: unknown, fallbackKey: TranslationKey) =>
     localizedCloudErrorMessage(error, locale, t(fallbackKey));
 
@@ -291,12 +263,7 @@ export default function AccountPage() {
       }
 
       const [nextRecords, nextWechatIdentities, nextConsentStatus] = await Promise.all([
-        listCloudSweetRecords(
-          nextAccountStatus?.displayRole === "平台管理员"
-            || (nextAccountStatus?.displayRole === "家长" && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED)
-            ? currentUser.id
-            : undefined,
-        ).catch((recordsError) => {
+        listCloudSweetRecords(currentUser.id).catch((recordsError) => {
           reportClientOperationFailure("save", "account_records", recordsError);
           nonFatalNotice = nonFatalNotice || t("account.notices.recordsUnavailable");
           return [] as CloudSweetRecord[];
@@ -498,11 +465,7 @@ export default function AccountPage() {
     setError("");
     try {
       await deleteCloudSweetRecord(recordId);
-      setRecords(await listCloudSweetRecords(
-        isPlatformAdmin || (isParent && !CURRENT_PILOT_GUARDIAN_RELATIONSHIPS_ENABLED)
-          ? user?.id
-          : undefined,
-      ));
+      if (user) setRecords(await listCloudSweetRecords(user.id));
       setNotice(t("account.notices.recordDeleted"));
     } catch (deleteError) {
       setError(accountError(deleteError, "account.errors.recordDeleteFailed"));
@@ -772,10 +735,8 @@ export default function AccountPage() {
                     {isPlatformAdmin ? <Link href="/admin" className="button-primary w-full sm:w-auto">{t("account.actions.platformAdmin")}</Link> : null}
                     {isPlatformAdmin ? <Link href="/admin/role-preview" className="button-secondary w-full sm:w-auto">{t("adminRolePreview.action")}</Link> : null}
                     {isSchoolLead ? <Link href="/admin" className="button-primary w-full sm:w-auto">{t("account.actions.schoolAdmin")}</Link> : null}
-                    {isSchoolLead ? <Link href="#records" className="button-secondary w-full sm:w-auto">{t("account.actions.studentRecords")}</Link> : null}
                     {isSupportTeacher ? <Link href="#students" className="button-primary w-full sm:w-auto">{t("account.actions.assignedStudents")}</Link> : null}
                     {isSupportTeacher && adminAccess ? <Link href="/admin" className="button-secondary w-full sm:w-auto">{t("account.actions.followUpWorkspace")}</Link> : null}
-                    {isParent ? <Link href="#records" className="button-primary w-full sm:w-auto">{t("account.actions.childRecords")}</Link> : null}
                     {isParent ? <Link href="/referral" className="button-secondary w-full sm:w-auto">{t("account.actions.moreSupport")}</Link> : null}
                     {displayRole === "学生" ? <Link href="/garden" className="button-primary w-full sm:w-auto">{t("account.actions.recordToday")}</Link> : null}
                   </div>
@@ -1102,93 +1063,19 @@ export default function AccountPage() {
         </>
       )}
 
-      {user && !needsPersonalProfile && (isParent || isSupportTeacher) ? (
-        <section
-          id={isSupportTeacher ? "students" : "family-overview"}
-          className="section section-muted scroll-mt-24"
-        >
+      {user && !needsPersonalProfile && isSupportTeacher ? (
+        <section id="students" className="section scroll-mt-24">
           <div className="container">
-            <SectionHeader title={isParent ? t("account.relationships.childOverview") : t("account.relationships.assignedStudents")} />
-            {relatedPeople.length ? (
-              <div className="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
-                <aside className="card">
-                  <p className="text-sm font-bold text-ink">{isParent ? t("account.relationships.selectChild") : t("account.relationships.studentList")}</p>
-                  <div className="mt-4 grid gap-2">
-                    {relatedPeople.map((person) => {
-                      const personOverview = rhythmOverview(records, isParent ? 28 : 7, person.id);
-                      const selected = person.id === activeRelatedUserId;
-                      return (
-                        <button
-                          key={person.id}
-                          type="button"
-                          className={`rounded-2xl border px-4 py-4 text-left transition ${
-                            selected ? "border-sage bg-mint" : "border-ink/10 bg-white hover:border-sage/60"
-                          }`}
-                          onClick={() => setSelectedRelatedUserId(person.id)}
-                        >
-                          <span className="block font-bold text-ink">{person.display_name}</span>
-                          <span className="mt-1 block text-xs text-muted">
-                            {isParent
-                              ? relationshipDaysLabel("fourWeek", personOverview.activeDays, locale, t)
-                              : relationshipDaysLabel("sevenDay", personOverview.activeDays, locale, t)}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </aside>
-
-                <div className="card">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <p className="eyebrow">{isParent ? t("account.relationships.lastFourWeeks") : t("account.relationships.lastSevenDays")}</p>
-                      <h2 className="mt-2 text-[1.5rem] font-bold text-ink">
-                        {activeRelatedPerson?.display_name || t("account.relationships.rhythmOverview")}
-                      </h2>
-                    </div>
-                    <span className="rounded-full bg-cream px-4 py-2 text-sm font-bold text-sage-dark">
-                      {recordedDaysLabel(relatedOverview.activeDays, locale, t)}
-                    </span>
-                  </div>
-
-                  {relatedOverview.recordCount ? (
-                    <>
-                      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                        {relatedOverview.dimensions.map((dimension) => (
-                          <div key={dimension.id} className="rounded-2xl border border-ink/10 bg-white px-4 py-4">
-                            <p className="text-xs font-bold text-sage">{t(`account.rhythm.${dimension.id}` as TranslationKey)}</p>
-                            <p className="mt-2 text-sm font-bold leading-6 text-ink">{dimension.value}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-5 rounded-2xl bg-cream px-5 py-5">
-                        <p className="text-xs font-bold text-sage-dark">{t("account.relationships.latestSummary")}</p>
-                        {relatedOverview.latestSummary ? <AiGeneratedLabel className="mt-2" /> : null}
-                        <p className="mt-2 text-sm leading-7 text-muted">
-                          {relatedOverview.latestSummary || t("account.relationships.noSummary")}
-                        </p>
-                      </div>
-                      <a href="#records" className="button-secondary mt-5">
-                        {t("account.relationships.viewRawAnswers")}
-                      </a>
-                    </>
-                  ) : (
-                    <p className="mt-6 rounded-2xl bg-cream px-5 py-5 text-sm leading-7 text-muted">
-                      {isParent ? t("account.relationships.childNoRecords") : t("account.relationships.studentNoRecords")}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="card">
-                <p className="font-bold text-ink">
-                  {isParent ? t("account.relationships.noChild") : t("account.relationships.noStudent")}
-                </p>
-                <p className="mt-2 text-sm leading-7 text-muted">
-                  {isParent ? t("account.relationships.confirmRelationship") : t("account.relationships.assignmentHelp")}
-                </p>
-              </div>
-            )}
+            <SectionHeader title={t("account.relationships.assignedStudents")}
+              description={t("forTeachers.capabilities.items.week.description")} />
+            <div className="card">
+              {assignedStudents.length ? (
+                <ul className="space-y-2">
+                  {assignedStudents.map((person) => <li key={person.id}>{person.display_name}</li>)}
+                </ul>
+              ) : <p>{t("account.relationships.noStudent")}</p>}
+              <Link href="/messages" className="button-secondary mt-4">{t("forTeachers.conversation.messagesAction")}</Link>
+            </div>
           </div>
         </section>
       ) : null}
@@ -1213,7 +1100,7 @@ export default function AccountPage() {
       {user && !needsPersonalProfile ? (
         <section id="records" className="section scroll-mt-24 pt-8 sm:pt-10 lg:pt-12">
           <div className="container">
-            <SectionHeader title={recordsTitle(displayRole, t)} />
+            <SectionHeader title={t("account.records.titles.own")} />
             {isParent && linkedChildren.length > 0 ? (
               <div className="mb-5 flex flex-wrap gap-2">
                 {linkedChildren.map((child) => (
@@ -1234,9 +1121,7 @@ export default function AccountPage() {
                         <div>
                           <p className="text-sm font-bold text-sage">{formatDate(record.created_at, locale)}</p>
                           <h3 className="mt-2 text-lg font-bold text-ink sm:text-xl">
-                            {linkedChildById.get(record.user_id)?.display_name
-                              ? t("account.records.childRecord", { name: linkedChildById.get(record.user_id)?.display_name || "" })
-                              : t("account.records.recordTitle")}
+                            {t("account.records.recordTitle")}
                           </h3>
                         </div>
                         {canDelete ? (

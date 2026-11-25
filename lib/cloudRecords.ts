@@ -115,7 +115,7 @@ export type WechatBindSession = {
 export type StudentMessage = {
   id: string;
   school_id: string | null;
-  sender_user_id: string;
+  sender_user_id: string | null;
   recipient_type: "teacher" | "guardian" | "self" | "pilot_duty";
   recipient_user_id: string | null;
   anonymous_to_recipient: boolean;
