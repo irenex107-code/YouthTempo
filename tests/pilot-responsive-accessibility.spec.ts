@@ -4,6 +4,15 @@ const viewports = [320, 360, 375, 390, 414, 768, 1024, 1280, 1440];
 const representativeRoutes = ["/", "/for-parents", "/check-in", "/community", "/account", "/admin"];
 const accessibilityRoutes = ["/", "/for-teens", "/for-parents", "/for-teachers", "/check-in", "/resources", "/privacy-safety", "/account"];
 
+test("support pages have one main landmark in both languages", async ({ page }) => {
+  for (const prefix of ["", "/en"]) {
+    for (const route of ["/support/apply", "/support/workbench", "/admin/support"]) {
+      await page.goto(prefix + route);
+      await expect(page.getByRole("main"), prefix + route).toHaveCount(1);
+    }
+  }
+});
+
 test("representative public and protected-entry pages do not overflow at pilot viewport widths", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name.includes("mobile"), "All required widths are covered once in the desktop project");
   for (const width of viewports) {

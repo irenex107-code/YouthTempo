@@ -52,7 +52,7 @@ export default function SupportStaffWorkbench() {
       <PageHero label={t("supportWorkbench.label")} title={t("supportWorkbench.title")}
         subtitle={t("supportWorkbench.description")}
         action={<Link href="/support/apply" className="button-secondary">{t("supportWorkbench.application")}</Link>} />
-      <main className="section section-muted min-h-[50vh]">
+      <div className="section section-muted min-h-[50vh]">
         <div className="container max-w-4xl">
           {loading ? <p role="status">{t("peerSpace.loading")}</p> : null}
           {error ? <p role="alert" className="rounded-xl bg-white p-4 text-sm">{error}</p> : null}
@@ -88,7 +88,7 @@ export default function SupportStaffWorkbench() {
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

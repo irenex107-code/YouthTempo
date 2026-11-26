@@ -114,7 +114,7 @@ export default function AdminSupportPage() {
   }
 
   return (
-    <main className="section section-muted min-h-[70vh]">
+    <div className="section section-muted min-h-[70vh]">
       <div className="container max-w-6xl space-y-6">
         <Link href="/admin" className="text-sm font-bold text-sage-dark underline">{t("adminSupport.back")}</Link>
         <header><h1 className="mt-4 text-3xl font-black">{t("adminSupport.title")}</h1>
@@ -274,6 +274,6 @@ export default function AdminSupportPage() {
           </details>
         </section> : null}
       </div>
-    </main>
+    </div>
   );
 }
