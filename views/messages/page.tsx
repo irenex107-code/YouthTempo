@@ -74,6 +74,7 @@ function MessagesContents({ consent }: { consent: InlineStudentConsentController
       ? t("messages.member.hero.minorStudentDescription")
       : t("messages.member.hero.studentDescription");
   const showVisitorCopy = !loading && !user;
+  const useGeneralIntro = !displayRole || displayRole === "家长";
 
   async function refreshMessages() {
     const payload = await listStudentMessages();
@@ -162,7 +163,7 @@ function MessagesContents({ consent }: { consent: InlineStudentConsentController
       </InlineConsentDialog> : null}
       <PageHero
         title={showVisitorCopy ? t("messages.visitor.hero.title") : t("messages.member.hero.title")}
-        subtitle={showVisitorCopy ? t("messages.visitor.hero.description") : isStudent ? studentHeroDescription : t("messages.member.hero.supporterDescription")}
+        subtitle={useGeneralIntro ? t("messages.visitor.hero.description") : isStudent ? studentHeroDescription : t("messages.member.hero.supporterDescription")}
         action={showVisitorCopy ? <button type="button" className="button-secondary" onClick={() => setConfirmHere(true)}>{t("messages.visitor.hero.action")}</button> : <Link href="/account" className="button-secondary">{t("messages.member.hero.action")}</Link>}
         aside={
           <IllustrationPanel

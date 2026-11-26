@@ -60,16 +60,30 @@ test("中英文普通 Talk 请求均返回版本化关闭状态且不调用模�
   }
 });
 
-test("关闭页面没有对话输入，并提供规则路径与真人支持入口", async ({ page }) => {
-  await page.goto("/talk");
+for (const copy of [
+  {
+    prefix: "", closed: "AI 对话暂未开放", privacy: "这里不会收集或发送对话内容。",
+    personal: /平时聊天的方式给老师或家长发一条悄悄话/,
+    referral: "看看下一步找谁", inbox: "打开悄悄话信箱",
+  },
+  {
+    prefix: "/en", closed: "AI chat is paused", privacy: "This page doesn’t collect or send chat messages.",
+    personal: /a note to a teacher or parent the way you usually keep in touch/,
+    referral: "Find the right support", inbox: "Open private messages",
+  },
+]) {
+  test(`关闭页面区分日常联系与站内信箱 ${copy.prefix || "zh-CN"}`, async ({ page }) => {
+    await page.goto(`${copy.prefix}/talk`);
 
-  await expect(page.getByRole("heading", { name: "这里暂时不会提供 AI 对话" })).toBeVisible();
-  await expect(page.getByText("功能已关闭", { exact: true })).toBeVisible();
-  await expect(page.getByRole("textbox")).toHaveCount(0);
-  await expect(page.getByRole("checkbox")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "看看下一步找谁" })).toHaveAttribute("href", "/referral");
-  await expect(page.getByRole("link", { name: "打开悄悄话信箱" })).toHaveAttribute("href", "/messages");
-});
+    await expect(page.getByText(copy.closed, { exact: true })).toBeVisible();
+    await expect(page.getByText(copy.privacy, { exact: true })).toBeVisible();
+    await expect(page.locator("main p").filter({ hasText: copy.personal })).toBeVisible();
+    await expect(page.getByRole("textbox")).toHaveCount(0);
+    await expect(page.getByRole("checkbox")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: copy.referral, exact: true })).toHaveAttribute("href", `${copy.prefix}/referral`);
+    await expect(page.getByRole("link", { name: copy.inbox, exact: true })).toHaveAttribute("href", `${copy.prefix}/messages`);
+  });
+}
 
 test("青少年工具列表不再展示 Talk 入口", async ({ page }) => {
   await page.goto("/for-teens");

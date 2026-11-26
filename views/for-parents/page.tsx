@@ -68,10 +68,7 @@ export default function ForParentsPage() {
 
       <section className="section">
         <div className="container">
-          <SectionHeader
-            title={t("forParents.starts.title")}
-            description={t("forParents.starts.description")}
-          />
+          <SectionHeader title={t("forParents.starts.title")} />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {parentStarts.map((item) => (
               <article key={item.title} className="card flex h-full flex-col">

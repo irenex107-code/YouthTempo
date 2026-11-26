@@ -26,11 +26,14 @@ export function AiTransparencyNotice({ id, checked, onChange, className = "" }: 
         <span>{t("aiTransparency.confirm")}</span>
       </label>
       <p className="mt-3 text-xs leading-5 text-muted">
-        {t("aiTransparency.version", { version: AI_NOTICE_VERSION })}{" "}
         <Link href="/privacy-safety#student-consent" className="font-bold text-sage-dark underline underline-offset-4">
           {t("aiTransparency.details")}
         </Link>
       </p>
+      <details className="mt-2 text-xs leading-5 text-muted">
+        <summary className="w-fit cursor-pointer">{t("aiTransparency.showVersion")}</summary>
+        <p>{t("aiTransparency.version", { version: AI_NOTICE_VERSION })}</p>
+      </details>
     </section>
   );
 }

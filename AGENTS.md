@@ -174,6 +174,9 @@ Never trust a role, school ID, verification state, moderation state, or relation
 - Do not translate user-generated content, stored database values, internal enums, API contracts, permission identifiers, or role identifiers.
 - Use locale-aware dates and pluralization in the display layer without changing stored timestamps or values.
 - English should be professional, warm, supportive, trustworthy, and easy to understand. Avoid medicalized claims and mechanical translation.
+- Keep wording that already sounds natural to its reader. Before editing, name the misunderstanding, missing information, or repetition in that page state. Read each language on its own.
+- Name buttons for what happens when selected. A suggestion to contact someone outside YouthTempo and a link to the site's inbox have different recipients. Verify the destination and available options.
+- Keep the information people need to consent, choose a recipient, or understand who can read a record in view. Put project rationale on the project overview.
 - Keep SWEET as `SWEET model`. Choose `young people` or `adolescents` according to context.
 - Preserve layout, spacing, colors, images, and motion. Resolve longer English text with minimal responsive text-container changes only when necessary.
 

@@ -106,6 +106,7 @@ test.describe("Account 本人 SWEET 历史", () => {
       const history = page.locator("#records");
       const deleteButtons = history.getByRole("button", { name: en.account.records.delete, exact: true });
       if (role === "家长") {
+        await expect(page.getByText(/You won’t see their private SWEET records in your account/)).toBeVisible();
         await expect(history.getByText(en.account.records.empty.guardian, { exact: true })).toBeVisible();
         await expect(history.getByRole("article")).toHaveCount(0);
         await expect(deleteButtons).toHaveCount(0);

@@ -3,6 +3,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 import en from "../locales/en.json";
 import zhCN from "../locales/zh-CN.json";
+import { syntheticInlineConsent } from "./fixtures/synthetic-inline-consent";
 
 function flatten(value: unknown, prefix = ""): Record<string, string> {
   if (typeof value === "string") return { [prefix]: value };
@@ -39,3 +40,16 @@ test("Messages 日期格式跟随当前 locale", async () => {
   expect(source).toContain('locale === "en" ? "en-US" : "zh-CN"');
   expect(source).toContain("formatDate(message.created_at, locale)");
 });
+
+for (const [prefix, copy] of [["", zhCN], ["/en", en]] as const) {
+  test(`家长信箱说明不会暗示能收到学生的留言 ${prefix || "zh-CN"}`, async ({ page, baseURL }) => {
+    await syntheticInlineConsent(page, baseURL!, { signedIn: true, role: "家长" });
+    await page.goto(`${prefix}/messages`);
+
+    await expect(page.getByText(copy.forParents.messages.description, { exact: true })).toBeVisible();
+    await expect(page.getByText(copy.messages.member.hero.supporterDescription, { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: copy.forParents.messages.action })).toHaveAttribute(
+      "href", `${prefix}/for-parents#conversation-starters`,
+    );
+  });
+}

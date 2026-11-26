@@ -75,14 +75,11 @@ export default function ContactPage() {
       </section>
 
       <section className="section section-muted">
-        <div className="container grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-          <InfoCard title={t("contact.privacy.title")} label="Privacy & account">
-            {t("contact.privacy.text")}
-          </InfoCard>
+        <div className="container max-w-3xl">
           <div className="card">
-            <h3 className="text-xl font-bold text-ink">{t("contact.privacy.cardTitle")}</h3>
+            <h2 className="text-xl font-bold text-ink">{t("contact.privacy.title")}</h2>
             <p className="mt-4 text-[0.95rem] leading-7 text-muted">
-              {t("contact.privacy.cardText")}
+              {t("contact.privacy.text")}
             </p>
             <Link href="/privacy-safety" className="button-secondary mt-6">
               {t("contact.privacy.action")}
