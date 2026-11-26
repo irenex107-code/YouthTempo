@@ -642,7 +642,14 @@ export default function CheckInPage() {
             {showConsent ? <InlineConsentDialog open onClose={() => setShowConsent(false)}>
               <InlineStudentConsent controller={consent} studentOnly />
             </InlineConsentDialog> : null}
-            {saveStatus ? <p className="mt-5 rounded-2xl bg-white/80 p-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
+            {saveStatus ? (
+              <div className="mt-5 rounded-2xl bg-white/80 p-4 text-sm font-bold text-sage-dark">
+                <p role="status">{saveStatus}</p>
+                <Link href="/account#records" target="_blank" rel="noopener" className="mt-1 inline-flex min-h-11 items-center underline underline-offset-4">
+                  {t("checkIn.historyLink")}
+                </Link>
+              </div>
+            ) : null}
             {error ? (
               <div className="mt-6 rounded-2xl bg-white/80 p-5">
                 <p className="text-sm font-bold text-sage-dark">{error}</p>

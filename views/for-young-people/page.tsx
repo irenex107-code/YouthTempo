@@ -25,22 +25,18 @@ export default function ForYoungPeoplePage() {
               <h2 className="mt-1 text-balance text-xl font-bold leading-tight text-ink sm:text-2xl">
                 {t(`forYoungPeople.paths.${key}.title`)}
               </h2>
-              <p className="mt-2 flex-1 text-base leading-6 text-muted">
+              <Link href={href} className="button-primary mt-3 self-start">{t(`forYoungPeople.paths.${key}.action`)}</Link>
+              <p className="mt-2 text-base leading-6 text-muted">
                 {t(`forYoungPeople.paths.${key}.description`)}
               </p>
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                <Link href={href} className="button-primary">{t(`forYoungPeople.paths.${key}.action`)}</Link>
-                {key === "secondary" && (
-                  <Link href="/for-teens" className="text-sm font-bold text-sage-dark underline underline-offset-4">
-                    {t("forYoungPeople.paths.secondary.learnMore")}
-                  </Link>
-                )}
-              </div>
             </article>
           ))}
         </div>
 
-        <p className="mt-6 text-sm leading-7 text-muted">{t("forYoungPeople.accountNote")}</p>
+        <Link href="/for-teens" className="mt-3 inline-flex min-h-11 items-center text-sm font-bold text-sage-dark underline underline-offset-4">
+          {t("forYoungPeople.paths.secondary.learnMore")}
+        </Link>
+        <p className="mt-1 text-sm leading-7 text-muted">{t("forYoungPeople.accountNote")}</p>
       </div>
     </section>
   );

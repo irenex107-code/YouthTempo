@@ -197,7 +197,7 @@
     "description": "两个入口都可以记录、整理感受和找人聊聊。",
     "paths": {
       "secondary": { "age": "14–17 岁", "title": "中学生", "description": "在花园记下今天，也可以找人聊聊。", "action": "进入中学生花园",
-        "learnMore": "先了解花园" },
+        "learnMore": "先了解中学生花园" },
       "youngAdults": { "age": "18–25 岁", "title": "大学生与青年", "description": "在读、工作或还在找方向，都可以从这里开始，无需加入学校。", "action": "进入青年专区" }
     },
     "accountNote": "保存记录时，再按自己的年龄完成确认。"
@@ -782,6 +782,7 @@
     "generatedLabel": "AI 辅助记录小结 · 非评估或诊断"
   },
   "checkIn": {
+    "historyLink": "查看我的 SWEET 记录（新标签页）",
     "metadata": { "title": "SWEET 节律记录 | YouthTempo" },
     "hero": { "title": "SWEET 节律记录", "description": "完整 SWEET 建议每周记录一次，也可以随时额外记录；这只是建议，没有必须完成的频率。五个维度各选一项，想补充时再展开。", "imageAlt": "SWEET 五个日常节律组成的循环插画" },
     "progress": { "step": "第 {{current}} 步 / {{total}}", "completed": "已完成 {{completed}} / {{total}} 个维度" },
@@ -834,7 +835,7 @@
       }
     },
     "messages": {
-      "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "网络连接不稳定，请检查网络后重新保存。", "saveFailed": "这次没有保存成功，请稍后再试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "暂时无法生成小结。你的答案还在，也可以点「先保存记录」。"
+      "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "连接中断，暂时无法确认是否保存。网络恢复后，先查看账户记录。", "saveFailed": "暂时无法确认是否保存。请先查看账户记录，再决定是否重试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "暂时无法生成小结。你的答案还在，也可以点「先保存记录」。"
     },
     "actions": { "previous": "上一步", "next": "下一步", "generatingAndSaving": "正在生成并保存...", "generateAndSave": "生成小结并保存", "retrying": "正在重试...", "regenerate": "重新生成", "saving": "正在保存...", "saveFirst": "先保存记录", "savedToAccount": "已保存到账号", "saveToAccount": "保存到账号", "openMoodJournal": "打开心情拼图", "openWorryTime": "今晚先放下", "viewReferral": "查看支持路径", "reset": "重新填写" },
     "result": { "title": "本次 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "按固定规则整理的关注维度：{{areas}}", "rhythmClue": "按固定规则整理的节律线索", "smallStep": "可自行选择的小行动", "nextTool": "可自行选择的下一步", "disclaimer": "AI 只整理你本次明确填写的内容；关注维度和可选步骤来自固定规则。两者都不是评估、诊断或专业建议，请以你的原始记录为准。" }
