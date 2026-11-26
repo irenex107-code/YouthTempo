@@ -722,9 +722,14 @@ export default function AccountPage() {
               <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                 <div className="min-w-0">
                   <p className="eyebrow">{needsPersonalProfile ? t("account.hero.firstSignIn") : t("account.hero.label")}</p>
-                  <h1 className="mt-2 overflow-hidden text-ellipsis text-[2rem] font-bold leading-tight text-ink sm:text-[2.5rem]">
-                    {needsPersonalProfile ? t("account.hero.completeProfile") : t("account.hero.greeting", { name: accountName })}
-                  </h1>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <h1 className="min-w-0 overflow-hidden text-ellipsis text-[2rem] font-bold leading-tight text-ink sm:text-[2.5rem]">
+                      {needsPersonalProfile ? t("account.hero.completeProfile") : t("account.hero.greeting", { name: accountName })}
+                    </h1>
+                    <button type="button" className="button-secondary shrink-0 px-3 py-2 text-sm" onClick={handleSignOut}>
+                      {t("account.actions.signOut")}
+                    </button>
+                  </div>
                   <p className="mt-3 max-w-2xl text-[0.95rem] leading-7 text-muted">
                     {needsPersonalProfile
                       ? t("account.hero.completeProfileDescription")
@@ -776,9 +781,6 @@ export default function AccountPage() {
                   <div className="mt-5 grid gap-3 sm:flex">
                     <button type="submit" className="button-primary w-full sm:w-auto" disabled={!name.trim()}>
                       {t("account.actions.saveContinue")}
-                    </button>
-                    <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>
-                      {t("account.actions.signOut")}
                     </button>
                   </div>
                   {error ? <p className="mt-4 text-sm font-bold text-sage-dark">{error}</p> : null}
@@ -971,7 +973,6 @@ export default function AccountPage() {
                               {displayRole === "专业支持者" ? t("account.settings.roleDescriptions.professional") : null}
                             </p>
                           </div>
-                          <button type="button" className="button-secondary w-full sm:w-fit" onClick={handleSignOut}>{t("account.actions.signOut")}</button>
                         </div>
                       ) : (
                         <form className="grid gap-4" onSubmit={handleProfileSubmit}>
@@ -985,10 +986,7 @@ export default function AccountPage() {
                               {roleDisplayLabel(confirmedRoleLabel, t)}
                             </p>
                           </div>
-                          <div className="grid gap-3 sm:flex">
-                            <button type="submit" className="button-primary w-full sm:w-auto">{t("account.actions.saveProfile")}</button>
-                            <button type="button" className="button-secondary w-full sm:w-auto" onClick={handleSignOut}>{t("account.actions.signOut")}</button>
-                          </div>
+                          <button type="submit" className="button-primary w-full sm:w-fit">{t("account.actions.saveProfile")}</button>
                         </form>
                       )
                     ) : accountTab === "wechat" ? (

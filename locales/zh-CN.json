@@ -971,7 +971,7 @@
       "bothComplete": "学生与监护人确认均已完成。", "selfPilotChildActive": "该学生已按自主试用方式完成本人确认；这不是监护人确认，不能由监护人在此撤回。", "withdrawGuardian": "撤回监护人确认", "guardianPrompt": "孩子已完成学生确认。请确认你理解数据范围、用途、学校可见范围和撤回方式。", "agreeChild": "同意孩子参加试点", "waitingChild": "等待孩子先登录自己的账户阅读说明并完成学生确认。", "noLinkedChild": "当前学生自主试点不开放家长加入或亲子关系创建。"
     },
     "settings": {
-      "title": "账户设置", "description": "资料、数据导出、注销与退出", "schoolIdentity": "学校身份", "profile": "账号资料", "wechat": "微信绑定", "data": "数据与注销",
+      "title": "账户设置", "description": "个人资料、导出数据和注销账户", "schoolIdentity": "学校身份", "profile": "账号资料", "wechat": "微信绑定", "data": "数据与注销",
       "roleDescriptions": { "schoolStudent": "学校已经为这个账号配置学生身份。", "schoolLead": "你可以在管理台配置本校学生和支持老师。", "supportTeacher": "你可以查看学校分配给你的学生记录。", "platformAdmin": "你可以创建学校空间并指定负责人。", "professional": "专业身份由平台确认。你可以在下方查看或补充核验资料。" }
     },
     "wechat": { "description": "绑定后，可以在小程序中使用同一个 YouthTempo 账号。", "qrAlt": "微信小程序绑定码", "qrValidity": "二维码 10 分钟内有效", "bound": "已绑定微信。", "notBound": "尚未绑定微信。", "generating": "正在生成...", "regenerate": "重新生成绑定码", "generate": "生成微信绑定码" },
