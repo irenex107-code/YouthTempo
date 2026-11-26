@@ -39,13 +39,7 @@ export default function ForYoungAdultsPage() {
               <Link href="/account" className="underline">{t("common.navbar.account.greeting")}</Link>
             </div>
           </details>
-        </div>
-      </section>
-
-      <section className="section section-muted pt-8 sm:pt-12">
-        <div className="container rounded-[1.75rem] border border-sage/20 bg-white p-5 shadow-soft sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
-          <div><h2 className="text-lg font-bold text-ink">{t("forYoungAdults.teens.title")}</h2><p className="mt-2 text-sm leading-7 text-muted">{t("forYoungAdults.teens.description")}</p></div>
-          <Link href="/for-teens" className="button-secondary mt-4 w-full sm:mt-0 sm:w-auto">{t("forYoungAdults.teens.action")}</Link>
+          <Link href="/for-teens" className="button-secondary mt-6">{t("forYoungAdults.teens.action")}</Link>
         </div>
       </section>
     </>

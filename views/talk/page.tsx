@@ -9,9 +9,9 @@ export default function TalkPage() {
   return (
     <>
       <PageHero
-        label={t("talk.hero.label")}
+        label={t("talk.closed.title")}
         title={t("talk.hero.title")}
-        subtitle={t("talk.hero.description")}
+        subtitle={t("talk.closed.dataNotice")}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-talk.webp"
@@ -24,17 +24,11 @@ export default function TalkPage() {
       <section className="section section-muted pt-8 sm:pt-12">
         <div className="container grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
           <div className="rounded-2xl border border-ink/10 bg-white/85 p-6 shadow-soft sm:p-8">
-            <p className="text-xs font-extrabold tracking-[0.12em] text-sage-dark">
-              {t("talk.closed.status")}
-            </p>
-            <h2 className="mt-3 text-2xl font-bold leading-tight text-ink">
-              {t("talk.closed.title")}
+            <h2 className="text-2xl font-bold leading-tight text-ink">
+              {t("talk.support.title")}
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-muted sm:text-base">
-              {t("talk.closed.description")}
-            </p>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-muted">
-              {t("talk.closed.dataNotice")}
+              {t("talk.support.description")}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/referral" className="button-primary">
@@ -49,19 +43,11 @@ export default function TalkPage() {
             </div>
           </div>
 
-          <aside className="space-y-4">
-            <div className="rounded-2xl border border-sage/25 bg-mist p-5">
-              <p className="font-bold text-ink">{t("talk.support.title")}</p>
-              <p className="mt-3 text-sm leading-7 text-muted">
-                {t("talk.support.description")}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[#d59b78]/50 bg-[#fff6ef] p-5">
-              <p className="font-bold text-ink">{t("talk.urgent.title")}</p>
-              <p className="mt-3 text-sm leading-7 text-muted">
-                {t("talk.urgent.description")}
-              </p>
-            </div>
+          <aside className="self-start rounded-2xl border border-[#d59b78]/50 bg-[#fff6ef] p-5">
+            <h2 className="font-bold text-ink">{t("talk.urgent.title")}</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              {t("talk.urgent.description")}
+            </p>
           </aside>
         </div>
       </section>
