@@ -129,7 +129,7 @@ export default function SupportStaffApplyPage() {
       <PageHero label={t("supportStaff.label")} title={t("supportStaff.title")}
         subtitle={t("supportStaff.description")}
         action={<Link href="/support/workbench" className="button-secondary">{t("supportStaff.workbench")}</Link>} />
-      <main className="section section-muted">
+      <div className="section section-muted">
         <div className="container max-w-3xl space-y-5">
           {loading ? <p role="status">{t("peerSpace.loading")}</p> : null}
           {error ? <p role="alert" className="rounded-xl bg-white p-4 text-sm">{error}</p> : null}
@@ -197,7 +197,7 @@ export default function SupportStaffApplyPage() {
             </section>
           ) : null}
         </div>
-      </main>
+      </div>
     </>
   );
 }
