@@ -25,24 +25,23 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
 
   return (
     <div
-      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-ink/10 bg-paper/80 px-2.5 py-1.5 text-[0.68rem] font-bold text-muted shadow-sm sm:text-xs ${className}`.trim()}
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-ink/15 bg-paper p-0.5 text-sm font-semibold text-muted ${className}`.trim()}
       role="group"
       aria-label={t("common.languageSwitcher.ariaLabel")}
       aria-busy={isPending}
     >
       <button
         type="button"
-        className={`rounded px-1 py-0.5 transition hover:text-sage-dark focus:outline-none focus:ring-2 focus:ring-sage/25 ${locale === "zh-CN" ? "text-sage-dark" : "text-muted"}`}
+        className={`min-h-9 rounded-full px-2 hover:text-ink ${locale === "zh-CN" ? "bg-mist text-sage-dark" : "text-muted"}`}
         aria-pressed={locale === "zh-CN"}
         disabled={isPending}
         onClick={() => switchLocale("zh-CN")}
       >
         {t("common.languageSwitcher.chinese")}
       </button>
-      <span className="px-0.5 text-ink/25" aria-hidden="true">|</span>
       <button
         type="button"
-        className={`rounded px-1 py-0.5 transition hover:text-sage-dark focus:outline-none focus:ring-2 focus:ring-sage/25 ${locale === "en" ? "text-sage-dark" : "text-muted"}`}
+        className={`min-h-9 rounded-full px-2 hover:text-ink ${locale === "en" ? "bg-mist text-sage-dark" : "text-muted"}`}
         aria-pressed={locale === "en"}
         disabled={isPending}
         onClick={() => switchLocale("en")}

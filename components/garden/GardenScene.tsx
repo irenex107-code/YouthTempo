@@ -97,8 +97,7 @@ export function GardenScene({ stage, statusText, onExplore, selectedItems, inter
         <GardenPlacedItem key={slot} slot={slot} item={item} />
       ))}
       <div className="garden-scene-heading">
-        <p className="eyebrow">{t("garden.scene.eyebrow")}</p>
-        <h2 id="garden-scene-title" className="mt-1 text-2xl font-bold text-ink sm:text-3xl">{t("garden.scene.title")}</h2>
+        <h2 id="garden-scene-title" className="text-balance text-2xl font-bold text-ink sm:text-3xl">{t("garden.scene.title")}</h2>
         <p className="mt-2 text-sm font-semibold text-sage-dark">{statusText}</p>
       </div>
       <p className="sr-only">{t(`garden.scene.alt.${stage}`)}</p>

@@ -14,7 +14,7 @@ const config: Config = {
         "cream-deep": "#f1eadb",
         paper: "#fffdf8",
         ink: "#1f3934",
-        muted: "#667a73",
+        muted: "#52685f",
         sage: "#5b927d",
         "sage-dark": "#285f53",
         mist: "#dceae5",

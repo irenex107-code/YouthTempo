@@ -43,13 +43,11 @@ export default function GardenPage() {
   }
   const adult = router.query.audience === "adult";
   return (
-    <main>
-      <GardenWelcome adult={adult}>
-        <div id="garden-access" className="my-5 scroll-mt-24">
-          <InlineStudentConsent controller={consent} studentOnly />
-        </div>
-      </GardenWelcome>
-    </main>
+    <GardenWelcome adult={adult}>
+      <div id="garden-access" className="my-5 scroll-mt-24">
+        <InlineStudentConsent controller={consent} studentOnly />
+      </div>
+    </GardenWelcome>
   );
 }
 
@@ -128,7 +126,8 @@ function PrivateGarden({ userId, adult, onAccessDenied }: {
       setData(garden);
       setFeeling("");
       setFeedbackTrigger((current) => current + 1);
-      setActiveSheet("care");
+      setActiveSheet(null);
+      setNotice(t("garden.quick.saved"));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : t("garden.errors.unavailable"));
     } finally {
@@ -243,7 +242,7 @@ function PrivateGarden({ userId, adult, onAccessDenied }: {
   }
 
   return (
-    <main className="garden-page">
+    <div className="garden-page">
       <div className="container min-w-0 py-5 sm:py-8">
         <div className="mb-4 flex flex-wrap justify-between gap-3">
           <h1 className="text-2xl font-bold text-ink">{t("gardenWelcome.enter")}</h1>
@@ -252,6 +251,7 @@ function PrivateGarden({ userId, adult, onAccessDenied }: {
 
         {loading ? <div className="garden-loading" role="status">{t("garden.status.loading")}</div> : null}
         <StudentActions adult={adult} recordDisabled={!data} onRecord={() => setActiveSheet("record")} />
+        {notice ? <p role="status" className="garden-notice">{notice}</p> : null}
         {error && !data ? <div id="garden-access"><button type="button" onClick={() => { onAccessDenied(); setReload((count) => count + 1); }} className="button-secondary">{t("inlineConsent.recheck")}</button></div> : null}
         {error ? <p role="alert" className="garden-message">{error}</p> : null}
 
@@ -285,9 +285,11 @@ function PrivateGarden({ userId, adult, onAccessDenied }: {
                 </div>
               ) : undefined}
             />
+            {data.todayParticipated && !data.todayCare && !activeSheet && (
+              <p className="mt-4 text-base leading-7 text-ink">{t("garden.care.available")}</p>
+            )}
             <GardenActionDock onCare={() => setActiveSheet("care")} onLayout={() => setActiveSheet("layout")} />
 
-            {notice ? <p role="status" className="garden-notice">{notice}</p> : null}
             <GardenFactsPanel data={data} savingPreference={savingPreference} onReminderChange={updateReminder} onOpenKeepsakes={() => setActiveSheet("keepsakes")} />
 
             <GardenRecordSheet open={activeSheet === "record"} feeling={feeling} saving={saving} onFeelingChange={setFeeling} onSubmit={submitCheckIn} onClose={() => setActiveSheet(null)} />
@@ -322,6 +324,6 @@ function PrivateGarden({ userId, adult, onAccessDenied }: {
 
         {feedbackTrigger > 0 ? <div className="mt-6"><MicroPilotFeedback feature="quick_check_in" trigger={feedbackTrigger} /></div> : null}
       </div>
-    </main>
+    </div>
   );
 }

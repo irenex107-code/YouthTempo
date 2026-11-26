@@ -171,7 +171,7 @@ export default function PeerSpaceLivePage() {
         subtitle={t("peerSpaceLive.description")}
         action={<Link href="/referral" className="button-secondary">{t("peerSpaceLive.support")}</Link>}
       />
-      <main className="section section-muted min-h-[50vh]">
+      <div className="section section-muted min-h-[50vh]">
         <div className="container max-w-5xl min-w-0 space-y-5">
           {loading ? <p role="status">{t("peerSpace.loading")}</p> : null}
           {error ? <p role="alert" className="rounded-xl bg-white p-4 text-sm text-ink">{error}</p> : null}
@@ -281,7 +281,7 @@ export default function PeerSpaceLivePage() {
             </div>
           ) : null}
         </div>
-      </main>
+      </div>
     </>
   );
 }

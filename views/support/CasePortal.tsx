@@ -92,13 +92,13 @@ function StudentSupport() {
   const { t } = useTranslation();
   if (consent.studentReady) return <SupportCases key={consent.userId} mode="youth" />;
   return (
-    <main className="section">
+    <div className="section">
       <div className="container max-w-3xl">
         <h1 className="text-3xl font-bold">{t("supportFlow.portal.youthTitle")}</h1>
         <Link href="/referral#direct-support" className="my-4 inline-block underline">{t("studentActions.talk")}</Link>
         <InlineStudentConsent controller={consent} studentOnly />
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -194,7 +194,7 @@ function SupportCases({ mode }: { mode: "youth" | "adult" }) {
         subtitle={t(heroKeys[2])}
         action={<Link href={isAdult ? "/for-young-adults#direct-support" : "/referral#direct-support"} className="button-secondary">{t("supportFlow.closed.referral")}</Link>}
       />
-      <main className="section section-muted">
+      <div className="section section-muted">
         <div className="container max-w-4xl space-y-5">
           {loading && mode === "youth" ? <p role="status">{t("peerSpace.loading")}</p> : null}
           {error ? <p role="alert" className="rounded-xl bg-white p-4 text-sm">{error}</p> : null}
@@ -281,7 +281,7 @@ function SupportCases({ mode }: { mode: "youth" | "adult" }) {
             </>
           ) : null}
         </div>
-      </main>
+      </div>
     </>
   );
 }

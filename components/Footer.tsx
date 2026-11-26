@@ -10,14 +10,13 @@ export function Footer() {
       <div className="container grid gap-10 md:grid-cols-[1.3fr_1fr]">
         <div>
           <p className="text-lg font-black tracking-[-0.03em]">YouthTempo</p>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-white/65">
+          <p className="mt-2 max-w-md text-base leading-7 text-white/85">
             {t("common.footer.description")}
           </p>
-          <p className="mt-5 text-xs font-bold text-white/45">{t("common.footer.tagline")}</p>
         </div>
-        <div className="flex flex-wrap content-start gap-x-5 gap-y-3 text-sm font-bold text-white/70 md:justify-end">
+        <div className="flex flex-wrap content-start gap-x-5 gap-y-2 text-sm font-semibold text-white/85 md:justify-end">
           {footerLinks.map((item) => (
-            <Link key={item.labelKey} href={item.href} className="rounded-lg px-1 py-1 hover:text-white">
+            <Link key={item.labelKey} href={item.href} className="rounded-lg px-1 py-2 hover:underline focus-visible:outline-white">
               {t(item.labelKey)}
             </Link>
           ))}

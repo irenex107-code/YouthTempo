@@ -11,7 +11,7 @@ export default function ForYoungPeoplePage() {
   return (
     <section aria-label={t("forYoungPeople.label")} className="section section-muted min-h-[70vh] py-6 sm:py-12">
       <div className="container max-w-5xl">
-        <h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl">
+        <h1 className="max-w-3xl text-balance text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl">
           {t("forYoungPeople.title")}
         </h1>
         <p className="mt-3 hidden max-w-3xl text-base leading-7 text-muted sm:block">
@@ -21,13 +21,11 @@ export default function ForYoungPeoplePage() {
         <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-5 md:grid-cols-2">
           {paths.map(({ key, href }) => (
             <article key={key} className="card flex min-w-0 flex-col p-4 sm:p-6">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h2 className="text-xl font-bold leading-tight text-ink sm:text-2xl">
-                  {t(`forYoungPeople.paths.${key}.title`)}
-                </h2>
-                <p className="text-sm font-bold text-sage-dark">{t(`forYoungPeople.paths.${key}.age`)}</p>
-              </div>
-              <p className="mt-2 flex-1 text-sm leading-6 text-muted sm:text-base">
+              <p className="text-sm font-bold text-sage-dark">{t(`forYoungPeople.paths.${key}.age`)}</p>
+              <h2 className="mt-1 text-balance text-xl font-bold leading-tight text-ink sm:text-2xl">
+                {t(`forYoungPeople.paths.${key}.title`)}
+              </h2>
+              <p className="mt-2 flex-1 text-base leading-6 text-muted">
                 {t(`forYoungPeople.paths.${key}.description`)}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">

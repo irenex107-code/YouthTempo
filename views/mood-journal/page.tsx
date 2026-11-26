@@ -300,32 +300,32 @@ export default function MoodJournalPage() {
       </section>
 
       <section className="section">
-        <div className="container grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="container grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <div className="card">
             <SectionHeader
               label={t("moodJournal.reflection.label")}
               title={t("moodJournal.reflection.title")}
               description={t("moodJournal.reflection.description")}
             />
-            <div className="grid gap-5" role="group" aria-label={t("moodJournal.reflection.title")} aria-describedby={reflectionFeedbackIds}>
-              <label className="grid gap-2">
+            <div className="grid grid-cols-1 gap-5" role="group" aria-label={t("moodJournal.reflection.title")} aria-describedby={reflectionFeedbackIds}>
+              <label className="grid grid-cols-1 gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.context")}</span>
-                <textarea ref={reflectionInputRef} id="mood-journal-context" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => updateReflection(setContext, e.target.value)} />
+                <textarea ref={reflectionInputRef} id="mood-journal-context" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 w-full min-w-0 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => updateReflection(setContext, e.target.value)} />
                 <VoiceInputButton value={context} onChange={(value) => updateReflection(setContext, value)} />
               </label>
-              <label className="grid gap-2">
+              <label className="grid grid-cols-1 gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.body")}</span>
-                <textarea id="mood-journal-body" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => updateReflection(setBody, e.target.value)} />
+                <textarea id="mood-journal-body" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 w-full min-w-0 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => updateReflection(setBody, e.target.value)} />
                 <VoiceInputButton value={body} onChange={(value) => updateReflection(setBody, value)} />
               </label>
-              <label className="grid gap-2">
+              <label className="grid grid-cols-1 gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.understanding")}</span>
-                <textarea id="mood-journal-understanding" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => updateReflection(setUnderstanding, e.target.value)} />
+                <textarea id="mood-journal-understanding" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 w-full min-w-0 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => updateReflection(setUnderstanding, e.target.value)} />
                 <VoiceInputButton value={understanding} onChange={(value) => updateReflection(setUnderstanding, value)} />
               </label>
-              <label className="grid gap-2">
+              <label className="grid grid-cols-1 gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.support")}</span>
-                <textarea id="mood-journal-support" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => updateReflection(setSupport, e.target.value)} />
+                <textarea id="mood-journal-support" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 w-full min-w-0 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => updateReflection(setSupport, e.target.value)} />
                 <VoiceInputButton value={support} onChange={(value) => updateReflection(setSupport, value)} />
               </label>
               <InlineConsentDialog open={consentDialogOpen} onClose={() => setConsentDialogOpen(false)}>

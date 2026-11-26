@@ -284,7 +284,7 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
   await page.goto("/garden");
 
   await expect(page.getByRole("heading", { name: "欢迎来到你的 SWEET 花园" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "我的疗愈庭院" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "我的 SWEET 花园" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "轻量记录" })).toHaveCount(0);
   await page.getByRole("button", { name: "继续看看" }).click();
   await expect(page.getByRole("heading", { name: "记录之后，可以照料一次" })).toBeVisible();
@@ -295,10 +295,15 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
 
   await page.getByRole("radio", { name: "有些沉重" }).check();
   await page.getByRole("button", { name: "记录这一刻" }).click();
+  const invitation = page.getByText("今天已经记录过了。要不要看看今天可以怎样照料花园？", { exact: true });
+  await expect(page.getByText("这条心情记录已保存。", { exact: true })).toBeVisible();
+  await expect(invitation).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "照料", exact: true }).click();
   await expect(page.getByRole("heading", { name: "今天想怎样照料？" })).toBeVisible();
-  await expect(page.getByText("今天已经有一条记录，可以选择一次照料。")).toBeVisible();
+  await expect(invitation).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "我的疗愈庭院" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "我的 SWEET 花园" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "欢迎来到你的 SWEET 花园" })).toHaveCount(0);
   if (isMobile) expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });
@@ -306,8 +311,28 @@ test("首次登录在庭院内看两步提示，再次进入直接显示庭院",
 test("已有记录不会重看介绍", async ({ page }) => {
   await useIllustrativeGarden(page, 1, 200, true);
   await page.goto("/garden");
-  await expect(page.getByRole("heading", { name: "我的疗愈庭院" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "我的 SWEET 花园" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "欢迎来到你的 SWEET 花园" })).toHaveCount(0);
+});
+
+test("the care invitation can be skipped and watering keeps its own brief reply", async ({ page }) => {
+  await useIllustrativeGarden(page, 3, 200, true);
+  await page.goto("/en/garden");
+  const invitation = page.getByText("You've already made a record today. Would you like to see how you can care for your garden today?", { exact: true });
+  const dock = page.getByRole("navigation", { name: "Garden actions" });
+  const care = dock.getByRole("button", { name: "Care", exact: true });
+  await expect(invitation).toBeVisible();
+  await care.click();
+  const dialog = page.getByRole("dialog");
+  await expect(invitation).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(invitation).toBeVisible();
+  await care.click();
+  await dialog.getByRole("button", { name: /Add a little water/ }).click();
+  await expect(page.locator(".garden-scene").getByRole("status")).toHaveText("The water settles gently into the soil.");
+  await page.reload();
+  await care.click();
+  await expect(dialog.getByRole("button", { name: /Add a little water/ })).toBeDisabled();
 });
 
 test("英文首次介绍、跳过和减少动态效果可用", async ({ page }) => {
@@ -318,12 +343,12 @@ test("英文首次介绍、跳过和减少动态效果可用", async ({ page }) 
   await expect(page.getByRole("heading", { name: "Welcome to your SWEET Garden" })).toBeVisible();
   await expect(page.locator(".garden-main-plant")).toHaveCSS("animation-name", "none");
   await page.getByRole("button", { name: "Skip introduction" }).click();
-  await expect(page.getByRole("heading", { name: "My quiet garden" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My SWEET Garden" })).toBeVisible();
   await page.getByRole("button", { name: "Look at the pond" }).click();
   await expect(page.locator(".garden-scene-effect-pond")).toHaveCSS("animation-name", "none");
   await expect(page.locator(".garden-scene-feedback")).toHaveCSS("animation-name", "none");
   await page.reload();
-  await expect(page.getByRole("heading", { name: "My quiet garden" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "My SWEET Garden" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Welcome to your SWEET Garden" })).toHaveCount(0);
 });
 
@@ -362,7 +387,7 @@ test("探索、照料和布置都直接回应在庭院场景中", async ({ page,
 
   await page.getByRole("button", { name: "照料" }).click();
   await page.getByRole("button", { name: "浇一点水" }).click();
-  await expect(scene.getByRole("status")).toContainText("水落下来了。");
+  await expect(scene.getByRole("status")).toHaveText("水轻轻落进土里。");
   await expect(scene.locator(".garden-scene-effect-water")).toBeVisible();
 
   await page.getByRole("button", { name: "布置" }).click();

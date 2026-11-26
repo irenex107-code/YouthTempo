@@ -63,7 +63,7 @@ export function GardenGuide() {
         {(["record", "growth", "care", "layout", "privacy", "choice"] as const).map((key) => (
           <article key={key} className="card">
             <h3 className="text-lg font-bold text-ink">{t(`gardenWelcome.${key}.title`)}</h3>
-            <p className="mt-3 text-sm leading-7 text-muted">{t(`gardenWelcome.${key}.text`)}</p>
+            <p className="mt-2 max-w-prose text-base leading-7 text-muted">{t(`gardenWelcome.${key}.text`)}</p>
           </article>
         ))}
       </div>
