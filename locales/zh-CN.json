@@ -500,9 +500,9 @@
       "youthLabel": "14–17 岁支持",
       "youthTitle": "告诉我们你需要什么支持",
       "youthDescription": "提交后由人工评估，再连接学校、社工、医疗或专业资源。这里不会让你直接预约咨询师。",
-      "adultLabel": "内部测试 · 正式咨询",
-      "adultTitle": "一对一支持事项",
-      "adultDescription": "这是仅供获准账号测试的流程。正式服务尚未向普通用户开放。",
+      "adultLabel": "仅供受邀测试者",
+      "adultTitle": "一对一支持",
+      "adultDescription": "你可以在这里试用申请流程。正式咨询暂未对外开放。",
       "categoriesTitle": "支持人员各有边界",
       "categories": {
         "counselor": "专业咨询人员：资质经人工核验后承接正式咨询。",
@@ -961,7 +961,7 @@
     "ageGuidance": {
       "label": "适合你的使用方式",
       "minor": { "heroDescription": "你正在参加学生自主试用。完整 SWEET 保存在你的个人历史，学校关系不会向老师或家长开放这些记录。", "title": "先按自己的节奏记录，需要时再把话说给具体的人", "description": "你可以独立完成记录和整理。当前试点不创建家长关系；如果学校已经为你分配负责老师，可以在悄悄话信箱选择写给老师，也可以只留给自己。主动联系值班负责人是独立选项，不等于进入心理咨询。", "primaryAction": "查看学生入口", "secondaryAction": "写下不容易当面说的话" },
-      "adult": { "heroDescription": "你正在按成年人身份独立使用。无需学校或家长加入，记录默认只用于你自己回看。", "title": "按自己的生活基线理解记录，而不是套用中学生作息", "description": "晚睡、晚起、吃外卖或作息不固定本身不代表心理异常。可以先看这些变化是否偏离你平时的状态，是否持续影响精力、学习、工作、关系或基本生活；需要真人帮助时，再选择校园资源、社区服务或合格专业人员。", "primaryAction": "查看独立使用说明", "secondaryAction": "查看支持路径" }
+      "adult": { "heroDescription": "你正在按成年人身份独立使用。无需学校或家长加入，记录默认只用于你自己回看。", "title": "和自己平时的作息比一比", "description": "晚睡、晚起、吃外卖或作息不固定本身不代表心理异常。可以先看这些变化是否偏离你平时的状态，是否持续影响精力、学习、工作、关系或基本生活；需要真人帮助时，再选择校园资源、社区服务或合格专业人员。", "primaryAction": "查看独立使用说明", "secondaryAction": "查看支持路径" }
     },
     "consent": {
       "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "你主动保存的 SWEET 回答和小结会进入个人历史。记录和留言可能含敏感生活与健康信息，用于你选择的记录、整理和沟通，不用于广告或公开展示。你可以在账户中撤回确认。", "privacyLink": "隐私与安全", "sentenceEnd": "。",
@@ -984,7 +984,7 @@
       "loading": "正在加载记录…", "recordTitle": "SWEET 节律记录", "childRecord": "{{name}}的 SWEET 记录", "delete": "删除", "viewFull": "查看完整记录", "notProvided": "未填写", "smallStepPrefix": "可以先做的一件小事：", "nextToolPrefix": "推荐下一步：", "emptyTitle": "暂时没有可见记录", "start": "SWEET花园", "contactSchool": "联系学校确认关系", "admin": "进入管理台",
       "empty": { "student": "完成一次 SWEET 节律记录并保存后，会显示在这里。", "guardian": "当前学生自主试点不开放家长访问或亲子关系创建。", "teacher": "学校负责人分配学生后，这里会显示你负责学生的记录。", "schoolLead": "本校学生保存 SWEET 记录后，会显示在这里。", "default": "保存记录后，会显示在这里。" }
     },
-    "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。少量内部清理已进入安全队列，不影响你停止使用服务。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前自主试用暂不接收 14 岁以下学生。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生自主试用确认已完成，现在可以生成 AI 小结并保存本人记录。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
+    "notices": { "sessionSlow": "登录状态加载较慢。你仍可以重新登录，或刷新页面再试一次。", "identitySyncing": "账户身份正在重新同步。如果你是学校负责人，请稍后刷新页面。", "profileIncomplete": "账号资料暂时没有加载完整，可以稍后重试。", "recordsUnavailable": "记录暂时没有加载出来，请稍后刷新。", "inviteSyncDelayed": "账户身份已加载，但学校邀请同步需要稍后再试。", "signedInAccount": "登录成功，已进入你的账户。", "wechatBound": "微信绑定成功。", "otpSent": "验证码已发送。请查看邮箱。", "signedIn": "登录成功。", "otpResent": "新的验证码已发送。", "profileSaved": "账号资料已保存。", "recordDeleted": "记录已删除。", "signedOut": "已退出登录。", "exportStarted": "数据导出已开始下载。文件只保存在你的设备上。", "accountDeletedCleanupPending": "账号已注销。部分关联资料还待清理。", "accountDeleted": "账号及关联数据已注销，当前设备也已退出登录。", "under14Ineligible": "当前自主试用暂不接收 14 岁以下学生。", "adultConsentComplete": "知情确认已完成。", "studentAssentRecorded": "学生自主试用确认已完成，现在可以生成 AI 小结并保存本人记录。", "guardianConsentComplete": "监护人确认已完成，孩子现在可以保存记录、发送留言和参与社区。", "consentWithdrawn": "确认已撤回。现在不能继续保存新记录、发送留言或在社区发布；已有内容仍可查看、下载或删除。", "scanWechatQr": "请用微信扫描小程序码，完成后此页面会自动更新。" },
     "errors": { "serviceTimeout": "账户服务响应超时。", "loadFailed": "账户信息加载失败。", "redirectFailed": "登录链接处理失败，请重新发送验证码。", "wechatQrExpired": "二维码已过期，请重新生成。", "wechatStatusFailed": "微信绑定状态检查失败。", "otpUnauthorized": "当前邮箱暂时无法收到登录验证码，请联系平台负责人处理。", "otpRateLimited": "验证码请求有些频繁，请稍后再试。", "otpSendNetwork": "网络连接不稳定，请检查网络后重新发送。", "otpSendFailed": "验证码发送失败，请稍后重试。", "otpIncomplete": "请输入完整的 {{count}} 位验证码。", "otpInvalid": "验证码不正确或已过期，请重新输入，或重新发送。", "otpVerifyRateLimited": "验证尝试有些频繁，请稍后再试。", "otpVerifyNetwork": "网络连接不稳定，请检查网络后重新验证。", "otpVerifyFailed": "验证码验证失败，请稍后重试。", "nameRequired": "请填写姓名。", "profileSaveFailed": "资料保存失败。", "recordDeleteFailed": "删除记录失败。", "exportFailed": "账户数据导出失败。", "deletionConfirmationRequired": "请输入当前登录邮箱，并勾选不可恢复确认。", "accountDeleteFailed": "账户注销失败。", "studentAssentFailed": "学生确认提交失败。", "guardianConsentFailed": "监护人确认提交失败。", "consentWithdrawFailed": "撤回确认失败。", "wechatQrFailed": "微信绑定二维码生成失败。" },
     "professional": {
       "label": "专业支持者", "title": "让大家知道你的专业身份已经过确认", "description": "以个人身份提交可核验的资质和专业方向；机构信息可以不填。只有平台管理员能查看这些资料；通过后，社区会显示“专业身份已确认”。", "loading": "正在加载确认状态…", "noticeSubmitted": "资料已经交给平台确认。审核期间，你仍可以正常使用其他功能。", "submittedAt": "提交于 {{date}}", "reviewNote": "平台说明：{{note}}", "legacyConfirmed": "此前已由平台确认", "institution": "机构/单位：{{value}}", "noInstitution": "个人申请，未填写机构", "position": "专业方向：{{value}}", "credential": "资质：{{value}}", "expires": "有效期：{{value}}", "noExpiry": "未注明到期日", "disclaimer": "提交不代表自动通过。平台会核对个人资质、专业方向和证明材料；资料不完整时，会说明需要补充什么。", "resubmit": "更新并重新提交", "submit": "提交确认资料",
