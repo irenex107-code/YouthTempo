@@ -142,8 +142,8 @@ export function Navbar() {
     }
   }
 
-  const signOutButton = authReady && signedIn ? (
-    <button type="button" className="button-secondary px-3 py-2 text-sm" disabled={leaving} onClick={leaveAccount}>
+  const signOutButton = signedIn ? (
+    <button type="button" className="button-secondary shrink-0 whitespace-nowrap px-1.5 py-2 text-sm sm:px-3" disabled={leaving} onClick={leaveAccount}>
       {t(leaving ? "common.navbar.account.signingOut" : "account.actions.signOut")}
     </button>
   ) : null;
@@ -164,8 +164,8 @@ export function Navbar() {
             : { href: "/garden", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
   return (
     <header className="sticky top-0 z-30 border-b border-ink/[0.07] bg-cream/88 shadow-[0_8px_30px_rgba(32,51,47,0.04)] backdrop-blur-xl">
-      <div className="px-3 sm:px-8 lg:px-12">
-        <div className="container flex min-h-[68px] flex-wrap items-center justify-between gap-x-2 gap-y-1 py-1 sm:gap-x-3 lg:min-h-[76px] xl:flex-nowrap">
+      <div className="flex max-h-dvh flex-col px-2 min-[400px]:px-3 sm:px-8 lg:px-12">
+        <div className="container flex min-h-[68px] w-full shrink-0 flex-wrap items-center justify-between gap-x-1 gap-y-1 py-1 sm:gap-x-3 lg:min-h-[76px] xl:flex-nowrap">
           <Link href="/" className="shrink-0 text-[1.2rem] font-black tracking-[-0.035em] text-ink transition hover:text-sage-dark" aria-label={t("common.navbar.homeAria")}>
             YouthTempo
           </Link>
@@ -196,13 +196,14 @@ export function Navbar() {
               </Link>
             )}
           </div>
-          <div className="flex max-w-full flex-wrap items-center justify-end gap-2 xl:hidden">
-            <LanguageSwitcher />
+          <LanguageSwitcher className="ml-auto xl:hidden" />
+          <div className="flex shrink-0 items-center gap-1 max-[399px]:ml-auto sm:gap-2 xl:hidden">
             {signedIn && accountRole ? (
               <Link href={primaryAction.href} className="button-primary hidden px-3 py-2 text-sm sm:inline-flex">
                 {primaryAction.mobileLabel}
               </Link>
             ) : null}
+            {signOutButton}
             <button
               type="button"
               className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-ink/10 bg-paper text-ink shadow-sm"
@@ -219,7 +220,7 @@ export function Navbar() {
           </div>
         </div>
         {menuOpen ? (
-          <div className="container max-h-[calc(100dvh-4.25rem)] overflow-y-auto overscroll-contain pb-4 xl:hidden">
+          <div className="container min-h-0 w-full overflow-y-auto overscroll-contain pb-4 xl:hidden">
             <nav className="grid gap-2 rounded-[1.5rem] border border-ink/10 bg-paper/95 p-3 shadow-soft">
               <div className="grid gap-2 border-b border-ink/10 pb-3">
                 {authReady ? (
@@ -229,7 +230,6 @@ export function Navbar() {
                 ) : (
                   <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
                 )}
-                {signOutButton}
                 <Link href={primaryAction.href} className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
                   {primaryAction.label}
                 </Link>

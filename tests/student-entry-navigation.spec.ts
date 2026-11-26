@@ -31,13 +31,15 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
     const header = page.getByRole("banner");
     await expect(header.locator("a[title]")).toHaveAttribute("title", new RegExp(displayName));
     const menu = header.getByRole("button", { name: copy.common.navbar.openMenu, exact: true });
-    for (const width of [320, 375, 390, 768, 1280, 1440]) {
+    const signOut = header.getByRole("button", { name: copy.account.actions.signOut, exact: true });
+    for (const width of [1024, 1200, 1279, 1280, 1440, 768, 390, 375, 320]) {
       await page.setViewportSize({ width, height: 700 });
+      await expect(signOut, `${width}px with the menu closed`).toBeInViewport({ ratio: 1 });
       for (const control of await header.locator("a:visible, button:visible").all()) {
         await expect(control, `${width}px header`).toBeInViewport({ ratio: 1 });
       }
       if (await menu.isVisible()) await menu.click();
-      await expect(header.getByRole("button", { name: copy.account.actions.signOut, exact: true })).toBeInViewport({ ratio: 1 });
+      await expect(signOut).toBeInViewport({ ratio: 1 });
       const close = header.getByRole("button", { name: copy.common.navbar.closeMenu, exact: true });
       if (await close.isVisible()) await close.click();
     }
@@ -56,6 +58,8 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
     const header = page.getByRole("banner");
     await expect(header.getByRole("link", { name: copy.common.navbar.nav.forParents, exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: copy.common.navbar.nav.forTeachers, exact: true })).toBeVisible();
+    const close = header.getByRole("button", { name: copy.common.navbar.closeMenu, exact: true });
+    if (await close.isVisible()) await close.click();
     await header.getByRole("button", { name: copy.account.actions.signOut, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(prefix + "/account\\?signedOut=1$"));
     await expect(page.getByText(copy.account.notices.signedOut, { exact: true }).first()).toBeVisible();
@@ -63,6 +67,28 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
     await page.reload();
     expect(await page.evaluate(key => localStorage.getItem(key), storageKey)).toBeNull();
     await expect(page.getByRole("textbox", { name: copy.account.visitor.email, exact: true })).toBeVisible();
+    await expect(header.getByRole("button", { name: copy.account.actions.signOut, exact: true })).toHaveCount(0);
+  });
+
+  test(`${prefix || "zh"} account shows sign out with settings closed`, async ({ page, baseURL }) => {
+    const { state } = await syntheticInlineConsent(page, baseURL!, { consentState: "active", displayName: "Alex" });
+    for (const table of ["sweet_records", "wechat_identities"]) {
+      await page.route(`**/rest/v1/${table}?**`, async route => {
+        expect(route.request().method()).toBe("GET");
+        await route.fulfill({ json: [] });
+      });
+    }
+    await page.goto(`${prefix}/account`);
+    const main = page.getByRole("main");
+    await expect(main.getByRole("heading", { level: 1 })).toContainText("Alex");
+    await expect(main.locator("details").filter({ hasText: copy.account.settings.title })).toHaveJSProperty("open", false);
+    const signOut = main.getByRole("button", { name: copy.account.actions.signOut, exact: true });
+    await expect(signOut).toBeInViewport({ ratio: 1 });
+    await signOut.click();
+    await expect(main.getByRole("textbox", { name: copy.account.visitor.email, exact: true })).toBeVisible();
+    expect(state.signedIn).toBe(false);
+    await page.reload();
+    await expect(main.getByRole("textbox", { name: copy.account.visitor.email, exact: true })).toBeVisible();
   });
 
   test(`${prefix || "zh"} SWEET keeps all five answers through consent and saves only when asked`, async ({ page, baseURL }) => {
