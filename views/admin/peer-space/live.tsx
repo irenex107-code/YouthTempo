@@ -70,7 +70,7 @@ export default function PeerSpaceStaffLivePage() {
   }
 
   return (
-    <main className="section section-muted min-h-[60vh]">
+    <div className="section section-muted min-h-[60vh]">
       <div className="container max-w-5xl">
         <Link href="/admin" className="text-sm font-bold text-sage-dark underline">{t("peerSpaceReview.back")}</Link>
         <h1 className="mt-5 text-3xl font-black text-ink">{t("peerSpaceReview.title")}</h1>
@@ -123,6 +123,6 @@ export default function PeerSpaceStaffLivePage() {
           </div>
         ) : null}
       </div>
-    </main>
+    </div>
   );
 }

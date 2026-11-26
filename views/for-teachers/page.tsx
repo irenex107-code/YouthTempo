@@ -56,7 +56,7 @@ export default function ForTeachersPage() {
               {t("forTeachers.conversation.text")}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/account" className="button-primary">{t("forTeachers.conversation.recordsAction")}</Link>
+              <Link href="/account#students" className="button-primary">{t("forTeachers.conversation.recordsAction")}</Link>
               <Link href="/messages" className="button-secondary">{t("forTeachers.conversation.messagesAction")}</Link>
               <Link href="/referral" className="button-secondary">{t("forTeachers.conversation.referralAction")}</Link>
             </div>

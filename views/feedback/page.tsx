@@ -137,7 +137,7 @@ export default function PilotFeedbackPage() {
       setNotice(body.notice
         ? localizedCloudErrorMessage(new Error(body.notice), locale, t("feedback.member.notices.received"))
         : t("feedback.member.notices.received"));
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0 });
     } catch (saveError) {
       setError(localizedCloudErrorMessage(saveError, locale, t("feedback.member.errors.saveFailed")));
     } finally {

@@ -231,12 +231,12 @@ export default function CheckInPage() {
   useEffect(() => {
     if (!shouldScrollToQuestionRef.current) return;
     shouldScrollToQuestionRef.current = false;
-    questionCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    questionCardRef.current?.scrollIntoView({ block: "start" });
   }, [currentStep]);
 
   useEffect(() => {
     if (!aiResult) return;
-    resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    resultRef.current?.scrollIntoView({ block: "start" });
   }, [aiResult]);
 
   useEffect(() => {
@@ -481,28 +481,27 @@ export default function CheckInPage() {
               <span>{t("checkIn.progress.completed", { completed: completedSteps, total: steps.length })}</span>
             </div>
 
-            <div className="-mx-4 mb-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
-              <div className="grid min-w-[560px] grid-cols-5 gap-2 sm:min-w-0">
-                {steps.map((item, index) => {
-                  const active = index === currentStep;
-                  const done = item.fields.filter((field) => field.required !== false).every((field) => isFieldComplete(answers[item.id][field.id]));
-                  const translatedTitle = t(stepCopyKeys[item.id].title);
-                  const showTranslatedTitle = locale !== "en" || item.label.toLocaleLowerCase() !== translatedTitle.toLocaleLowerCase();
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => goToStep(index)}
-                      className={`rounded-2xl border px-2 py-3 text-center transition ${
-                        active ? "border-sage bg-mist text-sage-dark" : done ? "border-sage/35 bg-white/85 text-ink/70" : "border-ink/10 bg-white/60 text-muted"
-                      }`}
-                    >
-                      <span className="block text-xs font-bold">{item.label}</span>
-                      {showTranslatedTitle ? <span className="mt-1 block text-[0.7rem] font-bold">{translatedTitle}</span> : null}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="mb-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
+              {steps.map((item, index) => {
+                const active = index === currentStep;
+                const done = item.fields.filter((field) => field.required !== false).every((field) => isFieldComplete(answers[item.id][field.id]));
+                const translatedTitle = t(stepCopyKeys[item.id].title);
+                const showTranslatedTitle = locale !== "en" || item.label.toLocaleLowerCase() !== translatedTitle.toLocaleLowerCase();
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    aria-current={active ? "step" : undefined}
+                    onClick={() => goToStep(index)}
+                    className={`min-h-11 min-w-0 rounded-2xl border px-2 py-2 text-center transition ${
+                      active ? "border-sage bg-mist text-sage-dark" : done ? "border-sage/35 bg-white/85 text-ink/70" : "border-ink/10 bg-white/60 text-muted"
+                    }`}
+                  >
+                    <span className="block text-xs font-bold">{item.label}</span>
+                    {showTranslatedTitle ? <span className="mt-0.5 block text-xs font-bold">{translatedTitle}</span> : null}
+                  </button>
+                );
+              })}
             </div>
 
             <article ref={questionCardRef} className="card scroll-mt-24 sm:scroll-mt-28">

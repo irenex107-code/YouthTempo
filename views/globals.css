@@ -5,7 +5,7 @@
 :root {
   --background: #fbf7ed;
   --foreground: #1f3934;
-  --focus: #5b927d;
+  --focus: #285f53;
 }
 
 * {
@@ -43,7 +43,7 @@ a {
 }
 
 :focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--focus) 45%, transparent);
+  outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
 
@@ -91,11 +91,11 @@ a {
   }
 
   .button-primary {
-    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full border border-sage-dark/10 bg-sage-dark px-5 py-3 text-sm font-extrabold text-white shadow-button transition duration-200 hover:-translate-y-0.5 hover:bg-ink active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:px-6;
+    @apply inline-flex min-h-12 max-w-full items-center justify-center break-words rounded-full border border-sage-dark/10 bg-sage-dark px-5 py-3 text-center text-sm font-extrabold text-white shadow-button transition duration-200 hover:-translate-y-0.5 hover:bg-ink active:translate-y-0 active:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:px-6;
   }
 
   .button-secondary {
-    @apply inline-flex min-h-12 items-center justify-center whitespace-nowrap rounded-full border border-sage/30 bg-paper px-5 py-3 text-sm font-extrabold text-sage-dark shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-sage hover:bg-mist/40 active:translate-y-0 sm:px-6;
+    @apply inline-flex min-h-12 max-w-full items-center justify-center break-words rounded-full border border-sage/30 bg-paper px-5 py-3 text-center text-sm font-extrabold text-sage-dark shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-sage hover:bg-mist/40 active:translate-y-0 sm:px-6;
   }
 
   .surface-panel {
@@ -182,7 +182,7 @@ a {
   }
 
   .garden-scene {
-    @apply relative isolate min-h-[34rem] overflow-hidden rounded-[2.25rem] border border-white/70 bg-[#eaf2e8] shadow-soft;
+    @apply relative isolate w-full min-h-[34rem] overflow-hidden rounded-[2.25rem] border border-white/70 bg-[#eaf2e8] shadow-soft;
     aspect-ratio: 16 / 9;
   }
 
@@ -565,7 +565,7 @@ a {
 
 @media (max-width: 640px) {
   .garden-scene {
-    min-height: 42rem;
+    min-height: 26rem;
     aspect-ratio: 9 / 14;
   }
 
@@ -624,6 +624,9 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .button-primary, .button-secondary { transition: none; }
+  .button-primary:hover, .button-secondary:hover { transform: none; }
   .garden-main-plant,
   .garden-placed-item,
   .garden-scene-feedback,

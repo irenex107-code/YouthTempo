@@ -164,12 +164,12 @@ export function Navbar() {
             : { href: "/garden", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
   return (
     <header className="sticky top-0 z-30 border-b border-ink/[0.07] bg-cream/88 shadow-[0_8px_30px_rgba(32,51,47,0.04)] backdrop-blur-xl">
-      <div className="px-4 sm:px-8 lg:px-12">
-        <div className="container flex min-h-[68px] items-center justify-between gap-3 lg:min-h-[76px]">
+      <div className="px-3 sm:px-8 lg:px-12">
+        <div className="container flex min-h-[68px] flex-wrap items-center justify-between gap-x-2 gap-y-1 py-1 sm:gap-x-3 lg:min-h-[76px] xl:flex-nowrap">
           <Link href="/" className="shrink-0 text-[1.2rem] font-black tracking-[-0.035em] text-ink transition hover:text-sage-dark" aria-label={t("common.navbar.homeAria")}>
             YouthTempo
           </Link>
-          <nav className="hidden items-center gap-1 text-sm font-bold text-ink/80 xl:flex xl:gap-2">
+          <nav className="hidden min-w-0 flex-wrap items-center justify-center gap-1 text-sm font-bold text-ink/80 xl:flex">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} className={`whitespace-nowrap rounded-lg px-2.5 py-2 transition ${router.pathname === item.href ? "bg-mist text-sage-dark" : "hover:bg-white/70 hover:text-sage-dark"}`}>
                 {t(item.labelKey)}
@@ -181,23 +181,25 @@ export function Navbar() {
             {authReady ? (
               <Link
                 href="/account"
-                className="button-secondary max-w-48 truncate px-4 py-2 text-xs sm:px-5"
+                className="button-secondary max-w-40 px-4 py-2 text-sm"
                 title={accountLabel}
               >
-                {accountLabel}
+                <span className="truncate">{accountLabel}</span>
               </Link>
             ) : (
               <span className="h-9 w-28 animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
             )}
             {signOutButton}
-            <Link href={primaryAction.href} className="button-primary px-4 py-2 text-xs sm:px-5">
-              {primaryAction.label}
-            </Link>
+            {!navItems.some((item) => item.href === primaryAction.href) && (
+              <Link href={primaryAction.href} className="button-primary px-4 py-2 text-sm">
+                {primaryAction.label}
+              </Link>
+            )}
           </div>
-          <div className="flex items-center gap-2 xl:hidden">
+          <div className="flex max-w-full flex-wrap items-center justify-end gap-2 xl:hidden">
             <LanguageSwitcher />
             {signedIn && accountRole ? (
-              <Link href={primaryAction.href} className="button-primary px-3 py-2 text-xs">
+              <Link href={primaryAction.href} className="button-primary hidden px-3 py-2 text-sm sm:inline-flex">
                 {primaryAction.mobileLabel}
               </Link>
             ) : null}
@@ -217,11 +219,11 @@ export function Navbar() {
           </div>
         </div>
         {menuOpen ? (
-          <div className="container pb-4 xl:hidden">
+          <div className="container max-h-[calc(100dvh-4.25rem)] overflow-y-auto overscroll-contain pb-4 xl:hidden">
             <nav className="grid gap-2 rounded-[1.5rem] border border-ink/10 bg-paper/95 p-3 shadow-soft">
               <div className="grid gap-2 border-b border-ink/10 pb-3">
                 {authReady ? (
-                  <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
+                  <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm [overflow-wrap:anywhere]" onClick={() => setMenuOpen(false)}>
                     {accountLabel}
                   </Link>
                 ) : (

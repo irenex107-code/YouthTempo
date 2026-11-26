@@ -48,8 +48,7 @@
       }
     },
     "footer": {
-      "description": "Young people can record daily life and reflect on feelings. Parents can explore supportive communication, and teachers provide support within their authorized scope. Support pathways are available when needed.",
-      "tagline": "Start with everyday life.",
+      "description": "Check in, look back at your entries or find someone to talk to.",
       "links": {
         "resources": "Support guide",
         "community": "Support community",
@@ -83,7 +82,7 @@
     "showcase": {
       "action": "See a SWEET example",
       "title": "One SWEET check-in, from recording to looking back",
-      "description": "A fictional example with answers from the SWEET check-in. You can view it without signing in.",
+      "description": "Explore a fictional student’s Monday check-in. You can read it without signing in.",
       "recordTitle": "Monday’s SWEET check-in",
       "reviewTitle": "Revisit a saved check-in",
       "reviewText": "After signing in and saving, open “{{history}}” in your account to find the check-in for that date.",
@@ -197,9 +196,9 @@
     "title": "Choose your age group",
     "description": "Both paths let you check in, sort through feelings and find someone to talk to.",
     "paths": {
-      "secondary": { "age": "Ages 14–17", "title": "Secondary school students", "description": "Record your day in the garden, or go straight to someone you trust.", "action": "Open the school student garden",
-        "learnMore": "See what you can do first" },
-      "youngAdults": { "age": "Ages 18–25", "title": "University students and young adults", "description": "Whether you’re studying, working or figuring out what’s next, you can start on your own.", "action": "Continue as a young adult" }
+      "secondary": { "age": "Ages 14–17", "title": "Secondary students", "description": "See how your day went, or find someone to talk to.", "action": "Open the student garden",
+        "learnMore": "About the garden" },
+      "youngAdults": { "age": "Ages 18–25", "title": "Young adults", "description": "At university, working or still deciding? You don’t need a school account.", "action": "Open the young adult space" }
     },
     "accountNote": "You’ll confirm your age group when you save a record."
   },
@@ -288,7 +287,7 @@
   },
   "forTeachers": {
     "metadata": { "title": "For Teachers | YouthTempo" },
-    "hero": { "label": "For teachers", "title": "A guide for teachers", "description": "See the students assigned to you and read messages they send you. Their private SWEET records are visible only to them.", "primaryAction": "Open the teacher workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
+    "hero": { "label": "For teachers", "title": "A guide for teachers", "description": "See the students assigned to you and read messages they send you. Their private SWEET records are visible only to them.", "primaryAction": "Open my teacher account", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
     "capabilities": {
       "title": "What teachers can do here",
       "items": {
@@ -906,7 +905,7 @@
     "generate": { "title": "Organize a support pathway", "progress": "{{selected}} of {{total}} answered. The closer your choices are to your current situation, the more specific the pathway can be.", "description": "This is not a judgment or diagnosis. Fixed rules simply help organize where to begin.", "noteLabel": "Is there anything else you would like to add?", "notePlaceholder": "Write one sentence or leave this blank. Additional text is checked only for safety and is not scored." },
     "actions": { "generating": "Organizing your support pathway...", "generate": "View my support pathway" },
     "paths": { "moreSupport": "Understand what is happening and connect with more support", "lowPressure": "Start with a low-pressure option", "moodFirst": "Begin by mapping your emotions", "worryFirst": "Set some worries aside tonight", "rhythmAndExpression": "Start with rhythm and expression", "expressionAndTell": "Put it into words, then tell a parent, teacher, or another trusted person", "rhythmAndTell": "Check in with your rhythm and tell a parent, teacher, or another trusted person", "checkInFirst": "Start with a SWEET rhythm check-in", "selfOrganize": "Take some time to reflect on your own", "lowBarrier": "Start with a simple check-in", "tellAdult": "Try telling a parent, teacher, or another trusted adult" },
-    "links": { "moodJournal": "Mood map", "worryTime": "Set worries aside tonight", "checkIn": "SWEET Garden", "messages": "Private messages", "tellAdult": "Tell a teacher or parent" },
+    "links": { "moodJournal": "Mood map", "worryTime": "Set worries aside tonight", "checkIn": "SWEET Garden", "messages": "Private messages", "tellAdult": "See who I can message" },
     "ruleBased": { "label": "Rule-based support pathway · not AI-generated", "description": "This result uses structured choices and fixed versioned rules. It does not score or diagnose you, and additional text is not sent to AI for a decision." },
     "result": { "label": "Support guidance", "title": "Your next support pathway", "answerSummary": "{{question}}: {{answers}}", "noSelection": "You have not selected how you are feeling yet.", "path": "Suggested pathway", "reason": "Why this may fit", "howToStart": "How to begin", "fallbackStarter": "“I have been feeling stuck lately. I do not need you to resolve it right away, but I want you to know.”", "links": "Suggested options" },
     "direct": { "title": "Talk to someone directly", "description": "You can skip the questions. Talk to someone you trust in person, or open your inbox to see who you can write to.", "action": "Open private messages" }
@@ -1043,7 +1042,7 @@
       "summary": { "title": "Confirm before each use of AI", "text": "You choose whether SWEET Check-in or Mood Journal sends anything to AI. Worry Time and Find the Right Support use fixed rules and do not call AI. Talk It Through is closed. Urgent guidance is available without AI." },
       "withdraw": { "title": "Consent can be withdrawn", "text": "You can withdraw consent in your account at any time. Saving new records, sending messages and posting in the community then pause." },
       "coverage": { "title": "What the consent covers", "text": "Account details, SWEET everyday-rhythm responses, AI-assisted record summaries, rule-based tool results, private messages, community posts, and the relationship information needed to limit access for schools, teachers, and guardians. Users are not asked for a national identity number or exact date of birth." },
-      "afterWithdrawal": { "title": "What happens after withdrawal", "text": "After withdrawing consent, students can no longer save new records, send messages or post in the community. The original teacher can no longer retrieve messages in their inbox or in a new export while consent is withdrawn. Students can still view, download or delete their own content, or close their account and delete associated data." },
+      "afterWithdrawal": { "title": "What happens after withdrawal", "text": "Withdrawing pauses new check-ins, messages and community posts. The teacher you wrote to loses access to those messages in their inbox and in new exports. You can still view or download your data, delete a day’s SWEET check-ins, or close your account." },
       "legalPrefix": "When personal information is processed on the basis of consent, the law requires consent to be informed, voluntary, explicit, and easy to withdraw. Separate consent is required for sensitive personal information such as medical and health information, and guardian consent is required for the personal information of children under 14. The current student-only trial does not accept users under 14; the applicable student and guardian confirmations will be reviewed again before a formal school pilot. See"
     },
     "retention": {
@@ -1066,7 +1065,7 @@
     "dataTypes": {
       "label": "Data covered", "title": "What data may be retained?", "description": "We retain records users actively submit, account details, and relationship information needed to provide school support. This information is not used to label or rank people.",
       "sweet": { "title": "SWEET rhythm records", "text": "Everyday rhythm information such as sleep, waking, meals, movement, and task engagement." },
-      "account": { "title": "Account details", "text": "Email address, display name, and the role selected by the user, used for sign-in and to distinguish support roles." },
+      "account": { "title": "Account details", "text": "You sign in with your email and choose a display name. Schools confirm teacher roles. The platform verifies administrative and professional support roles separately." },
       "school": { "title": "School relationships", "text": "School membership and teacher assignments organize support and help determine who can receive a message a student chooses to send." },
       "summary": { "title": "Organized summaries", "text": "This includes faithful AI-assisted summaries of the current record, communication starters chosen by the user, and optional next steps organized by fixed rules." }
     },
@@ -1140,16 +1139,16 @@
     "guide": "How the garden works",
     "login": "Sign in to my garden",
     "record": {
-      "title": "Choose the record that suits today",
-      "text": "A quick record asks only how you feel right now. A full SWEET record explores sleep, waking, eating, exercise and task engagement. Either counts as participation; you do not need to do both."
+      "title": "How much would you like to write?",
+      "text": "For a quick check-in, just pick a feeling. For more detail, use SWEET to record sleep, waking, meals, movement and how tasks went. Either counts for today."
     },
     "growth": {
-      "title": "Growth reflects participation, not mood",
-      "text": "Multiple records on the same day count as one participation day, using Beijing time. After 1, 3 and 7 days in total, your plant sprouts, grows leaves and blooms. Every feeling counts equally. Missing a day does not take growth away."
+      "title": "When will my plant grow?",
+      "text": "Your plant sprouts after one recorded day, grows leaves after three and blooms after seven. Each day counts once, on Beijing time. Every mood counts, and you can pick up where you left off."
     },
     "care": {
-      "title": "Record, then care once",
-      "text": "After recording today, choose water, sunlight or a bird visit. All three offer the same growth. There is no need to repeat an action."
+      "title": "How do I care for my garden?",
+      "text": "After you check in today, you can water your plant, give it sunlight or invite a bird. Choose whichever you like, once a day."
     },
     "layout": {
       "title": "Decorate gradually and keep a memory",
@@ -1171,8 +1170,7 @@
     "metadata": { "title": "SWEET Garden | YouthTempo" },
     "hero": { "label": "SWEET Garden", "title": "Every moment of care counts", "description": "A quiet place to notice your own rhythms. Your mood, answers, and missed days never make your plant lose growth." },
     "scene": {
-      "eyebrow": "SWEET Garden",
-      "title": "My quiet garden",
+      "title": "My SWEET Garden",
       "alt": {
         "seed": "A quiet garden under a pale sky, with a seed waiting beside the pond and bench.",
         "sprout": "A quiet garden under a pale sky, with a new sprout beside the pond and bench.",
@@ -1208,6 +1206,7 @@
       "unsure": "Not sure yet",
       "submit": "Record this moment",
       "saved": "This moment is saved.",
+      "saved": "Your mood check-in is saved.",
       "saving": "Saving…"
     },
     "explore": {
@@ -1217,20 +1216,20 @@
     },
     "care": {
       "title": "How would you like to care today?",
-      "description": "All three choices bring the same growth. Only the garden's response changes.",
-      "available": "You have recorded a moment today, so you can choose one way to care.",
+      "description": "Pick what you’d like to do today, or close this to come back later.",
+      "available": "You've already made a record today. Would you like to see how you can care for your garden today?",
       "unavailable": "Record a moment today to choose one way to care.",
-      "completed": "You cared for the garden today with “{{action}}”. You can return tomorrow without losing today's growth.",
+      "completed": "You cared for your garden today with “{{action}}”.",
       "saving": "Saving this moment of care…",
       "options": {
-        "water": { "title": "Add a little water", "description": "Watch a brief change as the water falls.", "response": "The water has fallen. Today's growth still comes only from your record." },
-        "sunlight": { "title": "Sit in the sunlight", "description": "Let the leaves hold the light for a moment.", "response": "Light settles on the leaves. All three choices bring the same growth." },
-        "invite_visitor": { "title": "Invite a visitor", "description": "Let the bird stay nearby for a moment.", "response": "The bird stays for a moment. It does not judge your record." }
+        "water": { "title": "Add a little water", "description": "Watch a brief change as the water falls.", "response": "The water settles gently into the soil." },
+        "sunlight": { "title": "Sit in the sunlight", "description": "Let the leaves hold the light for a moment.", "response": "Sunlight falls on the leaves." },
+        "invite_visitor": { "title": "Invite a visitor", "description": "Let the bird stay nearby for a moment.", "response": "A bird lands in the garden for a moment." }
       }
     },
     "layout": {
       "title": "Arrange my garden",
-      "description": "Choose prepared objects for fixed places so the garden stays visually calm.",
+      "description": "Choose an open spot and place something you like there.",
       "unlocked": "Available",
       "locked": "Available after {{count}} participation days",
       "saving": "Saving your arrangement…",

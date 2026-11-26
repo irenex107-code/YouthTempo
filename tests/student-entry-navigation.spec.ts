@@ -4,6 +4,45 @@ import en from "../locales/en.json";
 import { syntheticInlineConsent } from "./fixtures/synthetic-inline-consent";
 
 for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
+  test(`${prefix || "zh"} garden, SWEET steps and writing fields fit a 320px screen`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 664 });
+    for (const [route, selector, count] of [
+      ["/", ".garden-hotspot", 3],
+      ["/check-in", "button[aria-current='step'], button[aria-current='step'] ~ button", 5],
+      ["/mood-journal", "textarea[id^='mood-journal-']", 4],
+    ] as const) {
+      await page.goto(`${prefix}${route}`);
+      const controls = page.locator(selector);
+      await expect(controls).toHaveCount(count);
+      for (const control of await controls.all()) {
+        const box = await control.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(0);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+      }
+    }
+  });
+
+  test(`${prefix || "zh"} signed-in navigation fits each viewport with a long account name`, async ({ page, baseURL, isMobile }) => {
+    test.skip(isMobile, "This test sets its own viewport widths");
+    const displayName = "Garden Walkthrough ".repeat(4).trim();
+    await syntheticInlineConsent(page, baseURL!, { consentState: "active", displayName });
+    await page.goto(`${prefix}/for-young-people`);
+    const header = page.getByRole("banner");
+    await expect(header.locator("a[title]")).toHaveAttribute("title", new RegExp(displayName));
+    const menu = header.getByRole("button", { name: copy.common.navbar.openMenu, exact: true });
+    for (const width of [320, 375, 390, 768, 1280, 1440]) {
+      await page.setViewportSize({ width, height: 700 });
+      for (const control of await header.locator("a:visible, button:visible").all()) {
+        await expect(control, `${width}px header`).toBeInViewport({ ratio: 1 });
+      }
+      if (await menu.isVisible()) await menu.click();
+      await expect(header.getByRole("button", { name: copy.account.actions.signOut, exact: true })).toBeInViewport({ ratio: 1 });
+      const close = header.getByRole("button", { name: copy.common.navbar.closeMenu, exact: true });
+      if (await close.isVisible()) await close.click();
+    }
+  });
+
   test(`${prefix || "zh"} student can find all three garden actions and sign out`, async ({ page, baseURL }) => {
     const { state, storageKey } = await syntheticInlineConsent(page, baseURL!, { consentState: "active", ageBand: "14_17" });
     await page.goto(`${prefix}/garden`);

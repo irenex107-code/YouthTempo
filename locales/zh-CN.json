@@ -48,8 +48,7 @@
       }
     },
     "footer": {
-      "description": "青少年可以记录近况、整理感受；家长可以阅读陪伴方法，老师按授权范围提供支持。需要的时候，也可以了解合适的支持路径。",
-      "tagline": "从最近的生活开始聊。",
+      "description": "记下近况，回看自己的记录，或找人聊聊。",
       "links": {
         "resources": "家校陪伴指南",
         "community": "家校医社区",
@@ -83,7 +82,7 @@
     "showcase": {
       "action": "看一条 SWEET 示例",
       "title": "一条 SWEET 记录，从填写到回看",
-      "description": "以下是虚构示例，答案来自 SWEET 记录的实际选项。访客可以直接查看。",
+      "description": "看看一位虚构学生周一的记录。不用登录就能读。",
       "recordTitle": "周一的 SWEET 记录",
       "reviewTitle": "回看保存的记录",
       "reviewText": "登录并保存后，到账号里的「{{history}}」按日期找到那天的记录。",
@@ -197,9 +196,9 @@
     "title": "选择适合你的入口",
     "description": "两个入口都可以记录、整理感受和找人聊聊。",
     "paths": {
-      "secondary": { "age": "14–17 岁", "title": "中学生", "description": "在花园里记下今天，也可以直接找人聊聊。", "action": "进入中学生花园",
-        "learnMore": "先了解中学生可以做什么" },
-      "youngAdults": { "age": "18–25 岁", "title": "大学生与青年", "description": "在读、工作或正在找方向，都可以自己开始。无需加入学校。", "action": "进入大学生与青年专区" }
+      "secondary": { "age": "14–17 岁", "title": "中学生", "description": "在花园记下今天，也可以找人聊聊。", "action": "进入中学生花园",
+        "learnMore": "先了解花园" },
+      "youngAdults": { "age": "18–25 岁", "title": "大学生与青年", "description": "在读、工作或还在找方向，都可以从这里开始，无需加入学校。", "action": "进入青年专区" }
     },
     "accountNote": "保存记录时，再按自己的年龄完成确认。"
   },
@@ -288,7 +287,7 @@
   },
   "forTeachers": {
     "metadata": { "title": "老师入口 | YouthTempo" },
-    "hero": { "label": "给老师", "title": "教师支持指南", "description": "你可以查看自己负责的学生，阅读他们主动发给你的留言。学生的私人 SWEET 记录只由本人查看。", "primaryAction": "进入老师工作台", "secondaryAction": "了解 SWEET", "imageAlt": "手持笔记本、准备倾听学生的老师插画" },
+    "hero": { "label": "给老师", "title": "教师支持指南", "description": "你可以查看自己负责的学生，阅读他们主动发给你的留言。学生的私人 SWEET 记录只由本人查看。", "primaryAction": "进入教师账户", "secondaryAction": "了解 SWEET", "imageAlt": "手持笔记本、准备倾听学生的老师插画" },
     "capabilities": {
       "title": "老师可以在这里做什么",
       "items": {
@@ -906,7 +905,7 @@
     "generate": { "title": "整理支持路径", "progress": "已选择 {{selected}} / {{total}} 项。选择越接近当前状态，路径会越具体。", "description": "这不是评判或诊断，只按固定规则帮助你整理下一步。", "noteLabel": "还有什么想补充的吗？", "notePlaceholder": "可以写一句，也可以先留空；补充内容只做安全检查，不参与路径评分。" },
     "actions": { "generating": "正在整理支持路径……", "generate": "查看支持路径" },
     "paths": { "moreSupport": "整理当前状态，并连接更多支持", "lowPressure": "从一个低压力入口开始", "moodFirst": "先拼一拼现在的心情", "worryFirst": "今晚先放下一点", "rhythmAndExpression": "从节律和表达开始", "expressionAndTell": "先整理表达，再让家长、老师或其他可信任的人知道", "rhythmAndTell": "记录节律，并让家长、老师或其他可信任的人知道", "checkInFirst": "先做 SWEET 节律记录", "selfOrganize": "先自己整理一下", "lowBarrier": "从低门槛记录开始", "tellAdult": "尝试和家长、老师或其他可信任的大人说" },
-    "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET花园", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
+    "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET花园", "messages": "悄悄话信箱", "tellAdult": "查看信箱里可以联系谁" },
     "ruleBased": { "label": "规则化支持路径 · 非 AI 生成", "description": "结果只根据结构化选项和固定版本规则生成，不对你评分或诊断，补充文字不会交给 AI 判断。" },
     "result": { "label": "支持建议", "title": "你的下一步支持路径", "answerSummary": "{{question}}：{{answers}}", "noSelection": "你还没有选择当前状态。", "path": "建议路径", "reason": "为什么这样建议", "howToStart": "可以怎么开始", "fallbackStarter": "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”", "links": "推荐入口" },
     "direct": { "title": "直接找人聊聊", "description": "不用先回答问题。你可以当面找信任的人，也可以打开信箱，看看能给谁写留言。", "action": "打开悄悄话信箱" }
@@ -1043,7 +1042,7 @@
       "summary": { "title": "每次使用 AI 前再确认", "text": "SWEET 节律记录和心情拼图会在把内容发给 AI 前征求你的同意。今晚先放下和下一步找谁使用固定规则，不调用 AI。陪我捋一捋当前关闭。紧急求助无需同意使用 AI。" },
       "withdraw": { "title": "随时可以撤回", "text": "你可以随时在账户里撤回确认。撤回后，保存新记录、发送留言和在社区发帖会暂停。" },
       "coverage": { "title": "同意覆盖什么", "text": "账号资料、SWEET 日常节律回答、AI 辅助记录小结、规则化工具结果、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。" },
-      "afterWithdrawal": { "title": "撤回后会怎样", "text": "撤回后，学生不能继续保存新记录、发送留言或在社区发布。原收件老师暂时无法在信箱和新导出中读取这些留言。学生仍可查看、下载或逐条删除自己的内容，也可以注销账号并删除关联数据。" },
+      "afterWithdrawal": { "title": "撤回后会怎样", "text": "撤回后，保存新记录、发送留言和在社区发帖会暂停。原收件老师暂时无法在信箱和新下载的文件里看到这些留言。你仍可以查看或下载自己的数据，按日期删除 SWEET 记录，也可以注销账号。" },
       "legalPrefix": "法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。当前自主试用不接收未满 14 岁用户；正式学校试点前将重新审核适用的学生与监护人确认。查看"
     },
     "retention": {
@@ -1066,7 +1065,7 @@
     "dataTypes": {
       "label": "数据范围", "title": "哪些数据可能被保存？", "description": "只保存用户主动提交的记录、账号资料和提供学校支持所需的关联信息。这些内容不会用来给人贴标签或排名。",
       "sweet": { "title": "SWEET 节律记录", "text": "睡眠、起床、饮食、运动、任务参与等日常节律信息。" },
-      "account": { "title": "账号资料", "text": "邮箱、显示名称和用户选择的身份，用于登录和区分支持角色。" },
+      "account": { "title": "账号资料", "text": "你用邮箱登录，自己填写显示名称。学校确认教师身份，平台另行核验管理或专业支持资格。" },
       "school": { "title": "学校关系", "text": "学校、学生、支持老师及负责关系用于安排支持，并限定谁能收到学生主动发送的留言。" },
       "summary": { "title": "整理后的小结", "text": "包括 AI 忠实生成的当次记录小结、由用户选择的沟通句式，以及固定规则整理的可选下一步。" }
     },
@@ -1140,16 +1139,16 @@
     "guide": "花园怎么玩",
     "login": "登录并进入我的花园",
     "record": {
-      "title": "两种记录，按今天的精力选择",
-      "text": "轻量记录只需选择此刻的感受；完整 SWEET 记录帮助你观察睡眠、起床、饮食、运动和任务参与。两种方式都算参与，不必都做。"
+      "title": "今天想记多少？",
+      "text": "想简单记一笔，选一个心情就好。想多记一点，用 SWEET 记下睡眠、醒来时的感觉、饮食、运动和做事的状态。任选一种，都算今天记过了。"
     },
     "growth": {
-      "title": "成长来自参与，不评价心情",
-      "text": "同一天记录多次只计一个参与日（按北京时间）。累计参与 1、3、7 天，植物依次发芽、长叶、开花。每种感受得到相同成长，漏记不会扣分或让植物倒退。"
+      "title": "植物什么时候长大？",
+      "text": "记满 1 天发芽，3 天长叶，7 天开花。按北京时间，同一天记几次都只算一天。什么心情都算，隔几天回来也会接着长。"
     },
     "care": {
-      "title": "记录后，照料一次",
-      "text": "当天记录后，可以浇水、晒太阳或邀请小鸟，任选一种照料。三种方式的成长相同，不需要反复操作。"
+      "title": "今天可以怎样照料？",
+      "text": "今天记过了，就能浇水、晒太阳或邀请小鸟。选你喜欢的，每天一次。"
     },
     "layout": {
       "title": "慢慢布置，留下纪念",
@@ -1171,8 +1170,7 @@
     "metadata": { "title": "SWEET 花园 | YouthTempo" },
     "hero": { "label": "SWEET 花园", "title": "每一次照顾自己，都算数", "description": "只记录你愿意停下来观察自己的时刻。心情、答案和漏记不会让植物失去成长。" },
     "scene": {
-      "eyebrow": "SWEET 花园",
-      "title": "我的疗愈庭院",
+      "title": "我的 SWEET 花园",
       "alt": {
         "seed": "浅色天空下的安静庭院，池塘和长椅旁有一颗等待发芽的种子。",
         "sprout": "浅色天空下的安静庭院，池塘和长椅旁长出一株嫩芽。",
@@ -1208,6 +1206,7 @@
       "unsure": "说不清楚",
       "submit": "记录这一刻",
       "saved": "这一刻已记下。",
+      "saved": "这条心情记录已保存。",
       "saving": "正在记录…"
     },
     "explore": {
@@ -1217,20 +1216,20 @@
     },
     "care": {
       "title": "今天想怎样照料？",
-      "description": "三种选择带来相同成长，只是庭院的回应不同。",
-      "available": "今天已经有一条记录，可以选择一次照料。",
+      "description": "选一种今天想做的事，也可以关上，下次再来。",
+      "available": "今天已经记录过了。要不要看看今天可以怎样照料花园？",
       "unavailable": "今天记录后，就可以选择一次照料。",
-      "completed": "今天已经用“{{action}}”照料过庭院了。明天再来，也不会失去今天的成长。",
+      "completed": "今天已经用“{{action}}”照料过庭院了。",
       "saving": "正在保存这次照料…",
       "options": {
-        "water": { "title": "浇一点水", "description": "看一小段水落下的变化。", "response": "水落下来了。今天的成长仍只来自你的记录。" },
-        "sunlight": { "title": "晒会儿太阳", "description": "让叶片接住一会儿光。", "response": "光落在叶片上。三种照料得到相同成长。" },
-        "invite_visitor": { "title": "邀请访客", "description": "请小鸟在附近停一会儿。", "response": "小鸟停了一会儿。它不会评价你的记录。" }
+        "water": { "title": "浇一点水", "description": "看一小段水落下的变化。", "response": "水轻轻落进土里。" },
+        "sunlight": { "title": "晒会儿太阳", "description": "让叶片接住一会儿光。", "response": "阳光落在叶片上。" },
+        "invite_visitor": { "title": "邀请访客", "description": "请小鸟在附近停一会儿。", "response": "小鸟飞来，在花园里停了一会儿。" }
       }
     },
     "layout": {
       "title": "布置我的庭院",
-      "description": "在固定位置选择预制物件，庭院仍会保持协调。",
+      "description": "选一个已经开放的位置，放上你喜欢的物件。",
       "unlocked": "已开放",
       "locked": "参与 {{count}} 天后开放",
       "saving": "正在保存布置…",

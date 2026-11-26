@@ -15,14 +15,13 @@ type GardenCareSheetProps = {
 export function GardenCareSheet({ open, todayParticipated, todayCare, saving, onChoose, onClose }: GardenCareSheetProps) {
   const { t } = useTranslation();
   const available = todayParticipated && !todayCare;
-  const statusKey = todayCare
-    ? "garden.care.completed"
-    : available ? "garden.care.available" : "garden.care.unavailable";
   return (
     <GardenSheet open={open} title={t("garden.care.title")} description={t("garden.care.description")} closeLabel={t("garden.actions.close")} onClose={onClose}>
-      <p className="rounded-2xl bg-mist/70 px-4 py-3 text-sm leading-7 text-sage-dark">
-        {t(statusKey, todayCare ? { action: t(`garden.care.options.${todayCare}.title`) } : undefined)}
-      </p>
+      {!available && (
+        <p className="rounded-2xl bg-mist/70 px-4 py-3 text-sm leading-7 text-sage-dark">
+          {todayCare ? t("garden.care.completed", { action: t(`garden.care.options.${todayCare}.title`) }) : t("garden.care.unavailable")}
+        </p>
+      )}
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {gardenCareActions.map((action) => (
           <button key={action} type="button" className="garden-care-choice" disabled={!available || saving} onClick={() => onChoose(action)}>
