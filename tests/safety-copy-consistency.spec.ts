@@ -64,15 +64,15 @@ test("公开说明准确区分 AI 摘要、固定规则与关闭功能", async (
 
   expect(zhSummary).toContain("SWEET 节律记录和心情拼图");
   expect(zhSummary).toContain("今晚先放下和下一步找谁使用固定规则，不调用 AI");
-  expect(zhSummary).toContain("陪我捋一捋在首轮学校试点期间关闭");
+  expect(zhSummary).toContain("陪我捋一捋当前关闭");
   expect(enSummary).toContain("SWEET Check-in or Mood Journal");
   expect(enSummary).toContain("Worry Time and Find the Right Support use fixed rules and do not call AI");
   expect(enSummary).toContain("Talk It Through is closed");
 
   expect(zh.privacySafety.consent.description).toContain("14–17 岁学生可");
-  expect(zh.privacySafety.consent.guardian.text).toContain("不会创建任何关系");
+  expect(zh.privacySafety.consent.guardian.text).toContain("不会自动关联家长或学校");
   expect(en.privacySafety.consent.description).toContain("Students aged 14–17 may provide separate personal consent");
-  expect(en.privacySafety.consent.guardian.text).toContain("does not create any relationship");
+  expect(en.privacySafety.consent.guardian.text).toContain("does not link a parent or school");
   expect(zh.account.consent.acknowledgement).toContain("单独同意");
   expect(en.account.consent.acknowledgement).toContain("separately consent");
 

@@ -53,23 +53,26 @@ test("自行申报成年但没有邀请时，工作台不显示解忧室入口",
   await useAdultFixture(page, { status: 200, available: false });
   await page.goto("/account");
 
-  await expect(page.getByRole("heading", { name: "18–25 岁：按自己的节奏选择支持" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "进入主题聊天室" })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "找适合自己的同伴空间" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "今天想做什么？" })).toBeVisible();
+  await page.locator("summary").filter({ hasText: "更多工具" }).click();
+  await expect(page.getByRole("link", { name: "进入主题聊天室" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "找适合自己的同伴空间" })).toBeVisible();
 });
 
 test("资格接口关闭时，成年人工作台不显示解忧室入口", async ({ page }) => {
   await useAdultFixture(page, { status: 404 });
   await page.goto("/account");
 
-  await expect(page.getByRole("heading", { name: "18–25 岁：按自己的节奏选择支持" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "进入主题聊天室" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "今天想做什么？" })).toBeVisible();
+  await page.locator("summary").filter({ hasText: "更多工具" }).click();
+  await expect(page.getByRole("link", { name: "进入主题聊天室" })).toHaveCount(0);
 });
 
 test("服务端确认有效邀请后，成年人工作台才显示解忧室入口", async ({ page }) => {
   await useAdultFixture(page, { status: 200, available: true });
   await page.goto("/account");
 
-  await expect(page.getByRole("heading", { name: "进入主题聊天室" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "了解解忧室" })).toHaveAttribute("href", "/peer-space");
+  await page.locator("summary").filter({ hasText: "更多工具" }).click();
+  await expect(page.getByRole("link", { name: "进入主题聊天室" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "进入主题聊天室" })).toHaveAttribute("href", "/peer-space");
 });

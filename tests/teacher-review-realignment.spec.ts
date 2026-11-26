@@ -57,7 +57,7 @@ test("服务端从有效同意确定年龄，支持和聊天室新表保持私�
 
 test("正式咨询关闭页在双语桌面与移动端可读", async ({ page, isMobile }) => {
   await page.goto("/consultation");
-  await expect(page.getByRole("heading", { name: "服务正在准备中，暂未正式开放" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "暂时不能预约咨询" })).toBeVisible();
   await expect(page.getByRole("button", { name: /提交|预约/ })).toHaveCount(0);
   await page.goto("/en/consultation");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");

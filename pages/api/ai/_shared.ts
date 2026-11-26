@@ -260,7 +260,7 @@ export async function requireAiEligibility(req: NextApiRequest, res: NextApiResp
     const statusCode = Number((error as { statusCode?: unknown; status?: unknown })?.statusCode || (error as { status?: unknown })?.status);
     if (statusCode === 401 || statusCode === 403) {
       res.status(statusCode).json({
-        error: aiText(locale, "请先在账户页完成适用的知情确认，再使用 AI 辅助记录整理。", "Complete the applicable consent steps in your account before using AI-assisted record summaries."),
+        error: aiText(locale, "使用 AI 整理前，请先完成知情确认。", "Complete your consent step before using AI reflection."),
       });
       return false;
     }

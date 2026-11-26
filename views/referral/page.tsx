@@ -386,6 +386,16 @@ export default function ReferralPage() {
           />
         }
       />
+      <section id="direct-support" className="section scroll-mt-24">
+        <div className="container rounded-2xl border border-sage/25 bg-mint/60 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+          <div>
+            <h2 className="text-xl font-bold text-ink">{t("referral.direct.title")}</h2>
+            <p className="mt-2 text-sm leading-7 text-muted">{t("referral.direct.description")}</p>
+          </div>
+          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("referral.direct.action")}</Link>
+        </div>
+      </section>
+
       <section className="section section-muted">
         <div className="container">
           <div className="mb-6 grid gap-3 md:grid-cols-3">
@@ -543,15 +553,7 @@ export default function ReferralPage() {
         </div>
       </section>
 
-      <section id="direct-support" className="section">
-        <div className="container rounded-2xl border border-sage/25 bg-mint/60 p-5 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
-          <div>
-            <h2 className="text-xl font-bold text-ink">{t("referral.direct.title")}</h2>
-            <p className="mt-2 text-sm leading-7 text-muted">{t("referral.direct.description")}</p>
-          </div>
-          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("referral.direct.action")}</Link>
-        </div>
-      </section>
+
     </>
   );
 }

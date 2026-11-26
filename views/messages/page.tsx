@@ -1,3 +1,6 @@
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { InlineConsentDialog } from "@/components/InlineConsentDialog";
+import { useInlineStudentConsent, type InlineStudentConsentController } from "@/lib/useInlineStudentConsent";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -33,6 +36,15 @@ function formatDate(value: string, locale: Locale) {
 }
 
 export default function MessagesPage() {
+  const consent = useInlineStudentConsent();
+  return <MessagesContents key={consent.userId} consent={consent} />;
+}
+
+function MessagesContents({ consent }: { consent: InlineStudentConsentController }) {
+  const [confirmHere, setConfirmHere] = useState(false);
+  useEffect(() => {
+    if (consent.studentReady) setConfirmHere(false);
+  }, [consent.studentReady]);
   const { locale, t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
@@ -76,11 +88,10 @@ export default function MessagesPage() {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
         if (!currentUser) return;
-        const [status, nextMessages] = await Promise.all([
-          getAccountStatus(),
-          listStudentMessages(),
-        ]);
+        const status = await getAccountStatus();
         setAccountStatus(status);
+        if (status.displayRole === "家长") return;
+        const nextMessages = await listStudentMessages();
         setMessages(nextMessages.messages);
         setPilotDutyAvailable(nextMessages.pilotDutyAvailable);
         setPilotDutyEmailConfigured(nextMessages.pilotDutyEmailConfigured);
@@ -101,6 +112,7 @@ export default function MessagesPage() {
   async function handleSend(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user || sending) return;
+    if (!consent.studentReady) { setConfirmHere(true); return; }
     const candidates = recipientType === "teacher" ? assignedTeachers : recipientType === "guardian" ? linkedGuardians : [];
     const recipientUserId = recipientType === "self" ? user.id : recipientId || candidates[0]?.id || "";
     if (["teacher", "guardian"].includes(recipientType) && !recipientUserId) {
@@ -145,10 +157,13 @@ export default function MessagesPage() {
 
   return (
     <>
+      {confirmHere ? <InlineConsentDialog open onClose={() => setConfirmHere(false)}>
+        <InlineStudentConsent controller={consent} studentOnly />
+      </InlineConsentDialog> : null}
       <PageHero
         title={showVisitorCopy ? t("messages.visitor.hero.title") : t("messages.member.hero.title")}
         subtitle={showVisitorCopy ? t("messages.visitor.hero.description") : isStudent ? studentHeroDescription : t("messages.member.hero.supporterDescription")}
-        action={<Link href="/account" className="button-secondary">{showVisitorCopy ? t("messages.visitor.hero.action") : t("messages.member.hero.action")}</Link>}
+        action={showVisitorCopy ? <button type="button" className="button-secondary" onClick={() => setConfirmHere(true)}>{t("messages.visitor.hero.action")}</button> : <Link href="/account" className="button-secondary">{t("messages.member.hero.action")}</Link>}
         aside={
           <IllustrationPanel
             src="/illustrations/system/feature-mailbox.webp"
@@ -168,10 +183,15 @@ export default function MessagesPage() {
             <div className="card text-center">
               <h2 className="text-2xl font-bold text-ink">{t("messages.visitor.title")}</h2>
               <p className="mt-3 text-sm leading-7 text-muted">{t("messages.visitor.description")}</p>
-              <Link href="/account" className="button-primary mt-6">{t("messages.visitor.action")}</Link>
+              <button type="button" className="button-primary mt-6" onClick={() => setConfirmHere(true)}>{t("messages.visitor.action")}</button>
             </div>
           </div>
         </section>
+      ) : displayRole === "家长" ? (
+        <section className="section"><div className="container max-w-3xl">
+          <p>{t("forParents.messages.description")}</p>
+          <Link href="/for-parents#conversation-starters" className="button-secondary mt-4">{t("forParents.messages.action")}</Link>
+        </div></section>
       ) : isStudent ? (
         <>
           <section className="section section-muted pt-8 sm:pt-12">

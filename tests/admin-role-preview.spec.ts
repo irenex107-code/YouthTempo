@@ -78,9 +78,9 @@ test("平台管理员可以切换虚构角色视图，且没有提交私密操�
   await expect(page.getByText("示例工作台 · 无真实数据")).toBeVisible();
   const menuButton = page.getByRole("button", { name: "打开导航菜单" });
   if (await menuButton.isVisible()) await menuButton.click();
-  await expect(page.getByRole("link", { name: "青少年入口", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "家长入口", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "老师入口", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "学生与青年", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "家长指南", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "教师指南", exact: true })).toBeVisible();
   if (await menuButton.isVisible()) await page.getByRole("button", { name: "关闭导航菜单" }).click();
   await page.getByRole("button", { name: "家长" }).click();
   await expect(page.getByRole("heading", { name: "家长工作台" })).toBeVisible();

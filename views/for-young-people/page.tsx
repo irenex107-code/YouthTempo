@@ -4,7 +4,7 @@ import { useTranslation } from "@/lib/i18n/client";
 export default function ForYoungPeoplePage() {
   const { t } = useTranslation();
   const paths = [
-    { key: "secondary", href: "/for-teens" },
+    { key: "secondary", href: "/garden" },
     { key: "youngAdults", href: "/for-young-adults" },
   ] as const;
 
@@ -32,6 +32,9 @@ export default function ForYoungPeoplePage() {
               <Link href={href} className="button-primary mt-6 w-fit">
                 {t(`forYoungPeople.paths.${key}.action`)}
               </Link>
+              {key === "secondary" ? <Link href="/for-teens" className="mt-3 w-fit text-sm font-bold text-sage-dark underline underline-offset-4">
+                {t("forYoungPeople.paths.secondary.learnMore")}
+              </Link> : null}
             </article>
           ))}
         </div>

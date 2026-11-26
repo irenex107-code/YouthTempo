@@ -24,9 +24,11 @@
       "openMenu": "Open navigation menu",
       "closeMenu": "Close navigation menu",
       "account": {
-        "greetingWithName": "Hi, {{name}}!",
-        "greeting": "Hi!",
-        "signInRecords": "Account"
+        "greetingWithName": "{{name}}’s account",
+        "greeting": "My account",
+        "signInRecords": "Sign in",
+        "signingOut": "Signing out…",
+        "exitFailed": "You’re still signed in. Please try again."
       },
       "actions": {
         "platformAdmin": "Platform admin",
@@ -37,9 +39,9 @@
         "recordToday": "SWEET Garden"
       },
       "nav": {
-        "forTeens": "Young people",
-        "forParents": "Parents",
-        "forTeachers": "Teachers",
+        "forTeens": "Students & young adults",
+        "forParents": "For parents",
+        "forTeachers": "For teachers",
         "sweet": "SWEET Garden",
         "community": "Community",
         "referral": "Find support"
@@ -73,7 +75,7 @@
     "hero": {
       "label": "Everyday mental health support for young people",
       "title": "SWEET Garden",
-      "description": "YouthTempo is a bilingual early support platform for students aged 14–17 and young adults aged 18–25. Use SWEET to record your daily rhythms, revisit past entries, and find someone to talk to when you need support.",
+      "description": "For students aged 14–17 and young adults aged 18–25. Record a little about your day, look back at what’s changed, or find someone to talk to.",
       "primaryAction": "SWEET Garden",
       "secondaryAction": "How the garden works",
       "imageAlt": "A young person moving forward at their own pace, supported by parents, teachers, and professionals"
@@ -134,24 +136,24 @@
     },
     "audiences": {
       "label": "Find the right place to begin",
-      "title": "Start from where you are",
+      "title": "Where would you like to start?",
       "description": "Young people can check in and express themselves. Parents can understand and support. Teachers can notice changes and connect young people with support when needed.",
       "teens": {
-        "title": "I am a young person",
+        "title": "School students and young adults",
         "label": "Check in and express yourself",
-        "text": "Look at today's rhythms and make sense of feelings that are hard to explain. You can also write something for yourself or an adult you trust.",
-        "action": "Go to the youth space"
+        "text": "Check in, put feelings into words, or reach out to a peer or someone you trust.",
+        "action": "Choose my age group"
       },
       "parents": {
         "title": "I am a parent",
         "label": "Understand what has been happening",
-        "text": "Look at recent changes in your child's sleep, meals, movement, and learning, then find a gentler way to start a conversation.",
+        "text": "Find a way to start a conversation with your child about their day.",
         "action": "Go to the parent space"
       },
       "teachers": {
         "title": "I am a teacher",
         "label": "Assigned students and messages",
-        "text": "View your school-confirmed student list and messages students sent you that you are still authorized to receive. The list shows support responsibilities. School reports are not yet open.",
+        "text": "See the students assigned to you and the messages they chose to send you.",
         "action": "Go to the teacher space"
       }
     },
@@ -191,21 +193,22 @@
   },
   "forYoungPeople": {
     "metadata": { "title": "Choose Your Path | YouthTempo" },
-    "label": "For young people",
-    "title": "Choose the path that fits you",
-    "description": "Secondary school and university life can have different rhythms and support needs. Choose the page that fits your current stage.",
+    "label": "Students and young adults",
+    "title": "Choose your age group",
+    "description": "Both paths let you check in, sort through feelings and find someone to talk to.",
     "paths": {
-      "secondary": { "age": "Ages 14–17", "title": "Secondary school students", "description": "Start with everyday rhythms, feelings, and people you trust. Record and seek support at your own pace.", "action": "Go to the school student page" },
-      "youngAdults": { "age": "Ages 18–25", "title": "University students and young adults", "description": "Start from your own baseline, reflect independently, and explore support that fits your life.", "action": "Go to the young adult page" }
+      "secondary": { "age": "Ages 14–17", "title": "Secondary school students", "description": "Record your day in the garden, or go straight to someone you trust.", "action": "Open the school student garden",
+        "learnMore": "See what you can do first" },
+      "youngAdults": { "age": "Ages 18–25", "title": "University students and young adults", "description": "Whether you’re studying, working or figuring out what’s next, you can start on your own.", "action": "Continue as a young adult" }
     },
-    "accountNote": "This choice helps you find a page. Available account features still depend on your confirmed age and consent status."
+    "accountNote": "You’ll confirm your age group when you save a record."
   },
   "forTeens": {
     "metadata": { "title": "For Young People | YouthTempo" },
     "hero": {
-      "label": "For young people",
-      "title": "Your space",
-      "description": "Start here to check in with how you have been, work through something on your mind, or write down what feels hard to say face to face.",
+      "label": "Ages 14–17",
+      "title": "A place to start for school students",
+      "description": "Record your day, work through a feeling or find someone to talk to.",
       "primaryAction": "Open my workspace",
       "secondaryAction": "Explore SWEET",
       "imageAlt": "A student holding a notebook, ready to check in at her own pace"
@@ -228,10 +231,10 @@
   },
   "forParents": {
     "metadata": { "title": "For Parents | YouthTempo" },
-    "hero": { "label": "For parents", "title": "Parent space", "description": "Start by noticing recent changes in your child's sleep, meals, and movement, then find a way to talk that feels open and free from blame.", "primaryAction": "Open the parent workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A parent listening calmly and ready to support their child" },
+    "hero": { "label": "For parents", "title": "A guide for parents", "description": "If it’s hard to start, ask about one small thing in your child’s day. Try a conversation starter below.", "primaryAction": "Open my account", "secondaryAction": "Explore SWEET", "imageAlt": "A parent listening calmly and ready to support their child" },
     "intro": {
       "visibleTitle": "What you can see",
-      "visibleText": "You can only view records for a child whose connection to you has been confirmed by the school. You cannot see information about other students. One check-in never tells the whole story; use it to understand what has been happening and begin a conversation.",
+      "visibleText": "You can read the public guides and view your own account. Your child’s private SWEET records do not appear in your account.",
       "concreteTitle": "Start with specific changes before asking why",
       "concreteText": "Many young people find it hard to answer, “What is wrong?” Start instead with something specific, such as poor sleep, difficulty getting up, or finding it hard to begin schoolwork."
     },
@@ -245,7 +248,7 @@
         "support": { "title": "Connect with support when needed", "text": "If the situation continues to affect daily life and learning, bring together support from family, school, and professionals.", "alt": "A parent connecting their child with school and professional support" }
       }
     },
-    "messages": { "title": "Read private messages from your child", "description": "Messages your child chooses to share with you appear together on a dedicated page.", "action": "View received messages" },
+    "messages": { "title": "Wondering how your child is doing?", "description": "Your account doesn’t show your child’s private SWEET records or inbox. Try a question below and let them choose how much to share.", "action": "Try a conversation starter" },
     "feedback": { "title": "How did YouthTempo work for you?", "description": "Take two minutes to tell us what helped and what could be improved.", "action": "Share parent feedback" },
     "sweet": {
       "title": "SWEET: what parents can notice",
@@ -285,7 +288,7 @@
   },
   "forTeachers": {
     "metadata": { "title": "For Teachers | YouthTempo" },
-    "hero": { "label": "For teachers", "title": "Teacher workspace", "description": "Start with your school-confirmed student list and the messages students choose to send you. Offer support within your responsibilities and permissions. The new school report is not yet open; a teacher assignment alone does not give access to full student records.", "primaryAction": "Open the teacher workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
+    "hero": { "label": "For teachers", "title": "A guide for teachers", "description": "See the students assigned to you and read messages they send you. Their private SWEET records are visible only to them.", "primaryAction": "Open the teacher workspace", "secondaryAction": "Explore SWEET", "imageAlt": "A teacher holding a notebook, ready to listen to a student" },
     "capabilities": {
       "title": "What teachers can do here",
       "items": {
@@ -294,12 +297,12 @@
         "listen": { "title": "Hear what students want to say", "description": "You can read messages students choose to send you while their participation consent, your teacher role, school membership and assignment are active. Refreshing your inbox or downloading a new copy after an assignment ends or consent is withdrawn will exclude those messages. A replacement teacher only receives messages addressed to them. Copies already viewed or downloaded cannot be recalled.", "alt": "A teacher reading a private message from a student" }
       }
     },
-    "conversation": { "title": "Start with what a student chooses to share", "text": "You might begin with: “Is there anything you would like to talk about, or anything I could help with?” Listen first, then decide together whether more support is needed. Having no records or messages does not mean that a student needs no support.", "recordsAction": "View my students", "messagesAction": "View messages", "referralAction": "View support pathways" },
-    "feedback": { "title": "What could work better?", "description": "Take two minutes to share how the platform worked in practice and help us improve the pilot.", "action": "Share teacher feedback" }
+    "conversation": { "title": "Start with what a student chooses to share", "text": "You might begin with: “Is there anything you would like to talk about, or anything I could help with?” Listen first, then decide together whether more support is needed. Having no records or messages does not mean that a student needs no support.", "recordsAction": "View my students", "messagesAction": "View messages", "referralAction": "Explore support options" },
+    "feedback": { "title": "What could work better?", "description": "Tell us what helped and what was hard to find.", "action": "Share teacher feedback" }
   },
   "forYoungAdults": {
     "metadata": { "title": "Independent Access for Ages 18–25 | YouthTempo" },
-    "hero": { "label": "For ages 18–25", "title": "You do not have to wait for life to feel settled before caring for your rhythm.", "description": "Leaving school, starting university, or entering work can bring more freedom—and make daily life easier to lose track of. You can use YouthTempo independently, without a school or guardian joining.", "primaryAction": "Sign in and begin", "secondaryAction": "SWEET Garden", "imageAlt": "A path of growth moving forward step by step at your own rhythm" },
+    "hero": { "label": "Ages 18–25", "title": "Students and young adults aged 18–25", "description": "Studying, working or taking a break? You can get started on your own, without a parent or a school.", "primaryAction": "Sign in and begin", "secondaryAction": "SWEET Garden", "imageAlt": "A path of growth moving forward step by step at your own rhythm" },
     "tools": {
       "title": "Start with what you need most right now",
       "description": "Choose one thing at a time. This does not need to become another to-do list.",
@@ -307,15 +310,15 @@
         "rhythm": { "title": "Look at your recent rhythm", "text": "Start with sleep, waking, meals, movement, and the tasks in front of you. You do not need to understand every problem first.", "action": "SWEET Garden", "alt": "A check-in path made up of five everyday rhythm areas" },
         "mood": { "title": "Put complicated feelings into words", "text": "When emotions feel mixed, choose the feelings that come closest, then add what has just happened.", "action": "Open the mood map", "alt": "A mood map made up of different colors" },
         "worry": { "title": "Set worries aside before sleep", "text": "Separate what you can act on from what cannot be addressed yet. You do not have to solve everything tonight.", "action": "Set worries aside tonight", "alt": "Setting worries aside for now under the moonlight" },
-        "support": { "title": "Know who to reach out to for support", "text": "If the situation continues to affect study, work, or daily life, find support that matches the level of urgency.", "action": "Find the right support", "alt": "A step-by-step path to the right support" }
+        "support": { "title": "Know who to reach out to for support", "text": "If the situation continues to affect study, work, or daily life, find support that matches the level of urgency.", "action": "Explore support options", "alt": "A step-by-step path to the right support" }
       }
     },
-    "peerSpace": { "label": "Invited adult pilot", "previewStatus": "UI preview", "title": "Peer Space", "description": "When duty support is active, talk in real time with other adult students. Your school stays hidden, and you can join with a room nickname or anonymously.", "action": "Enter Peer Space" },
+    "peerSpace": { "label": "Invited adult pilot", "previewStatus": "UI preview", "title": "Peer Space", "description": "When duty support is active, talk in real time with other adult students. Your school stays hidden, and you can join with a room nickname or anonymously.", "action": "Have an invitation? Open the peer room" },
     "independence": {
       "confirmation": { "label": "Independent consent", "title": "If you are 18 or older, you can consent for yourself", "text": "After signing in, select “I am 18 or older,” read the data information, and confirm. Guardian consent and school membership are not required." },
-      "records": { "label": "Your records", "title": "Only you can see them by default", "text": "If you have not joined a school, the school and its teachers cannot view your records. You can export your data, delete individual records, or close your account." },
-      "baseline": { "label": "Use your own baseline", "title": "University routines do not by themselves indicate a mental health problem", "text": "Late nights, late mornings, takeaway meals, and irregular schedules are common for many university students. One habit alone does not support a conclusion. Notice instead whether a change is unusual for you and continues to affect energy, study, work, relationships, or basic daily life." },
-      "boundary": { "label": "What YouthTempo is for", "title": "It is not a diagnostic or emergency service", "text": "If you are in immediate danger of harming yourself or someone else, contact a family member, teacher, or another trusted adult who can come to you now, and contact local emergency services or the police." }
+      "records": { "label": "Your records", "title": "Who can see my records?", "text": "Only you can view your private SWEET records. Open your account to revisit them, export them or delete a day." },
+      "baseline": { "label": "Use your own baseline", "title": "How should I read a change in my routine?", "text": "Late nights, late starts and takeaway meals can all be part of everyday life. One habit alone does not support a conclusion. Look for a change from your usual routine and how it affects things you care about." },
+      "boundary": { "label": "What YouthTempo is for", "title": "If you need help right now", "text": "If you are in immediate danger of harming yourself or someone else, contact a family member, teacher, or another trusted adult who can come to you now, and contact local emergency services or the police." }
     },
     "teens": { "title": "Are you aged 14 or older and taking part in the student-only trial?", "description": "Students can use personal records and support tools first. Without an active relationship, parents, teachers, and schools cannot view them.", "action": "Go to the youth space" }
   },
@@ -488,11 +491,11 @@
     },
     "closed": {
       "label": "Formal counselling",
-      "title": "The service is being prepared and is not yet open",
-      "description": "Formal one-to-one counselling remains in internal testing while human duty arrangements are prepared. You can use self-reflection, invited Peer Space, or current support and referral pathways.",
+      "title": "Counselling appointments are currently closed",
+      "description": "If you’d like to talk, explore support at school or in your community. You can also keep a personal record here.",
       "record": "Self-reflection",
       "peer": "Invited Peer Space",
-      "referral": "Support and referral"
+      "referral": "Find someone to talk to"
     },
     "portal": {
       "youthLabel": "Support for ages 14–17",
@@ -543,7 +546,7 @@
       },
       "complaint": "I have discomfort or a complaint for human review",
       "comment": "Additional feedback (optional)",
-      "feedbackSubmit": "Send private feedback",
+      "feedbackSubmit": "Send my feedback",
       "feedbackSaved": "Feedback saved for authorized staff only.",
       "feedbackDone": "Feedback submitted"
     }
@@ -832,7 +835,7 @@
       }
     },
     "messages": {
-      "selectRequired": "Choose the option that best matches how you are today.", "sessionExpired": "Your sign-in session has expired. Sign in again before saving.", "permissionDenied": "This account does not currently have permission to save. Contact your school lead or platform administrator.", "networkError": "The network connection is unstable. Check your connection and try saving again.", "saveFailed": "Your check-in could not be saved this time. Try again later.", "completeBeforeSave": "Complete the required questions in all five SWEET areas before saving.", "alreadySaved": "This SWEET check-in has already been saved.", "signInToSave": "Sign in before saving this check-in.", "saved": "Saved. You can view it under Account.", "summaryFailed": "A summary could not be created this time. Try again later.", "completeBeforeGenerate": "Complete the required questions in all five SWEET areas before generating a response.", "responseUnavailable": "A response is not available right now. Try again later.", "completeRequired": "Complete the required questions in all five SWEET areas.", "summaryUnavailableSaveAllowed": "A summary is not available right now. You can still save this check-in and try again later."
+      "selectRequired": "Choose the option that best matches how you are today.", "sessionExpired": "Your sign-in session has expired. Sign in again before saving.", "permissionDenied": "This account does not currently have permission to save. Contact your school lead or platform administrator.", "networkError": "The network connection is unstable. Check your connection and try saving again.", "saveFailed": "Your check-in could not be saved this time. Try again later.", "completeBeforeSave": "Complete the required questions in all five SWEET areas before saving.", "alreadySaved": "This SWEET check-in has already been saved.", "signInToSave": "Sign in before saving this check-in.", "saved": "Saved. You can view it under Account.", "summaryFailed": "A summary could not be created this time. Try again later.", "completeBeforeGenerate": "Complete the required questions in all five SWEET areas before generating a response.", "responseUnavailable": "A response is not available right now. Try again later.", "completeRequired": "Complete the required questions in all five SWEET areas.", "summaryUnavailableSaveAllowed": "Your summary isn’t available right now. Your answers are still here. You can choose “Save my record”."
     },
     "actions": { "previous": "Previous", "next": "Next", "generatingAndSaving": "Generating and saving...", "generateAndSave": "Generate summary and save", "retrying": "Trying again...", "regenerate": "Generate again", "saving": "Saving...", "saveFirst": "Save check-in first", "savedToAccount": "Saved to account", "saveToAccount": "Save to account", "openMoodJournal": "Open the mood map", "openWorryTime": "Set worries aside tonight", "viewReferral": "View support pathways", "reset": "Start again" },
     "result": { "title": "This SWEET rhythm summary", "imageAlt": "An illustration of a check-in organized into a clear summary", "affectedAreas": "Areas organized by fixed rules: {{areas}}", "rhythmClue": "Rhythm clue organized by fixed rules", "smallStep": "An optional action for you to choose", "nextTool": "An optional next step", "disclaimer": "AI only summarizes what you explicitly entered in this record. Areas to notice and optional steps come from fixed rules. Neither is an assessment, diagnosis, or professional recommendation; rely on your original record." }
@@ -849,14 +852,17 @@
         "unclear": { "title": "Hard to name", "words": { "unclear": "Hard to explain", "messy": "All mixed up", "numb": "Numb", "tired": "Tired" } }
       }
     },
-    "reflection": { "title": "Guided reflection", "description": "These questions are here to help you reflect on how you feel today. They are not a test or a formal assessment.", "context": "What was happening when this came up?", "body": "What did you notice in your body at the time?", "understanding": "What do you most want someone else to understand?", "support": "What kind of support would feel helpful right now?" },
+    "reflection": { "title": "Guided reflection", "description": "These questions are here to help you reflect on how you feel today. They are not a test or a formal assessment.", "context": "What was happening when this came up?", "body": "What did you notice in your body at the time?", "understanding": "What do you most want someone else to understand?", "support": "What kind of support would feel helpful right now?",
+      "label": "Guided reflection" },
     "starters": {
       "title": "Words you can use", "description": "You do not have to explain everything perfectly. Choose a sentence that feels close and use it to reach out to a parent, teacher, or someone you trust.",
       "default": { "confused": "Things feel a bit mixed up right now. Could you listen while I take my time?", "listen": "Could you let me finish before you respond?", "tired": "I have been feeling really tired lately. Could you stay with me for a while?", "stuck": "It is not that I do not want to do it. I am just not sure how to begin right now." },
       "context": { "task": "It is not that I do not want to do it. I am just not sure how to begin. Could you help me break it into a smaller step?", "unclear": "Things feel mixed up, and I do not know how to explain them yet. Could you listen for a moment?", "conflict": "Could you let me finish first? I do not need advice just yet." }
     },
-    "messages": { "completeRequired": "Complete the required questions before generating a response.", "connectionFailed": "We could not connect this time. Try again later.", "responseUnavailable": "A response is not available right now. Try again later." },
-    "actions": { "organizing": "Organizing your thoughts...", "organize": "Help me understand my feelings", "changeStarter": "Try another sentence", "hideStarters": "Hide other sentences", "showStarters": "View other sentences" },
+    "messages": { "completeRequired": "Complete the required questions before generating a response.", "connectionFailed": "We could not connect this time. Try again later.", "responseUnavailable": "We couldn’t complete this reflection. Your draft is still here. You can edit it or talk to someone." },
+    "actions": { "organizing": "Organizing your thoughts...", "organize": "Help me understand my feelings", "changeStarter": "Try another sentence", "hideStarters": "Hide other sentences", "showStarters": "View other sentences",
+      "backToGarden": "Back to the garden",
+      "continueEditing": "Continue editing" },
     "result": { "title": "Review what you wrote", "emotions": "AI-assisted record summary", "support": "Support preference you explicitly wrote", "expression": "Optional template for you to choose", "smallStep": "Scope of this summary", "disclaimer": "AI summaries can be wrong or omit information. If this does not match your meaning, rely on your original entry." }
   },
   "talk": {
@@ -883,7 +889,7 @@
   },
   "referral": {
     "metadata": { "title": "Find the Right Support | YouthTempo" },
-    "hero": { "title": "Find the right support", "description": "When reflecting on your own is not enough, use a few questions to organize a starting point: continue with self-guided tools, tell a parent or teacher, or connect with more support. This does not judge your mental state.", "imageAlt": "A path through natural hills leading step by step towards support" },
+    "hero": { "title": "Find the right support", "description": "If you want to talk, you can go straight to support. If you’re unsure where to start, try the questions below.", "imageAlt": "A path through natural hills leading step by step towards support" },
     "flow": { "select": "Choose what fits", "generate": "Organize a support pathway", "view": "View next steps", "step": "Step {{number}}", "completed": "Completed" },
     "questions": {
       "multiInstruction": "Select all that apply",
@@ -903,7 +909,7 @@
     "links": { "moodJournal": "Mood map", "worryTime": "Set worries aside tonight", "checkIn": "SWEET Garden", "messages": "Private messages", "tellAdult": "Tell a teacher or parent" },
     "ruleBased": { "label": "Rule-based support pathway · not AI-generated", "description": "This result uses structured choices and fixed versioned rules. It does not score or diagnose you, and additional text is not sent to AI for a decision." },
     "result": { "label": "Support guidance", "title": "Your next support pathway", "answerSummary": "{{question}}: {{answers}}", "noSelection": "You have not selected how you are feeling yet.", "path": "Suggested pathway", "reason": "Why this may fit", "howToStart": "How to begin", "fallbackStarter": "“I have been feeling stuck lately. I do not need you to resolve it right away, but I want you to know.”", "links": "Suggested options" },
-    "direct": { "title": "You can also tell someone directly", "description": "You do not need to complete every question first. Write the one thing you most want a teacher or parent to know.", "action": "Open private messages" }
+    "direct": { "title": "Talk to someone directly", "description": "You can skip the questions. Talk to someone you trust in person, or open your inbox to see who you can write to.", "action": "Open private messages" }
   },
   "resources": {
     "metadata": { "title": "Family–School Support Guide | YouthTempo" },
@@ -959,7 +965,7 @@
       "adult": { "heroDescription": "You are using YouthTempo independently as an adult. A school or parent does not need to join, and records are for your own review by default.", "title": "Read your records against your own baseline, not a secondary-school timetable", "description": "Late nights, late mornings, takeaway meals, or an irregular schedule do not by themselves indicate a mental health problem. Notice whether changes are unusual for you and continue to affect energy, study, work, relationships, or basic daily life. When you want human help, choose an appropriate university resource, community service, or qualified professional.", "primaryAction": "View independent-use guidance", "secondaryAction": "Explore support pathways" }
     },
     "consent": {
-      "label": "Before you continue", "title": "Understand what is saved and who can see it", "description": "SWEET responses, AI summaries, and messages may include sensitive information about daily life and health. We use this information only to organize rhythms and provide applicable support, not for advertising or public display. Students may withdraw consent at any time. Without an active relationship, parents, teachers, and schools cannot view records. Read the full details under", "privacyLink": "Privacy & Safety", "sentenceEnd": ".",
+      "label": "Before you continue", "title": "Understand what is saved and who can see it", "description": "SWEET answers and summaries you save appear in your history. Records and messages may include sensitive personal or health information. They’re used for the recording, reflection and communication you choose, never for ads or public display. You can withdraw consent in your account.", "privacyLink": "Privacy & Safety", "sentenceEnd": ".",
       "activeTitle": "Informed consent completed", "adultActive": "You have provided consent independently as an adult. You do not need to join through a school or guardian and can save SWEET records and use personal support tools.", "minorSelfActive": "You completed separate personal consent for the student-only trial. You can generate AI summaries, save records, and use personal support tools. This does not mean that a guardian or school has confirmed participation.", "minorActive": "The student and guardian confirmations are complete. SWEET records can now be saved, messages sent, and community posts created.", "policyVersion": " Current version: {{version}}.", "withdraw": "Withdraw consent",
       "pendingTitle": "Student confirmation complete; guardian confirmation pending", "askGuardian": "Ask the linked parent or guardian to sign in to their own account and complete confirmation.", "noGuardian": "There is no school-confirmed guardian connection yet. Please contact the school lead.", "withdrawStudent": "Withdraw student confirmation", "ineligible": "The current student-only trial accepts students aged 14 or older. Anyone under 14 cannot currently take part.",
       "ageRange": "Your age range—we do not collect your exact date of birth", "age14to17": "14–17", "age18Plus": "18 or older", "ageUnder14": "Under 14", "acknowledgement": "I have read the information and understand that sensitive daily-life and health information may be processed, how AI and saving are used, who can see it, and how to withdraw. I separately consent to this processing as described.", "completeStudent": "Complete student confirmation",
@@ -1007,7 +1013,7 @@
   },
   "privacySafety": {
     "metadata": { "title": "Privacy & Safety | YouthTempo" },
-    "hero": { "title": "Privacy & safety", "description": "We retain only the information needed to provide the service and limit access to records according to each user's role." },
+    "hero": { "title": "Privacy & safety", "description": "Find out who can see your records, when information goes to AI, and how to export or delete your data." },
     "principles": {
       "title": "How you can manage your information", "description": "This page explains what may be retained, who can see it, and what you can do if you need help or want to delete your data.",
       "noLabels": { "title": "No labels", "text": "YouthTempo records everyday rhythms and support needs. It does not reduce young people to being “fine” or “a problem.”" },
@@ -1032,10 +1038,10 @@
     },
     "consent": {
       "title": "Informed consent for the student-only trial", "description": "The current YouthTempo student-only trial is for students aged 14 or older. Students aged 14–17 may provide separate personal consent after understanding how sensitive information and AI processing are used; a school, teacher, or guardian does not need to join.",
-      "student": { "title": "The student provides separate consent", "text": "Students read about the data covered, its purposes, AI processing, who may be able to see it, and how to withdraw. They select only an age range and do not provide an exact date of birth. They can then generate AI summaries and save their own records." },
-      "guardian": { "title": "Relationships are not created automatically", "text": "Consent for the student-only trial does not create any relationship with a guardian or school. Parents cannot access a child’s private records, and the new school report is not yet open. Before it opens, the applicable confirmations will be completed and the teacher’s trend view, optional detailed sharing, and exit arrangements will be explained." },
-      "summary": { "title": "Confirm before each use of AI", "text": "Before SWEET Check-in or Mood Journal sends necessary content to AI to generate a record summary, it shows a processing notice and version number and requires an active checkbox. Worry Time and Find the Right Support use fixed rules and do not call AI; Talk It Through is closed during the first school pilot. Fixed urgent safety messages also do not depend on AI or wait for this confirmation." },
-      "withdraw": { "title": "Consent can be withdrawn", "text": "Students can withdraw student-only trial consent from the Account page. After withdrawal, they cannot save new records, send messages, or post in the community." },
+      "student": { "title": "The student provides separate consent", "text": "Choose an age range without giving your date of birth. Read how data is used, who can see it and how to withdraw, then decide whether to agree. You can save SWEET without using AI." },
+      "guardian": { "title": "Relationships are not created automatically", "text": "Giving consent does not link a parent or school. Parents cannot view a child’s private records. New school reports are currently closed." },
+      "summary": { "title": "Confirm before each use of AI", "text": "You choose whether SWEET Check-in or Mood Journal sends anything to AI. Worry Time and Find the Right Support use fixed rules and do not call AI. Talk It Through is closed. Urgent guidance is available without AI." },
+      "withdraw": { "title": "Consent can be withdrawn", "text": "You can withdraw consent in your account at any time. Saving new records, sending messages and posting in the community then pause." },
       "coverage": { "title": "What the consent covers", "text": "Account details, SWEET everyday-rhythm responses, AI-assisted record summaries, rule-based tool results, private messages, community posts, and the relationship information needed to limit access for schools, teachers, and guardians. Users are not asked for a national identity number or exact date of birth." },
       "afterWithdrawal": { "title": "What happens after withdrawal", "text": "After withdrawing consent, students can no longer save new records, send messages or post in the community. The original teacher can no longer retrieve messages in their inbox or in a new export while consent is withdrawn. Students can still view, download or delete their own content, or close their account and delete associated data." },
       "legalPrefix": "When personal information is processed on the basis of consent, the law requires consent to be informed, voluntary, explicit, and easy to withdraw. Separate consent is required for sensitive personal information such as medical and health information, and guardian consent is required for the personal information of children under 14. The current student-only trial does not accept users under 14; the applicable student and guardian confirmations will be reviewed again before a formal school pilot. See"
@@ -1119,16 +1125,16 @@
   },
   "messages": {
     "metadata": { "title": "Private Messages | YouthTempo" },
-    "visitor": { "hero": { "title": "Private messages", "description": "Read messages that students have taken time to write and chosen to share with you.", "action": "Back to workspace", "imageAlt": "A green private mailbox holding a letter" }, "loading": "Loading...", "title": "Sign in to use this feature", "description": "Signing in lets us confirm who you can write to and which messages you can view.", "action": "Go to sign in" },
-    "member": { "hero": { "title": "Private messages", "studentDescription": "Some things are hard to say face to face. You can write to the pilot duty lead, an assigned teacher, or yourself.", "minorStudentDescription": "Write to an assigned teacher or keep the message for yourself. You may separately choose to contact the pilot duty lead. The current pilot does not create parent or guardian recipients.", "adultStudentDescription": "Keep a message for yourself, write to an assigned teacher, or separately choose to contact the pilot duty lead. Independent adult use does not include a parent or guardian recipient.", "supporterDescription": "Read messages that students have taken time to write and chosen to share with you.", "action": "Back to workspace", "imageAlt": "A green private mailbox holding a letter" } },
-    "compose": { "title": "Write it down, then choose who can see it", "description": "You can contact the pilot duty lead directly. This is not a live emergency service. Messages to teachers can be anonymous.", "recipientType": "Who is this for?", "recipientOptions": { "self": "Myself", "pilotDuty": "Pilot duty lead", "teacher": "A teacher", "guardian": "A parent or guardian" }, "recipient": "Recipient", "selectRecipient": "Select a recipient", "message": "Your message", "placeholder": "You do not need to explain everything perfectly. Start with what you most want the other person to understand.", "anonymousDescription": "Keep this anonymous to the teacher. Only an authorized school lead can identify the sender if the message describes a clear safety concern.", "dutyDisclosureEmail": "This message will enter a protected duty queue. The pilot duty lead will receive an email alert that contains no message text or identity details. The duty lead is not continuously online; do not wait for a reply in an emergency.", "dutyDisclosureQueue": "This message will enter a protected duty queue. Email delivery is not currently confirmed; do not wait for a reply in an emergency.", "safetyDisclosure": "If content describes a clear safety concern, an authorized duty lead or school lead may view the sender and follow up.", "sending": "Sending...", "saveForSelf": "Save for myself", "sendToDuty": "Send to the duty lead", "send": "Send this message" },
+    "visitor": { "hero": { "title": "Private messages", "description": "Keep a note for yourself or write to someone listed in your inbox.", "action": "Sign in here", "imageAlt": "A green private mailbox holding a letter" }, "loading": "Loading...", "title": "Sign in to use this feature", "description": "Signing in lets us confirm who you can write to and which messages you can view.", "action": "Go to sign in" },
+    "member": { "hero": { "title": "Private messages", "studentDescription": "Keep a note for yourself or choose one of the recipients below.", "minorStudentDescription": "Write to yourself or to a teacher assigned to you. Parents are not listed as recipients, and your message is not sent to them automatically.", "adultStudentDescription": "Keep a note for yourself or select a recipient below. Messages do not go to a parent automatically.", "supporterDescription": "Read messages that students have taken time to write and chosen to share with you.", "action": "My account", "imageAlt": "A green private mailbox holding a letter" } },
+    "compose": { "title": "Write it down, then choose who can see it", "description": "Check the recipient before sending. You can write to a teacher anonymously. If you need help now, contact someone who can be there with you.", "recipientType": "Who is this for?", "recipientOptions": { "self": "Myself", "pilotDuty": "Pilot duty lead", "teacher": "A teacher", "guardian": "A parent or guardian" }, "recipient": "Recipient", "selectRecipient": "Select a recipient", "message": "Your message", "placeholder": "You do not need to explain everything perfectly. Start with what you most want the other person to understand.", "anonymousDescription": "Keep this anonymous to the teacher. Only an authorized school lead can identify the sender if the message describes a clear safety concern.", "dutyDisclosureEmail": "This message will enter a protected duty queue. The pilot duty lead will receive an email alert that contains no message text or identity details. The duty lead is not continuously online; do not wait for a reply in an emergency.", "dutyDisclosureQueue": "This message will enter a protected duty queue. Email delivery is not currently confirmed; do not wait for a reply in an emergency.", "safetyDisclosure": "If content describes a clear safety concern, an authorized duty lead or school lead may view the sender and follow up.", "sending": "Sending...", "saveForSelf": "Save for myself", "sendToDuty": "Send to the duty lead", "send": "Send this message" },
     "lists": { "sentTitle": "Messages I have written", "safetyTitle": "Messages needing safety follow-up", "receivedTitle": "Messages received", "sentEmpty": "Messages you save or send will appear here.", "receivedEmpty": "There are no new messages at the moment.", "anonymousToTeacher": "Anonymous to the teacher", "reviewSoon": "Please review soon", "senderAnonymous": "This student chose to remain anonymous to the teacher." },
     "notices": { "noTeacher": "The school has not assigned a support teacher to you yet.", "noGuardian": "The school has not confirmed a linked parent or guardian yet.", "safetySent": "Your message has been sent. Contact a parent or guardian, teacher, or another trusted adult nearby now and ask them to stay with you. If you are in immediate danger, contact local emergency services.", "safetyDutyAlerted": "Your message is in the duty queue, and the duty lead received an email alert without the message text. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services and do not wait for a reply.", "safetyDutyQueued": "Your message is in the duty queue, but email delivery has not been confirmed. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services and do not wait for a reply.", "safetyPrivate": "Your message has been saved, but no live human review is confirmed. Contact a trusted adult nearby now. If you are in immediate danger, contact local emergency services.", "dutyAlerted": "Your message is in the duty queue, and the duty lead received an email alert without the message text. This is not a live service; do not wait for a reply in an emergency.", "dutyQueued": "Your message is in the duty queue, but email delivery has not been confirmed. This is not a live service; do not wait for a reply in an emergency.", "savedForSelf": "Your message has been saved for you.", "sent": "Your message has been sent." },
     "errors": { "loadFailed": "Your messages could not be loaded right now.", "sendFailed": "Your message could not be sent. Please try again later." }
   },
   "gardenWelcome": {
     "title": "Explore your garden before you record",
-    "description": "A small courtyard for noticing how you feel and caring for your daily rhythms. Visit the pond, bench and bird, then leave a record whenever you feel ready.",
+    "description": "Check in and watch your garden grow, or start by sorting through a feeling or finding someone to talk to.",
     "preview": "Garden preview · Nothing is saved",
     "enter": "SWEET Garden",
     "guide": "How the garden works",
@@ -1298,8 +1304,8 @@
   "ageWorkspace": {
     "label": "My pathway",
     "minor": {
-      "title": "Ages 14–17: support around you",
-      "description": "Start with a record, then choose trusted people and resources. Family, school, health, and community services are a real-world network; the moderated platform community is separate.",
+      "title": "What would help today?",
+      "description": "Write a little, or go straight to someone you trust.",
       "cards": {
         "quick": {
           "title": "Notice how you feel now",
@@ -1334,8 +1340,8 @@
       }
     },
     "adult": {
-      "title": "Ages 18–25: support at your own pace",
-      "description": "Adults use the platform independently, with no guardian links. Theme rooms open only to invited, eligible members when staff are on duty.",
+      "title": "What would help today?",
+      "description": "Choose what feels useful right now.",
       "cards": {
         "room": {
           "title": "Enter a theme room",
@@ -1364,5 +1370,40 @@
         }
       }
     }
+  },
+  "inlineConsent": {
+    "aiSeparate": "Using AI is a separate choice. Only the information needed for this reflection is sent, after you select it and submit.",
+    "checkStatus": "Check consent status",
+    "chooseAge": "Choose your age range",
+    "closeDialog": "Decide later and return to my draft",
+    "consentNeeded": "Please review the consent information on this page.",
+    "continueHint": "When you’re ready, choose what to do next.",
+    "description": "What you save can include personal or health information. Read how it’s used and who can see it before you choose.",
+    "detailsTitle": "How your information is used, saved and shared",
+    "draftNotice": "Unsaved work may be lost if you refresh or leave this page.",
+    "loadFailed": "We couldn’t check your consent. Please try again.",
+    "loading": "Checking your participation consent…",
+    "notStudent": "Student participation consent does not apply to this account. Open your account to see the features available to you.",
+    "profileRequired": "Complete your account details before giving participation consent.",
+    "ready": "You’ve completed the consent step.",
+    "retry": "Check status again",
+    "schoolReports": "Only you can view your private SWEET records. A teacher can read a message you send them while they’re assigned to you and authorised. New school reports are currently closed.",
+    "signInNote": "Sign in here to continue. What you’ve written stays on this page.",
+    "signingIn": "Signing in…",
+    "submitUnknown": "We couldn’t confirm the result. Check it before trying again.",
+    "title": "Before you continue",
+    "recheck": "Try opening my garden again"
+  },
+  "studentActions": {
+    "label": "What would you like to do?",
+    "record": "Record today",
+    "reflect": "Sort through my feelings",
+    "talk": "Talk to someone",
+    "more": "More tools",
+    "countRule": "Your garden counts each day once, using Beijing time. Miss a day? Your next entry still counts.",
+    "adultSupport": "Talk to someone directly",
+    "adultSupportBody": "You can reach out to a trusted friend, a peer, a community service or a professional outside school. If you are studying, campus support is an option too.",
+    "consultationAvailability": "Explore support options here. New counselling appointments are currently closed.",
+    "saveOnly": "Save my record"
   }
 }

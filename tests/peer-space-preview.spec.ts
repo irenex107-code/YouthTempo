@@ -2,7 +2,8 @@ import { expect, test } from "@playwright/test";
 
 test("成年人入口展示解忧室介绍，访客看不到房间或消息", async ({ page, request }) => {
   await page.goto("/for-young-adults");
-  await expect(page.getByRole("heading", { level: 2, name: "解忧室" })).toBeVisible();
+  await page.locator("summary").filter({ hasText: "更多工具" }).click();
+  await expect(page.getByRole("link", { name: "有邀请？进入解忧室" })).toHaveAttribute("href", "/peer-space");
   const response = await page.goto("/peer-space");
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

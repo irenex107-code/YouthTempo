@@ -90,7 +90,7 @@ export default function ForParentsPage() {
             <h2 className="text-xl font-bold text-ink">{t("forParents.messages.title")}</h2>
             <p className="mt-2 text-sm leading-7 text-muted">{t("forParents.messages.description")}</p>
           </div>
-          <Link href="/messages" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("forParents.messages.action")}</Link>
+          <Link href="#conversation-starters" className="button-primary mt-4 w-full sm:mt-0 sm:w-auto">{t("forParents.messages.action")}</Link>
         </div>
       </section>
 
@@ -128,7 +128,7 @@ export default function ForParentsPage() {
         </div>
       </section>
 
-      <section className="section" data-section="sweet-talk-conversation">
+      <section id="conversation-starters" className="section" data-section="sweet-talk-conversation">
         <div className="container">
           <SectionHeader
             title={t("forParents.sweetTalk.title")}

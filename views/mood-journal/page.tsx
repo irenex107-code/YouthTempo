@@ -1,4 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { InlineConsentDialog } from "@/components/InlineConsentDialog";
+import { useInlineStudentConsent } from "@/lib/useInlineStudentConsent";
+import { detectCrisisInValues, getCrisisResponse } from "@/lib/safety/crisisDetection";
 import { PageHero } from "@/components/PageHero";
 import { SectionHeader } from "@/components/SectionHeader";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
@@ -77,6 +83,14 @@ type MoodAiResult = {
 
 export default function MoodJournalPage() {
   const { locale, t } = useTranslation();
+  const consent = useInlineStudentConsent();
+  const router = useRouter();
+  const ageBand = consent.summary?.consent?.ageBand;
+  const adult = ageBand ? ageBand === "18_plus" : router.query.audience === "adult";
+  const [consentDialogOpen, setConsentDialogOpen] = useState(false);
+  const reflectionInputRef = useRef<HTMLTextAreaElement>(null);
+  const draftOwner = useRef("");
+  const draftRequest = useRef({ mounted: false, revision: 0, sequence: 0, controller: null as AbortController | null });
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [context, setContext] = useState("");
   const [body, setBody] = useState("");
@@ -91,7 +105,50 @@ export default function MoodJournalPage() {
   const [error, setError] = useState("");
   const [validation, setValidation] = useState("");
 
+  useEffect(() => {
+    const scope = draftRequest.current;
+    scope.mounted = true;
+    return () => {
+      scope.mounted = false;
+      ++scope.sequence;
+      scope.controller?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (consent.studentReady) { setConsentDialogOpen(false); setValidation(""); }
+  }, [consent.studentReady]);
+
+  useEffect(() => {
+    if (draftOwner.current && draftOwner.current !== consent.userId) {
+      cancelAiRequest();
+      setSelectedWords([]); setContext(""); setBody(""); setUnderstanding(""); setSupport("");
+      setAiResult(null); setUrgentReply(""); setAiNoticeAccepted(false); setError(""); setValidation("");
+      setStarterIndex(0); setShowAllStarters(false); setConsentDialogOpen(false);
+      setLoading(false);
+    }
+    draftOwner.current = consent.userId;
+  }, [consent.userId]);
+
+  function cancelAiRequest() {
+    const scope = draftRequest.current;
+    ++scope.revision;
+    ++scope.sequence;
+    scope.controller?.abort();
+    scope.controller = null;
+    setLoading(false);
+    setAiResult(null);
+    setError("");
+    setValidation("");
+  }
+
+  function updateReflection(setValue: (value: string) => void, value: string) {
+    cancelAiRequest();
+    setValue(value);
+  }
+
   function toggleWord(word: string) {
+    cancelAiRequest();
     setSelectedWords((current) =>
       current.includes(word) ? current.filter((item) => item !== word) : [...current, word],
     );
@@ -101,22 +158,51 @@ export default function MoodJournalPage() {
   const starter = starterOptions[starterIndex % starterOptions.length];
 
   function generateStarter() {
+    cancelAiRequest();
     setStarterIndex((current) => current + 1);
   }
 
+  function continueEditing() {
+    reflectionInputRef.current?.focus();
+    reflectionInputRef.current?.scrollIntoView({ block: "center" });
+  }
+
   async function generateAiResponse() {
+    if (loading) return;
     if (!selectedWords.length && !context && !body && !understanding && !support) {
       setValidation(t("moodJournal.messages.completeRequired"));
       return;
     }
 
+    if (detectCrisisInValues({ selectedWords, context, body, understanding, support }, locale).isUrgent) {
+      setAiResult(null); setUrgentReply(getCrisisResponse(locale));
+      return;
+    }
+    if (!consent.studentReady) {
+      setValidation(t("inlineConsent.consentNeeded"));
+      setConsentDialogOpen(true);
+      return;
+    }
+    if (!aiNoticeAccepted) { setValidation(t("aiTransparency.confirm")); return; }
+    const scope = draftRequest.current;
+    const revision = scope.revision;
+    const sequence = ++scope.sequence;
+    const controller = new AbortController();
+    scope.controller?.abort();
+    scope.controller = controller;
+    const sameActor = consent.trackRequest();
+    const current = () => scope.mounted && scope.revision === revision && scope.sequence === sequence && sameActor();
+
     setLoading(true);
     setError("");
     setValidation("");
     try {
+      const headers = await aiRequestHeaders(consent.userId);
+      if (!current()) return;
       const response = await fetch("/api/ai/mood-journal", {
         method: "POST",
-        headers: await aiRequestHeaders(),
+        headers,
+        signal: controller.signal,
         body: JSON.stringify({
           locale,
           selectedWords,
@@ -130,7 +216,13 @@ export default function MoodJournalPage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || t("moodJournal.messages.connectionFailed"));
+      if (!current()) return;
+      if (response.status === 401 || response.status === 403) {
+        setConsentDialogOpen(true);
+        void consent.refresh();
+        return;
+      }
+      if (!response.ok) throw new Error("reflection_unavailable");
       if (isAiUrgentResponse(data)) {
         setAiResult(null);
         setUrgentReply(data.reply);
@@ -138,12 +230,21 @@ export default function MoodJournalPage() {
       }
       setUrgentReply("");
       setAiResult(data);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t("moodJournal.messages.responseUnavailable"));
+    } catch {
+      if (!current()) return;
+      setError(t("moodJournal.messages.responseUnavailable"));
     } finally {
-      setLoading(false);
+      if (scope.controller === controller) {
+        scope.controller = null;
+        if (scope.mounted) setLoading(false);
+      }
     }
   }
+
+  const reflectionFeedbackIds = [
+    validation ? "mood-journal-validation" : "",
+    error ? "mood-journal-error" : "",
+  ].filter(Boolean).join(" ") || undefined;
 
   return (
     <>
@@ -167,7 +268,12 @@ export default function MoodJournalPage() {
             title={t("moodJournal.emotions.title")}
             description={t("moodJournal.emotions.description")}
           />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div
+            className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+            role="group"
+            aria-label={t("moodJournal.emotions.title")}
+            aria-describedby={reflectionFeedbackIds}
+          >
             {emotionGroups.map((group) => (
               <article key={group.key} className="card">
                 <h3 className="text-xl font-bold text-ink">{t(group.labelKey)}</h3>
@@ -197,41 +303,44 @@ export default function MoodJournalPage() {
         <div className="container grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="card">
             <SectionHeader
-              label="Guided Reflection"
+              label={t("moodJournal.reflection.label")}
               title={t("moodJournal.reflection.title")}
               description={t("moodJournal.reflection.description")}
             />
-            <div className="grid gap-5">
+            <div className="grid gap-5" role="group" aria-label={t("moodJournal.reflection.title")} aria-describedby={reflectionFeedbackIds}>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.context")}</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => setContext(e.target.value)} />
-                <VoiceInputButton value={context} onChange={setContext} />
+                <textarea ref={reflectionInputRef} id="mood-journal-context" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={context} onChange={(e) => updateReflection(setContext, e.target.value)} />
+                <VoiceInputButton value={context} onChange={(value) => updateReflection(setContext, value)} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.body")}</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => setBody(e.target.value)} />
-                <VoiceInputButton value={body} onChange={setBody} />
+                <textarea id="mood-journal-body" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={body} onChange={(e) => updateReflection(setBody, e.target.value)} />
+                <VoiceInputButton value={body} onChange={(value) => updateReflection(setBody, value)} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.understanding")}</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => setUnderstanding(e.target.value)} />
-                <VoiceInputButton value={understanding} onChange={setUnderstanding} />
+                <textarea id="mood-journal-understanding" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={understanding} onChange={(e) => updateReflection(setUnderstanding, e.target.value)} />
+                <VoiceInputButton value={understanding} onChange={(value) => updateReflection(setUnderstanding, value)} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-bold text-ink">{t("moodJournal.reflection.support")}</span>
-                <textarea className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => setSupport(e.target.value)} />
-                <VoiceInputButton value={support} onChange={setSupport} />
+                <textarea id="mood-journal-support" aria-invalid={Boolean(validation)} aria-describedby={reflectionFeedbackIds} className="min-h-24 rounded-2xl border border-ink/10 bg-white/80 p-4 leading-7 outline-none focus:border-sage" value={support} onChange={(e) => updateReflection(setSupport, e.target.value)} />
+                <VoiceInputButton value={support} onChange={(value) => updateReflection(setSupport, value)} />
               </label>
+              <InlineConsentDialog open={consentDialogOpen} onClose={() => setConsentDialogOpen(false)}>
+                <InlineStudentConsent controller={consent} studentOnly />
+              </InlineConsentDialog>
               <AiTransparencyNotice
                 id="mood-journal-ai-notice"
                 checked={aiNoticeAccepted}
-                onChange={setAiNoticeAccepted}
+                onChange={(checked) => { cancelAiRequest(); setAiNoticeAccepted(checked); }}
               />
-              <button type="button" className="button-primary w-fit" onClick={generateAiResponse} disabled={loading}>
+              <button type="button" className="button-primary w-fit max-w-full whitespace-normal" onClick={generateAiResponse} disabled={loading} aria-describedby={reflectionFeedbackIds}>
                 {loading ? t("moodJournal.actions.organizing") : t("moodJournal.actions.organize")}
               </button>
-              {validation ? <p className="text-sm font-bold text-sage-dark">{validation}</p> : null}
-              {error ? <p className="text-sm font-bold text-sage-dark">{error}</p> : null}
+              {validation ? <p id="mood-journal-validation" role="alert" aria-atomic="true" className="text-sm font-bold text-sage-dark">{validation}</p> : null}
+              {error ? <p id="mood-journal-error" role="alert" aria-atomic="true" className="text-sm font-bold text-sage-dark">{error}</p> : null}
             </div>
           </div>
 
@@ -300,10 +409,22 @@ export default function MoodJournalPage() {
               <p className="mt-4 text-xs leading-6 text-muted">
                 {t("moodJournal.result.disclaimer")}
               </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link href="/garden" className="button-primary w-full sm:w-auto">
+                  {t("moodJournal.actions.backToGarden")}
+                </Link>
+                <button type="button" className="button-secondary w-full sm:w-auto" onClick={continueEditing}>
+                  {t("moodJournal.actions.continueEditing")}
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
       </section>
+      <nav className="container mb-8 flex flex-wrap gap-5 text-sm font-semibold" aria-label={t("studentActions.more")}>
+        <Link href="/worry-time" className="underline">{t("forTeens.start.cards.worry.title")}</Link>
+        <Link href={adult ? "/for-young-adults#direct-support" : "/referral#direct-support"} className="underline">{t("studentActions.talk")}</Link>
+      </nav>
     </>
   );
 }

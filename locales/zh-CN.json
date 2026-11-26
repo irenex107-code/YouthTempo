@@ -24,9 +24,11 @@
       "openMenu": "打开导航菜单",
       "closeMenu": "关闭导航菜单",
       "account": {
-        "greetingWithName": "你好，{{name}}！",
-        "greeting": "你好！",
-        "signInRecords": "登录 / 我的记录"
+        "greetingWithName": "{{name}}的账户",
+        "greeting": "我的账户",
+        "signInRecords": "登录",
+        "signingOut": "正在退出…",
+        "exitFailed": "退出未完成，请再试一次。"
       },
       "actions": {
         "platformAdmin": "平台管理",
@@ -37,9 +39,9 @@
         "recordToday": "SWEET花园"
       },
       "nav": {
-        "forTeens": "青少年入口",
-        "forParents": "家长入口",
-        "forTeachers": "老师入口",
+        "forTeens": "学生与青年",
+        "forParents": "家长指南",
+        "forTeachers": "教师指南",
         "sweet": "SWEET花园",
         "community": "家校医社区",
         "referral": "下一步找谁"
@@ -73,7 +75,7 @@
     "hero": {
       "label": "青少年日常支持平台",
       "title": "SWEET花园",
-      "description": "YouthTempo 是面向 14–17 岁中学生和 18–25 岁青年人的双语早期支持平台。用 SWEET 记录日常节奏，回看过去的记录，需要时找人聊聊。",
+      "description": "给 14–17 岁中学生和 18–25 岁青年。记下今天的睡眠、饮食和感受，回看自己的变化，也可以直接找人聊聊。",
       "primaryAction": "SWEET花园",
       "secondaryAction": "花园怎么玩",
       "imageAlt": "青少年按照自己的节奏向前，并获得家长、老师和专业支持者陪伴的插画"
@@ -134,24 +136,24 @@
     },
     "audiences": {
       "label": "找到适合你的入口",
-      "title": "从你现在所在的位置开始",
+      "title": "你从哪里开始？",
       "description": "青少年可以记录和表达，家长可以理解和陪伴，老师可以看见变化并在需要时连接支持。",
       "teens": {
-        "title": "我是青少年",
+        "title": "中学生、大学生与青年",
         "label": "记录与表达",
-        "text": "看看今天的生活节律，整理说不清的感受；需要时，也可以把想说的话写给自己或信任的大人。",
-        "action": "进入青少年入口"
+        "text": "记录近况、整理感受，或找同伴和信任的人聊聊。",
+        "action": "选择我的入口"
       },
       "parents": {
         "title": "我是家长",
         "label": "先了解近况",
-        "text": "看看孩子最近的睡眠、吃饭、运动和学习状态，再找一个更容易开口的方式聊聊。",
+        "text": "找一句容易开口的话，和孩子聊聊最近的生活。",
         "action": "进入家长入口"
       },
       "teachers": {
         "title": "我是老师",
         "label": "负责名单与留言",
-        "text": "查看学校确认的负责名单，以及学生发给你、你目前仍有权接收的留言。负责名单只表示支持分工；学校报告尚未正式开放。",
+        "text": "从负责名单和学生主动发给你的留言开始。",
         "action": "进入老师入口"
       }
     },
@@ -191,21 +193,22 @@
   },
   "forYoungPeople": {
     "metadata": { "title": "选择适合你的入口 | YouthTempo" },
-    "label": "给年轻人",
-    "title": "先选适合你的入口",
-    "description": "中学生与大学生的生活节奏和支持方式不同。选择与你现在阶段相近的页面，从适合自己的方式开始。",
+    "label": "学生与青年",
+    "title": "选择适合你的入口",
+    "description": "两个入口都可以记录、整理感受和找人聊聊。",
     "paths": {
-      "secondary": { "age": "14–17 岁", "title": "中学生", "description": "从日常节律、感受和可信任的人开始，按自己的节奏记录与寻求支持。", "action": "进入中学生页面" },
-      "youngAdults": { "age": "18–25 岁", "title": "大学生与青年", "description": "从自己的生活基线出发，独立记录变化，选择适合自己的支持路径。", "action": "进入大学生与青年页面" }
+      "secondary": { "age": "14–17 岁", "title": "中学生", "description": "在花园里记下今天，也可以直接找人聊聊。", "action": "进入中学生花园",
+        "learnMore": "先了解中学生可以做什么" },
+      "youngAdults": { "age": "18–25 岁", "title": "大学生与青年", "description": "在读、工作或正在找方向，都可以自己开始。无需加入学校。", "action": "进入大学生与青年专区" }
     },
-    "accountNote": "这里帮助你找到合适的页面；登录后可用功能仍以账号已确认的年龄和同意状态为准。"
+    "accountNote": "保存记录时，再按自己的年龄完成确认。"
   },
   "forTeens": {
     "metadata": { "title": "青少年入口 | YouthTempo" },
     "hero": {
-      "label": "给青少年",
-      "title": "青少年入口",
-      "description": "想看看最近的状态、理清一件烦心事，或者把不好当面说的话写下来，都可以从这里开始。",
+      "label": "14–17 岁",
+      "title": "中学生可以从这里开始",
+      "description": "想记下今天，还是有件事想说？选你现在需要的。",
       "primaryAction": "进入青少年工作台",
       "secondaryAction": "了解 SWEET",
       "imageAlt": "手持笔记本、准备按照自己节奏开始记录的女学生插画"
@@ -228,10 +231,10 @@
   },
   "forParents": {
     "metadata": { "title": "家长入口 | YouthTempo" },
-    "hero": { "label": "给家长", "title": "家长入口", "description": "先看看孩子最近睡得、吃得、动得怎么样，再找一个不指责、比较容易开口的方式聊聊。", "primaryAction": "进入家长工作台", "secondaryAction": "了解 SWEET", "imageAlt": "平静倾听、准备陪伴孩子的家长插画" },
+    "hero": { "label": "给家长", "title": "家长陪伴指南", "description": "不知道怎么开口时，可以从孩子最近的一件小事聊起。这里有可以直接用的问法。", "primaryAction": "打开我的账户", "secondaryAction": "了解 SWEET", "imageAlt": "平静倾听、准备陪伴孩子的家长插画" },
     "intro": {
       "visibleTitle": "你能看到哪些内容",
-      "visibleText": "你只能查看学校已经确认关联的孩子记录，不会看到其他学生的信息。一次记录不能说明全部情况，更适合用来了解近况、开始一次对话。",
+      "visibleText": "你可以看公开指南和自己的账户资料。孩子的私人 SWEET 记录不会显示在你的账户里。",
       "concreteTitle": "先说具体变化，不急着追问原因",
       "concreteText": "对很多孩子来说，直接回答“你到底怎么了”很难。可以先从最近睡不好、早上起不来或学习很难开始这些具体变化聊起。"
     },
@@ -245,7 +248,7 @@
         "support": { "title": "需要时连接支持", "text": "当状态持续影响生活和学习时，可以结合家庭、学校和专业资源。", "alt": "家长为孩子连接学校和专业支持" }
       }
     },
-    "messages": { "title": "查看孩子写来的悄悄话", "description": "孩子写给家长的内容，会集中显示在独立功能页。", "action": "查看收到的话" },
+    "messages": { "title": "想知道孩子最近过得怎么样？", "description": "孩子的私人 SWEET 和信箱不会显示在你的账户里。你可以试试下面的问法，让孩子决定想说多少。", "action": "试试一句开场白" },
     "feedback": { "title": "这次用起来顺不顺？", "description": "花两分钟告诉我们哪里有帮助、哪里还需要改。", "action": "填写家长反馈" },
     "sweet": {
       "title": "SWEET：家长可以观察什么",
@@ -285,7 +288,7 @@
   },
   "forTeachers": {
     "metadata": { "title": "老师入口 | YouthTempo" },
-    "hero": { "label": "给老师", "title": "老师入口", "description": "从学校确认的负责名单和学生主动写来的话开始，在职责与授权范围内提供支持。新的学校报告尚未正式开放，学生记录不会仅因师生关系就完整开放。", "primaryAction": "进入老师工作台", "secondaryAction": "了解 SWEET", "imageAlt": "手持笔记本、准备倾听学生的老师插画" },
+    "hero": { "label": "给老师", "title": "教师支持指南", "description": "你可以查看自己负责的学生，阅读他们主动发给你的留言。学生的私人 SWEET 记录只由本人查看。", "primaryAction": "进入老师工作台", "secondaryAction": "了解 SWEET", "imageAlt": "手持笔记本、准备倾听学生的老师插画" },
     "capabilities": {
       "title": "老师可以在这里做什么",
       "items": {
@@ -294,12 +297,12 @@
         "listen": { "title": "听学生说", "description": "你可以读到学生主动发给你的留言。学生的使用同意、教师身份、学校成员身份和负责关系都须有效。撤权或学生撤回同意后，刷新信箱和新下载都无法再取得该留言。接任老师只接收学生之后发给自己的留言。已经看过或下载的副本无法远程收回。", "alt": "查看学生写来的悄悄话" }
       }
     },
-    "conversation": { "title": "从学生愿意说的话开始", "text": "可以先问一句：“最近有什么想说的，或者希望我帮忙的地方吗？”先听学生怎么说，再一起确定是否需要更多支持。没有记录或留言，也不能据此判断学生不需要支持。", "recordsAction": "查看负责学生", "messagesAction": "查看收到的话", "referralAction": "查看支持路径" },
-    "feedback": { "title": "哪些地方还不够顺手？", "description": "花两分钟说说实际使用感受，帮助我们调整试点。", "action": "填写老师反馈" }
+    "conversation": { "title": "从学生愿意说的话开始", "text": "可以先问一句：“最近有什么想说的，或者希望我帮忙的地方吗？”先听学生怎么说，再一起确定是否需要更多支持。没有记录或留言，也不能据此判断学生不需要支持。", "recordsAction": "查看负责学生", "messagesAction": "查看收到的话", "referralAction": "查看求助方式" },
+    "feedback": { "title": "哪些地方还不够顺手？", "description": "告诉我们哪里有用，哪里还难找。", "action": "填写老师反馈" }
   },
   "forYoungAdults": {
     "metadata": { "title": "18–25 岁独立使用 | YouthTempo" },
-    "hero": { "label": "给 18–25 岁的你", "title": "不用等一切稳定下来，才开始照顾自己的节奏。", "description": "离开高中、进入大学或刚开始工作，生活常常一下子变得更自由，也更容易乱。你可以独立使用 YouthTempo，不需要学校或监护人加入。", "primaryAction": "登录并开始", "secondaryAction": "SWEET花园", "imageAlt": "沿着自己的节奏逐步向前的成长路径" },
+    "hero": { "label": "18–25 岁", "title": "大学生与青年", "description": "上学、工作或暂时休息，都可以从这里开始。你可以自己确认，无需家长或学校加入。", "primaryAction": "登录并开始", "secondaryAction": "SWEET花园", "imageAlt": "沿着自己的节奏逐步向前的成长路径" },
     "tools": {
       "title": "按你现在最需要的来",
       "description": "每次只做一件事，不用把它变成新的任务清单。",
@@ -307,15 +310,15 @@
         "rhythm": { "title": "看看最近的生活节奏", "text": "从睡眠、醒来、饮食、活动和手头任务开始，不需要先想清楚所有问题。", "action": "SWEET花园", "alt": "五个日常节律组成的记录路径" },
         "mood": { "title": "把心里那团东西说清一点", "text": "情绪很杂时，可以先选接近的感受，再补充刚才发生了什么。", "action": "打开心情拼图", "alt": "不同颜色组成的心情拼图" },
         "worry": { "title": "睡前先把担心放下来", "text": "把能做的、暂时不能做的分开，今晚不必把每件事都解决。", "action": "今晚先放下", "alt": "在月光下暂时安放担心" },
-        "support": { "title": "需要真人支持时知道找谁", "text": "当状态持续影响学习、工作或生活，可以按紧急程度找到更合适的支持。", "action": "看看下一步找谁", "alt": "逐步连接合适支持的路径" }
+        "support": { "title": "需要真人支持时知道找谁", "text": "当状态持续影响学习、工作或生活，可以按紧急程度找到更合适的支持。", "action": "查看支持方式", "alt": "逐步连接合适支持的路径" }
       }
     },
-    "peerSpace": { "label": "受邀成年人试点", "previewStatus": "界面预览", "title": "解忧室", "description": "有人值守时，和其他成年学生实时聊聊。学校默认隐藏，你可以用房间昵称或匿名参与。", "action": "进入解忧室" },
+    "peerSpace": { "label": "受邀成年人试点", "previewStatus": "界面预览", "title": "解忧室", "description": "有人值守时，和其他成年学生实时聊聊。学校默认隐藏，你可以用房间昵称或匿名参与。", "action": "有邀请？进入解忧室" },
     "independence": {
       "confirmation": { "label": "独立确认", "title": "已满 18 岁，可以自己确认", "text": "登录后只需选择“已满 18 岁”，阅读数据说明并确认，不需要监护人同意，也不要求加入学校。" },
-      "records": { "label": "你的记录", "title": "默认只有你能看到", "text": "未加入学校时，学校和老师无法查看。你可以导出、删除单条记录，也可以注销账户。" },
-      "baseline": { "label": "看自己的基线", "title": "大学生活习惯不等于心理异常", "text": "晚睡、晚起、吃外卖或作息不固定在大学阶段并不少见。不要只凭一种习惯下结论；更值得留意的是它是否明显偏离你自己的常态，并持续影响精力、学习、工作、关系或基本生活。" },
-      "boundary": { "label": "使用边界", "title": "它不是诊断或急救服务", "text": "如果你正面临伤害自己或他人的即时危险，请立即联系家人、老师或其他能够到场的可信任成年人，并拨打当地急救或报警电话。" }
+      "records": { "label": "你的记录", "title": "谁能看我的记录？", "text": "私人 SWEET 记录只对你本人显示。你可以在账户中回看、导出或按日删除。" },
+      "baseline": { "label": "看自己的基线", "title": "作息变了，怎么理解？", "text": "晚睡、晚起、吃外卖都可能是生活的一部分。不要只凭一种习惯下结论。先看看它和你平时有什么不同，有没有影响你在意的事。" },
+      "boundary": { "label": "使用边界", "title": "如果现在就需要帮助", "text": "如果你正面临伤害自己或他人的即时危险，请立即联系家人、老师或其他能够到场的可信任成年人，并拨打当地急救或报警电话。" }
     },
     "teens": { "title": "正在参加 14 岁及以上学生自主试用？", "description": "学生可先使用个人记录与支持工具；没有有效关系时，家长、老师和学校不能查看。", "action": "回到青少年入口" }
   },
@@ -488,11 +491,11 @@
     },
     "closed": {
       "label": "正式咨询",
-      "title": "服务正在准备中，暂未正式开放",
-      "description": "正式一对一咨询仍在内部测试和人工值班准备阶段。你可以先使用自我记录、受邀同伴空间或现有支持转介路径。",
+      "title": "暂时不能预约咨询",
+      "description": "如果想找人聊聊，可以查看校内外的支持方式。你也可以继续自己的记录。",
       "record": "自我记录",
       "peer": "受邀同伴空间",
-      "referral": "查看转介与真人支持"
+      "referral": "找人聊聊"
     },
     "portal": {
       "youthLabel": "14–17 岁支持",
@@ -543,7 +546,7 @@
       },
       "complaint": "我有不适或投诉需要人工查看",
       "comment": "补充意见（可选）",
-      "feedbackSubmit": "提交受限反馈",
+      "feedbackSubmit": "提交我的反馈",
       "feedbackSaved": "反馈已保存，仅授权人员可查看。",
       "feedbackDone": "已提交反馈"
     }
@@ -832,7 +835,7 @@
       }
     },
     "messages": {
-      "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "网络连接不稳定，请检查网络后重新保存。", "saveFailed": "这次没有保存成功，请稍后再试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "小结暂时没有生成。你仍然可以先保存这次记录，稍后再试。"
+      "selectRequired": "请先选择一个最接近今天状态的选项。", "sessionExpired": "登录状态已过期，请重新登录后再保存。", "permissionDenied": "当前账号暂时没有保存权限，请联系学校负责人或平台管理员。", "networkError": "网络连接不稳定，请检查网络后重新保存。", "saveFailed": "这次没有保存成功，请稍后再试。", "completeBeforeSave": "请先完成五个 SWEET 维度的必要记录，再保存。", "alreadySaved": "这次 SWEET 记录已经保存过了。", "signInToSave": "请先登录，再保存这次记录。", "saved": "已保存，可以在“账号”中查看。", "summaryFailed": "这次没有完成小结，请稍后再试。", "completeBeforeGenerate": "请先完成五个 SWEET 维度的必要记录，再生成回应。", "responseUnavailable": "暂时无法生成回应，请稍后再试。", "completeRequired": "请先完成五个 SWEET 维度的必要记录。", "summaryUnavailableSaveAllowed": "暂时无法生成小结。你的答案还在，也可以点「先保存记录」。"
     },
     "actions": { "previous": "上一步", "next": "下一步", "generatingAndSaving": "正在生成并保存...", "generateAndSave": "生成小结并保存", "retrying": "正在重试...", "regenerate": "重新生成", "saving": "正在保存...", "saveFirst": "先保存记录", "savedToAccount": "已保存到账号", "saveToAccount": "保存到账号", "openMoodJournal": "打开心情拼图", "openWorryTime": "今晚先放下", "viewReferral": "查看支持路径", "reset": "重新填写" },
     "result": { "title": "本次 SWEET 节律小结", "imageAlt": "把记录整理成清晰小结的插画", "affectedAreas": "按固定规则整理的关注维度：{{areas}}", "rhythmClue": "按固定规则整理的节律线索", "smallStep": "可自行选择的小行动", "nextTool": "可自行选择的下一步", "disclaimer": "AI 只整理你本次明确填写的内容；关注维度和可选步骤来自固定规则。两者都不是评估、诊断或专业建议，请以你的原始记录为准。" }
@@ -849,14 +852,17 @@
         "unclear": { "title": "模糊类", "words": { "unclear": "说不清", "messy": "很乱", "numb": "麻木", "tired": "累" } }
       }
     },
-    "reflection": { "title": "引导式整理", "description": "这些问题只是帮助你整理今天的状态，不是测试，也不是正式评估。", "context": "这件事发生在什么情境里？", "body": "当时你身体有什么感觉？", "understanding": "你最想被别人理解的一点是什么？", "support": "现在你希望自己先得到什么支持？" },
+    "reflection": { "title": "引导式整理", "description": "这些问题只是帮助你整理今天的状态，不是测试，也不是正式评估。", "context": "这件事发生在什么情境里？", "body": "当时你身体有什么感觉？", "understanding": "你最想被别人理解的一点是什么？", "support": "现在你希望自己先得到什么支持？",
+      "label": "整理感受" },
     "starters": {
       "title": "可以直接说的话", "description": "不用说得很完整。选一句最接近你现在感受的话，向家长、老师或可信任的人开口。",
       "default": { "confused": "我现在有点乱，能先听我慢慢说吗？", "listen": "你先听我说完，可以吗？", "tired": "我最近真的有点累，能先陪我一下吗？", "stuck": "我不是不想做，是现在有点不知道怎么开始。" },
       "context": { "task": "我不是不想做，是现在有点不知道怎么开始。能陪我先拆小一点吗？", "unclear": "我现在有点乱，还没想好怎么说。你能先听听吗？", "conflict": "你先听我说完，可以吗？我现在还不太需要建议。" }
     },
-    "messages": { "completeRequired": "请先完成必要问题，再生成回应。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "暂时无法生成回应，请稍后再试。" },
-    "actions": { "organizing": "正在整理，请稍等……", "organize": "整理我的感受", "changeStarter": "换一条表达句式", "hideStarters": "收起其他句式", "showStarters": "查看其他句式" },
+    "messages": { "completeRequired": "请先完成必要问题，再生成回应。", "connectionFailed": "这次没有连接成功，请稍后再试。", "responseUnavailable": "这次没能整理出来。草稿还在，你可以继续修改或找人聊聊。" },
+    "actions": { "organizing": "正在整理，请稍等……", "organize": "整理我的感受", "changeStarter": "换一条表达句式", "hideStarters": "收起其他句式", "showStarters": "查看其他句式",
+      "backToGarden": "回到花园",
+      "continueEditing": "继续编辑" },
     "result": { "title": "回看你刚才写下的内容", "emotions": "AI 辅助记录小结", "support": "你明确写下的支持偏好", "expression": "由你决定是否使用的表达模板", "smallStep": "这次整理的范围", "disclaimer": "AI 小结可能出错，也可能遗漏信息；如不符合原意，请以你自己的原始记录为准。" }
   },
   "talk": {
@@ -883,7 +889,7 @@
   },
   "referral": {
     "metadata": { "title": "下一步找谁 | YouthTempo" },
-    "hero": { "title": "下一步找谁", "description": "当自己整理还不够时，用几道题整理一个起点：可以继续使用自助工具、告诉家长或老师，或连接更多支持。这里不会判断你的心理状态。", "imageAlt": "穿过自然山丘、逐步靠近支持的路径插画" },
+    "hero": { "title": "下一步找谁", "description": "已经知道想找谁，可以直接去。还拿不准，也可以回答下面几个问题。", "imageAlt": "穿过自然山丘、逐步靠近支持的路径插画" },
     "flow": { "select": "选择当前状态", "generate": "整理支持路径", "view": "查看下一步入口", "step": "第 {{number}} 步", "completed": "已完成" },
     "questions": {
       "multiInstruction": "可多选",
@@ -903,7 +909,7 @@
     "links": { "moodJournal": "心情拼图", "worryTime": "今晚先放下", "checkIn": "SWEET花园", "messages": "悄悄话信箱", "tellAdult": "告诉老师或家长" },
     "ruleBased": { "label": "规则化支持路径 · 非 AI 生成", "description": "结果只根据结构化选项和固定版本规则生成，不对你评分或诊断，补充文字不会交给 AI 判断。" },
     "result": { "label": "支持建议", "title": "你的下一步支持路径", "answerSummary": "{{question}}：{{answers}}", "noSelection": "你还没有选择当前状态。", "path": "建议路径", "reason": "为什么这样建议", "howToStart": "可以怎么开始", "fallbackStarter": "“我最近有点卡住，不一定需要马上解决，但我想先让你知道。”", "links": "推荐入口" },
-    "direct": { "title": "你也可以直接让一个人知道", "description": "不必先完成所有问题。可以把现在最想说的一句话写给老师或家长。", "action": "打开悄悄话信箱" }
+    "direct": { "title": "直接找人聊聊", "description": "不用先回答问题。你可以当面找信任的人，也可以打开信箱，看看能给谁写留言。", "action": "打开悄悄话信箱" }
   },
   "resources": {
     "metadata": { "title": "家校陪伴指南 | YouthTempo" },
@@ -959,7 +965,7 @@
       "adult": { "heroDescription": "你正在按成年人身份独立使用。无需学校或家长加入，记录默认只用于你自己回看。", "title": "按自己的生活基线理解记录，而不是套用中学生作息", "description": "晚睡、晚起、吃外卖或作息不固定本身不代表心理异常。可以先看这些变化是否偏离你平时的状态，是否持续影响精力、学习、工作、关系或基本生活；需要真人帮助时，再选择校园资源、社区服务或合格专业人员。", "primaryAction": "查看独立使用说明", "secondaryAction": "查看支持路径" }
     },
     "consent": {
-      "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "SWEET 回答、AI 小结和“想说的话”可能包含敏感生活与健康信息。我们只用于提供节律整理和适用的支持，不用于广告或公开展示；学生可随时撤回。没有有效关系时，家长、老师和学校不能查看。完整说明见", "privacyLink": "隐私与安全", "sentenceEnd": "。",
+      "label": "使用前确认", "title": "先了解哪些内容会被保存、谁可以看到", "description": "你主动保存的 SWEET 回答和小结会进入个人历史。记录和留言可能含敏感生活与健康信息，用于你选择的记录、整理和沟通，不用于广告或公开展示。你可以在账户中撤回确认。", "privacyLink": "隐私与安全", "sentenceEnd": "。",
       "activeTitle": "已完成知情确认", "adultActive": "你已按成年人身份独立确认。无需学校或监护人加入，可以保存 SWEET 记录并使用个人支持工具。", "minorSelfActive": "你已按学生自主试用方式完成本人单独确认，可以生成 AI 小结、保存记录并使用个人支持工具；这不代表监护人或学校已经确认。", "minorActive": "学生与监护人确认已经完成，可以保存 SWEET 记录、发送留言和参与社区发布。", "policyVersion": "当前版本：{{version}}。", "withdraw": "撤回确认",
       "pendingTitle": "学生确认已完成，等待监护人确认", "askGuardian": "请已关联家长登录自己的账户完成确认。", "noGuardian": "当前还没有学校确认的监护人关联，请联系学校负责人。", "withdrawStudent": "撤回学生确认", "ineligible": "当前自主试用仅接收 14 岁及以上学生。未满 14 岁暂时不能参加。",
       "ageRange": "你的年龄范围（不收集具体生日）", "age14to17": "14–17 岁", "age18Plus": "已满 18 岁", "ageUnder14": "未满 14 岁", "acknowledgement": "我已阅读说明，理解可能处理敏感生活与健康信息、AI 用途、保存方式、谁能查看以及如何撤回，并单独同意按说明处理这些信息。", "completeStudent": "完成学生确认",
@@ -1007,7 +1013,7 @@
   },
   "privacySafety": {
     "metadata": { "title": "隐私与安全 | YouthTempo" },
-    "hero": { "title": "隐私与安全", "description": "只保存提供服务所需要的信息，并按用户身份限制记录的可见范围。" },
+    "hero": { "title": "隐私与安全", "description": "了解谁能看到你的记录、AI 什么时候会收到内容，以及怎样导出或删除数据。" },
     "principles": {
       "title": "你可以怎么保护自己的信息", "description": "这里说明会保存什么、谁能看到，以及需要帮助或想删除数据时可以怎么做。",
       "noLabels": { "title": "不贴标签", "text": "平台记录的是生活节律和支持需求，不把年轻人简单归类为“有问题”或“没问题”。" },
@@ -1032,10 +1038,10 @@
     },
     "consent": {
       "title": "学生自主试用知情确认", "description": "YouthTempo 当前自主试用面向 14 岁及以上学生。14–17 岁学生可在充分了解敏感信息与 AI 处理方式后由本人单独确认，不需要学校、老师或监护人加入。",
-      "student": { "title": "学生本人单独确认", "text": "学生阅读数据范围、用途、AI 处理、可能的可见角色和撤回方式，只选择年龄范围，不填写具体生日。确认后可以生成 AI 小结并保存本人记录。" },
-      "guardian": { "title": "关系不会自动建立", "text": "学生自主试用由本人确认，不会创建任何关系。当前不开放家长查看孩子的私人记录，新的学校报告也尚未正式开放。未来开放时，会另行完成适用确认，并说明负责老师可见的趋势、学生可选的详细分享及退出安排。" },
-      "summary": { "title": "每次使用 AI 前再确认", "text": "SWEET 节律记录和心情拼图在发送必要内容给 AI 生成记录小结前，会显示处理说明和版本号，并要求用户主动勾选。今晚先放下和下一步找谁使用固定规则，不调用 AI；陪我捋一捋在首轮学校试点期间关闭。固定紧急安全提示也不依赖 AI，不会等待这项确认。" },
-      "withdraw": { "title": "随时可以撤回", "text": "学生可在账户页撤回自主试用确认；撤回后不能继续保存新记录、发送留言或在社区发布。" },
+      "student": { "title": "学生本人单独确认", "text": "只需选择年龄段，无需填写生日。阅读数据用途、可见范围和撤回方式后，由你决定是否确认。保存 SWEET 不需要使用 AI。" },
+      "guardian": { "title": "关系不会自动建立", "text": "本人确认不会自动关联家长或学校。家长不能查看孩子的私人记录，新的学校报告暂未开放。" },
+      "summary": { "title": "每次使用 AI 前再确认", "text": "SWEET 节律记录和心情拼图会在把内容发给 AI 前征求你的同意。今晚先放下和下一步找谁使用固定规则，不调用 AI。陪我捋一捋当前关闭。紧急求助无需同意使用 AI。" },
+      "withdraw": { "title": "随时可以撤回", "text": "你可以随时在账户里撤回确认。撤回后，保存新记录、发送留言和在社区发帖会暂停。" },
       "coverage": { "title": "同意覆盖什么", "text": "账号资料、SWEET 日常节律回答、AI 辅助记录小结、规则化工具结果、“想说的话”、社区发布内容，以及为限定学校、老师和监护人可见范围所需的关联信息。不会要求填写身份证号或具体出生日期。" },
       "afterWithdrawal": { "title": "撤回后会怎样", "text": "撤回后，学生不能继续保存新记录、发送留言或在社区发布。原收件老师暂时无法在信箱和新导出中读取这些留言。学生仍可查看、下载或逐条删除自己的内容，也可以注销账号并删除关联数据。" },
       "legalPrefix": "法律要求基于同意处理个人信息时做到充分知情、自愿明确、便捷撤回；医疗健康等敏感个人信息需要单独同意，不满 14 周岁未成年人的个人信息需要监护人同意。当前自主试用不接收未满 14 岁用户；正式学校试点前将重新审核适用的学生与监护人确认。查看"
@@ -1119,16 +1125,16 @@
   },
   "messages": {
     "metadata": { "title": "悄悄话信箱 | YouthTempo" },
-    "visitor": { "hero": { "title": "悄悄话信箱", "description": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" }, "loading": "正在加载…", "title": "登录后使用这个功能", "description": "这样才能确认你可以写给谁，或查看哪些话。", "action": "前往登录" },
-    "member": { "hero": { "title": "悄悄话信箱", "studentDescription": "有些话不容易当面说，可以先写给试点值班负责人、已分配老师或自己。", "minorStudentDescription": "有些话不容易当面说，可以写给已分配老师或留给自己；也可以另行选择联系试点值班负责人。当前试点不创建家长收件关系。", "adultStudentDescription": "你可以把话留给自己、写给已分配老师，或另行选择联系试点值班负责人。成年人独立使用不包含家长收件流程。", "supporterDescription": "在这里查看学生认真写下、希望你知道的话。", "action": "返回工作台", "imageAlt": "装着一封信的绿色悄悄话信箱插画" } },
-    "compose": { "title": "先写下来，再决定给谁看", "description": "你可以主动联系试点值班负责人；这不是实时急救服务。写给老师时可以匿名。", "recipientType": "写给谁", "recipientOptions": { "self": "写给自己", "pilotDuty": "试点值班负责人", "teacher": "写给老师", "guardian": "写给家长" }, "recipient": "收件人", "selectRecipient": "请选择", "message": "想说的话", "placeholder": "不用组织得很完整，先写下最想让对方知道的事情。", "anonymousDescription": "对老师匿名。只有出现明确安全危险时，获授权的学校负责人才能确认来源。", "dutyDisclosureEmail": "这段话会进入受权限保护的值班队列，并给试点值班负责人发送一封不含正文和身份信息的邮件提醒。值班负责人不会实时在线；紧急时不要等待回复。", "dutyDisclosureQueue": "这段话会进入受权限保护的值班队列。邮件提醒当前未确认可用；紧急时不要等待回复。", "safetyDisclosure": "如果内容涉及明确的安全危险，获授权的值班负责人或学校负责人可以查看来源并跟进。", "sending": "正在送出…", "saveForSelf": "保存给自己", "sendToDuty": "发送给值班负责人", "send": "送出这段话" },
+    "visitor": { "hero": { "title": "悄悄话信箱", "description": "你可以把话留给自己，或写给信箱里列出的收件人。", "action": "在这里登录", "imageAlt": "装着一封信的绿色悄悄话信箱插画" }, "loading": "正在加载…", "title": "登录后使用这个功能", "description": "这样才能确认你可以写给谁，或查看哪些话。", "action": "前往登录" },
+    "member": { "hero": { "title": "悄悄话信箱", "studentDescription": "可以把话留给自己，也可以写给下方列出的收件人。", "minorStudentDescription": "可以写给自己或目前负责你的老师。收件人里没有家长；你写的内容不会自动发给家长。", "adultStudentDescription": "可以把话留给自己，也可以从下方选择收件人。不会自动发给家长。", "supporterDescription": "在这里查看学生认真写下、希望你知道的话。", "action": "我的账户", "imageAlt": "装着一封信的绿色悄悄话信箱插画" } },
+    "compose": { "title": "先写下来，再决定给谁看", "description": "先看收件人，再决定要不要发送。写给老师时可以匿名。如果现在就需要帮助，请直接联系身边能到场的人。", "recipientType": "写给谁", "recipientOptions": { "self": "写给自己", "pilotDuty": "试点值班负责人", "teacher": "写给老师", "guardian": "写给家长" }, "recipient": "收件人", "selectRecipient": "请选择", "message": "想说的话", "placeholder": "不用组织得很完整，先写下最想让对方知道的事情。", "anonymousDescription": "对老师匿名。只有出现明确安全危险时，获授权的学校负责人才能确认来源。", "dutyDisclosureEmail": "这段话会进入受权限保护的值班队列，并给试点值班负责人发送一封不含正文和身份信息的邮件提醒。值班负责人不会实时在线；紧急时不要等待回复。", "dutyDisclosureQueue": "这段话会进入受权限保护的值班队列。邮件提醒当前未确认可用；紧急时不要等待回复。", "safetyDisclosure": "如果内容涉及明确的安全危险，获授权的值班负责人或学校负责人可以查看来源并跟进。", "sending": "正在送出…", "saveForSelf": "保存给自己", "sendToDuty": "发送给值班负责人", "send": "送出这段话" },
     "lists": { "sentTitle": "我写过的话", "safetyTitle": "需要安全跟进的话", "receivedTitle": "收到的话", "sentEmpty": "你写下并保存或送出的话，会显示在这里。", "receivedEmpty": "目前还没有收到新的内容。", "anonymousToTeacher": "对老师匿名", "reviewSoon": "请尽快了解", "senderAnonymous": "这名学生选择了对老师匿名。" },
     "notices": { "noTeacher": "学校还没有为你安排负责老师。", "noGuardian": "学校还没有确认关联家长。", "safetySent": "这段话已经送出。请立即联系家长、老师或其他身边可信任的成年人，请对方陪着你；如有即时危险，请拨打 110 或 120。", "safetyDutyAlerted": "这段话已进入值班队列，值班负责人也收到了不含正文的邮件提醒。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120，不要等待回复。", "safetyDutyQueued": "这段话已进入值班队列，但邮件提醒尚未确认送达。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120，不要等待回复。", "safetyPrivate": "这段话已保存，但没有确认由真人实时查看。请立即联系身边可信任的成年人；如有即时危险，请拨打 110 或 120。", "dutyAlerted": "已经进入值班队列，值班负责人也收到了不含正文的邮件提醒。这个入口不是实时服务；紧急时不要等待回复。", "dutyQueued": "已经进入值班队列，但邮件提醒尚未确认送达。这个入口不是实时服务；紧急时不要等待回复。", "savedForSelf": "已经替你保存下来。", "sent": "已经送出。" },
     "errors": { "loadFailed": "暂时无法加载想说的话。", "sendFailed": "暂时无法发送，请稍后再试。" }
   },
   "gardenWelcome": {
     "title": "先看看花园，再决定是否记录",
-    "description": "这里是一个观察自己、照顾日常节奏的小庭院。可以先看看池塘、长椅和小鸟，准备好后再留下记录。",
+    "description": "记一笔今天的心情，看看花园怎么长。你也可以先整理感受，或找人聊聊。",
     "preview": "庭院预览 · 不保存记录",
     "enter": "SWEET花园",
     "guide": "花园怎么玩",
@@ -1298,8 +1304,8 @@
   "ageWorkspace": {
     "label": "我的路径",
     "minor": {
-      "title": "14–17 岁：把支持放在身边",
-      "description": "先记录，再选择可信任的人和资源。家、校、医、社是现实支持网络；平台内审核社区是另一处安全表达空间。",
+      "title": "今天想做什么？",
+      "description": "可以只记一点，也可以直接找人聊聊。",
       "cards": {
         "quick": {
           "title": "记录一下现在的状态",
@@ -1334,8 +1340,8 @@
       }
     },
     "adult": {
-      "title": "18–25 岁：按自己的节奏选择支持",
-      "description": "成年人独立使用，不建立监护关系。主题聊天室仅向受邀且符合资格的人开放。",
+      "title": "今天想做什么？",
+      "description": "选择你现在需要的。",
       "cards": {
         "room": {
           "title": "进入主题聊天室",
@@ -1364,5 +1370,40 @@
         }
       }
     }
+  },
+  "inlineConsent": {
+    "aiSeparate": "是否让 AI 整理由你另选。只有你勾选并提交后，才会发送本次所需内容。",
+    "checkStatus": "核对确认结果",
+    "chooseAge": "请选择年龄范围",
+    "closeDialog": "稍后再说，返回填写",
+    "consentNeeded": "请先阅读并完成本页的知情确认。",
+    "continueHint": "准备好后，再点你想做的事。",
+    "description": "保存的内容可能涉及你的生活与健康。先看看用途和谁能看到，再决定是否同意。",
+    "detailsTitle": "查看用途、保存和可见范围",
+    "draftNotice": "离开或刷新页面前，请留意尚未保存的内容。",
+    "loadFailed": "暂时读不到你的确认状态，请再核对一次。",
+    "loading": "正在确认你的使用状态…",
+    "notStudent": "这项学生使用确认不适用于当前账号。你可以返回自己的账户，查看适用功能。",
+    "profileRequired": "请先完善账号资料，再完成使用确认。",
+    "ready": "你已完成知情确认。",
+    "retry": "重新确认状态",
+    "schoolReports": "私人 SWEET 记录由你本人查看。发给老师的留言，只有收件老师在仍负责你且获授权时可读。新的学校报告暂未开放。",
+    "signInNote": "在这里登录就能继续。你填写的内容会留在本页。",
+    "signingIn": "正在登录…",
+    "submitUnknown": "还不能确定上次是否已确认。先核对结果即可。",
+    "title": "使用前的知情确认",
+    "recheck": "重新打开花园"
+  },
+  "studentActions": {
+    "label": "我想做什么",
+    "record": "记录今天",
+    "reflect": "整理感受",
+    "talk": "找人聊聊",
+    "more": "更多工具",
+    "countRule": "按北京时间，同一天记几次都算一天。隔几天再来，也会接着累计。",
+    "adultSupport": "直接找人聊聊",
+    "adultSupportBody": "可以先找信任的朋友、同伴，或联系社区服务和校外专业人员。如果你在读，也可以选择校园支持。",
+    "consultationAvailability": "这里可以查看支持方式，目前还不能预约新的咨询。",
+    "saveOnly": "先保存记录"
   }
 }

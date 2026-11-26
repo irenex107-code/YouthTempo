@@ -5,9 +5,8 @@ import { useRouter } from "next/router";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { navItems } from "@/data/site";
 import { useTranslation } from "@/lib/i18n/client";
+import { signOut } from "@/lib/cloudRecords";
 import { getSupabase } from "@/lib/supabaseClient";
-
-const roleEntryHrefs = new Set(["/for-young-people", "/for-parents", "/for-teachers"]);
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
   let timeoutId: number | undefined;
@@ -31,6 +30,10 @@ export function Navbar() {
   const [signedIn, setSignedIn] = useState(false);
   const [accountName, setAccountName] = useState("");
   const [accountRole, setAccountRole] = useState("");
+  const [leaving, setLeaving] = useState(false);
+  const [exitFailed, setExitFailed] = useState(false);
+  const displayedUser = useRef("");
+  const signingOut = useRef(false);
   const refreshVersionRef = useRef(0);
 
   useEffect(() => {
@@ -59,6 +62,13 @@ export function Navbar() {
       }
 
       if (!mounted || refreshVersion !== refreshVersionRef.current) return;
+      const actor = activeSession?.user.id || "";
+      if (displayedUser.current !== actor) {
+        setAccountName("");
+        setAccountRole("");
+        setExitFailed(false);
+        displayedUser.current = actor;
+      }
       if (!activeSession) {
         setSignedIn(false);
         setAccountName("");
@@ -113,6 +123,30 @@ export function Navbar() {
     };
   }, []);
 
+  async function leaveAccount() {
+    const actor = displayedUser.current;
+    if (!actor || signingOut.current) return;
+    signingOut.current = true;
+    setLeaving(true);
+    setExitFailed(false);
+    try {
+      await signOut(actor);
+      if (!displayedUser.current || displayedUser.current === actor) {
+        window.location.replace(router.locale === "en" ? "/en/account?signedOut=1" : "/account?signedOut=1");
+      }
+    } catch {
+      setExitFailed(true);
+    } finally {
+      signingOut.current = false;
+      setLeaving(false);
+    }
+  }
+
+  const signOutButton = authReady && signedIn ? (
+    <button type="button" className="button-secondary px-3 py-2 text-sm" disabled={leaving} onClick={leaveAccount}>
+      {t(leaving ? "common.navbar.account.signingOut" : "account.actions.signOut")}
+    </button>
+  ) : null;
   const accountLabel = signedIn
     ? accountName
       ? t("common.navbar.account.greetingWithName", { name: accountName })
@@ -126,26 +160,8 @@ export function Navbar() {
         : accountRole === "支持老师"
           ? { href: "/account#students", label: t("common.navbar.actions.myStudents"), mobileLabel: t("common.navbar.actions.myStudents") }
           : accountRole === "家长"
-            ? { href: "/account#records", label: t("common.navbar.actions.childRecords"), mobileLabel: t("common.navbar.actions.childRecords") }
+            ? { href: "/for-parents", label: t("common.navbar.nav.forParents"), mobileLabel: t("common.navbar.nav.forParents") }
             : { href: "/garden", label: t("common.navbar.actions.startSweet"), mobileLabel: t("common.navbar.actions.recordToday") };
-  const roleEntryHref =
-    accountRole === "学生"
-      ? "/for-young-people"
-      : accountRole === "家长"
-        ? "/for-parents"
-        : accountRole === "支持老师" || accountRole === "学校负责人"
-          ? "/for-teachers"
-          : null;
-  const visibleNavItems = !authReady
-    ? navItems.filter((item) => !roleEntryHrefs.has(item.href))
-    : !signedIn
-      ? navItems
-      : accountRole === "平台管理员"
-        ? navItems
-      : navItems.filter(
-          (item) => !roleEntryHrefs.has(item.href) || item.href === roleEntryHref,
-        );
-
   return (
     <header className="sticky top-0 z-30 border-b border-ink/[0.07] bg-cream/88 shadow-[0_8px_30px_rgba(32,51,47,0.04)] backdrop-blur-xl">
       <div className="px-4 sm:px-8 lg:px-12">
@@ -153,8 +169,8 @@ export function Navbar() {
           <Link href="/" className="shrink-0 text-[1.2rem] font-black tracking-[-0.035em] text-ink transition hover:text-sage-dark" aria-label={t("common.navbar.homeAria")}>
             YouthTempo
           </Link>
-          <nav className="hidden items-center gap-4 text-sm font-bold text-ink/80 xl:flex xl:gap-5">
-            {visibleNavItems.map((item) => (
+          <nav className="hidden items-center gap-1 text-sm font-bold text-ink/80 xl:flex xl:gap-2">
+            {navItems.map((item) => (
               <Link key={item.href} href={item.href} className={`whitespace-nowrap rounded-lg px-2.5 py-2 transition ${router.pathname === item.href ? "bg-mist text-sage-dark" : "hover:bg-white/70 hover:text-sage-dark"}`}>
                 {t(item.labelKey)}
               </Link>
@@ -173,6 +189,7 @@ export function Navbar() {
             ) : (
               <span className="h-9 w-28 animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
             )}
+            {signOutButton}
             <Link href={primaryAction.href} className="button-primary px-4 py-2 text-xs sm:px-5">
               {primaryAction.label}
             </Link>
@@ -202,7 +219,20 @@ export function Navbar() {
         {menuOpen ? (
           <div className="container pb-4 xl:hidden">
             <nav className="grid gap-2 rounded-[1.5rem] border border-ink/10 bg-paper/95 p-3 shadow-soft">
-              {visibleNavItems.map((item) => (
+              <div className="grid gap-2 border-b border-ink/10 pb-3">
+                {authReady ? (
+                  <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
+                    {accountLabel}
+                  </Link>
+                ) : (
+                  <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
+                )}
+                {signOutButton}
+                <Link href={primaryAction.href} className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
+                  {primaryAction.label}
+                </Link>
+              </div>
+              {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -212,21 +242,11 @@ export function Navbar() {
                   {t(item.labelKey)}
                 </Link>
               ))}
-              <div className="mt-1 grid gap-2 border-t border-ink/10 pt-3">
-                {authReady ? (
-                  <Link href="/account" className="button-secondary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
-                    {accountLabel}
-                  </Link>
-                ) : (
-                  <span className="h-11 w-full animate-pulse rounded-full bg-ink/5" aria-label={t("common.navbar.loadingAccount")} />
-                )}
-                <Link href={primaryAction.href} className="button-primary w-full px-4 py-2.5 text-sm" onClick={() => setMenuOpen(false)}>
-                  {primaryAction.label}
-                </Link>
-              </div>
+
             </nav>
           </div>
         ) : null}
+        {exitFailed ? <p role="alert" className="container pb-3 text-sm">{t("common.navbar.account.exitFailed")}</p> : null}
       </div>
     </header>
   );

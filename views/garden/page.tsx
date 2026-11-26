@@ -1,5 +1,9 @@
 import { GardenGuide, GardenWelcome } from "@/components/garden/GardenWelcome";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { StudentActions } from "@/components/StudentActions";
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { useInlineStudentConsent } from "@/lib/useInlineStudentConsent";
 import { type FormEvent, useEffect, useState } from "react";
 import { GardenActionDock } from "@/components/garden/GardenActionDock";
 import { GardenCareSheet } from "@/components/garden/GardenCareSheet";
@@ -11,7 +15,6 @@ import { GardenScene, type GardenSceneInteraction } from "@/components/garden/Ga
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import {
   deleteGardenKeepsake,
-  getCurrentUser,
   getTempoGarden,
   saveGardenCare,
   saveGardenKeepsake,
@@ -32,18 +35,40 @@ function introStorageKey(userId: string) {
 }
 
 export default function GardenPage() {
+  const consent = useInlineStudentConsent();
+  const router = useRouter();
+  if (consent.studentReady) {
+    return <PrivateGarden key={consent.userId} userId={consent.userId}
+      adult={consent.summary?.consent?.ageBand === "18_plus"} onAccessDenied={() => void consent.refresh()} />;
+  }
+  const adult = router.query.audience === "adult";
+  return (
+    <main>
+      <GardenWelcome adult={adult}>
+        <div id="garden-access" className="my-5 scroll-mt-24">
+          <InlineStudentConsent controller={consent} studentOnly />
+        </div>
+      </GardenWelcome>
+    </main>
+  );
+}
+
+function PrivateGarden({ userId, adult, onAccessDenied }: {
+  userId: string;
+  adult: boolean;
+  onAccessDenied: () => void;
+}) {
   const { locale, t } = useTranslation();
   const [data, setData] = useState<TempoGardenData | null>(null);
   const [feeling, setFeeling] = useState<GardenFeeling | "">("");
+  const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [signedOut, setSignedOut] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingPreference, setSavingPreference] = useState(false);
   const [savingInteraction, setSavingInteraction] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [feedbackTrigger, setFeedbackTrigger] = useState(0);
-  const [introUserId, setIntroUserId] = useState("");
   const [showIntro, setShowIntro] = useState(false);
   const [introStep, setIntroStep] = useState(0);
   const [activeSheet, setActiveSheet] = useState<GardenSheetName>(null);
@@ -59,20 +84,13 @@ export default function GardenPage() {
     let active = true;
     setLoading(true);
     setData(null);
-    setSignedOut(false);
     setError("");
-    getCurrentUser()
-      .then(async (user) => {
-        if (!user) {
-          if (active) setSignedOut(true);
-          return;
-        }
-        const garden = await getTempoGarden(locale);
+    getTempoGarden(locale)
+      .then((garden) => {
         if (!active) return;
-        setIntroUserId(user.id);
         let introSeen = false;
         try {
-          introSeen = window.localStorage.getItem(introStorageKey(user.id)) === "seen";
+          introSeen = window.localStorage.getItem(introStorageKey(userId)) === "seen";
         } catch {
           // A blocked browser store should not hide the garden.
         }
@@ -81,20 +99,16 @@ export default function GardenPage() {
       })
       .catch((caught) => {
         if (!active) return;
-        if (caught instanceof TempoGardenRequestError && caught.status === 401) {
-          setSignedOut(true);
-          return;
-        }
         setError(t(caught instanceof TempoGardenRequestError && caught.status === 403
           ? "garden.status.restricted" : "garden.status.unavailable"));
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [locale, t]);
+  }, [userId, locale, t, reload]);
 
   function finishIntro(openRecord = false) {
     try {
-      window.localStorage.setItem(introStorageKey(introUserId), "seen");
+      window.localStorage.setItem(introStorageKey(userId), "seen");
     } catch {
       // The garden remains usable if browser storage is unavailable.
     }
@@ -228,8 +242,6 @@ export default function GardenPage() {
     }
   }
 
-  if (signedOut) return <main><GardenWelcome /></main>;
-
   return (
     <main className="garden-page">
       <div className="container min-w-0 py-5 sm:py-8">
@@ -239,7 +251,8 @@ export default function GardenPage() {
         </div>
 
         {loading ? <div className="garden-loading" role="status">{t("garden.status.loading")}</div> : null}
-        {signedOut ? <div className="garden-message"><Link href="/account" className="button-primary">{t("garden.status.signIn")}</Link></div> : null}
+        <StudentActions adult={adult} recordDisabled={!data} onRecord={() => setActiveSheet("record")} />
+        {error && !data ? <div id="garden-access"><button type="button" onClick={() => { onAccessDenied(); setReload((count) => count + 1); }} className="button-secondary">{t("inlineConsent.recheck")}</button></div> : null}
         {error ? <p role="alert" className="garden-message">{error}</p> : null}
 
         <details className="mb-5 rounded-2xl border border-sage/20 p-4">
@@ -272,7 +285,7 @@ export default function GardenPage() {
                 </div>
               ) : undefined}
             />
-            <GardenActionDock onRecord={() => setActiveSheet("record")} onCare={() => setActiveSheet("care")} onLayout={() => setActiveSheet("layout")} />
+            <GardenActionDock onCare={() => setActiveSheet("care")} onLayout={() => setActiveSheet("layout")} />
 
             {notice ? <p role="status" className="garden-notice">{notice}</p> : null}
             <GardenFactsPanel data={data} savingPreference={savingPreference} onReminderChange={updateReminder} onOpenKeepsakes={() => setActiveSheet("keepsakes")} />

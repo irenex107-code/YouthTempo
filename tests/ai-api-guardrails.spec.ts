@@ -1,3 +1,4 @@
+import { syntheticInlineConsent } from "./fixtures/synthetic-inline-consent";
 import { expect, test } from "@playwright/test";
 import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
 
@@ -137,7 +138,8 @@ test("一次性 AI 工具用固定安全提示替代普通生成结果", async (
   await expect(page.getByRole("heading", { name: "把现在的感受说清一点" })).toHaveCount(0);
 });
 
-test("普通 AI 生成发送当前告知版本并持续标识生成内容", async ({ page }) => {
+test("普通 AI 生成发送当前告知版本并持续标识生成内容", async ({ page, baseURL }) => {
+  await syntheticInlineConsent(page, baseURL!, { consentState: "active", ageBand: "18_plus" });
   await page.route("**/api/ai/mood-journal", async (route) => {
     const payload = route.request().postDataJSON();
     expect(payload).toMatchObject({ aiNoticeAccepted: true, aiNoticeVersion: AI_NOTICE_VERSION });

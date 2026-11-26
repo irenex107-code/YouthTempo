@@ -108,7 +108,7 @@ export async function requireActiveStudentConsent(supabase: SupabaseClient, user
     .maybeSingle();
   if (consentError) throw consentError;
   if (!isActiveStudentConsent(consent)) {
-    const error = new Error("请先在账户页完成适用的知情确认，再使用这项功能。") as Error & { statusCode?: number };
+    const error = new Error("请先完成知情确认，再使用这项功能。") as Error & { statusCode?: number };
     error.statusCode = 403;
     throw error;
   }

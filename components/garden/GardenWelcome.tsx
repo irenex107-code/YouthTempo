@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { StudentActions } from "@/components/StudentActions";
 import { useState } from "react";
 import { GardenScene, type GardenSceneInteraction } from "@/components/garden/GardenScene";
 import { useTranslation } from "@/lib/i18n/client";
@@ -73,25 +75,26 @@ export function GardenGuide() {
   );
 }
 
-export function GardenWelcome({ home = false }: { home?: boolean }) {
+export function GardenWelcome({ home = false, adult = false, children }: { home?: boolean; adult?: boolean; children?: ReactNode }) {
   const { t } = useTranslation();
   const [interaction, setInteraction] = useState<GardenSceneInteraction | null>(null);
   return (
     <div className="garden-page px-4 py-7 sm:px-8 sm:py-10 lg:px-12">
       <div className="container min-w-0">
-        <p className="eyebrow">YouthTempo</p>
         <h1 className="mt-3 text-3xl font-bold text-ink sm:text-5xl">{t("home.hero.title")}</h1>
         <p className="mt-4 max-w-3xl leading-8 text-muted">{t(home ? "home.hero.description" : "gardenWelcome.description")}</p>
-        <div className="my-5 flex flex-wrap gap-3">
-          <Link href={home ? "/garden" : "/account?next=garden"} className="button-primary">{t(home ? "gardenWelcome.enter" : "gardenWelcome.login")}</Link>
-          <a href={home ? "#sweet-example" : "#garden-guide"} className="button-secondary">
-            {t(home ? "home.showcase.action" : "gardenWelcome.guide")}
-          </a>
-        </div>
+        {home ? <div className="my-5 flex flex-wrap gap-3">
+          <Link href="/for-young-people" className="button-primary">{t("home.audiences.teens.action")}</Link>
+          <a href="#sweet-example" className="button-secondary">{t("home.showcase.action")}</a>
+        </div> : <StudentActions adult={adult} recordHref="#garden-access" />}
+        {children}
         <GardenScene stage="seed" statusText={t("gardenWelcome.preview")} selectedItems={{}} interaction={interaction}
           onExplore={(place) => setInteraction({ id: Date.now(), kind: place, message: t(`garden.explore.${place}.response`) })} />
         {home ? <SweetExample /> : null}
-        <GardenGuide />
+        <details className="mt-5">
+          <summary className="w-fit cursor-pointer font-semibold text-sage-dark">{t("gardenWelcome.guide")}</summary>
+          <GardenGuide />
+        </details>
       </div>
     </div>
   );

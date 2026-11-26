@@ -1,3 +1,5 @@
+import { useInlineStudentConsent } from "@/lib/useInlineStudentConsent";
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
@@ -82,6 +84,25 @@ function CaseFeedback({ item, onSaved }: { item: CaseItem; onSaved: () => Promis
 }
 
 export default function CasePortal({ mode }: { mode: "youth" | "adult" }) {
+  return mode === "youth" ? <StudentSupport /> : <SupportCases mode="adult" />;
+}
+
+function StudentSupport() {
+  const consent = useInlineStudentConsent();
+  const { t } = useTranslation();
+  if (consent.studentReady) return <SupportCases key={consent.userId} mode="youth" />;
+  return (
+    <main className="section">
+      <div className="container max-w-3xl">
+        <h1 className="text-3xl font-bold">{t("supportFlow.portal.youthTitle")}</h1>
+        <Link href="/referral#direct-support" className="my-4 inline-block underline">{t("studentActions.talk")}</Link>
+        <InlineStudentConsent controller={consent} studentOnly />
+      </div>
+    </main>
+  );
+}
+
+function SupportCases({ mode }: { mode: "youth" | "adult" }) {
   const { locale, t } = useTranslation();
   const [data, setData] = useState<PortalData | null>(null);
   const [needSummary, setNeedSummary] = useState("");
@@ -171,7 +192,7 @@ export default function CasePortal({ mode }: { mode: "youth" | "adult" }) {
         label={t(heroKeys[0])}
         title={t(heroKeys[1])}
         subtitle={t(heroKeys[2])}
-        action={<Link href="/referral" className="button-secondary">{t("supportFlow.closed.referral")}</Link>}
+        action={<Link href={isAdult ? "/for-young-adults#direct-support" : "/referral#direct-support"} className="button-secondary">{t("supportFlow.closed.referral")}</Link>}
       />
       <main className="section section-muted">
         <div className="container max-w-4xl space-y-5">
