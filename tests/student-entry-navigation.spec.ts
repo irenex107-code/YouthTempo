@@ -4,6 +4,23 @@ import en from "../locales/en.json";
 import { syntheticInlineConsent } from "./fixtures/synthetic-inline-consent";
 
 for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
+  for (const signedIn of [false, true]) {
+    test(`${prefix || "zh"} both age entries fit the first 320×568 screen when signed ${signedIn ? "in" : "out"}`, async ({ page, baseURL, isMobile }) => {
+      test.skip(!isMobile, "This check uses a small phone viewport");
+      await page.setViewportSize({ width: 320, height: 568 });
+      await syntheticInlineConsent(page, baseURL!, { signedIn, consentState: "active" });
+      await page.goto(`${prefix}/for-young-people`);
+      const header = page.getByRole("banner");
+      if (signedIn) await expect(header.getByRole("button", { name: copy.account.actions.signOut, exact: true })).toBeVisible();
+      await page.evaluate(() => document.fonts.ready);
+      for (const choice of Object.values(copy.forYoungPeople.paths)) {
+        await expect(page.getByRole("link", { name: choice.action, exact: true })).toBeInViewport({ ratio: 1 });
+      }
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    });
+  }
+
   test(`${prefix || "zh"} garden, SWEET steps and writing fields fit a 320px screen`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 664 });
     for (const [route, selector, count] of [
@@ -130,6 +147,9 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
     expect(writes).toHaveLength(1);
     expect(writes[0].records.map(r => r.id)).toEqual(["sleep", "wake", "eat", "exercise", "task"]);
     expect(aiCalls).toBe(0);
+    const history = page.getByRole("link", { name: copy.checkIn.historyLink, exact: true });
+    await expect(history).toHaveAttribute("href", `${prefix}/account#records`);
+    await expect(history).toHaveAttribute("target", "_blank");
   });
 
   test(`${prefix || "zh"} a young adult can reach support without a questionnaire or a school`, async ({ page, isMobile }) => {

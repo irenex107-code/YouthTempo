@@ -197,7 +197,7 @@
     "description": "Both paths let you check in, sort through feelings and find someone to talk to.",
     "paths": {
       "secondary": { "age": "Ages 14–17", "title": "Secondary students", "description": "See how your day went, or find someone to talk to.", "action": "Open the student garden",
-        "learnMore": "About the garden" },
+        "learnMore": "About the student garden" },
       "youngAdults": { "age": "Ages 18–25", "title": "Young adults", "description": "At university, working or still deciding? You don’t need a school account.", "action": "Open the young adult space" }
     },
     "accountNote": "You’ll confirm your age group when you save a record."
@@ -782,6 +782,7 @@
     "generatedLabel": "AI-assisted record summary · not an assessment or diagnosis"
   },
   "checkIn": {
+    "historyLink": "View my SWEET history (opens in a new tab)",
     "metadata": { "title": "SWEET Rhythm Check-in | YouthTempo" },
     "hero": { "title": "SWEET rhythm check-in", "description": "A full SWEET check-in is suggested about once a week, and you can do another anytime. This is a suggestion, never a requirement. Choose one answer in each area and add details only if you wish.", "imageAlt": "A cycle showing the five everyday rhythm areas of SWEET" },
     "progress": { "step": "Step {{current}} of {{total}}", "completed": "{{completed}} of {{total}} areas completed" },
@@ -834,7 +835,7 @@
       }
     },
     "messages": {
-      "selectRequired": "Choose the option that best matches how you are today.", "sessionExpired": "Your sign-in session has expired. Sign in again before saving.", "permissionDenied": "This account does not currently have permission to save. Contact your school lead or platform administrator.", "networkError": "The network connection is unstable. Check your connection and try saving again.", "saveFailed": "Your check-in could not be saved this time. Try again later.", "completeBeforeSave": "Complete the required questions in all five SWEET areas before saving.", "alreadySaved": "This SWEET check-in has already been saved.", "signInToSave": "Sign in before saving this check-in.", "saved": "Saved. You can view it under Account.", "summaryFailed": "A summary could not be created this time. Try again later.", "completeBeforeGenerate": "Complete the required questions in all five SWEET areas before generating a response.", "responseUnavailable": "A response is not available right now. Try again later.", "completeRequired": "Complete the required questions in all five SWEET areas.", "summaryUnavailableSaveAllowed": "Your summary isn’t available right now. Your answers are still here. You can choose “Save my record”."
+      "selectRequired": "Choose the option that best matches how you are today.", "sessionExpired": "Your sign-in session has expired. Sign in again before saving.", "permissionDenied": "This account does not currently have permission to save. Contact your school lead or platform administrator.", "networkError": "The connection was interrupted. Once you’re back online, check your history to see if your entry was saved.", "saveFailed": "We couldn’t confirm whether your check-in was saved. Check your history before trying again.", "completeBeforeSave": "Complete the required questions in all five SWEET areas before saving.", "alreadySaved": "This SWEET check-in has already been saved.", "signInToSave": "Sign in before saving this check-in.", "saved": "Saved. You can view it under Account.", "summaryFailed": "A summary could not be created this time. Try again later.", "completeBeforeGenerate": "Complete the required questions in all five SWEET areas before generating a response.", "responseUnavailable": "A response is not available right now. Try again later.", "completeRequired": "Complete the required questions in all five SWEET areas.", "summaryUnavailableSaveAllowed": "Your summary isn’t available right now. Your answers are still here. You can choose “Save my record”."
     },
     "actions": { "previous": "Previous", "next": "Next", "generatingAndSaving": "Generating and saving...", "generateAndSave": "Generate summary and save", "retrying": "Trying again...", "regenerate": "Generate again", "saving": "Saving...", "saveFirst": "Save check-in first", "savedToAccount": "Saved to account", "saveToAccount": "Save to account", "openMoodJournal": "Open the mood map", "openWorryTime": "Set worries aside tonight", "viewReferral": "View support pathways", "reset": "Start again" },
     "result": { "title": "This SWEET rhythm summary", "imageAlt": "An illustration of a check-in organized into a clear summary", "affectedAreas": "Areas organized by fixed rules: {{areas}}", "rhythmClue": "Rhythm clue organized by fixed rules", "smallStep": "An optional action for you to choose", "nextTool": "An optional next step", "disclaimer": "AI only summarizes what you explicitly entered in this record. Areas to notice and optional steps come from fixed rules. Neither is an assessment, diagnosis, or professional recommendation; rely on your original record." }
