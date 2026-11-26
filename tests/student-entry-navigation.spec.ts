@@ -67,12 +67,23 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
     expect(aiCalls).toBe(0);
   });
 
-  test(`${prefix || "zh"} a young adult can reach support without a questionnaire or a school`, async ({ page }) => {
+  test(`${prefix || "zh"} a young adult can reach support without a questionnaire or a school`, async ({ page, isMobile }) => {
+    if (isMobile) await page.setViewportSize({ width: 390, height: 664 });
     await page.goto(`${prefix}/for-young-people`);
-    await page.getByRole("link", { name: copy.forYoungPeople.paths.youngAdults.action }).click();
+    const choices = copy.forYoungPeople.paths;
+    const adultEntry = page.getByRole("link", { name: choices.youngAdults.action });
+    await expect(page.getByRole("link", { name: choices.secondary.action })).toBeInViewport({ ratio: 1 });
+    await expect(adultEntry).toBeInViewport({ ratio: 1 });
+    await adultEntry.click();
     await page.getByRole("navigation", { name: copy.studentActions.label }).getByRole("link", { name: copy.studentActions.talk }).click();
     await expect(page).toHaveURL(new RegExp(prefix + "/for-young-adults#direct-support$"));
     await expect(page.getByRole("heading", { name: copy.studentActions.adultSupport, exact: true })).toBeInViewport();
     await expect(page.getByText(copy.studentActions.adultSupportBody)).toBeVisible();
+    await page.getByRole("link", { name: copy.forYoungAdults.tools.items.support.action }).click();
+    await expect(page.getByRole("heading", { name: copy.supportFlow.closed.title })).toBeVisible();
+    const talk = page.getByRole("link", { name: copy.supportFlow.closed.referral, exact: true });
+    await expect(talk).toHaveCount(1);
+    await expect(talk).toHaveAttribute("href", `${prefix}/for-young-adults#direct-support`);
+    await expect(page.getByRole("link", { name: copy.supportFlow.closed.record, exact: true })).toHaveAttribute("href", `${prefix}/garden?audience=adult`);
   });
 }

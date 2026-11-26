@@ -202,9 +202,8 @@ function SupportCases({ mode }: { mode: "youth" | "adult" }) {
           {isAdult && !allowed ? (
             <section className="card">
               <div className="flex flex-wrap gap-3">
-                <Link href="/garden" className="button-secondary">{t("supportFlow.closed.record")}</Link>
+                <Link href="/garden?audience=adult" className="button-secondary">{t("supportFlow.closed.record")}</Link>
                 <Link href="/peer-space" className="button-secondary">{t("supportFlow.closed.peer")}</Link>
-                <Link href="/referral" className="button-secondary">{t("supportFlow.closed.referral")}</Link>
               </div>
             </section>
           ) : null}
