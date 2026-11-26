@@ -15,15 +15,17 @@ for (const [prefix, copy] of [["", zh], ["/en", en]] as const) {
     await expect(page.getByText(copy.gardenWelcome.preview, { exact: true })).toBeVisible();
     await page.getByRole("button", { name: copy.garden.explore.pond.label, exact: true }).click();
     await expect(page.getByText(copy.garden.explore.pond.response, { exact: true })).toBeVisible();
+    await page.locator("summary").filter({ hasText: copy.gardenWelcome.guide }).click();
     for (const key of ["record", "growth", "care", "layout", "privacy", "choice"] as const) {
       await expect(page.getByRole("heading", { name: copy.gardenWelcome[key].title, exact: true })).toBeVisible();
     }
     await expect(page.locator('a[href$="/check-in"]')).toHaveCount(0);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: `deliverables/garden-entry-2026-10-09/${prefix ? "en" : "zh"}-${testInfo.project.name}.png`, fullPage: true });
-    await page.locator('a.button-primary').filter({ hasText: copy.gardenWelcome.enter }).last().click();
+    await page.getByRole("link", { name: copy.home.audiences.teens.action, exact: true }).click();
+    await page.getByRole("link", { name: copy.forYoungPeople.paths.secondary.action }).click();
     await expect(page).toHaveURL(new RegExp(`${prefix}/garden$`));
-    await expect(page.getByRole("link", { name: copy.gardenWelcome.login, exact: true })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: copy.account.visitor.email, exact: true })).toBeVisible();
     expect(writes).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
   });

@@ -75,5 +75,5 @@ test("青少年工具列表不再展示 Talk 入口", async ({ page }) => {
   await page.goto("/for-teens");
 
   await expect(page.locator('a[href="/talk"]')).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "看看下一步" }).first()).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "我想做什么" }).getByRole("link", { name: "找人聊聊" })).toBeVisible();
 });

@@ -30,8 +30,8 @@ test("悄悄话信箱按年龄说明收件范围且不宣称进入咨询", async
 
   expect(source).toContain('t("messages.member.hero.adultStudentDescription")');
   expect(source).toContain('t("messages.member.hero.minorStudentDescription")');
-  expect(zhCN.messages.member.hero.minorStudentDescription).toContain("当前试点不创建家长收件关系");
-  expect(zhCN.messages.member.hero.adultStudentDescription).toContain("不包含家长收件流程");
+  expect(zhCN.messages.member.hero.minorStudentDescription).toContain("收件人里没有家长");
+  expect(zhCN.messages.member.hero.adultStudentDescription).toContain("不会自动发给家长");
   expect(zhCN.account.ageGuidance.minor.description).toContain("不等于进入心理咨询");
   expect(en.account.ageGuidance.minor.description).toContain("does not mean that counselling has begun");
 });

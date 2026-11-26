@@ -514,10 +514,14 @@ export async function unblockCommunityMember(targetUserId: string) {
   }) as Promise<{ ok: boolean }>;
 }
 
-export async function signOut() {
+export async function signOut(expectedUserId?: string) {
   const supabase = getSupabase();
   if (!supabase) return;
-  await supabase.auth.signOut();
+  if (expectedUserId && (await supabase.auth.getSession()).data.session?.user.id !== expectedUserId) {
+    throw new Error("session_changed");
+  }
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
 export async function getProfile(user: User) {
@@ -691,16 +695,17 @@ export async function saveCloudSweetRecord(record: {
   summary?: string;
   smallStep?: string;
   recommendedNextTool?: string;
-}) {
+}, expectedUserId?: string) {
   const supabase = getSupabase();
   if (!supabase) throw new Error("账号服务暂时不可用，请稍后再试。");
   const user = await getCurrentUser();
   if (!user) throw new Error("请先登录，再保存这次记录。");
+  if (expectedUserId && user.id !== expectedUserId) throw new Error("session_changed");
   const profile = await getProfile(user);
   if (profile?.role === "学生") {
     const consent = await getStudentConsentStatus();
     if (consent.consent?.status !== "active") {
-      throw new Error("请先在账户页完成适用的知情确认，再保存记录。");
+      throw new Error("student_consent_required");
     }
   }
   const dayRange = shanghaiCalendarDayRange();

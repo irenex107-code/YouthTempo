@@ -27,13 +27,15 @@ export function GardenFactsPanel({ data, savingPreference, onReminderChange, onO
         <div><dt>{t("garden.stats.monthLabel")}</dt><dd>{data.thisMonth}</dd></div>
         <div><dt>{t("garden.stats.totalLabel")}</dt><dd>{data.total}</dd></div>
       </dl>
+      <p className="text-sm leading-6 text-muted">{t("studentActions.countRule")}</p>
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <details><summary className="w-fit cursor-pointer font-semibold text-sage-dark">{t("garden.reminders.title")}</summary>
         <label className="text-sm font-semibold text-ink">
           {t("garden.reminders.title")}
           <select className="mt-2 block w-full rounded-xl border border-sage/30 bg-white px-4 py-3 font-normal" value={data.reminderMode} disabled={savingPreference} onChange={changeReminder}>
             {reminderModes.map((mode) => <option key={mode} value={mode}>{t(`garden.reminders.${mode}`)}</option>)}
           </select>
-        </label>
+        </label></details>
         <button type="button" className="button-secondary" onClick={onOpenKeepsakes}>{t("garden.keepsakes.open")}</button>
       </div>
     </section>

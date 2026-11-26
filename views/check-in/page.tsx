@@ -1,6 +1,10 @@
 import { GardenGuide } from "@/components/garden/GardenWelcome";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { InlineConsentDialog } from "@/components/InlineConsentDialog";
+import { useInlineStudentConsent } from "@/lib/useInlineStudentConsent";
+import { detectCrisisInValues, getCrisisResponse } from "@/lib/safety/crisisDetection";
 import { PageHero } from "@/components/PageHero";
 import { FeatureIllustration, IllustrationPanel } from "@/components/IllustrationPanel";
 import { AiUrgentNotice } from "@/components/AiUrgentNotice";
@@ -8,7 +12,7 @@ import { AiGeneratedLabel, AiTransparencyNotice } from "@/components/AiTranspare
 import { MicroPilotFeedback } from "@/components/MicroPilotFeedback";
 import { AI_NOTICE_VERSION } from "@/lib/aiNotice";
 import { aiRequestHeaders } from "@/lib/aiClient";
-import { getCurrentUser, saveCloudSweetRecord } from "@/lib/cloudRecords";
+import { saveCloudSweetRecord } from "@/lib/cloudRecords";
 import { reportClientOperationFailure } from "@/lib/clientMonitoring";
 import { useTranslation } from "@/lib/i18n/client";
 import type { TranslationKey } from "@/lib/i18n/dictionaries";
@@ -188,6 +192,10 @@ function isFieldComplete(value: FieldValue) {
 
 export default function CheckInPage() {
   const { locale, t } = useTranslation();
+  const consent = useInlineStudentConsent();
+  const [showConsent, setShowConsent] = useState(false);
+  const draftOwner = useRef("");
+  const draftRevision = useRef(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(initialAnswers);
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
@@ -231,12 +239,27 @@ export default function CheckInPage() {
     resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [aiResult]);
 
+  useEffect(() => {
+    if (draftOwner.current && draftOwner.current !== consent.userId) {
+      reset();
+      setShowConsent(false);
+      setSaving(false);
+      setLoading(false);
+    }
+    draftOwner.current = consent.userId;
+  }, [consent.userId]);
+
+  useEffect(() => {
+    if (consent.studentReady) setShowConsent(false);
+  }, [consent.studentReady]);
+
   function goToStep(index: number) {
     shouldScrollToQuestionRef.current = true;
     setCurrentStep(Math.max(0, Math.min(index, steps.length - 1)));
   }
 
   function setSingleValue(fieldId: string, value: string) {
+    ++draftRevision.current;
     setAnswers((current) => ({ ...current, [step.id]: { ...current[step.id], [fieldId]: value } }));
     setValidation("");
     setSaveStatus("");
@@ -247,6 +270,7 @@ export default function CheckInPage() {
   }
 
   function toggleMultiValue(fieldId: string, value: string) {
+    ++draftRevision.current;
     setAnswers((current) => {
       const existing = current[step.id][fieldId];
       const list = Array.isArray(existing) ? existing : [];
@@ -266,6 +290,7 @@ export default function CheckInPage() {
   }
 
   function setTextValue(fieldId: string, value: string) {
+    ++draftRevision.current;
     setAnswers((current) => ({ ...current, [step.id]: { ...current[step.id], [fieldId]: value } }));
     setValidation("");
     setSaveStatus("");
@@ -284,7 +309,9 @@ export default function CheckInPage() {
   }
 
   function reset() {
+    ++draftRevision.current;
     setAnswers(initialAnswers);
+    setSensitiveConsentAccepted(false);
     setCurrentStep(0);
     setAiResult(null);
     setUrgentReply("");
@@ -331,26 +358,33 @@ export default function CheckInPage() {
       smallStep: result?.smallStep,
       recommendedNextTool: result?.recommendedNextTool,
     };
-    const recordKey = JSON.stringify(recordPayload.records);
+    const recordKey = JSON.stringify(recordPayload);
     if (recordKey === savedRecordKey) {
       setSaveStatus(t("checkIn.messages.alreadySaved"));
       return;
     }
+    if (!consent.canProceed) { setShowConsent(true); return; }
+    const actor = consent.userId;
+    const sameAccess = consent.trackRequest();
+    const revision = draftRevision.current;
+    const current = () => sameAccess() && revision === draftRevision.current;
     setSaving(true);
     try {
-      const user = await getCurrentUser();
-      if (!user) {
-        setSaveStatus(t("checkIn.messages.signInToSave"));
-        return;
-      }
-      await saveCloudSweetRecord(recordPayload);
+      await saveCloudSweetRecord(recordPayload, actor);
+      if (!current()) return;
       setSavedRecordKey(recordKey);
       setSaveStatus(t("checkIn.messages.saved"));
     } catch (saveError) {
+      if (!current()) return;
+      if (saveError instanceof Error && saveError.message === "student_consent_required") {
+        setShowConsent(true);
+        void consent.refresh();
+        return;
+      }
       reportClientOperationFailure("save", "sweet_record_save", saveError);
       setSaveStatus(recordSaveErrorMessage(saveError));
     } finally {
-      setSaving(false);
+      if (consent.isSameActor(actor)) setSaving(false);
     }
   }
 
@@ -365,27 +399,37 @@ export default function CheckInPage() {
     };
     const response = await fetch("/api/ai/check-in", {
       method: "POST",
-      headers: await aiRequestHeaders(),
+      headers: await aiRequestHeaders(consent.userId),
       body: JSON.stringify(payload),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || t("checkIn.messages.summaryFailed"));
+    if (response.status === 401 || response.status === 403) throw new Error("student_consent_required");
+    if (!response.ok) throw new Error("summary_unavailable");
     return data as AiResult | AiUrgentResponse;
   }
 
-  async function generateSummary() {
+  async function generateSummary(saveAfter = false) {
     if (loading || saving) return;
-    if (!allRequiredDone) {
-      setValidation(t("checkIn.messages.completeBeforeGenerate"));
+    if (!allRequiredDone) { setValidation(t("checkIn.messages.completeBeforeGenerate")); return; }
+    if (detectCrisisInValues(answers, locale).isUrgent) {
+      setAiResult(null);
+      setUrgentReply(getCrisisResponse(locale));
       return;
     }
+    if (!consent.studentReady) { setShowConsent(true); return; }
+    if (!sensitiveConsentAccepted) { setValidation(t("aiTransparency.confirm")); return; }
 
+    const sameAccess = consent.trackRequest();
+    const revision = draftRevision.current;
+    const current = () => sameAccess() && revision === draftRevision.current;
+    const actor = consent.userId;
     setLoading(true);
     setError("");
     setValidation("");
     setSaveStatus("");
     try {
       const result = await requestSummary();
+      if (!current()) return;
       if (isAiUrgentResponse(result)) {
         setAiResult(null);
         setUrgentReply(result.reply);
@@ -393,43 +437,17 @@ export default function CheckInPage() {
       }
       setUrgentReply("");
       setAiResult(result);
+      if (saveAfter) await saveCurrentRecord(result);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : t("checkIn.messages.responseUnavailable"));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function generateAndSave() {
-    if (loading || saving) return;
-    if (!allRequiredDone) {
-      setValidation(t("checkIn.messages.completeRequired"));
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setValidation("");
-    setSaveStatus("");
-    try {
-      const result = await requestSummary();
-      if (isAiUrgentResponse(result)) {
-        setAiResult(null);
-        setUrgentReply(result.reply);
-        return;
+      if (!current()) return;
+      if (requestError instanceof Error && requestError.message === "student_consent_required") {
+        setShowConsent(true);
+        void consent.refresh();
+      } else {
+        setError(t("checkIn.messages.summaryUnavailableSaveAllowed"));
       }
-      setUrgentReply("");
-      setAiResult(result);
-      await saveCurrentRecord(result);
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t("checkIn.messages.summaryUnavailableSaveAllowed"),
-      );
-      await saveCurrentRecord(null);
     } finally {
-      setLoading(false);
+      if (consent.isSameActor(actor)) setLoading(false);
     }
   }
 
@@ -597,7 +615,7 @@ export default function CheckInPage() {
                   id="check-in-ai-notice"
                   className="mt-7"
                   checked={sensitiveConsentAccepted}
-                  onChange={setSensitiveConsentAccepted}
+                  onChange={(checked) => { ++draftRevision.current; setSensitiveConsentAccepted(checked); }}
                 />
               ) : null}
 
@@ -610,19 +628,27 @@ export default function CheckInPage() {
                     {t("checkIn.actions.next")}
                   </button>
                 ) : (
-                  <button type="button" className="button-primary w-full disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/45 sm:w-auto" disabled={!allRequiredDone || loading || saving} onClick={generateAndSave}>
+                  <>
+                  <button type="button" className="button-primary w-full sm:w-auto" disabled={!allRequiredDone || loading || saving} onClick={() => saveCurrentRecord()}>
+                    {t(saving ? "checkIn.actions.saving" : "studentActions.saveOnly")}
+                  </button>
+                  <button type="button" className="button-secondary w-full sm:w-auto" disabled={!allRequiredDone || loading || saving} onClick={() => generateSummary(true)}>
                     {loading || saving ? t("checkIn.actions.generatingAndSaving") : t("checkIn.actions.generateAndSave")}
                   </button>
+                  </>
                 )}
               </div>
             </article>
 
+            {showConsent ? <InlineConsentDialog open onClose={() => setShowConsent(false)}>
+              <InlineStudentConsent controller={consent} studentOnly />
+            </InlineConsentDialog> : null}
             {saveStatus ? <p className="mt-5 rounded-2xl bg-white/80 p-4 text-sm font-bold text-sage-dark">{saveStatus}</p> : null}
             {error ? (
               <div className="mt-6 rounded-2xl bg-white/80 p-5">
                 <p className="text-sm font-bold text-sage-dark">{error}</p>
                 <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
-                  <button type="button" className="button-primary w-full sm:w-auto" disabled={loading} onClick={generateSummary}>
+                  <button type="button" className="button-primary w-full sm:w-auto" disabled={loading} onClick={() => generateSummary()}>
                     {loading ? t("checkIn.actions.retrying") : t("checkIn.actions.regenerate")}
                   </button>
                   <button type="button" className="button-secondary w-full sm:w-auto" disabled={saving} onClick={() => saveCurrentRecord()}>

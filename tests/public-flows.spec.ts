@@ -6,7 +6,7 @@ test("首页提供青少年日常支持和 SWEET 主入口", async ({ page }) =>
   await expect(page).toHaveTitle(/YouthTempo/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText("SWEET花园");
   await expect(page.getByText("庭院预览 · 不保存记录", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "SWEET花园", exact: true }).first()).toHaveAttribute("href", "/garden");
+  await expect(page.getByRole("link", { name: "选择我的入口", exact: true })).toHaveAttribute("href", "/for-young-people");
 });
 
 test("未登录用户可以看到三个角色入口", async ({ page }) => {
@@ -15,38 +15,39 @@ test("未登录用户可以看到三个角色入口", async ({ page }) => {
   const menuButton = page.getByRole("button", { name: "打开导航菜单" });
   if (await menuButton.isVisible()) await menuButton.click();
 
-  await expect(page.getByRole("link", { name: "青少年入口", exact: true })).toHaveAttribute("href", "/for-young-people");
-  await expect(page.getByRole("link", { name: "家长入口", exact: true })).toHaveAttribute("href", "/for-parents");
-  await expect(page.getByRole("link", { name: "老师入口", exact: true })).toHaveAttribute("href", "/for-teachers");
+  await expect(page.getByRole("link", { name: "学生与青年", exact: true })).toHaveAttribute("href", "/for-young-people");
+  await expect(page.getByRole("link", { name: "家长指南", exact: true })).toHaveAttribute("href", "/for-parents");
+  await expect(page.getByRole("link", { name: "教师指南", exact: true })).toHaveAttribute("href", "/for-teachers");
 });
 
 test("青少年入口先展示中学生和大学生路径", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /进入青少年入口/ }).click();
+  await page.getByRole("link", { name: "选择我的入口", exact: true }).click();
   await expect(page).toHaveURL(/\/for-young-people$/);
-  await expect(page.getByRole("heading", { level: 1, name: "先选适合你的入口" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "进入中学生页面" })).toHaveAttribute("href", "/for-teens");
-  await expect(page.getByRole("link", { name: "进入大学生与青年页面" })).toHaveAttribute("href", "/for-young-adults");
+  await expect(page.getByRole("heading", { level: 1, name: "选择适合你的入口" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "进入中学生花园" })).toHaveAttribute("href", "/garden");
+  await expect(page.getByRole("link", { name: "进入大学生与青年专区" })).toHaveAttribute("href", "/for-young-adults");
 
-  await page.getByRole("link", { name: "进入大学生与青年页面" }).click();
+  await page.getByRole("link", { name: "进入大学生与青年专区" }).click();
   await expect(page).toHaveURL(/\/for-young-adults$/);
 
   await page.goto("/en/for-young-people");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByRole("link", { name: "Go to the school student page" })).toHaveAttribute("href", "/en/for-teens");
-  await expect(page.getByRole("link", { name: "Go to the young adult page" })).toHaveAttribute("href", "/en/for-young-adults");
+  await expect(page.getByRole("link", { name: "Open the school student garden" })).toHaveAttribute("href", "/en/garden");
+  await expect(page.getByRole("link", { name: "Continue as a young adult" })).toHaveAttribute("href", "/en/for-young-adults");
 });
 
 for (const rolePage of [
-  { path: "/for-teens", heading: "青少年入口", workspace: "进入青少年工作台" },
-  { path: "/for-parents", heading: "家长入口", workspace: "进入家长工作台" },
-  { path: "/for-teachers", heading: "老师入口", workspace: "进入老师工作台" },
+  { path: "/for-teens", heading: "中学生可以从这里开始", workspace: "记录今天" },
+  { path: "/for-parents", heading: "家长陪伴指南", workspace: "打开我的账户" },
+  { path: "/for-teachers", heading: "教师支持指南", workspace: "进入老师工作台" },
 ]) {
   test(`${rolePage.heading}提供工作台和 SWEET 入口`, async ({ page }) => {
     await page.goto(rolePage.path);
 
     await expect(page.getByRole("heading", { level: 1, name: rolePage.heading })).toBeVisible();
-    await expect(page.getByRole("link", { name: rolePage.workspace })).toHaveAttribute("href", "/account");
+    await expect(page.getByRole("link", { name: rolePage.workspace, exact: true })).toHaveAttribute("href", rolePage.path === "/for-teens" ? "/garden" : "/account");
+    if (rolePage.path === "/for-teens") await page.locator("summary").filter({ hasText: "更多工具" }).click();
     await expect(page.getByRole("link", { name: "了解 SWEET" })).toHaveAttribute("href", "/sweet-model");
   });
 }
@@ -81,11 +82,13 @@ test("未登录进入试点反馈页时只显示登录入口", async ({ page }) 
 test("18–25 岁可以找到不依赖学校或监护人的独立入口", async ({ page }) => {
   await page.goto("/for-young-adults");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("照顾自己的节奏");
-  await expect(page.getByText("不需要学校或监护人加入")).toBeVisible();
-  await expect(page.getByText("受邀成年人试点", { exact: true })).toHaveCount(1);
-  await expect(page.getByRole("link", { name: "登录并开始" })).toHaveAttribute("href", "/account");
-  await expect(page.getByRole("link", { name: "SWEET花园", exact: true }).last()).toHaveAttribute("href", "/garden");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("大学生与青年");
+  await expect(page.getByText(/无需家长或学校加入/)).toBeVisible();
+  const tasks = page.getByRole("navigation", { name: "我想做什么" });
+  await expect(tasks.getByRole("link", { name: "记录今天" })).toHaveAttribute("href", "/garden?audience=adult");
+  await expect(tasks.getByRole("link", { name: "找人聊聊" })).toHaveAttribute("href", "/for-young-adults#direct-support");
+  await page.locator("summary").filter({ hasText: "更多工具" }).click();
+  await expect(page.getByRole("link", { name: "有邀请？进入解忧室" })).toHaveAttribute("href", "/peer-space");
 });
 
 test("公开页面不展示生产端处理方式", async ({ page }) => {

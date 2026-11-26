@@ -1,3 +1,6 @@
+import { InlineStudentConsent } from "@/components/InlineStudentConsent";
+import { InlineConsentDialog } from "@/components/InlineConsentDialog";
+import { useInlineStudentConsent, type InlineStudentConsentController } from "@/lib/useInlineStudentConsent";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -213,6 +216,15 @@ function DeleteDialog({
 }
 
 export default function CommunityPage() {
+  const consent = useInlineStudentConsent();
+  return <CommunityContents key={consent.userId} consent={consent} />;
+}
+
+function CommunityContents({ consent }: { consent: InlineStudentConsentController }) {
+  const [confirmHere, setConfirmHere] = useState(false);
+  useEffect(() => {
+    if (consent.studentReady) setConfirmHere(false);
+  }, [consent.studentReady]);
   const { locale, t } = useTranslation();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -284,6 +296,7 @@ export default function CommunityPage() {
   }
 
   async function submitPost() {
+    if (currentRole === "student" && !consent.studentReady) { setConfirmHere(true); return; }
     setBusy(true);
     setError("");
     setNotice("");
@@ -307,6 +320,7 @@ export default function CommunityPage() {
   async function submitComment(postId: string) {
     const draft = (commentDrafts[postId] || "").trim();
     if (!draft) return;
+    if (currentRole === "student" && !consent.studentReady) { setConfirmHere(true); return; }
     setBusy(true);
     setError("");
     try {
@@ -401,13 +415,16 @@ export default function CommunityPage() {
 
   return (
     <>
+      {confirmHere ? <InlineConsentDialog open onClose={() => setConfirmHere(false)}>
+        <InlineStudentConsent controller={consent} studentOnly />
+      </InlineConsentDialog> : null}
       <PageHero
         label={t("community.hero.label")}
         title={t("community.hero.title")}
         subtitle={t("community.hero.description")}
         action={
           loggedIn === false ? (
-            <Link href="/account?next=/community" className="button-primary">{t("community.actions.signIn")}</Link>
+            <button type="button" className="button-primary" onClick={() => setConfirmHere(true)}>{t("community.actions.signIn")}</button>
           ) : loggedIn === true ? (
             <a href="#new-post" className="button-primary">{t("community.actions.newTopic")}</a>
           ) : (
@@ -471,7 +488,7 @@ export default function CommunityPage() {
               <p className="mt-4 text-sm leading-7 text-muted">
                 {t("community.visitor.description")}
               </p>
-              <Link href="/account?next=/community" className="button-primary mt-6">{t("community.visitor.action")}</Link>
+              <button type="button" className="button-primary mt-6" onClick={() => setConfirmHere(true)}>{t("community.visitor.action")}</button>
             </div>
           ) : (
             <>

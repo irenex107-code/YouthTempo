@@ -74,10 +74,10 @@ test("手机导航可以展开、访问角色入口并关闭", async ({ page }) 
   await expect(menuButton).toHaveAttribute("aria-expanded", "false");
 
   await menuButton.click();
-  await expect(page.getByRole("link", { name: "青少年入口", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "家长入口", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "老师入口", exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "登录 / 我的记录", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "学生与青年", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "家长指南", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "教师指南", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "登录", exact: true })).toBeVisible();
 
   const closeButton = page.getByRole("button", { name: "关闭导航菜单" });
   await expect(closeButton).toHaveAttribute("aria-expanded", "true");

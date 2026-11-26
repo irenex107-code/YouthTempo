@@ -68,7 +68,9 @@ for (const route of visitorRoutes) {
 test("社区未登录分支保持访问边界", async ({ page }) => {
   await page.goto("/community");
   await expect(page.getByRole("heading", { name: zhCN.community.visitor.title })).toBeVisible();
-  await expect(page.getByRole("link", { name: zhCN.community.visitor.action })).toHaveAttribute("href", "/account?next=/community");
+  await page.getByRole("button", { name: zhCN.community.visitor.action, exact: true }).last().click();
+  await expect(page.getByRole("dialog").getByRole("textbox")).toBeVisible();
+  await expect(page).toHaveURL(/\/community$/);
 });
 
 test("Batch 3 locale 页面在窄屏下没有横向溢出", async ({ page }) => {

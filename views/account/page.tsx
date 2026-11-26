@@ -472,8 +472,17 @@ export default function AccountPage() {
     }
   }
 
+  useEffect(() => {
+    if (router.isReady && router.query.signedOut === "1" && !user) setNotice(t("account.notices.signedOut"));
+  }, [router.isReady, router.query.signedOut, user, t]);
+
   async function handleSignOut() {
-    await signOut();
+    try {
+      await signOut(user?.id);
+    } catch {
+      setError(t("common.navbar.account.exitFailed"));
+      return;
+    }
     setNotice(t("account.notices.signedOut"));
     setWechatBindSession(null);
     setWechatStatus("");
