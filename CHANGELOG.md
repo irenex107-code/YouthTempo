@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-27 · Student check-ins and access
+
+- Both age groups have an entry on the homepage. Students can complete participation consent on the check-in page, save their answers with an optional AI summary, and open their account history from the save confirmation. Signed-in users can sign out from the header or their account. [Sign out](https://github.com/irenex107-code/YouthTempo/pull/17) · [Age paths and saved history](https://github.com/irenex107-code/YouthTempo/pull/18)
+- The bilingual support pages distinguish the people a student can speak to in person from the recipients available in the inbox. Guardian accounts cannot read a student's private SWEET. [Bilingual copy](https://github.com/irenex107-code/YouthTempo/pull/19) · [Production deployment](https://github.com/irenex107-code/YouthTempo/actions/runs/45899988528)
+
 ## 2026-11-25 · Public showcase and limited S02 / P01-15 release
 
 - The bilingual public site shows both age paths (14–17 and 18–25), a fictional SWEET example, and a direct support link. The example explains how the garden counts recorded dates in Beijing time.

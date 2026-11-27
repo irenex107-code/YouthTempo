@@ -1,10 +1,10 @@
 # YouthTempo
 
-> Project documentation · 项目文档 · 2026-11-26
+> Project documentation · 项目文档 · 2026-11-27
 
-YouthTempo is a bilingual youth mental health support platform preparing for a small-scale school pilot. It helps young people understand emotions, build healthier everyday rhythms, and reach appropriate support before challenges become crises.
+YouthTempo is a bilingual site for secondary school students aged 14–17 and young adults aged 18–25. You can keep a private record of your day, look back at how you’ve been feeling, or find someone to talk to.
 
-YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健康支持平台。它帮助年轻人理解情绪、建立更健康的日常节律，并在困扰恶化为危机之前连接到合适的支持。
+YouthTempo 有中英文两个版本，面向 14–17 岁中学生和 18–25 岁青年。你可以记下今天过得怎么样，回看自己的记录，或看看可以找谁聊聊。
 
 **Official site / 正式站** · [中文](https://youthtempo.com/) · [English](https://youthtempo.com/en)
 
@@ -18,13 +18,9 @@ YouthTempo 是一个正在准备小规模学校试点的双语青少年心理健
 
 ## 1. Project Overview
 
-Young people can reflect on their daily rhythms, put feelings into words, review their own SWEET history, and find someone to talk to. The 14–17 and 18–25 entry pages describe the choices each age group has. The school pilot has a separate approval process.
+Visitors can try the fictional SWEET example on the homepage without an account. A small school pilot is being prepared separately to learn how students use the site and where they need more support.
 
-年轻人可以记录日常节律、梳理感受、回看自己的 SWEET 历史，在需要时找人聊聊。14–17 岁和 18–25 岁各有适合本年龄段的入口。真实学校试点另行放行。
-
-The project is built for pilot learning rather than large-scale commercial claims. Its current purpose is to test usability, safety, data boundaries, and collaboration across young people, families, schools, and professional support.
-
-项目当前服务于真实试点学习，而不是追求大规模商业化叙事。现阶段重点是验证产品是否好用、安全，数据边界是否清楚，以及青少年、家庭、学校与专业支持之间能否形成可靠协作。
+访客无需注册就能在首页查看一份虚构的 SWEET 记录。项目也在另行准备小规模学校试点，了解学生怎样使用网站、在哪里还需要帮助。
 
 ## 2. Problem Background
 
@@ -83,17 +79,17 @@ SWEET 是 YouthTempo 用于日常梳理的循证启发型产品框架，关注�
 - **E — Exercise：**身体活动与运动。
 - **T — Task Engagement：**对学习、责任和有意义日常任务的投入。
 
-The model helps users notice patterns and changes; it is not a diagnostic scale. A check-in produces a concise, non-diagnostic reflection and one manageable next step.
+Looking back at these five parts of your day can help you notice changes in your routine. You can save your answers on their own. If you want an AI summary, you can read and accept the AI notice, then choose “Generate summary and save”.
 
-这个模型用于帮助用户觉察模式和变化，不是心理诊断量表。完成一次记录后，用户会得到简短、非诊断性的小结，以及一个更容易行动的下一步建议。
+这五个方面帮你回顾最近的生活。填好后可以点「先保存记录」。如果想看 AI 小结，可以阅读并确认 AI 使用说明，再点「生成小结并保存」。
 
 ## 6. Product Features
 
 ### Check-in
 
-A short SWEET-based reflection that helps users review the day, receive a structured summary, and save their history when eligible.
+A short check-in about your day. After saving, follow the link to your account history to find the entry again.
 
-基于 SWEET 的简短日常梳理，帮助用户回顾当天状态、获得结构化小结，并在符合条件时保存历史记录。
+用 SWEET 回顾今天。保存后，点「查看我的 SWEET 记录（新标签页）」就能在账户历史中找到刚才那条。
 
 ### SWEET Garden / SWEET 花园
 
@@ -317,9 +313,10 @@ Chinese is the product-copy source of truth, and the Chinese and English diction
 ## 14. Development Status
 
 
-| Scope / 范围 | As of 2026-11-26 / 截至 2026-11-26 |
+| Scope / 范围 | As of 2026-11-27 / 截至 2026-11-27 |
 | --- | --- |
 | Public site / 正式站公开页面 | Both age paths, bilingual SWEET Garden and fictional example, parent guides, teacher and privacy explanations, and direct support links. / 双语年龄分流、SWEET 花园和虚构示例、家长指南、教师和隐私说明及直接求助已上线。 |
+| Student experience / 学生体验 | Sign out from the header or your account. Complete participation consent on the check-in page and open your account history after saving. / 可从页首或账户页退出。在记录页即可完成参与确认，保存后可直接打开账户历史。 [Student experience releases / 学生体验发布记录](CHANGELOG.md) |
 | Account tools / 账户工具 | Email OTP, personal SWEET records and history, garden participation, data export and account deletion are deployed. Protected outreach and community functions depend on account eligibility. / 邮箱验证码、本人 SWEET 记录和历史、花园参与、数据导出和注销已上线。受保护的留言和社区功能按账号资格开放。 |
 | Closed features / 当前关闭 | Youth AI Talk, school reports, public young-adult chatroom and formal consultation. / 青少年 AI 对话、学校报告、公开成年人聊天室及正式心理咨询暂未开放。 |
 | Release evidence / 发布证据 | The admissions showcase passed the public guest check. S02 / P01-15 completed its limited release. The formal teacher-handoff role retest is `NOT_RUN` and requests already in flight during revocation remain `OPEN`. / 招生官公开展示通过访客复验。S02／P01-15 限定正式发布已完成，正式教师交接角色复验 `NOT_RUN`，撤权时在途请求 `OPEN`。 [Release PR / 发布 PR](https://github.com/irenex107-code/YouthTempo/pull/12) |
