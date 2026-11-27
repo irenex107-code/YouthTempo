@@ -16,7 +16,7 @@
       "listening": "Listening…"
     },
     "metadata": {
-      "description": "YouthTempo starts with everyday rhythms, helping young people understand how they are doing, express their feelings, and connect with trusted support more easily."
+      "description": "For students aged 14–17 and young adults aged 18–25. Use SWEET to check in, look back at your entries or find someone to talk to."
     },
     "navbar": {
       "homeAria": "YouthTempo home",
@@ -70,7 +70,7 @@
     }
   },
   "home": {
-    "metadata": { "title": "YouthTempo | Earlier Support for Young People" },
+    "metadata": { "title": "YouthTempo | Check-ins and support for teens and young adults" },
     "hero": {
       "label": "Everyday mental health support for young people",
       "title": "SWEET Garden",

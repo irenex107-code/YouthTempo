@@ -16,7 +16,7 @@
       "listening": "正在聆听…"
     },
     "metadata": {
-      "description": "YouthTempo 从日常节律开始，帮助青少年看见状态、表达感受，并更容易连接可信任的支持。"
+      "description": "给 14–17 岁中学生和 18–25 岁青年。用 SWEET 记下近况，回看自己的记录，或看看可以找谁聊聊。"
     },
     "navbar": {
       "homeAria": "YouthTempo 首页",
@@ -70,7 +70,7 @@
     }
   },
   "home": {
-    "metadata": { "title": "YouthTempo | 更早开始的青少年支持" },
+    "metadata": { "title": "YouthTempo | 中学生与青年的日常记录和支持" },
     "hero": {
       "label": "青少年日常支持平台",
       "title": "SWEET花园",
