@@ -2,7 +2,7 @@
 
 ## 2026-11-27｜学生现在可以怎样使用官网
 
-- 首页列出 14–17 岁中学生和 18–25 岁青年两个入口。学生可在记录页完成参与确认，直接保存五项答案，或选择生成 AI 小结。保存后可打开账户历史，登录后可从页首或账户页退出。 [退出入口](https://github.com/irenex107-code/YouthTempo/pull/17) · [年龄入口和记录回看](https://github.com/irenex107-code/YouthTempo/pull/18)
+- 首页说明适用年龄。点「选择我的入口」，再从「中学生」（14–17 岁）和「大学生与青年」（18–25 岁）中选一个。学生可在记录页完成参与确认，直接保存五项答案，或选择生成 AI 小结。保存后可打开账户历史，登录后可从页首或账户页退出。 [官网年龄选择页](https://youthtempo.com/for-young-people) · [退出入口](https://github.com/irenex107-code/YouthTempo/pull/17) · [记录回看](https://github.com/irenex107-code/YouthTempo/pull/18)
 - 站内悄悄话列出当前可选的收件人。学生也可以在现实中找信任的家长或老师聊聊。家长指南里的建议不会开放家长信箱或授予学生记录访问权。 [双语说明](https://github.com/irenex107-code/YouthTempo/pull/19) · [现行权限表](SECURITY_PERMISSION_MATRIX.md)
 - 真实学校试点仍为 **READY WITH CONDITIONS**。正式教师交接角色复验、撤权时已在途的请求和 Android 实体机仍待验证。 [正式部署历史](https://github.com/irenex107-code/YouthTempo/actions/workflows/deploy-production.yml)
 
