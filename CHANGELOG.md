@@ -2,8 +2,9 @@
 
 ## 2026-11-27 · Student check-ins and access
 
-- Both age groups have an entry on the homepage. Students can complete participation consent on the check-in page, save their answers with an optional AI summary, and open their account history from the save confirmation. Signed-in users can sign out from the header or their account. [Sign out](https://github.com/irenex107-code/YouthTempo/pull/17) · [Age paths and saved history](https://github.com/irenex107-code/YouthTempo/pull/18)
+- The homepage links to “Choose my age group”. On the next page, students aged 14–17 and young adults aged 18–25 can choose their own path. Students can complete participation consent on the check-in page, save their answers with an optional AI summary, and open their account history from the save confirmation. Signed-in users can sign out from the header or their account. [Age selection](https://youthtempo.com/en/for-young-people) · [Sign out](https://github.com/irenex107-code/YouthTempo/pull/17) · [Saved history](https://github.com/irenex107-code/YouthTempo/pull/18)
 - The bilingual support pages distinguish the people a student can speak to in person from the recipients available in the inbox. Guardian accounts cannot read a student's private SWEET. [Bilingual copy](https://github.com/irenex107-code/YouthTempo/pull/19) · [Production deployment](https://github.com/irenex107-code/YouthTempo/actions/runs/45899988528)
+- The homepage titles and descriptions name both audiences. The README and pilot documents explain the optional AI summary and who can see a private SWEET or a message sent to a teacher. [Public documentation update](https://github.com/irenex107-code/YouthTempo/pull/20)
 
 ## 2026-11-25 · Public showcase and limited S02 / P01-15 release
 
